@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=File Manager
+Name[zh_CN]=文件管理器
+GenericName=File Manager
+Comment=Cutefish File Manager
+Exec=cutefish-fm %U
+MimeType=inode/directory;
+Icon=file-system-manager
+Categories=FileManager;Utility;Core;Qt;
+StartupNotify=true
