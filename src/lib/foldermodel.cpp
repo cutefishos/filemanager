@@ -1648,6 +1648,9 @@ void FolderModel::createActions()
     QAction *actOpen = new QAction(tr("&Open"), this);
     connect(actOpen, &QAction::triggered, this, &FolderModel::openSelected);
 
+    QAction *propertiesAction = new QAction(tr("Properties"), this);
+    QObject::connect(propertiesAction, &QAction::triggered, this, &FolderModel::openPropertiesDialog);
+
     m_actionCollection.addAction(QStringLiteral("open"), actOpen);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
     m_actionCollection.addAction(QStringLiteral("undo"), undo);
@@ -1661,6 +1664,7 @@ void FolderModel::createActions()
     m_actionCollection.addAction(QStringLiteral("emptyTrash"), emptyTrash);
     m_actionCollection.addAction(QStringLiteral("new_folder"), newFolderAction);
     m_actionCollection.addAction(QStringLiteral("new_documents"), newDocAction);
+    m_actionCollection.addAction(QStringLiteral("properties"), propertiesAction);
 
     m_newMenu = new KNewFileMenu(&m_actionCollection, QStringLiteral("newMenu"), this);
     m_newMenu->setModal(false);
@@ -1819,13 +1823,8 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
             menu->addAction(setWallpaper);
         }
 
-        // Properties
-        if (KPropertiesDialog::canDisplay(KFileItemList() << rootItem())) {
-            menu->addSeparator();
-            QAction *act = new QAction(tr("Properties"), menu);
-            QObject::connect(act, &QAction::triggered, this, &FolderModel::openPropertiesDialog);
-            menu->addAction(act);
-        }
+        menu->addSeparator();
+        menu->addAction(m_actionCollection.action(QStringLiteral("properties")));
     } else {
         KFileItemList items;
         QList<QUrl> urls;
@@ -1875,13 +1874,8 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
             menu->addAction(setAswallpaper);
         }
 
-        // Properties
-        if (KPropertiesDialog::canDisplay(items)) {
-            menu->addSeparator();
-            QAction *act = new QAction(tr("&Properties"), menu);
-            QObject::connect(act, &QAction::triggered, this, &FolderModel::openPropertiesDialog);
-            menu->addAction(act);
-        }
+        menu->addSeparator();
+        menu->addAction(m_actionCollection.action(QStringLiteral("properties")));
     }
 
     if (visualParent) {

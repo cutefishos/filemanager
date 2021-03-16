@@ -6,4 +6,7 @@ Settings {
     property bool showHidden: false
     property int width: 1080
     property int height: 645
+    property int desktopIconSize: 128
+    property int maximumIconSize: 256
+    property int minimumIconSize: 128
 }

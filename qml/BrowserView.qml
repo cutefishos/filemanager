@@ -84,7 +84,7 @@ Item {
         FolderIconView {
             id: _gridViewBrowser
             anchors.fill: parent
-            model: dirModel
+            model: positioner
 
             leftMargin: Meui.Units.largeSpacing
             rightMargin: Meui.Units.largeSpacing

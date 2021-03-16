@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.12
 import Cutefish.FileManager 1.0 as FM
 import MeuiKit 1.0 as Meui
 
+import "../"
 import "FolderTools.js" as FolderTools
 
 FocusScope {
@@ -104,6 +105,10 @@ FocusScope {
         }
     }
 
+    GlobalSettings {
+        id: settings
+    }
+
     MouseArea {
         id: listener
         anchors.fill: parent
@@ -132,6 +137,15 @@ FocusScope {
         }
 
         acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+        onWheel: {
+            if (wheel.modifiers & Qt.ControlModifier) {
+                if (wheel.angleDelta.y > 0)
+                    gridView.increaseIconSize()
+                else
+                    gridView.decreaseIconSize()
+            }
+        }
 
         onPressed: {
             gridView.focus = true
@@ -382,7 +396,7 @@ FocusScope {
             }
         }
 
-        property var iconSize: 150 + Meui.Units.largeSpacing
+        property var iconSize: settings.desktopIconSize + Meui.Units.largeSpacing
 
         cellWidth: {
             var extraWidth = calcExtraSpacing(iconSize, gridView.width - leftMargin - rightMargin);
@@ -392,6 +406,26 @@ FocusScope {
         cellHeight: {
             var extraHeight = calcExtraSpacing(iconSize, gridView.height - topMargin - bottomMargin);
             return iconSize + extraHeight;
+        }
+
+        function increaseIconSize() {
+            if (iconSize >= settings.maximumIconSize) {
+                iconSize = settings.maximumIconSize
+                return
+            }
+
+            iconSize += (iconSize * 0.1)
+            settings.desktopIconSize = iconSize
+        }
+
+        function decreaseIconSize() {
+            if (iconSize <= settings.minimumIconSize) {
+                iconSize = settings.minimumIconSize
+                return
+            }
+
+            iconSize -= (iconSize * 0.1)
+            settings.desktopIconSize = iconSize
         }
 
         function calcExtraSpacing(cellSize, containerSize) {

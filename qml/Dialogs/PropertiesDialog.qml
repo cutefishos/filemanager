@@ -15,10 +15,6 @@ Window {
         if (visible) updateWindowSize()
     }
 
-    Component.onCompleted: {
-        updateWindowSize()
-    }
-
     function updateWindowSize() {
         if (visible) {
             control.width = _mainLayout.implicitWidth + _mainLayout.anchors.leftMargin + _mainLayout.anchors.rightMargin
@@ -77,6 +73,7 @@ Window {
                 Layout.alignment: Qt.AlignTop
 
                 onHeightChanged: updateWindowSize()
+                onImplicitHeightChanged: updateWindowSize()
 
                 Label {
                     text: qsTr("Type:")
