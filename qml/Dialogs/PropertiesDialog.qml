@@ -11,6 +11,11 @@ Window {
 
     visible: true
 
+    Rectangle {
+        anchors.fill: parent
+        color: Meui.Theme.backgroundColor
+    }
+
     onVisibleChanged: {
         if (visible) updateWindowSize()
     }
@@ -100,13 +105,13 @@ Window {
                 Label {
                     text: qsTr("Size:")
                     Layout.alignment: Qt.AlignRight
-                    visible: size.visible
+                    // visible: size.visible
                 }
 
                 Label {
                     id: size
                     text: main.size
-                    visible: text
+                    // visible: text
                 }
 
                 Label {
@@ -164,6 +169,7 @@ Window {
                     text: qsTr("OK")
                     Layout.fillWidth: true
                     onClicked: control.close()
+                    flat: true
                 }
             }
         }
