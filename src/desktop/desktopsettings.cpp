@@ -27,6 +27,16 @@ bool DesktopSettings::dimsWallpaper() const
     return m_interface.property("darkModeDimsWallpaer").toBool();
 }
 
+int DesktopSettings::backgroundType() const
+{
+    return m_interface.property("backgroundType").toInt();
+}
+
+QString DesktopSettings::backgroundColor() const
+{
+    return m_interface.property("backgroundColor").toString();
+}
+
 void DesktopSettings::launch(const QString &command, const QStringList &args)
 {
     QProcess process;
@@ -40,6 +50,8 @@ void DesktopSettings::init()
     if (m_interface.isValid()) {
         connect(&m_interface, SIGNAL(wallpaperChanged(QString)), this, SLOT(onWallpaperChanged(QString)));
         connect(&m_interface, SIGNAL(darkModeDimsWallpaerChanged()), this, SIGNAL(dimsWallpaperChanged()));
+        connect(&m_interface, SIGNAL(backgroundTypeChanged()), this, SIGNAL(backgroundTypeChanged()));
+        connect(&m_interface, SIGNAL(backgroundColorChanged()), this, SIGNAL(backgroundColorChanged()));
 
         m_wallpaper = m_interface.property("wallpaper").toString();
         emit wallpaperChanged();

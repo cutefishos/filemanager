@@ -56,28 +56,45 @@ FolderViewDropArea {
         id: settings
     }
 
-    Image {
-        id: wallpaper
+    Loader {
+        id: backgroundLoader
         anchors.fill: parent
-        source: "file://" + settings.wallpaper
-        sourceSize: Qt.size(width, height)
-        fillMode: Image.PreserveAspectCrop
-        clip: true
-        cache: false
+        sourceComponent: settings.backgroundType === 0 ? wallpaper : background
+    }
 
-        ColorOverlay {
-            id: dimsWallpaper
-            anchors.fill: wallpaper
-            source: wallpaper
-            color: "#000000"
-            opacity: Meui.Theme.darkMode && settings.dimsWallpaper ? 0.4 : 0.0
+    Component {
+        id: wallpaper
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 200
+        Image {
+            source: "file://" + settings.wallpaper
+            sourceSize: Qt.size(width, height)
+            fillMode: Image.PreserveAspectCrop
+            clip: true
+            cache: false
+
+            ColorOverlay {
+                id: dimsWallpaper
+                anchors.fill: parent
+                source: parent
+                color: "#000000"
+                opacity: Meui.Theme.darkMode && settings.dimsWallpaper ? 0.4 : 0.0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 200
+                    }
                 }
-            }
 
+            }
+        }
+    }
+
+    Component {
+        id: background
+
+        Rectangle {
+            anchors.fill: parent
+            color: settings.backgroundColor
         }
     }
 
