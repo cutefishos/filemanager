@@ -1,106 +1,80 @@
-import QtQuick 2.4
-import QtQuick.Controls 2.4
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 import QtGraphicalEffects 1.0
-import MeuiKit 1.0 as Meui
+
 import Cutefish.FileManager 1.0
+import MeuiKit 1.0 as Meui
 
 Item {
     id: control
 
     property string url: ""
-    signal placeClicked(string path)
-    signal pathChanged(string path)
 
-    onUrlChanged: {
-        _pathList.path = control.url
-    }
-
-    BaseModel {
-        id: _pathModel
-        list: _pathList
-    }
-
-    PathList {
-        id: _pathList
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        radius: Meui.Theme.smallRadius
-        color: Meui.Theme.backgroundColor
-    }
+    signal itemClicked(string path)
+    signal editorAccepted(string path)
 
     ListView {
-        id: listView
+        id: _pathView
         anchors.fill: parent
-        model: _pathModel
+        model: _pathBarModel
         orientation: Qt.Horizontal
         layoutDirection: Qt.LeftToRight
         clip: true
 
+        leftMargin: 3
+        rightMargin: 3
         spacing: Meui.Units.smallSpacing
 
         onCountChanged: {
-            currentIndex = listView.count - 1
-            listView.positionViewAtEnd()
+            _pathView.currentIndex = _pathView.count - 1
+            _pathView.positionViewAtEnd()
         }
 
-        delegate: MouseArea {
-            id: pathBarItem
-            height: listView.height
-            width: label.width + Meui.Units.largeSpacing * 2
-
-            property bool selected: index === listView.count - 1
-            property color pressedColor: Qt.rgba(Meui.Theme.textColor.r,
-                                                 Meui.Theme.textColor.g,
-                                                 Meui.Theme.textColor.b, 0.5)
-
-            onClicked: control.placeClicked(model.path)
-
-            Rectangle {
-                anchors.fill: parent
-                anchors.margins: 2
-                color: Meui.Theme.highlightColor
-                radius: Meui.Theme.smallRadius
-                visible: selected
-
-                layer.enabled: true
-                layer.effect: DropShadow {
-                    transparentBorder: true
-                    radius: 2
-                    samples: 2
-                    horizontalOffset: 0
-                    verticalOffset: 0
-                    color: Qt.rgba(0, 0, 0, 0.1)
-                }
-            }
-
-            Label {
-                id: label
-                text: model.label
-                anchors.centerIn: parent
-                color: selected ? Meui.Theme.highlightedTextColor : pathBarItem.pressed
-                                  ? pressedColor : Meui.Theme.textColor
-            }
+        Rectangle {
+            anchors.fill: parent
+            color: Meui.Theme.backgroundColor
+            radius: Meui.Theme.smallRadius
+            z: -1
         }
 
         MouseArea {
             anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+            onClicked: openEditor()
+            z: -1
+        }
+
+        delegate: MouseArea {
+            id: _item
+            height: ListView.view.height
+            width: _name.width + Meui.Units.largeSpacing
             z: -1
 
-            onClicked: {
-                if (!addressEdit.visible) {
-                    openEditor()
-                }
+            property bool selected: index === _pathView.count - 1
+
+            onClicked: control.itemClicked(model.path)
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.topMargin: 2
+                anchors.bottomMargin: 2
+                color: Meui.Theme.highlightColor
+                radius: Meui.Theme.smallRadius
+                visible: selected
+            }
+
+            Label {
+                id: _name
+                text: model.name
+                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+                anchors.centerIn: parent
             }
         }
     }
 
     TextField {
-        id: addressEdit
-        anchors.centerIn: parent
-        width: parent.width
-        height: parent.height
+        id: _pathEditor
+        anchors.fill: parent
         visible: false
         selectByMouse: true
         inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
@@ -108,7 +82,7 @@ Item {
         text: control.url
 
         onAccepted: {
-            control.pathChanged(text)
+            control.editorAccepted(text)
             closeEditor()
         }
 
@@ -124,15 +98,25 @@ Item {
         }
     }
 
-    function closeEditor() {
-        addressEdit.visible = false
-        listView.visible = true
+    PathBarModel {
+        id: _pathBarModel
+    }
+
+    function updateUrl(url) {
+        control.url = url
+        _pathBarModel.url = url
     }
 
     function openEditor() {
-        addressEdit.visible = true
-        addressEdit.forceActiveFocus()
-        addressEdit.selectAll()
-        listView.visible = false
+        _pathEditor.text = control.url
+        _pathEditor.visible = true
+        _pathEditor.forceActiveFocus()
+        _pathEditor.selectAll()
+        _pathView.visible = false
+    }
+
+    function closeEditor() {
+        _pathEditor.visible = false
+        _pathView.visible = true
     }
 }

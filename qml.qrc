@@ -1,11 +1,12 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/main.qml</file>
+        <file>qml/FolderPage.qml</file>
         <file>qml/SideBar.qml</file>
-        <file>qml/SidebarItem.qml</file>
+        <file>qml/FolderListItem.qml</file>
+        <file>qml/Dialogs/PropertiesDialog.qml</file>
         <file>qml/FolderListView.qml</file>
-        <file>qml/PathBar.qml</file>
-        <file>qml/FolderListDelegate.qml</file>
+        <file>qml/Controls/IconButton.qml</file>
         <file>images/dark/go-next.svg</file>
         <file>images/dark/go-previous.svg</file>
         <file>images/dark/grid.svg</file>
@@ -14,27 +15,19 @@
         <file>images/light/go-previous.svg</file>
         <file>images/light/grid.svg</file>
         <file>images/light/list.svg</file>
-        <file>qml/IconButton.qml</file>
+        <file>images/folder-desktop.svg</file>
+        <file>images/folder-document.svg</file>
         <file>images/folder-download.svg</file>
         <file>images/folder-home.svg</file>
         <file>images/folder-music.svg</file>
         <file>images/folder-picture.svg</file>
         <file>images/folder-video.svg</file>
-        <file>images/folder-document.svg</file>
-        <file>qml/GlobalSettings.qml</file>
-        <file>qml/FolderIconView.qml</file>
-        <file>qml/FolderIconDelegate.qml</file>
-        <file>qml/BrowserView.qml</file>
-        <file>qml/ItemMenu.qml</file>
-        <file>qml/BrowserMenu.qml</file>
-        <file>qml/Desktop/DesktopFolderView.qml</file>
-        <file>qml/Desktop/FolderViewDropArea.qml</file>
-        <file>qml/Desktop/FolderItemDelegate.qml</file>
-        <file>qml/Desktop/Desktop.qml</file>
-        <file>qml/Desktop/FolderTools.js</file>
-        <file>qml/Dialogs/PropertiesDialog.qml</file>
-        <file>qml/IconDelegate.qml</file>
-        <file>images/folder-desktop.svg</file>
         <file>images/user-trash.svg</file>
+        <file>qml/PathBar.qml</file>
+        <file>qml/Desktop/main.qml</file>
+        <file>qml/FolderGridView.qml</file>
+        <file>qml/GlobalSettings.qml</file>
+        <file>qml/FolderGridItem.qml</file>
+        <file>qml/Dialogs/CreateFolderDialog.qml</file>
     </qresource>
 </RCC>

@@ -4,6 +4,14 @@ Cutefish File Manager
 
 ## Dependencies
 
+### Ubuntu
+
+```
+sudo apt install libkf5solid-dev
+```
+
+### ArchLinux
+
 ```shell
 sudo pacman -S extra-cmake-modules qt5-base qt5-quickcontrols2 taglib kio
 ```

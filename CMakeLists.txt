@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(cutefish-filemanager LANGUAGES CXX)
+project(filemanager LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -8,62 +8,58 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt5 COMPONENTS Core Quick Concurrent DBus LinguistTools REQUIRED)
-find_package(KF5KIO)
+find_package(Qt5 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
 find_package(MeuiKit REQUIRED)
 
+find_package(KF5KIO)
+find_package(KF5Solid)
+
 add_executable(cutefish-filemanager
-    src/main.cpp
-    src/fm.cpp
-    src/fmh.cpp
-    src/fmstatic.cpp
-    src/fmlist.cpp
-    src/handy.cpp
-    src/placeslist.cpp
-    src/pathlist.cpp
-    src/baselist.cpp
-    src/basemodel.cpp
-    src/rubberband.cpp
-    src/iconthemeprovider.cpp
+  main.cpp
+  model/foldermodel.cpp
+  model/placesmodel.cpp
+  model/placesitem.cpp
+  model/pathbarmodel.cpp
+  model/dirlister.cpp
+  model/positioner.cpp
 
-    src/lib/foldermodel.cpp
-    src/lib/positioner.cpp
-    src/lib/itemviewadapter.cpp
-    src/lib/fileitemactions.cpp
-    src/lib/placesmodel.cpp
-    src/lib/placesitem.cpp
+  dialogs/propertiesdialog.cpp
+  widgets/rubberband.cpp
+  widgets/itemviewadapter.cpp
 
-    src/dialogs/propertiesdialog.cpp
+  desktop/desktopview.cpp
+  desktop/desktopsettings.cpp
 
-    src/desktop/desktopview.cpp
-    src/desktop/desktopsettings.cpp
+  helper/thumbnailer.cpp
+  helper/pathhistory.cpp
 
-    qml.qrc
+  desktopiconprovider.cpp
+
+  qml.qrc
+)
+
+target_link_libraries(cutefish-filemanager
+  PRIVATE
+  Qt5::Core
+  Qt5::DBus
+  Qt5::Quick
+
+  KF5::KIOCore
+  KF5::KIOFileWidgets
+  KF5::KIOWidgets
+  KF5::Solid
+
+  MeuiKit
 )
 
 file(GLOB TS_FILES translations/*.ts)
 qt5_create_translation(QM_FILES ${TS_FILES})
 add_custom_target(translations DEPENDS ${QM_FILES} SOURCES ${TS_FILES})
-add_dependencies(${PROJECT_NAME} translations)
+add_dependencies(cutefish-filemanager translations)
 
-target_link_libraries(cutefish-filemanager
-    PRIVATE
-    Qt5::Core
-    Qt5::GuiPrivate
-    Qt5::Quick
-    Qt5::Concurrent
-    Qt5::DBus
-
-    KF5::KIOCore
-    KF5::KIOFileWidgets
-    KF5::KIOWidgets
-
-    MeuiKit
-)
-
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION /usr/bin)
+install(TARGETS cutefish-filemanager RUNTIME DESTINATION /usr/bin)
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")
 install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translations)

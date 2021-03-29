@@ -1,105 +1,122 @@
 import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import QtQuick.Window 2.12
-import QtQuick.Controls 2.4
-import QtQuick.Layouts 1.3
-
-import Cutefish.FileManager 1.0
-
 import MeuiKit 1.0 as Meui
+
+import "./Controls"
 
 Meui.Window {
     id: root
     width: settings.width
     height: settings.height
     minimumWidth: 900
-    minimumHeight: 600
+    minimumHeight: 580
     visible: true
     title: qsTr("File Manager")
 
-    hideHeaderOnMaximize: false
     headerBarHeight: 35 + Meui.Units.largeSpacing
     backgroundColor: Meui.Theme.secondBackgroundColor
 
     property QtObject settings: GlobalSettings { }
 
     onClosing: {
-        settings.width = root.width
-        settings.height = root.height
+        if (root.visibility !== Window.Maximized &&
+                root.visibility !== Window.FullScreen) {
+            settings.width = root.width
+            settings.height = root.height
+        }
     }
 
     headerBar: Item {
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: Meui.Units.largeSpacing
+            anchors.leftMargin: Meui.Units.smallSpacing
             anchors.rightMargin: Meui.Units.smallSpacing
-            anchors.topMargin: Meui.Units.largeSpacing
+            anchors.topMargin: Meui.Units.smallSpacing
+            anchors.bottomMargin: Meui.Units.smallSpacing
+
             spacing: Meui.Units.smallSpacing
 
             IconButton {
                 Layout.fillHeight: true
                 implicitWidth: height
-                source: Meui.Theme.darkMode ? "qrc:/images/dark/go-previous.svg" : "qrc:/images/light/go-previous.svg"
-                onClicked: _browserView.goBack()
+                source: Meui.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
+                                            : "qrc:/images/light/go-previous.svg"
+                onClicked: _folderPage.goBack()
             }
 
             IconButton {
                 Layout.fillHeight: true
                 implicitWidth: height
-                source: Meui.Theme.darkMode ? "qrc:/images/dark/go-next.svg" : "qrc:/images/light/go-next.svg"
-                onClicked: _browserView.goForward()
+                source: Meui.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
+                                            : "qrc:/images/light/go-next.svg"
+                onClicked: _folderPage.goForward()
             }
 
             PathBar {
-                id: pathBar
+                id: _pathBar
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                url: _browserView.url
-                onPlaceClicked: _browserView.openFolder(path)
-                onPathChanged: _browserView.openFolder(path)
+                onItemClicked: _folderPage.openUrl(path)
+                onEditorAccepted: _folderPage.openUrl(path)
             }
 
             IconButton {
                 Layout.fillHeight: true
                 implicitWidth: height
-                source: Meui.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
-                onClicked: settings.viewMethod = 1
+
+                property var gridSource: Meui.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
+                property var listSource: Meui.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
+
+                source: settings.viewMethod === 0 ? listSource : gridSource
+
+                onClicked: {
+                    if (settings.viewMethod === 1)
+                        settings.viewMethod = 0
+                    else
+                        settings.viewMethod = 1
+                }
             }
 
-            IconButton {
-                Layout.fillHeight: true
-                implicitWidth: height
-                source: Meui.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
-                onClicked: settings.viewMethod = 0
-            }
+//            IconButton {
+//                Layout.fillHeight: true
+//                implicitWidth: height
+//                source: Meui.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
+//                onClicked: settings.viewMethod = 1
+//            }
+
+//            IconButton {
+//                Layout.fillHeight: true
+//                implicitWidth: height
+//                source: Meui.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
+//                onClicked: settings.viewMethod = 0
+//            }
         }
     }
 
-    ColumnLayout {
+    RowLayout {
         anchors.fill: parent
-        spacing: Meui.Units.largeSpacing
+        anchors.topMargin: 2
+        spacing: 0
 
-        Item {
-            id: bottomControls
+        SideBar {
+            id: _sideBar
+            Layout.fillHeight: true
+            width: 200 + Meui.Units.largeSpacing
+            onClicked: _folderPage.openUrl(path)
+        }
+
+        FolderPage {
+            id: _folderPage
             Layout.fillWidth: true
             Layout.fillHeight: true
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.topMargin: Meui.Units.largeSpacing
-                spacing: 0
-
-                SideBar {
-                    Layout.fillHeight: true
-                    currentUrl: _browserView.model.url
-                    onPlaceClicked: _browserView.model.url = path
-                }
-
-                BrowserView {
-                    id: _browserView
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    // onOpenPathBar: pathBar.openEditor()
-                }
+            onCurrentUrlChanged: {
+                _sideBar.updateSelection(currentUrl)
+                _pathBar.updateUrl(currentUrl)
+            }
+            onRequestPathEditor: {
+                _pathBar.openEditor()
             }
         }
     }

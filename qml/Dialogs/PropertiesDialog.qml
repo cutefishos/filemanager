@@ -7,7 +7,7 @@ import MeuiKit 1.0 as Meui
 Window {
     id: control
     title: qsTr("Properties")
-    flags: Qt.Dialog | Qt.WindowStaysOnTopHint
+    flags: Qt.Dialog
 
     visible: true
 
@@ -67,7 +67,7 @@ Window {
                     focus: true
                     Layout.fillWidth: true
                     Keys.onEscapePressed: control.close()
-                    enabled: !main.multiple
+                    enabled: !main.multiple && main.isWritable
                 }
             }
 
@@ -83,6 +83,7 @@ Window {
                 Label {
                     text: qsTr("Type:")
                     Layout.alignment: Qt.AlignRight
+                    color: Meui.Theme.disabledTextColor
                     visible: mimeType.visible
                 }
 
@@ -95,6 +96,7 @@ Window {
                 Label {
                     text: qsTr("Location:")
                     Layout.alignment: Qt.AlignRight
+                    color: Meui.Theme.disabledTextColor
                 }
 
                 Label {
@@ -105,18 +107,20 @@ Window {
                 Label {
                     text: qsTr("Size:")
                     Layout.alignment: Qt.AlignRight
+                    color: Meui.Theme.disabledTextColor
                     // visible: size.visible
                 }
 
                 Label {
                     id: size
-                    text: main.size
+                    text: main.size ? main.size : qsTr("Calculating...")
                     // visible: text
                 }
 
                 Label {
                     text: qsTr("Created:")
                     Layout.alignment: Qt.AlignRight
+                    color: Meui.Theme.disabledTextColor
                     visible: creationTime.visible
                 }
 
@@ -129,6 +133,7 @@ Window {
                 Label {
                     text: qsTr("Modified:")
                     Layout.alignment: Qt.AlignRight
+                    color: Meui.Theme.disabledTextColor
                     visible: modifiedTime.visible
                 }
 
@@ -141,6 +146,7 @@ Window {
                 Label {
                     text: qsTr("Accessed:")
                     Layout.alignment: Qt.AlignRight
+                    color: Meui.Theme.disabledTextColor
                     visible: accessTime.visible
                 }
 
@@ -162,13 +168,19 @@ Window {
                 Button {
                     text: qsTr("Cancel")
                     Layout.fillWidth: true
-                    onClicked: control.close()
+                    onClicked: {
+                        control.close()
+                        main.reject()
+                    }
                 }
 
                 Button {
                     text: qsTr("OK")
                     Layout.fillWidth: true
-                    onClicked: control.close()
+                    onClicked: {
+                        main.accept(_textField.text)
+                        control.close()
+                    }
                     flat: true
                 }
             }

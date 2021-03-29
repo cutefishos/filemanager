@@ -1,55 +1,28 @@
-import QtQuick 2.4
-import QtQuick.Layouts 1.3
-import QtQuick.Controls 2.4
+import QtQuick 2.12
+import QtQuick.Layouts 1.12
+import QtQuick.Controls 2.12
+import QtGraphicalEffects 1.0
+
 import MeuiKit 1.0 as Meui
 import Cutefish.FileManager 1.0
 
 ListView {
-    id: control
-    implicitWidth: 200
+    id: sideBar
 
-    property string currentUrl
-
-    signal placeClicked(string path)
-    signal itemClicked(int index)
-
-    onItemClicked: {
-        var item = placesModel.get(index)
-        control.placeClicked(item.url)
-    }
-
-    onCurrentUrlChanged: {
-        syncIndex(currentUrl)
-    }
-
-    Component.onCompleted: {
-        syncIndex(currentUrl)
-    }
-
-    function syncIndex(path) {
-        control.currentIndex = -1
-
-        for (var i = 0; i < control.count; ++i) {
-            if (path === control.model.get(i).url) {
-                control.currentIndex = i
-                break
-            }
-        }
-    }
+    signal clicked(string path)
 
     PlacesModel {
         id: placesModel
     }
 
+    model: placesModel
     clip: true
-    spacing: Meui.Units.smallSpacing
+
     leftMargin: Meui.Units.smallSpacing
     rightMargin: Meui.Units.smallSpacing
-
-    model: placesModel
+    spacing: Meui.Units.largeSpacing
 
     ScrollBar.vertical: ScrollBar {}
-    flickableDirection: Flickable.VerticalFlick
 
     highlightFollowsCurrentItem: true
     highlightMoveDuration: 0
@@ -60,15 +33,71 @@ ListView {
         color: Meui.Theme.highlightColor
     }
 
-    delegate: SidebarItem {
-        id: listItem
-        checked: control.currentIndex === index
+    delegate: Item {
+        id: _item
         width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
         height: 40
 
-        onClicked: {
-            control.currentIndex = index
-            control.itemClicked(index)
+        property bool checked: sideBar.currentIndex === index
+        property color hoveredColor: Meui.Theme.darkMode ? Qt.lighter(Meui.Theme.backgroundColor, 1.1)
+                                                         : Qt.darker(Meui.Theme.backgroundColor, 1.1)
+        MouseArea {
+            id: _mouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.LeftButton
+            onClicked: {
+                sideBar.currentIndex = index
+                sideBar.clicked(model.path)
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: Meui.Theme.smallRadius
+            color: _mouseArea.containsMouse && !checked ? _item.hoveredColor : "transparent"
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Meui.Units.smallSpacing
+            anchors.rightMargin: Meui.Units.smallSpacing
+            spacing: Meui.Units.smallSpacing
+
+            Image {
+                height: _item.height * 0.55
+                width: height
+                sourceSize: Qt.size(width, height)
+                source: model.iconPath ? model.iconPath : "image://icontheme/" + model.iconName
+                Layout.alignment: Qt.AlignVCenter
+
+                ColorOverlay {
+                    anchors.fill: parent
+                    source: parent
+                    color: _label.color
+                    visible: Meui.Theme.darkMode && model.iconPath || checked
+                }
+            }
+
+            Label {
+                id: _label
+                text: model.name
+                color: checked ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+    }
+
+    function updateSelection(path) {
+        sideBar.currentIndex = -1
+
+        for (var i = 0; i < sideBar.count; ++i) {
+            if (path === sideBar.model.get(i).path) {
+                sideBar.currentIndex = i
+                break
+            }
         }
     }
 }
