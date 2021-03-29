@@ -27,7 +27,7 @@ Item {
 
         Item {
             id: _iconItem
-            Layout.preferredHeight: parent.height * 0.7
+            Layout.preferredHeight: parent.height * 0.6
             Layout.fillWidth: true
 
             Image {
@@ -46,7 +46,7 @@ Item {
                 anchors.leftMargin: Meui.Units.smallSpacing
                 anchors.rightMargin: Meui.Units.smallSpacing
 
-                fillMode: Image.PreserveAspectCrop
+                fillMode: Image.PreserveAspectFit
                 visible: status === Image.Ready
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
@@ -75,27 +75,27 @@ Item {
 
         Item {
             Layout.fillHeight: true
+            Layout.preferredHeight: Math.min(_label.implicitHeight, height)
             Layout.fillWidth: true
 
-            Layout.preferredHeight: Math.min(_label.implicitHeight, height)
-
             Rectangle {
+                width: Math.min(_label.implicitWidth + Meui.Units.smallSpacing, parent.width)
+                height: Math.min(_label.implicitHeight + Meui.Units.smallSpacing, parent.height)
                 anchors.centerIn: parent
-                width: Math.min(_label.implicitWidth + Meui.Units.largeSpacing, parent.width)
-                height: Math.min(_label.implicitHeight + Meui.Units.largeSpacing, parent.height)
                 color: selected ? Meui.Theme.highlightColor : "transparent"
                 radius: Meui.Theme.smallRadius
             }
 
             Label {
                 id: _label
-                anchors.fill: parent
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignVCenter
+                anchors.fill: parent
+                anchors.margins: 0
                 elide: Qt.ElideRight
                 wrapMode: Text.Wrap
-                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
                 text: model.fileName
+                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
             }
         }
     }

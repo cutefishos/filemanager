@@ -46,10 +46,14 @@ public:
 
     QString path() const;
 
+    QString udi() const;
+    void setUdi(const QString &udi);
+
 private:
     QString m_displayName;
     QString m_iconName;
     QString m_iconPath;
+    QString m_udi;
     QUrl m_url;
 };
 

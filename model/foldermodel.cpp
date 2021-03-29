@@ -44,6 +44,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_sortDesc(false)
     , m_sortDirsFirst(true)
     , m_complete(false)
+    , m_isDesktop(false)
     , m_actionCollection(this)
     , m_dragInProgress(false)
     , m_viewAdapter(nullptr)
@@ -642,10 +643,11 @@ void FolderModel::openSelected()
         return;
 
     const QList<QUrl> urls = selectedUrls();
-
-    if (urls.size() == 1 && KFileItem(urls.first()).isDir()) {
-        setUrl(urls.first().toLocalFile());
-        return;
+    if (!m_isDesktop) {
+        if (urls.size() == 1 && KFileItem(urls.first()).isDir()) {
+            setUrl(urls.first().toLocalFile());
+            return;
+        }
     }
 
     for (const QUrl &url : urls) {
@@ -932,6 +934,20 @@ bool FolderModel::isSupportThumbnails(const QString &mimeType) const
         return true;
 
     return false;
+}
+
+bool FolderModel::isDesktop() const
+{
+    return m_isDesktop;
+}
+
+void FolderModel::setIsDesktop(bool isDesktop)
+{
+    if (m_isDesktop == isDesktop)
+        return;
+
+    m_isDesktop = isDesktop;
+    emit isDesktopChanged();
 }
 
 void FolderModel::invalidateIfComplete()

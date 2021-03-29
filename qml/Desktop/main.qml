@@ -14,6 +14,10 @@ Item {
         id: settings
     }
 
+    GlobalSettings {
+        id: globalSettings
+    }
+
     Loader {
         id: backgroundLoader
         anchors.fill: parent
@@ -58,11 +62,12 @@ Item {
 
     FolderGridView {
         anchors.fill: parent
-        cellHeight: 128
-        cellWidth: 128
+        cellHeight: globalSettings.desktopIconSize
+        cellWidth: globalSettings.desktopIconSize
         model: FolderModel {
             id: folderModel
             url: desktopPath()
+            isDesktop: true
         }
 
         leftMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.x : 0

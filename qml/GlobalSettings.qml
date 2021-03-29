@@ -9,4 +9,6 @@ Settings {
     property int desktopIconSize: 128
     property int maximumIconSize: 256
     property int minimumIconSize: 128
+
+    property int gridIconSize: 128
 }

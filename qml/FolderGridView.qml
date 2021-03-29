@@ -28,10 +28,10 @@ GridView {
     property Item editor: null
     property int anchorIndex: 0
 
-    property var itemSize: 96 + Meui.Units.fontMetrics.height
+    property var itemSize: settings.gridIconSize
 
-    property var itemWidth: itemSize + Meui.Units.smallSpacing
-    property var itemHeight: itemSize + Meui.Units.largeSpacing
+    property var itemWidth: itemSize + Meui.Units.largeSpacing
+    property var itemHeight: itemSize + Meui.Units.fontMetrics.height * 2
 
     property variant cachedRectangleSelection: null
 
@@ -41,9 +41,6 @@ GridView {
     property bool scrollDown: false
 
     signal keyPress(var event)
-
-    leftMargin: Meui.Units.smallSpacing
-    rightMargin: Meui.Units.smallSpacing
 
     highlightMoveDuration: 0
     keyNavigationEnabled : true

@@ -73,3 +73,13 @@ QString PlacesItem::path() const
 {
     return m_url.toString(QUrl::PreferLocalFile);
 }
+
+QString PlacesItem::udi() const
+{
+    return m_udi;
+}
+
+void PlacesItem::setUdi(const QString &udi)
+{
+    m_udi = udi;
+}

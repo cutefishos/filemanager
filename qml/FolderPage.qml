@@ -12,7 +12,7 @@ Item {
 
     property alias currentUrl: folderModel.url
     property Item currentView: _viewLoader.item
-    property int statusBarHeight: 30 + Meui.Units.smallSpacing
+    property int statusBarHeight: 30
 
     signal requestPathEditor()
 
@@ -83,7 +83,7 @@ Item {
                 anchors.fill: parent
                 anchors.leftMargin: Meui.Units.largeSpacing
                 anchors.rightMargin: Meui.Units.largeSpacing
-                anchors.bottomMargin: Meui.Units.smallSpacing
+                anchors.bottomMargin: 1
 
                 Label {
                     text: folderModel.statusText
@@ -109,6 +109,11 @@ Item {
             id: _gridView
             model: folderModel
             delegate: FolderGridItem {}
+
+            leftMargin: Meui.Units.largeSpacing
+            rightMargin: Meui.Units.largeSpacing
+            topMargin: Meui.Units.smallSpacing
+            bottomMargin: Meui.Units.smallSpacing
 
             onCountChanged: {
                 _fileTips.visible = count === 0

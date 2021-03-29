@@ -26,6 +26,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
     Q_PROPERTY(QObject *viewAdapter READ viewAdapter WRITE setViewAdapter NOTIFY viewAdapterChanged)
     Q_PROPERTY(QString statusText READ statusText NOTIFY statusTextChanged)
+    Q_PROPERTY(bool isDesktop READ isDesktop WRITE setIsDesktop NOTIFY isDesktopChanged)
 
 public:
     enum DataRole {
@@ -147,6 +148,9 @@ public:
     Q_INVOKABLE void openPropertiesDialog();
     Q_INVOKABLE void openInTerminal();
 
+    bool isDesktop() const;
+    void setIsDesktop(bool isDesktop);
+
 signals:
     void urlChanged();
     void resolvedUrlChanged();
@@ -158,6 +162,7 @@ signals:
     void draggingChanged();
     void viewAdapterChanged();
     void statusTextChanged();
+    void isDesktopChanged();
 
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -186,6 +191,7 @@ private:
     bool m_sortDirsFirst;
 
     bool m_complete;
+    bool m_isDesktop;
 
     KActionCollection m_actionCollection;
     QHash<int, DragImage *> m_dragImages;
