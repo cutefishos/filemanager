@@ -62,8 +62,10 @@ Item {
 
     FolderGridView {
         anchors.fill: parent
-        cellHeight: globalSettings.desktopIconSize
-        cellWidth: globalSettings.desktopIconSize
+
+        isDesktopView: true
+        iconSize: globalSettings.desktopIconSize
+
         model: FolderModel {
             id: folderModel
             url: desktopPath()

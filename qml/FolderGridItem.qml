@@ -14,6 +14,7 @@ Item {
 
     property Item iconArea: _image.visible ? _image : _icon
     property Item textArea: _label
+    property Item background: _background
 
     property int index: model.index
     property bool hovered: GridView.view.hoveredItem === control
@@ -21,87 +22,103 @@ Item {
     property bool blank: model.blank
     property var fileName: model.fileName
 
-    property color hoveredColor: Meui.Theme.darkMode ? Qt.lighter(Meui.Theme.backgroundColor, 1.1)
-                                                     : Qt.darker(Meui.Theme.backgroundColor, 1.05)
+    Rectangle {
+        id: _background
+        width: Math.max(_iconItem.width + Meui.Units.smallSpacing,
+                        _label.paintedWidth + Meui.Units.largeSpacing)
+        height: _iconItem.height + _label.paintedHeight + Meui.Units.largeSpacing
+        x: (parent.width - width) / 2
+        y: _iconItem.y
+        color: selected || hovered ? Meui.Theme.highlightColor : "transparent"
+        radius: Meui.Theme.mediumRadius
+        visible: selected || hovered
+        opacity: selected ? 0.9 : 0.4
+    }
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Meui.Units.largeSpacing
-        spacing: Meui.Units.smallSpacing
+    Item {
+        id: _iconItem
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: Meui.Units.largeSpacing
+        anchors.bottomMargin: Meui.Units.largeSpacing
+        z: 2
 
-        Item {
-            id: _iconItem
-            Layout.preferredHeight: parent.height * 0.6
-            Layout.fillWidth: true
+        width: parent.width - Meui.Units.largeSpacing * 2
+        height: control.GridView.view.iconSize
+        opacity: selected || !hovered ? 1.0 : 0.95
 
-            Image {
-                id: _icon
-                anchors.centerIn: parent
-                width: parent.height
-                height: width
-                sourceSize: Qt.size(width, height)
-                source: "image://icontheme/" + model.iconName
-                visible: !_image.visible
-            }
+        Image {
+            id: _icon
+            width: control.GridView.view.iconSize
+            height: control.GridView.view.iconSize
+            anchors.centerIn: parent
+            sourceSize: Qt.size(width, height)
+            source: "image://icontheme/" + model.iconName
+            visible: !_image.visible
+        }
 
-            Image {
-                id: _image
-                anchors.centerIn: parent
-                height: parent.height
-                width: parent.width
+        Image {
+            id: _image
+            anchors.fill: parent
+            anchors.topMargin: Meui.Units.smallSpacing
+            anchors.leftMargin: Meui.Units.smallSpacing
+            anchors.rightMargin: Meui.Units.smallSpacing
+            fillMode: Image.PreserveAspectFit
+            visible: status === Image.Ready
+            horizontalAlignment: Qt.AlignHCenter
+            verticalAlignment: Qt.AlignVCenter
+            sourceSize.width: width
+            sourceSize.height: height
+            source: model.thumbnail ? model.thumbnail : ""
+            asynchronous: true
+            cache: true
 
-                fillMode: Image.PreserveAspectFit
-                visible: status === Image.Ready
-                horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
-                sourceSize.width: width
-                sourceSize.height: height
-                source: model.thumbnail ? model.thumbnail : ""
-                asynchronous: true
-                cache: true
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: Item {
+                    width: _image.width
+                    height: _image.height
 
-                layer.enabled: true
-                layer.effect: OpacityMask {
-                    maskSource: Item {
-                        width: _image.width
-                        height: _image.height
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: Math.min(parent.width, _image.paintedWidth)
-                            height: Math.min(parent.height, _image.paintedHeight)
-                            radius: Meui.Theme.smallRadius
-                        }
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: Math.min(parent.width, _image.paintedWidth)
+                        height: Math.min(parent.height, _image.paintedHeight)
+                        radius: Meui.Theme.smallRadius / 2
                     }
                 }
             }
         }
+    }
 
-        Item {
-            id: _labelItem
-            Layout.fillHeight: true
-            Layout.preferredHeight: Math.min(_label.implicitHeight, height)
-            Layout.fillWidth: true
+    Label {
+        id: _label
+        z: 2
+        anchors.top: _iconItem.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: Meui.Units.smallSpacing
+        maximumLineCount: 2
+        horizontalAlignment: Text.AlignHCenter
+        width: Math.round(Math.min(_label.implicitWidth + Meui.Units.smallSpacing,
+                                    parent.width - Meui.Units.largeSpacing * 2))
+        textFormat: Text.PlainText
+        elide: Qt.ElideRight
+        wrapMode: Text.Wrap
+        text: model.fileName
+        color: control.GridView.view.isDesktopView ? "white"
+                                                   : selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+    }
 
-            Rectangle {
-                width: _label.paintedWidth + Meui.Units.smallSpacing * 2
-                height: _label.paintedHeight
-                x: (_labelItem.width - width + Meui.Units.smallSpacing) / 2
-                color: selected ? Meui.Theme.highlightColor : hovered ? hoveredColor : "transparent"
-                radius: Meui.Theme.smallRadius
-            }
-
-            Label {
-                id: _label
-                horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignTop
-                anchors.fill: parent
-                anchors.margins: 0
-                elide: Qt.ElideRight
-                wrapMode: Text.Wrap
-                text: model.fileName
-                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
-            }
-        }
+    DropShadow {
+        anchors.fill: _label
+        source: _label
+        z: 1
+        horizontalOffset: 1
+        verticalOffset: 1
+        radius: Math.round(4 * Meui.Units.devicePixelRatio)
+        samples: radius * 2 + 1
+        spread: 0.35
+        color: Qt.rgba(0, 0, 0, 0.3)
+        opacity: model.isHidden ? 0.6 : 1
+        visible: control.GridView.view.isDesktopView
     }
 }

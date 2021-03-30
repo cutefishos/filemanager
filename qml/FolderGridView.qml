@@ -8,6 +8,8 @@ import MeuiKit 1.0 as Meui
 GridView {
     id: control
 
+    property bool isDesktopView: false
+
     property Item rubberBand: null
     property Item hoveredItem: null
     property Item pressedItem: null
@@ -28,10 +30,7 @@ GridView {
     property Item editor: null
     property int anchorIndex: 0
 
-    property var itemSize: settings.gridIconSize
-
-    property var itemWidth: itemSize + Meui.Units.largeSpacing
-    property var itemHeight: itemSize + Meui.Units.fontMetrics.height * 2
+    property var iconSize: settings.gridIconSize
 
     property variant cachedRectangleSelection: null
 
@@ -67,13 +66,18 @@ GridView {
     }
 
     cellHeight: {
-        // var extraHeight = calcExtraSpacing(itemHeight, control.height - topMargin - bottomMargin)
-        return itemHeight // + extraHeight
+        var iconHeight = iconSize + (Meui.Units.fontMetrics.height * 2) + Meui.Units.largeSpacing * 2
+        if (isDesktopView) {
+            var extraHeight = calcExtraSpacing(iconHeight, control.height - topMargin - bottomMargin)
+            return iconHeight + extraHeight
+        }
+        return iconHeight
     }
 
     cellWidth: {
-        var extraWidth = calcExtraSpacing(itemWidth, control.width - leftMargin - rightMargin)
-        return itemWidth + extraWidth
+        var iconWidth = iconSize + Meui.Units.largeSpacing * 4
+        var extraWidth = calcExtraSpacing(iconWidth, control.width - leftMargin - rightMargin)
+        return iconWidth + extraWidth
     }
 
     clip: true
@@ -171,12 +175,11 @@ GridView {
 
             // Set hoveredItem.
             if (indexItem) {
-                var iconPos = mapToItem(indexItem.iconArea, mouse.x, mouse.y)
-                var textPos = mapToItem(indexItem.textArea, mouse.x, mouse.y)
+                var fPos = mapToItem(indexItem.background, mouse.x, mouse.y)
 
-                if (iconPos.x < 0 || iconPos.y < 0
-                        || iconPos.x > indexItem.iconArea.paintedWidth
-                        || iconPos.y > indexItem.iconArea.paintedHeight + indexItem.textArea.paintedHeight) {
+                if (fPos.x < 0 || fPos.y < 0
+                        || fPos.x > indexItem.background.width
+                        || fPos.y > indexItem.background.height) {
                     control.hoveredItem = null
                 } else {
                     control.hoveredItem = indexItem
@@ -345,7 +348,7 @@ GridView {
         var extraSpacing = 0
         if (availableColumns > 0) {
             var allColumnSize = availableColumns * cellSize
-            var extraSpace = Math.max(containerSize - allColumnSize, Meui.Units.smallSpacing)
+            var extraSpace = Math.max(containerSize - allColumnSize, Meui.Units.largeSpacing)
             extraSpacing = extraSpace / availableColumns
         }
         return Math.floor(extraSpacing)

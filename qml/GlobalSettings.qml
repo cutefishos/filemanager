@@ -6,9 +6,9 @@ Settings {
     property bool showHidden: false
     property int width: 900
     property int height: 580
-    property int desktopIconSize: 128
+    property int desktopIconSize: 72
     property int maximumIconSize: 256
-    property int minimumIconSize: 128
+    property int minimumIconSize: 72
 
-    property int gridIconSize: 128
+    property int gridIconSize: 72
 }
