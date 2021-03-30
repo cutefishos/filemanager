@@ -32,9 +32,7 @@ ListView {
     currentIndex: -1
     clip: true
 
-    ScrollBar.vertical: ScrollBar {
-        bottomPadding: Meui.Theme.mediumRadius
-    }
+    ScrollBar.vertical: ScrollBar { }
 
     highlightMoveDuration: 0
     keyNavigationEnabled : true

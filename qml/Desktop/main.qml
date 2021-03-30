@@ -75,6 +75,8 @@ Item {
         rightMargin: desktopView.screenRect.width - (desktopView.screenAvailableRect.x + desktopView.screenAvailableRect.width)
         bottomMargin: desktopView.screenRect.height - (desktopView.screenAvailableRect.y + desktopView.screenAvailableRect.height)
 
+        flow: GridView.FlowTopToBottom
+
         delegate: FolderGridItem {}
     }
 

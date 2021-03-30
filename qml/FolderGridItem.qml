@@ -19,6 +19,10 @@ Item {
     property bool hovered: GridView.view.hoveredItem === control
     property bool selected: model.selected
     property bool blank: model.blank
+    property var fileName: model.fileName
+
+    property color hoveredColor: Meui.Theme.darkMode ? Qt.lighter(Meui.Theme.backgroundColor, 1.1)
+                                                     : Qt.darker(Meui.Theme.backgroundColor, 1.05)
 
     ColumnLayout {
         anchors.fill: parent
@@ -42,9 +46,9 @@ Item {
 
             Image {
                 id: _image
-                anchors.fill: parent
-                anchors.leftMargin: Meui.Units.smallSpacing
-                anchors.rightMargin: Meui.Units.smallSpacing
+                anchors.centerIn: parent
+                height: parent.height
+                width: parent.width
 
                 fillMode: Image.PreserveAspectFit
                 visible: status === Image.Ready
@@ -74,22 +78,23 @@ Item {
         }
 
         Item {
+            id: _labelItem
             Layout.fillHeight: true
             Layout.preferredHeight: Math.min(_label.implicitHeight, height)
             Layout.fillWidth: true
 
             Rectangle {
-                width: Math.min(_label.implicitWidth + Meui.Units.smallSpacing, parent.width)
-                height: Math.min(_label.implicitHeight + Meui.Units.smallSpacing, parent.height)
-                anchors.centerIn: parent
-                color: selected ? Meui.Theme.highlightColor : "transparent"
+                width: _label.paintedWidth + Meui.Units.smallSpacing * 2
+                height: _label.paintedHeight
+                x: (_labelItem.width - width + Meui.Units.smallSpacing) / 2
+                color: selected ? Meui.Theme.highlightColor : hovered ? hoveredColor : "transparent"
                 radius: Meui.Theme.smallRadius
             }
 
             Label {
                 id: _label
                 horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
+                verticalAlignment: Qt.AlignTop
                 anchors.fill: parent
                 anchors.margins: 0
                 elide: Qt.ElideRight

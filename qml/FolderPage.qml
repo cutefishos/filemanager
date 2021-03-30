@@ -23,6 +23,8 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
+        anchors.rightMargin: Meui.Theme.smallRadius
+        anchors.bottomMargin: Meui.Theme.smallRadius
         radius: Meui.Theme.smallRadius
         color: Meui.Theme.backgroundColor
     }
@@ -54,6 +56,7 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
+        anchors.bottomMargin: Meui.Theme.smallRadius
         spacing: 0
 
         Loader {
@@ -129,7 +132,7 @@ Item {
             model: folderModel
 
             leftMargin: Meui.Units.largeSpacing
-            rightMargin: Meui.Units.largeSpacing
+            rightMargin: Meui.Units.largeSpacing + Meui.Theme.smallRadius
             spacing: Meui.Units.largeSpacing
 
             onCountChanged: {

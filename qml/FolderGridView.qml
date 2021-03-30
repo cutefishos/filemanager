@@ -78,9 +78,7 @@ GridView {
 
     clip: true
     currentIndex: -1
-    ScrollBar.vertical: ScrollBar {
-        bottomPadding: Meui.Theme.mediumRadius
-    }
+    ScrollBar.vertical: ScrollBar { }
 
     onPressXChanged: {
         cPress = mapToItem(control.contentItem, pressX, pressY)
@@ -110,53 +108,30 @@ GridView {
         enabled: true
         z: -1
 
-        onDoubleClicked: {
-            if (mouse.button === Qt.LeftButton && control.pressedItem)
-                folderModel.openSelected()
-        }
-
         onPressed: {
             control.forceActiveFocus()
-
-//            if (mouse.source === Qt.MouseEventSynthesizedByQt) {
-//                var index = control.indexAt(mouse.x, mouse.y)
-//                var indexItem = control.itemAtIndex(index)
-//                if (indexItem && indexItem.iconArea) {
-//                    control.currentIndex = index
-//                    hoveredItem = indexItem
-//                } else {
-//                    hoveredItem = null
-//                }
-//            }
 
             pressX = mouse.x
             pressY = mouse.y
 
-            if (!hoveredItem || hoveredItem.blank) {
-                if (!control.ctrlPressed) {
-                    control.currentIndex = -1
-                    previouslySelectedItemIndex = -1
-                    folderModel.clearSelection()
-                }
-
-                if (mouse.buttons & Qt.RightButton) {
-                    clearPressState()
-                    folderModel.openContextMenu(null, mouse.modifiers)
-                    mouse.accepted = true
-                }
-            } else {
+            // 如果找到 hoveredItem 则点击后设置成为 pressedItem
+            if (hoveredItem) {
                 pressedItem = hoveredItem
 
-                var pos = mapToItem(hoveredItem, mouse.x, mouse.y)
+                // 这里更改 currentIndex 会影响到范围选择
+                if (!control.shiftPressed)
+                    currentIndex = pressedItem.index
 
+                // Shift 处理, 选择区域
                 if (control.shiftPressed && control.currentIndex !== -1) {
                     folderModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
+                    // Ctrl 处理
                     if (!control.ctrlPressed && !folderModel.isSelected(hoveredItem.index)) {
-                        previouslySelectedItemIndex = -1
                         folderModel.clearSelection()
                     }
 
+                    // Item 选择
                     if (control.ctrlPressed) {
                         folderModel.toggleSelected(hoveredItem.index)
                     } else {
@@ -164,8 +139,20 @@ GridView {
                     }
                 }
 
-                control.currentIndex = hoveredItem.index
+                // 弹出 Item 菜单
+                if (mouse.buttons & Qt.RightButton) {
+                    clearPressState()
+                    folderModel.openContextMenu(null, mouse.modifiers)
+                    mouse.accepted = true
+                }
+            } else {
+                // 处理空白区域点击
+                if (!control.ctrlPressed) {
+                    control.currentIndex = -1
+                    folderModel.clearSelection()
+                }
 
+                // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
                     folderModel.openContextMenu(null, mouse.modifiers)
@@ -178,36 +165,30 @@ GridView {
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
-            var cPos = mapToItem(control.contentItem, mouse.x, mouse.y)
-            var item = control.itemAt(cPos.x, cPos.y)
-            var leftEdge = Math.min(control.contentX, control.originX)
+            var index = control.indexAt(mouse.x + control.contentX,
+                                        mouse.y + control.contentY)
+            var indexItem = control.itemAtIndex(index)
 
-            if (!item || item.blank) {
-                if (control.hoveredItem/* && !root.containsDrag*/) {
-                    control.hoveredItem = null
-                }
-            } else {
-                var fPos = mapToItem(item.iconArea, mouse.x, mouse.y)
+            // Set hoveredItem.
+            if (indexItem) {
+                var iconPos = mapToItem(indexItem.iconArea, mouse.x, mouse.y)
+                var textPos = mapToItem(indexItem.textArea, mouse.x, mouse.y)
 
-                if (fPos.x < 0 || fPos.y < 0 || fPos.x > item.iconArea.width || fPos.y > item.iconArea.height) {
+                if (iconPos.x < 0 || iconPos.y < 0
+                        || iconPos.x > indexItem.iconArea.paintedWidth
+                        || iconPos.y > indexItem.iconArea.paintedHeight + indexItem.textArea.paintedHeight) {
                     control.hoveredItem = null
                 } else {
-                    control.hoveredItem = item
+                    control.hoveredItem = indexItem
                 }
-            }
-
-            // Trigger autoscroll.
-            if (pressX != -1) {
-                control.scrollLeft = (mouse.x <= 0 && control.contentX > leftEdge);
-                control.scrollRight = (mouse.x >= control.width
-                    && control.contentX < control.contentItem.width - control.width);
-                control.scrollUp = (mouse.y <= 0 && control.contentY > 0);
-                control.scrollDown = (mouse.y >= control.height
-                    && control.contentY < control.contentItem.height - control.height);
+            } else {
+                control.hoveredItem = null
             }
 
             // Update rubberband geometry.
             if (control.rubberBand) {
+                var cPos = mapToItem(control.contentItem, mouse.x, mouse.y)
+                var leftEdge = Math.min(control.contentX, control.originX)
                 var rB = control.rubberBand
 
                 if (cPos.x < cPress.x) {
@@ -215,7 +196,7 @@ GridView {
                     rB.width = Math.abs(rB.x - cPress.x)
                 } else {
                     rB.x = cPress.x
-                    var ceil = Math.max(control.width, control.contentItem.width) + leftEdge
+                    const ceil = Math.max(control.width, control.contentItem.width) + leftEdge
                     rB.width = Math.min(ceil - rB.x, Math.abs(rB.x - cPos.x))
                 }
 
@@ -224,7 +205,7 @@ GridView {
                     rB.height = Math.abs(rB.y - cPress.y)
                 } else {
                     rB.y = cPress.y
-                    var ceil = Math.max(control.height, control.contentItem.height)
+                    const ceil = Math.max(control.height, control.contentItem.height)
                     rB.height = Math.min(ceil - rB.y, Math.abs(rB.y - cPos.y))
                 }
 
@@ -258,19 +239,14 @@ GridView {
         onClicked: {
             clearPressState()
 
-            if (mouse.button === Qt.RightButton)
-                return
+            if (mouse.buttons & Qt.RightButton) {
+                folderModel.openContextMenu(null, mouse.modifiers)
+            }
+        }
 
-            if (!hoveredItem)
-                return;
-
-//            var pos = mapToItem(hoveredItem, mouse.x, mouse.y);
-//            if (pos.x < 0 || pos.x > hoveredItem.width || pos.y < 0 || pos.y > hoveredItem.height) {
-//                hoveredItem = null
-//                previouslySelectedItemIndex = -1
-//                folderModel.clearSelection()
-//                return
-//            }
+        onDoubleClicked: {
+            if (mouse.button === Qt.LeftButton && control.pressedItem)
+                folderModel.openSelected()
         }
 
         onReleased: pressCanceled()
