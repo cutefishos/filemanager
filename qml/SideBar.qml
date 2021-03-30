@@ -47,8 +47,11 @@ ListView {
             hoverEnabled: true
             acceptedButtons: Qt.LeftButton
             onClicked: {
-                sideBar.currentIndex = index
-                sideBar.clicked(model.path)
+                if (model.isDevice && model.setupNeeded)
+                    placesModel.requestSetup(index)
+
+                // sideBar.currentIndex = index
+                sideBar.clicked(model.path ? model.path : model.url)
             }
         }
 
@@ -94,7 +97,8 @@ ListView {
         sideBar.currentIndex = -1
 
         for (var i = 0; i < sideBar.count; ++i) {
-            if (path === sideBar.model.get(i).path) {
+            if (path === sideBar.model.get(i).path ||
+                    path === sideBar.model.get(i).url) {
                 sideBar.currentIndex = i
                 break
             }

@@ -21,7 +21,11 @@
 #define PLACESITEM_H
 
 #include <QObject>
+#include <QPointer>
 #include <QUrl>
+
+#include <Solid/Device>
+#include <Solid/StorageAccess>
 
 class PlacesItem : public QObject
 {
@@ -49,12 +53,27 @@ public:
     QString udi() const;
     void setUdi(const QString &udi);
 
+    bool isDevice();
+    bool setupNeeded();
+
+signals:
+    void itemChanged(PlacesItem *);
+
+private slots:
+    void updateDeviceInfo(const QString &udi);
+    void onAccessibilityChanged(bool isAccessible);
+
 private:
     QString m_displayName;
     QString m_iconName;
     QString m_iconPath;
     QString m_udi;
     QUrl m_url;
+
+    bool m_isAccessible;
+
+    Solid::Device m_device;
+    QPointer<Solid::StorageAccess> m_access;
 };
 
 #endif // PLACESITEM_H

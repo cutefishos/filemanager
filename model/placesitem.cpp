@@ -26,6 +26,7 @@ PlacesItem::PlacesItem(const QString &displayName,
     : QObject(parent)
     , m_displayName(displayName)
     , m_url(url)
+    , m_isAccessible(false)
 {
 }
 
@@ -61,6 +62,9 @@ void PlacesItem::setIconPath(const QString &path)
 
 QUrl PlacesItem::url() const
 {
+    if (m_access)
+        return QUrl::fromLocalFile(m_access->filePath());
+
     return m_url;
 }
 
@@ -82,4 +86,48 @@ QString PlacesItem::udi() const
 void PlacesItem::setUdi(const QString &udi)
 {
     m_udi = udi;
+    updateDeviceInfo(m_udi);
+}
+
+bool PlacesItem::isDevice()
+{
+    return !m_udi.isEmpty() && m_device.isValid();
+}
+
+bool PlacesItem::setupNeeded()
+{
+    if (m_access) {
+        return !m_isAccessible;
+    }
+
+    return false;
+}
+
+void PlacesItem::updateDeviceInfo(const QString &udi)
+{
+    m_device = Solid::Device(udi);
+
+    if (m_access)
+        m_access->disconnect(this);
+
+    if (m_device.isValid()) {
+        m_access = m_device.as<Solid::StorageAccess>();
+        m_iconName = m_device.icon();
+        m_displayName = m_device.displayName();
+
+        if (m_access) {
+            // m_url = m_access->filePath();
+            connect(m_access.data(), &Solid::StorageAccess::accessibilityChanged, this, &PlacesItem::onAccessibilityChanged);
+            onAccessibilityChanged(m_access->isAccessible());
+        }
+    } else {
+        m_access = nullptr;
+    }
+}
+
+void PlacesItem::onAccessibilityChanged(bool isAccessible)
+{
+    m_isAccessible = isAccessible;
+
+    emit itemChanged(this);
 }

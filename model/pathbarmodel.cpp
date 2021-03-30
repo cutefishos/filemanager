@@ -18,6 +18,7 @@
  */
 
 #include "pathbarmodel.h"
+#include<QDebug>
 
 PathBarModel::PathBarModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -33,7 +34,7 @@ QString PathBarModel::url() const
 {
     return m_url;
 }
-#include<QDebug>
+
 void PathBarModel::setUrl(const QString &url)
 {
     if (m_url != url) {

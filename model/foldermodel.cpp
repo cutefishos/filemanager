@@ -174,6 +174,9 @@ QString FolderModel::url() const
 
 void FolderModel::setUrl(const QString &url)
 {
+    if (url.isEmpty())
+        return;
+
     const QUrl &resolvedNewUrl = resolve(url);
 
     // Refresh this directory.

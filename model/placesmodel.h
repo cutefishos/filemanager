@@ -33,7 +33,9 @@ public:
         IconNameRole,
         IconPathRole,
         UrlRole,
-        PathRole
+        PathRole,
+        IsDeviceRole,
+        setupNeededRole
     };
     Q_ENUMS(DataRole);
 
@@ -50,6 +52,12 @@ public:
     QModelIndex parent(const QModelIndex &child) const override;
 
     Q_INVOKABLE QVariantMap get(const int &index) const;
+    Q_INVOKABLE void requestSetup(const int &index);
+    Q_INVOKABLE void requestEject(const int &index);
+
+private slots:
+    void onDeviceAdded(const QString &udi);
+    void onDeviceRemoved(const QString &udi);
 
 private:
     QList<PlacesItem *> m_items;

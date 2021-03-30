@@ -28,6 +28,7 @@
 #include <Solid/StorageDrive>
 #include <Solid/StorageAccess>
 #include <Solid/Predicate>
+#include <Solid/OpticalDrive>
 
 PlacesModel::PlacesModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -98,12 +99,14 @@ PlacesModel::PlacesModel(QObject *parent)
     predicate = Solid::Predicate::fromString(predicateStr);
 
     Solid::DeviceNotifier *notifier = Solid::DeviceNotifier::instance();
+    connect(notifier, &Solid::DeviceNotifier::deviceAdded, this, &PlacesModel::onDeviceAdded);
+    connect(notifier, &Solid::DeviceNotifier::deviceRemoved, this, &PlacesModel::onDeviceRemoved);
+
+    // Init devices
     const QList<Solid::Device> &deviceList = Solid::Device::listFromQuery(predicate);
-
     for (const Solid::Device &device : deviceList) {
-        qDebug() << device.udi();
-
-        PlacesItem *deviceItem = new PlacesItem(device.udi());
+        PlacesItem *deviceItem = new PlacesItem;
+        deviceItem->setUdi(device.udi());
         m_items.append(deviceItem);
     }
 }
@@ -120,6 +123,8 @@ QHash<int, QByteArray> PlacesModel::roleNames() const
     roleNames[PlacesModel::IconPathRole] = "iconPath";
     roleNames[PlacesModel::UrlRole] = "url";
     roleNames[PlacesModel::PathRole] = "path";
+    roleNames[PlacesModel::IsDeviceRole] = "isDevice";
+    roleNames[PlacesModel::setupNeededRole] = "setupNeeded";
     return roleNames;
 }
 
@@ -159,6 +164,12 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
         break;
     case PlacesModel::PathRole:
         return item->path();
+        break;
+    case PlacesModel::IsDeviceRole:
+        return item->isDevice();
+        break;
+    case PlacesModel::setupNeededRole:
+        return item->setupNeeded();
         break;
     default:
         break;
@@ -201,4 +212,48 @@ QVariantMap PlacesModel::get(const int &index) const
     }
 
     return res;
+}
+
+void PlacesModel::requestSetup(const int &index)
+{
+    PlacesItem *item = m_items.at(index);
+    if (!item->udi().isEmpty()) {
+        Solid::Device device = Solid::Device(item->udi());
+        Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
+        access->setup();
+    }
+}
+
+void PlacesModel::requestEject(const int &index)
+{
+    PlacesItem *item = m_items.at(index);
+    if (!item->udi().isEmpty()) {
+        Solid::Device device = Solid::Device(item->udi());
+        Solid::OpticalDrive *drive = device.parent().as<Solid::OpticalDrive>();
+
+        if (drive) {
+            drive->eject();
+        }
+    }
+}
+
+void PlacesModel::onDeviceAdded(const QString &udi)
+{
+    beginInsertRows(QModelIndex(), rowCount(), rowCount());
+    PlacesItem *deviceItem = new PlacesItem;
+    deviceItem->setUdi(udi);
+    m_items.append(deviceItem);
+    endInsertRows();
+}
+
+void PlacesModel::onDeviceRemoved(const QString &udi)
+{
+    for (int i = 0; i < m_items.size(); ++i) {
+        if (m_items.at(i)->udi() == udi) {
+            beginRemoveRows(QModelIndex(), i, i);
+            PlacesItem *item = m_items.at(i);
+            m_items.removeOne(item);
+            endRemoveRows();
+        }
+    }
 }
