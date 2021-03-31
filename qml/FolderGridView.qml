@@ -31,6 +31,8 @@ GridView {
     property int anchorIndex: 0
 
     property var iconSize: settings.gridIconSize
+    property var maximumIconSize: settings.maximumIconSize
+    property var minimumIconSize: settings.minimumIconSize
 
     property variant cachedRectangleSelection: null
 
@@ -276,6 +278,15 @@ GridView {
 
         onReleased: pressCanceled()
         onCanceled: pressCanceled()
+
+        onWheel: {
+            if (wheel.modifiers & Qt.ControlModifier) {
+                if (wheel.angleDelta.y > 0)
+                    control.increaseIconSize()
+                else
+                    control.decreaseIconSize()
+            }
+        }
     }
 
     function clearPressState() {
@@ -374,6 +385,24 @@ GridView {
             extraSpacing = extraSpace / availableColumns
         }
         return Math.floor(extraSpacing)
+    }
+
+    function increaseIconSize() {
+        if (iconSize >= control.maximumIconSize) {
+            iconSize = control.maximumIconSize
+            return
+        }
+
+        iconSize += (iconSize * 0.1)
+    }
+
+    function decreaseIconSize() {
+        if (iconSize <= control.minimumIconSize) {
+            iconSize = control.minimumIconSize
+            return
+        }
+
+        iconSize -= (iconSize * 0.1)
     }
 
     Component {

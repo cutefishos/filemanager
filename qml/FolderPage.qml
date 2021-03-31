@@ -129,6 +129,11 @@ Item {
             topMargin: Meui.Units.smallSpacing
             bottomMargin: Meui.Units.smallSpacing
 
+            onIconSizeChanged: {
+                // Save
+                settings.gridIconSize = _gridView.iconSize
+            }
+
             onCountChanged: {
                 _fileTips.visible = count === 0
             }

@@ -72,9 +72,14 @@ Item {
 
         isDesktopView: true
         iconSize: globalSettings.desktopIconSize
+        maximumIconSize: globalSettings.maximumIconSize
+        minimumIconSize: globalSettings.minimumIconSize
         focus: true
-
         model: folderModel
+
+        onIconSizeChanged: {
+            globalSettings.desktopIconSize = _folderView.iconSize
+        }
 
         leftMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.x : 0
         topMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.y : 0
@@ -84,6 +89,11 @@ Item {
         flow: GridView.FlowTopToBottom
 
         delegate: FolderGridItem {}
+
+        onActiveFocusChanged: {
+            if (!activeFocus)
+                folderModel.clearSelection()
+        }
     }
 
     Connections {
