@@ -129,10 +129,6 @@ Item {
             onCountChanged: {
                 _fileTips.visible = count === 0
             }
-
-//            Component.onCompleted: {
-//                folderModel.requestRename.connect(rename)
-//            }
         }
     }
 

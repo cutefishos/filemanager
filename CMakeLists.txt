@@ -27,6 +27,7 @@ add_executable(cutefish-filemanager
   model/positioner.cpp
 
   dialogs/propertiesdialog.cpp
+  dialogs/createfolderdialog.cpp
   widgets/rubberband.cpp
   widgets/itemviewadapter.cpp
 

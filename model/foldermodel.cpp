@@ -2,6 +2,7 @@
 #include "dirlister.h"
 
 #include "../dialogs/propertiesdialog.h"
+#include "../dialogs/createfolderdialog.h"
 
 // Qt
 #include <QDir>
@@ -36,6 +37,7 @@
 #include <KFileItemListProperties>
 #include <KDesktopFile>
 #include <KRun>
+#include <KToolInvocation>
 
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
@@ -596,6 +598,13 @@ void FolderModel::unpinSelection()
     m_pinnedSelection = QItemSelection();
 }
 
+void FolderModel::newFolder()
+{
+    CreateFolderDialog *dlg = new CreateFolderDialog;
+    dlg->setPath(rootItem().url().toString());
+    dlg->show();
+}
+
 void FolderModel::rename(int row, const QString &name)
 {
     if (row < 0)
@@ -852,7 +861,17 @@ void FolderModel::openPropertiesDialog()
 
 void FolderModel::openInTerminal()
 {
-    qDebug() << "TODO";
+    QString url;
+    if (m_selectionModel->hasSelection()) {
+        KFileItem item = itemForIndex(m_selectionModel->selectedIndexes().first());
+        if (item.isDir()) {
+            url = item.url().toLocalFile();
+        }
+    } else {
+        url = rootItem().url().toLocalFile();
+    }
+
+    KToolInvocation::invokeTerminal(QString(), url);
 }
 
 void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -986,6 +1005,7 @@ void FolderModel::createActions()
     connect(paste, &QAction::triggered, this, &FolderModel::paste);
 
     QAction *newFolder = new QAction(tr("New Folder"), this);
+    connect(newFolder, &QAction::triggered, this, &FolderModel::newFolder);
 
     QAction *trash = new QAction(tr("Move To Trash"), this);
     connect(trash, &QAction::triggered, this, &FolderModel::moveSelectedToTrash);
