@@ -20,9 +20,12 @@ ListView {
 
     leftMargin: Meui.Units.smallSpacing
     rightMargin: Meui.Units.smallSpacing
+    bottomMargin: Meui.Units.smallSpacing
     spacing: Meui.Units.largeSpacing
 
-    ScrollBar.vertical: ScrollBar {}
+    ScrollBar.vertical: ScrollBar {
+        bottomPadding: Meui.Units.smallSpacing
+    }
 
     highlightFollowsCurrentItem: true
     highlightMoveDuration: 0

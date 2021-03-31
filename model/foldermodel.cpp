@@ -123,8 +123,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return m_selectionModel->isSelected(index);
     case UrlRole:
         return item.url();
-    case FileNameRole:
+    case FileNameRole: {
         return item.url().fileName();
+    }
     case IconNameRole:
         return item.iconName();
     case ThumbnailRole: {
@@ -932,7 +933,7 @@ bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 {
     const QStringList supportsMimetypes = {"image/bmp", "image/png", "image/gif", "image/jpeg", "image/web",
                                            "application/pdf", "application/rtf", "application/doc", "application/odf",
-                                           "audio/mpeg"};
+                                           "audio/mpeg", "video/mp4"};
 
     if (supportsMimetypes.contains(mimeType))
         return true;

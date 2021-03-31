@@ -21,6 +21,7 @@
 #define PLACESMODEL_H
 
 #include <QAbstractItemModel>
+#include <Solid/Predicate>
 #include "placesitem.h"
 
 class PlacesModel : public QAbstractItemModel
@@ -61,6 +62,7 @@ private slots:
 
 private:
     QList<PlacesItem *> m_items;
+    Solid::Predicate m_predicate;
 };
 
 #endif

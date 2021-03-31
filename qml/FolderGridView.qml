@@ -41,6 +41,25 @@ GridView {
 
     signal keyPress(var event)
 
+    function rename() {
+        if (control.currentIndex != -1) {
+            var renameAction = control.model.action("rename")
+            if (renameAction && !renameAction.enabled)
+                return
+
+            if (!editor)
+                editor = editorComponent.createObject(control)
+
+            editor.targetItem = control.currentItem
+        }
+    }
+
+    function cancelRename() {
+        if (editor) {
+            editor.targetItem = null;
+        }
+    }
+
     highlightMoveDuration: 0
     keyNavigationEnabled : true
     keyNavigationWraps : true
@@ -114,6 +133,9 @@ GridView {
 
         onPressed: {
             control.forceActiveFocus()
+
+            if (control.editor && childAt(mouse.x, mouse.y) !== control.editor)
+                control.editor.commit()
 
             pressX = mouse.x
             pressY = mouse.y
@@ -352,5 +374,69 @@ GridView {
             extraSpacing = extraSpace / availableColumns
         }
         return Math.floor(extraSpacing)
+    }
+
+    Component {
+        id: editorComponent
+
+        TextField {
+            id: _editor
+            visible: false
+            wrapMode: TextEdit.Wrap
+            horizontalAlignment: TextEdit.AlignHCenter
+            z: 999
+
+            property Item targetItem: null
+
+            onTargetItemChanged: {
+                if (targetItem != null) {
+                    var pos = control.mapFromItem(targetItem, targetItem.textArea.x, targetItem.textArea.y)
+                    x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
+                    y = pos.y + Meui.Units.smallSpacing
+                    width = targetItem.width - Meui.Units.smallSpacing
+                    height = Meui.Units.fontMetrics.height * 2
+                    text = targetItem.textArea.text
+                    targetItem.textArea.visible = false
+                    _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
+                    visible = true
+                } else {
+                    x: 0
+                    y: 0
+                    visible = false
+                }
+            }
+
+            Keys.onPressed: {
+                switch (event.key) {
+                case Qt.Key_Return:
+                case Qt.Key_Enter:
+                    commit()
+                    break
+                case Qt.Key_Escape:
+                    if (targetItem) {
+                        targetItem.textArea.visible = true
+                        targetItem = null
+                        event.accepted = true
+                    }
+                    break
+                }
+            }
+
+            onVisibleChanged: {
+                if (visible)
+                    _editor.forceActiveFocus()
+                else
+                    control.forceActiveFocus()
+            }
+
+            function commit() {
+                if (targetItem) {
+                    targetItem.textArea.visible = true
+                    folderModel.rename(targetItem.index, text)
+                    control.currentIndex = targetItem.index
+                    targetItem = null
+                }
+            }
+        }
     }
 }

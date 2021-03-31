@@ -87,7 +87,6 @@ PlacesModel::PlacesModel(QObject *parent)
     trashItem->setIconPath("qrc:/images/user-trash.svg");
     m_items.append(trashItem);
 
-    Solid::Predicate predicate;
     QString predicateStr(
         QString::fromLatin1("[[[[ StorageVolume.ignored == false AND [ StorageVolume.usage == 'FileSystem' OR StorageVolume.usage == 'Encrypted' ]]"
                             " OR "
@@ -96,14 +95,14 @@ PlacesModel::PlacesModel(QObject *parent)
                             "OpticalDisc.availableContent & 'Audio' ]"
                             " OR "
                             "StorageAccess.ignored == false ]"));
-    predicate = Solid::Predicate::fromString(predicateStr);
+    m_predicate = Solid::Predicate::fromString(predicateStr);
 
     Solid::DeviceNotifier *notifier = Solid::DeviceNotifier::instance();
     connect(notifier, &Solid::DeviceNotifier::deviceAdded, this, &PlacesModel::onDeviceAdded);
     connect(notifier, &Solid::DeviceNotifier::deviceRemoved, this, &PlacesModel::onDeviceRemoved);
 
     // Init devices
-    const QList<Solid::Device> &deviceList = Solid::Device::listFromQuery(predicate);
+    const QList<Solid::Device> &deviceList = Solid::Device::listFromQuery(m_predicate);
     for (const Solid::Device &device : deviceList) {
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(device.udi());
@@ -239,11 +238,13 @@ void PlacesModel::requestEject(const int &index)
 
 void PlacesModel::onDeviceAdded(const QString &udi)
 {
-    beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    PlacesItem *deviceItem = new PlacesItem;
-    deviceItem->setUdi(udi);
-    m_items.append(deviceItem);
-    endInsertRows();
+    if (m_predicate.matches(Solid::Device(udi))) {
+        beginInsertRows(QModelIndex(), rowCount(), rowCount());
+        PlacesItem *deviceItem = new PlacesItem;
+        deviceItem->setUdi(udi);
+        m_items.append(deviceItem);
+        endInsertRows();
+    }
 }
 
 void PlacesModel::onDeviceRemoved(const QString &udi)

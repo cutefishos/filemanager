@@ -75,6 +75,14 @@ Item {
         }
     }
 
+    function rename() {
+        _viewLoader.item.rename()
+    }
+
+    Component.onCompleted: {
+        folderModel.requestRename.connect(rename)
+    }
+
     Component {
         id: _statusBar
 
@@ -121,6 +129,10 @@ Item {
             onCountChanged: {
                 _fileTips.visible = count === 0
             }
+
+//            Component.onCompleted: {
+//                folderModel.requestRename.connect(rename)
+//            }
         }
     }
 
@@ -140,10 +152,6 @@ Item {
             }
 
             delegate: FolderListItem {}
-
-            Component.onCompleted: {
-                folderModel.requestRename.connect(rename)
-            }
         }
     }
 

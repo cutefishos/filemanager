@@ -24,15 +24,14 @@ Item {
 
     Rectangle {
         id: _background
-        width: Math.max(_iconItem.width + Meui.Units.smallSpacing,
-                        _label.paintedWidth + Meui.Units.largeSpacing)
+        width: Math.max(_iconItem.width, _label.paintedWidth)
         height: _iconItem.height + _label.paintedHeight + Meui.Units.largeSpacing
         x: (parent.width - width) / 2
         y: _iconItem.y
         color: selected || hovered ? Meui.Theme.highlightColor : "transparent"
         radius: Meui.Theme.mediumRadius
         visible: selected || hovered
-        opacity: selected ? 0.9 : 0.4
+        opacity: selected ? 1.0 : 0.4
     }
 
     Item {
@@ -45,7 +44,6 @@ Item {
 
         width: parent.width - Meui.Units.largeSpacing * 2
         height: control.GridView.view.iconSize
-        opacity: selected || !hovered ? 1.0 : 0.95
 
         Image {
             id: _icon
