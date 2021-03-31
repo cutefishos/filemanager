@@ -285,6 +285,8 @@ GridView {
                     control.increaseIconSize()
                 else
                     control.decreaseIconSize()
+            } else {
+                wheel.accepted = false
             }
         }
     }
