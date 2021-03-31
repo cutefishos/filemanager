@@ -72,6 +72,7 @@ Item {
 
         isDesktopView: true
         iconSize: globalSettings.desktopIconSize
+        focus: true
 
         model: folderModel
 

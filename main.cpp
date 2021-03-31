@@ -72,12 +72,10 @@ int main(int argc, char *argv[])
     QCommandLineOption desktopOption(QStringList() << "d" << "desktop" << "Desktop Mode");
     parser.addOption(desktopOption);
     parser.process(app);
-    parser.addHelpOption();
 
     if (parser.isSet(desktopOption)) {
         DesktopView view;
         view.show();
-
         return app.exec();
     }
 
@@ -92,7 +90,16 @@ int main(int argc, char *argv[])
     // Handle urls
     if (!parser.positionalArguments().isEmpty()) {
         QStringList arguments = parser.positionalArguments();
-        engine.rootContext()->setContextProperty("arg", arguments.first());
+        QUrl url(arguments.first());
+        if (!url.isValid())
+            url = QUrl::fromLocalFile(arguments.first());
+
+        if (url.isValid())
+            engine.rootContext()->setContextProperty("arg", arguments.first());
+        else
+            engine.rootContext()->setContextProperty("arg", "");
+    } else {
+        engine.rootContext()->setContextProperty("arg", "");
     }
 
     engine.load(url);
