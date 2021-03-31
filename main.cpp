@@ -20,6 +20,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 #include <QTranslator>
 #include <QLocale>
@@ -66,9 +67,12 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription(QStringLiteral("File Manager"));
     parser.addHelpOption();
 
+    parser.addPositionalArgument("files", "Files", "[FILE1, FILE2,...]");
+
     QCommandLineOption desktopOption(QStringList() << "d" << "desktop" << "Desktop Mode");
     parser.addOption(desktopOption);
     parser.process(app);
+    parser.addHelpOption();
 
     if (parser.isSet(desktopOption)) {
         DesktopView view;
@@ -84,6 +88,13 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
+    // Handle urls
+    if (!parser.positionalArguments().isEmpty()) {
+        QStringList arguments = parser.positionalArguments();
+        engine.rootContext()->setContextProperty("arg", arguments.first());
+    }
+
     engine.load(url);
     engine.addImageProvider("thumbnailer", new Thumbnailer());
 

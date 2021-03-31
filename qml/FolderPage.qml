@@ -41,7 +41,10 @@ Item {
         viewAdapter: viewAdapter
 
         Component.onCompleted: {
-            folderModel.url = folderModel.homePath()
+            if (arg)
+                folderModel.url = arg
+            else
+                folderModel.url = folderModel.homePath()
         }
     }
 

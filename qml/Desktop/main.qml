@@ -60,17 +60,20 @@ Item {
         }
     }
 
+    FolderModel {
+        id: folderModel
+        url: desktopPath()
+        isDesktop: true
+    }
+
     FolderGridView {
+        id: _folderView
         anchors.fill: parent
 
         isDesktopView: true
         iconSize: globalSettings.desktopIconSize
 
-        model: FolderModel {
-            id: folderModel
-            url: desktopPath()
-            isDesktop: true
-        }
+        model: folderModel
 
         leftMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.x : 0
         topMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.y : 0
@@ -80,6 +83,29 @@ Item {
         flow: GridView.FlowTopToBottom
 
         delegate: FolderGridItem {}
+    }
+
+    Connections {
+        target: _folderView
+
+        function onKeyPress(event) {
+            if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
+                folderModel.openSelected()
+            else if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier)
+                folderModel.copy()
+            else if (event.key === Qt.Key_X && event.modifiers & Qt.ControlModifier)
+                folderModel.cut()
+            else if (event.key === Qt.Key_V && event.modifiers & Qt.ControlModifier)
+                folderModel.paste()
+            else if (event.key === Qt.Key_F2)
+                folderModel.requestRename()
+            else if (event.key === Qt.Key_L && event.modifiers & Qt.ControlModifier)
+                folderPage.requestPathEditor()
+            else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
+                folderModel.selectAll()
+            else if (event.key === Qt.Key_Backspace)
+                folderModel.up()
+        }
     }
 
     Component {
