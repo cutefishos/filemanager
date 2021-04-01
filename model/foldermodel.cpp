@@ -133,7 +133,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     }
     case FileSizeRole: {
         if (item.isDir()) {
-            uint count = QDir(item.url().toLocalFile()).count();
+            QDir dir(item.url().toLocalFile());
+            dir.setFilter(QDir::Dirs | QDir::AllEntries | QDir::NoDotAndDotDot);
+            uint count = dir.count();
             return count == 1 ? tr("%1 item").arg(count) : tr("%1 items").arg(count);
         }
 

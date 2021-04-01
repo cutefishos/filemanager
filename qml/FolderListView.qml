@@ -314,7 +314,7 @@ ListView {
             onTargetItemChanged: {
                 if (targetItem != null) {
                     var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
-                    width = targetItem.width - targetItem.iconArea.width * 2
+                    width = targetItem.labelArea.width
                     height = targetItem.height
                     x = control.mapFromItem(targetItem.labelArea, 0, 0).x
                     y = pos.y

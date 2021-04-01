@@ -74,6 +74,10 @@ GridView {
 
             if (currentIndex != -1)
                 anchorIndex = currentIndex
+        } else if (event.key === Qt.Key_Equal && event.modifiers & Qt.ControlModifier) {
+            control.increaseIconSize()
+        } else if (event.key === Qt.Key_Minus && event.modifiers & Qt.ControlModifier) {
+            control.decreaseIconSize()
         }
 
         control.keyPress(event)
