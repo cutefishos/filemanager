@@ -9,6 +9,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QCollator>
+#include <QDBusInterface>
 #include <QStandardPaths>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -16,7 +17,7 @@
 #include <QClipboard>
 #include <QPainter>
 #include <QDrag>
-#include <QDBusInterface>
+#include <QDir>
 
 // Qt Quick
 #include <QQuickItem>
@@ -70,9 +71,9 @@ FolderModel::FolderModel(QObject *parent)
     sort(m_sortMode, m_sortDesc ? Qt::DescendingOrder : Qt::AscendingOrder);
     createActions();
 
-    connect(this, SIGNAL(rowsInserted(QModelIndex,int,int)), SIGNAL(statusTextChanged()));
-    connect(this, SIGNAL(rowsRemoved(QModelIndex,int,int)), SIGNAL(statusTextChanged()));
-    connect(this, SIGNAL(modelReset()), SIGNAL(statusTextChanged()));
+    connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)), SIGNAL(countChanged()));
+    connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)), SIGNAL(countChanged()));
+    connect(this, SIGNAL(modelReset()), SIGNAL(countChanged()));
 }
 
 FolderModel::~FolderModel()
@@ -106,8 +107,10 @@ QHash<int, QByteArray> FolderModel::staticRoleNames()
     roleNames[IsDirRole] = "isDir";
     roleNames[UrlRole] = "url";
     roleNames[FileNameRole] = "fileName";
+    roleNames[FileSizeRole] = "fileSize";
     roleNames[IconNameRole] = "iconName";
     roleNames[ThumbnailRole] = "thumbnail";
+    roleNames[ModifiedRole] = "modified";
     return roleNames;
 }
 
@@ -128,6 +131,14 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case FileNameRole: {
         return item.url().fileName();
     }
+    case FileSizeRole: {
+        if (item.isDir()) {
+            uint count = QDir(item.url().toLocalFile()).count();
+            return count == 1 ? tr("%1 item").arg(count) : tr("%1 items").arg(count);
+        }
+
+        return KIO::convertSize(item.size());
+    }
     case IconNameRole:
         return item.iconName();
     case ThumbnailRole: {
@@ -143,6 +154,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         }
 
         return QVariant();
+    }
+    case ModifiedRole: {
+        return item.timeString(KFileItem::ModificationTime);
     }
     default:
         break;
@@ -405,23 +419,9 @@ KFileItem FolderModel::rootItem() const
     return m_dirModel->dirLister()->rootItem();
 }
 
-QString FolderModel::statusText()
+int FolderModel::count() const
 {
-    if (m_selectionModel && m_selectionModel->hasSelection()) {
-        if (m_selectionModel->selectedIndexes().size() == 1) {
-            KFileItem item = itemForIndex(m_selectionModel->selectedIndexes().first());
-            return item.name();
-        }
-
-        return tr("%1 selected").arg(m_selectionModel->selectedIndexes().size());
-    }
-
-    if (m_dirModel->rowCount() == 1) {
-        return tr("%1 item").arg(m_dirModel->rowCount());
-    } else if (m_dirModel->rowCount() <= 0)
-        return "";
-
-    return tr("%1 items").arg(m_dirModel->rowCount());
+    return rowCount();
 }
 
 int FolderModel::selectionCound() const
@@ -909,8 +909,6 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
 
     updateActions();
 
-    // 选中状态信息
-    emit statusTextChanged();
     emit selectionCoundChanged();
 }
 

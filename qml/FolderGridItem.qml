@@ -13,7 +13,7 @@ Item {
     height: GridView.view.cellHeight
 
     property Item iconArea: _image.visible ? _image : _icon
-    property Item textArea: _label
+    property Item labelArea: _label
     property Item background: _background
 
     property int index: model.index
@@ -96,7 +96,7 @@ Item {
         anchors.topMargin: Meui.Units.smallSpacing
         maximumLineCount: 2
         horizontalAlignment: Text.AlignHCenter
-        width: parent.width - Meui.Units.largeSpacing * 2
+        width: parent.width - Meui.Units.largeSpacing * 2 - Meui.Units.smallSpacing
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap

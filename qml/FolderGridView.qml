@@ -58,6 +58,7 @@ GridView {
 
     function cancelRename() {
         if (editor) {
+            editor.cancel()
             editor.targetItem = null;
         }
     }
@@ -111,6 +112,14 @@ GridView {
 
     onPressYChanged: {
         cPress = mapToItem(control.contentItem, pressX, pressY)
+    }
+
+    onContentXChanged: {
+        cancelRename()
+    }
+
+    onContentYChanged: {
+        cancelRename()
     }
 
     onCachedRectangleSelectionChanged: {
@@ -360,8 +369,8 @@ GridView {
                             continue
                         }
 
-                        var labelRect = Qt.rect(itemX + item.textArea.x, itemY + item.textArea.y,
-                            item.textArea.width, item.textArea.height)
+                        var labelRect = Qt.rect(itemX + item.labelArea.x, itemY + item.labelArea.y,
+                            item.labelArea.width, item.labelArea.height)
 
                         if (control.rubberBand.intersects(labelRect)) {
                             indices.push(index)
@@ -421,18 +430,20 @@ GridView {
 
             onTargetItemChanged: {
                 if (targetItem != null) {
-                    var pos = control.mapFromItem(targetItem, targetItem.textArea.x, targetItem.textArea.y)
-                    x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
-                    y = pos.y + Meui.Units.smallSpacing
+                    var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
                     width = targetItem.width - Meui.Units.smallSpacing
-                    height = Meui.Units.fontMetrics.height * 2
-                    text = targetItem.textArea.text
-                    targetItem.textArea.visible = false
+                    height = targetItem.labelArea.paintedHeight + Meui.Units.largeSpacing * 2
+                    x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
+                    y = pos.y - Meui.Units.largeSpacing
+                    text = targetItem.labelArea.text
+                    targetItem.labelArea.visible = false
                     _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
                     visible = true
                 } else {
-                    x: 0
-                    y: 0
+                    x = 0
+                    y = 0
+                    width = 0
+                    height = 0
                     visible = false
                 }
             }
@@ -444,11 +455,7 @@ GridView {
                     commit()
                     break
                 case Qt.Key_Escape:
-                    if (targetItem) {
-                        targetItem.textArea.visible = true
-                        targetItem = null
-                        event.accepted = true
-                    }
+                    cancel()
                     break
                 }
             }
@@ -462,9 +469,16 @@ GridView {
 
             function commit() {
                 if (targetItem) {
-                    targetItem.textArea.visible = true
+                    targetItem.labelArea.visible = true
                     folderModel.rename(targetItem.index, text)
                     control.currentIndex = targetItem.index
+                    targetItem = null
+                }
+            }
+
+            function cancel() {
+                if (targetItem) {
+                    targetItem.labelArea.visible = true
                     targetItem = null
                 }
             }

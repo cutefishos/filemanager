@@ -98,11 +98,22 @@ Item {
                 anchors.leftMargin: Meui.Units.largeSpacing
                 anchors.rightMargin: Meui.Units.largeSpacing
                 anchors.bottomMargin: 1
+                spacing: Meui.Units.largeSpacing
 
                 Label {
-                    text: folderModel.statusText
                     Layout.alignment: Qt.AlignLeft
-                    elide: Text.ElideMiddle
+                    text: folderModel.count == 1 ? qsTr("%1 item").arg(folderModel.count)
+                                                 : qsTr("%1 items").arg(folderModel.count)
+                }
+
+                Label {
+                    Layout.alignment: Qt.AlignLeft
+                    text: qsTr("%1 selected").arg(folderModel.selectionCound)
+                    visible: folderModel.selectionCound >= 1
+                }
+
+                Item {
+                    Layout.fillWidth: true
                 }
 
                 Button {
@@ -147,6 +158,7 @@ Item {
             id: _folderListView
             model: folderModel
 
+            topMargin: Meui.Units.largeSpacing
             leftMargin: Meui.Units.largeSpacing
             rightMargin: Meui.Units.largeSpacing + Meui.Theme.smallRadius
             spacing: Meui.Units.largeSpacing

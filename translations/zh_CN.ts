@@ -14,12 +14,12 @@
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="48"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="49"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="54"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
@@ -35,82 +35,81 @@
 <context>
     <name>FolderModel</name>
     <message>
-        <location filename="../model/foldermodel.cpp" line="415"/>
         <source>%1 selected</source>
-        <translation>选中了 %1 项</translation>
+        <translation type="vanished">选中了 %1 项</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="419"/>
+        <location filename="../model/foldermodel.cpp" line="137"/>
         <source>%1 item</source>
         <translation>%1 项</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="423"/>
+        <location filename="../model/foldermodel.cpp" line="137"/>
         <source>%1 items</source>
         <translation>%1 项</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="791"/>
+        <location filename="../model/foldermodel.cpp" line="805"/>
         <source>Select All</source>
         <translation>全选</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="984"/>
+        <location filename="../model/foldermodel.cpp" line="1007"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="987"/>
+        <location filename="../model/foldermodel.cpp" line="1010"/>
         <source>Cut</source>
         <translation>剪切</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="990"/>
+        <location filename="../model/foldermodel.cpp" line="1013"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="993"/>
+        <location filename="../model/foldermodel.cpp" line="1016"/>
         <source>Paste</source>
         <translation>粘贴</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="996"/>
+        <location filename="../model/foldermodel.cpp" line="1019"/>
         <source>New Folder</source>
         <translation>新建文件夹</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="999"/>
+        <location filename="../model/foldermodel.cpp" line="1022"/>
         <source>Move To Trash</source>
         <translation>移动到回收站</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1002"/>
+        <location filename="../model/foldermodel.cpp" line="1025"/>
         <source>Empty Trash</source>
         <translation>清空回收站</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1005"/>
+        <location filename="../model/foldermodel.cpp" line="1028"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1008"/>
+        <location filename="../model/foldermodel.cpp" line="1031"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1011"/>
+        <location filename="../model/foldermodel.cpp" line="1034"/>
         <source>Open in Terminal</source>
         <translation>在终端中打开</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1014"/>
+        <location filename="../model/foldermodel.cpp" line="1037"/>
         <source>Set as Wallpaper</source>
         <translation>设置为壁纸</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1017"/>
+        <location filename="../model/foldermodel.cpp" line="1040"/>
         <source>Properties</source>
         <translation>属性</translation>
     </message>
@@ -123,7 +122,22 @@
         <translation>无文件</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="108"/>
+        <location filename="../qml/FolderPage.qml" line="105"/>
+        <source>%1 item</source>
+        <translation>%1 项</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="106"/>
+        <source>%1 items</source>
+        <translation>%1 项</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="111"/>
+        <source>%1 selected</source>
+        <translation>选中了 %1 项</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="122"/>
         <source>Empty Trash</source>
         <translation>清空回收站</translation>
     </message>

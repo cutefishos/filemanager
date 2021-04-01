@@ -6,13 +6,14 @@ import MeuiKit 1.0 as Meui
 Item {
     id: _listItem
     width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
-    height: 40
+    height: Meui.Units.fontMetrics.height * 2 + Meui.Units.largeSpacing
 
     Accessible.name: fileName
     Accessible.role: Accessible.Canvas
 
     property Item iconArea: _image.visible ? _image : _icon
-    property Item textArea: _label
+    property Item labelArea: _label
+    property Item labelArea2: _label2
 
     property int index: model.index
     property bool hovered: ListView.view.hoveredItem === _listItem
@@ -80,12 +81,28 @@ Item {
             }
         }
 
+        ColumnLayout {
+            spacing: 0
+
+            Label {
+                id: _label
+                text: model.fileName
+                Layout.fillWidth: true
+                color: Meui.Theme.textColor
+                elide: Qt.ElideMiddle
+            }
+
+            Label {
+                id: _label2
+                text: model.fileSize
+                color: Meui.Theme.disabledTextColor
+                Layout.fillWidth: true
+            }
+        }
+
         Label {
-            id: _label
-            text: model.fileName
-            Layout.fillWidth: true
-            color: Meui.Theme.textColor
-            elide: Qt.ElideMiddle
+            text: model.modified
+            color: Meui.Theme.disabledTextColor
         }
     }
 }

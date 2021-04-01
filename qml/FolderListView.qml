@@ -88,8 +88,10 @@ ListView {
     }
 
     function cancelRename() {
-        if (control.editor)
+        if (control.editor) {
+            control.editor.cancel()
             control.editor = null
+        }
     }
 
     MouseArea {
@@ -303,6 +305,7 @@ ListView {
             wrapMode: Text.NoWrap
             textMargin: 0
             verticalAlignment: TextEdit.AlignVCenter
+            leftPadding: 0
 
             property Item targetItem: null
 
@@ -310,13 +313,14 @@ ListView {
 
             onTargetItemChanged: {
                 if (targetItem != null) {
-                    var pos = control.mapFromItem(targetItem, targetItem.textArea.x, control.contentY)
+                    var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
                     width = targetItem.width - targetItem.iconArea.width * 2
                     height = targetItem.height
-                    x = pos.x
+                    x = control.mapFromItem(targetItem.labelArea, 0, 0).x
                     y = pos.y
-                    text = targetItem.textArea.text
-                    targetItem.textArea.visible = false
+                    text = targetItem.labelArea.text
+                    targetItem.labelArea.visible = false
+                    targetItem.labelArea2.visible = false
                     _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
                     visible = true
                 } else {
@@ -333,11 +337,7 @@ ListView {
                     commit()
                     break
                 case Qt.Key_Escape:
-                    if (targetItem) {
-                        targetItem.textArea.visible = true
-                        targetItem = null
-                        event.accepted = true
-                    }
+                    cancel()
                     break
                 }
             }
@@ -351,9 +351,18 @@ ListView {
 
             function commit() {
                 if (targetItem) {
-                    targetItem.textArea.visible = true
+                    targetItem.labelArea.visible = true
+                    targetItem.labelArea2.visible = true
                     folderModel.rename(targetItem.index, text)
                     control.currentIndex = targetItem.index
+                    targetItem = null
+                }
+            }
+
+            function cancel() {
+                if (targetItem) {
+                    targetItem.labelArea.visible = true
+                    targetItem.labelArea2.visible = true
                     targetItem = null
                 }
             }

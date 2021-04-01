@@ -25,8 +25,9 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(bool sortDirsFirst READ sortDirsFirst WRITE setSortDirsFirst NOTIFY sortDirsFirstChanged)
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
     Q_PROPERTY(QObject *viewAdapter READ viewAdapter WRITE setViewAdapter NOTIFY viewAdapterChanged)
-    Q_PROPERTY(QString statusText READ statusText NOTIFY statusTextChanged)
     Q_PROPERTY(bool isDesktop READ isDesktop WRITE setIsDesktop NOTIFY isDesktopChanged)
+    Q_PROPERTY(int selectionCound READ selectionCound NOTIFY selectionCoundChanged)
+    Q_PROPERTY(int count READ count NOTIFY countChanged)
 
 public:
     enum DataRole {
@@ -35,8 +36,10 @@ public:
         IsDirRole,
         UrlRole,
         FileNameRole,
+        FileSizeRole,
         IconNameRole,
-        ThumbnailRole
+        ThumbnailRole,
+        ModifiedRole
     };
 
     enum FilterMode {
@@ -103,7 +106,7 @@ public:
 
     KFileItem rootItem() const;
 
-    QString statusText();
+    int count() const;
     int selectionCound() const;
 
     Q_INVOKABLE QString homePath() const;
@@ -164,9 +167,9 @@ signals:
     void requestRename();
     void draggingChanged();
     void viewAdapterChanged();
-    void statusTextChanged();
     void isDesktopChanged();
     void selectionCoundChanged();
+    void countChanged();
 
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
