@@ -96,8 +96,7 @@ Item {
         anchors.topMargin: Meui.Units.smallSpacing
         maximumLineCount: 2
         horizontalAlignment: Text.AlignHCenter
-        width: Math.round(Math.min(_label.implicitWidth + Meui.Units.smallSpacing,
-                                    parent.width - Meui.Units.largeSpacing * 2))
+        width: parent.width - Meui.Units.largeSpacing * 2
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap

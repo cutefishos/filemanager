@@ -424,6 +424,11 @@ QString FolderModel::statusText()
     return tr("%1 items").arg(m_dirModel->rowCount());
 }
 
+int FolderModel::selectionCound() const
+{
+    return m_selectionModel->selectedIndexes().size();
+}
+
 QString FolderModel::homePath() const
 {
     return QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
@@ -722,6 +727,14 @@ void FolderModel::emptyTrash()
     }
 }
 
+void FolderModel::keyDeletePress()
+{
+    if (!m_selectionModel->hasSelection())
+        return;
+
+    resolvedUrl().scheme() == "trash" ? deleteSelected() : moveSelectedToTrash();
+}
+
 void FolderModel::setDragHotSpotScrollOffset(int x, int y)
 {
     m_dragHotSpotScrollOffset.setX(x);
@@ -898,6 +911,7 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
 
     // 选中状态信息
     emit statusTextChanged();
+    emit selectionCoundChanged();
 }
 
 void FolderModel::dragSelectedInternal(int x, int y)

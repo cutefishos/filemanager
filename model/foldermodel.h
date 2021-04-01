@@ -104,6 +104,7 @@ public:
     KFileItem rootItem() const;
 
     QString statusText();
+    int selectionCound() const;
 
     Q_INVOKABLE QString homePath() const;
     Q_INVOKABLE QString desktopPath() const;
@@ -137,6 +138,7 @@ public:
     Q_INVOKABLE void deleteSelected();
     Q_INVOKABLE void moveSelectedToTrash();
     Q_INVOKABLE void emptyTrash();
+    Q_INVOKABLE void keyDeletePress();
 
     Q_INVOKABLE void setDragHotSpotScrollOffset(int x, int y);
     Q_INVOKABLE void addItemDragImage(int row, int x, int y, int width, int height, const QVariant &image);
@@ -164,6 +166,7 @@ signals:
     void viewAdapterChanged();
     void statusTextChanged();
     void isDesktopChanged();
+    void selectionCoundChanged();
 
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);

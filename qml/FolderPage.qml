@@ -215,6 +215,8 @@ Item {
                 folderModel.selectAll()
             else if (event.key === Qt.Key_Backspace)
                 folderModel.up()
+            else if (event.key === Qt.Key_Delete)
+                folderModel.keyDeletePress()
         }
     }
 
