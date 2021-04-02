@@ -7,7 +7,7 @@ Cutefish File Manager
 ### Ubuntu
 
 ```
-sudo apt install libkf5solid-dev
+sudo apt install libkf5solid-dev libkf5kio-dev -y
 ```
 
 ### ArchLinux
