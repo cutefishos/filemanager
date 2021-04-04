@@ -31,7 +31,7 @@ Item {
         color: selected || hovered ? Meui.Theme.highlightColor : "transparent"
         radius: Meui.Theme.mediumRadius
         visible: selected || hovered
-        opacity: selected ? 1.0 : 0.4
+        opacity: selected ? 1.0 : 0.2
     }
 
     Item {

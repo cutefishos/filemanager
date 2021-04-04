@@ -21,7 +21,7 @@ ListView {
     leftMargin: Meui.Units.smallSpacing
     rightMargin: Meui.Units.smallSpacing
     bottomMargin: Meui.Units.smallSpacing
-    spacing: Meui.Units.largeSpacing
+    spacing: Meui.Units.smallSpacing
 
     ScrollBar.vertical: ScrollBar {
         bottomPadding: Meui.Units.smallSpacing

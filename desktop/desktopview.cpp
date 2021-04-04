@@ -35,14 +35,13 @@ DesktopView::DesktopView(QQuickView *parent)
     m_screenRect = qApp->primaryScreen()->geometry();
     m_screenAvailableRect = qApp->primaryScreen()->availableGeometry();
 
-    setTitle(tr("Desktop"));
-
     KWindowSystem::setType(winId(), NET::Desktop);
     KWindowSystem::setState(winId(), NET::KeepBelow);
 
     engine()->rootContext()->setContextProperty("desktopView", this);
     engine()->addImageProvider("thumbnailer", new Thumbnailer());
 
+    setTitle(tr("Desktop"));
     setScreen(qApp->primaryScreen());
     setResizeMode(QQuickView::SizeRootObjectToView);
     setSource(QStringLiteral("qrc:/qml/Desktop/main.qml"));

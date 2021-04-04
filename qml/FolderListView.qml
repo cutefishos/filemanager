@@ -27,6 +27,10 @@ ListView {
     property Item editor: null
     property int anchorIndex: 0
 
+    property var itemHeight: Meui.Units.fontMetrics.height * 2 + Meui.Units.largeSpacing
+
+    property variant cachedRectangleSelection: null
+
     signal keyPress(var event)
 
     currentIndex: -1
@@ -56,6 +60,16 @@ ListView {
             shiftPressed = false
             anchorIndex = 0
         }
+    }
+
+    onCachedRectangleSelectionChanged: {
+        if (cachedRectangleSelection === null)
+            return
+
+        if (cachedRectangleSelection.length)
+            control.currentIndex[0]
+
+        folderModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
     }
 
     onContentXChanged: {
@@ -266,7 +280,7 @@ ListView {
             control.rubberBand = null
 
             control.interactive = true
-            // control.cachedRectangleSelection = null
+            control.cachedRectangleSelection = null
             folderModel.unpinSelection()
         }
 
@@ -281,7 +295,13 @@ ListView {
     }
 
     function rectangleSelect(x, y, width, height) {
-
+        var indexes = []
+        for (var i = y; i <= y + height; i += 10) {
+            const index = control.indexAt(x, i)
+            if(!indexes.includes(index) && index > -1 && index< control.count)
+                indexes.push(index)
+        }
+        cachedRectangleSelection = indexes
     }
 
     function updateSelection(modifier) {

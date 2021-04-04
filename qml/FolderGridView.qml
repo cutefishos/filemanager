@@ -316,7 +316,7 @@ GridView {
             control.rubberBand = null
 
             control.interactive = true
-            // control.cachedRectangleSelection = null
+            control.cachedRectangleSelection = null
             folderModel.unpinSelection()
         }
 

@@ -6,7 +6,7 @@ import MeuiKit 1.0 as Meui
 Item {
     id: _listItem
     width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
-    height: Meui.Units.fontMetrics.height * 2 + Meui.Units.largeSpacing
+    height: ListView.view.itemHeight
 
     Accessible.name: fileName
     Accessible.role: Accessible.Canvas
@@ -39,7 +39,7 @@ Item {
         id: _background
         anchors.fill: parent
         radius: Meui.Theme.smallRadius
-        color: selected ? selectedColor : hovered ? hoveredColor : "transparent"
+        color: selected ? Meui.Theme.highlightColor : hovered ? hoveredColor : "transparent"
         visible: selected || hovered
     }
 
@@ -88,21 +88,21 @@ Item {
                 id: _label
                 text: model.fileName
                 Layout.fillWidth: true
-                color: Meui.Theme.textColor
+                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
                 elide: Qt.ElideMiddle
             }
 
             Label {
                 id: _label2
                 text: model.fileSize
-                color: Meui.Theme.disabledTextColor
+                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.disabledTextColor
                 Layout.fillWidth: true
             }
         }
 
         Label {
             text: model.modified
-            color: Meui.Theme.disabledTextColor
+            color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.disabledTextColor
         }
     }
 }
