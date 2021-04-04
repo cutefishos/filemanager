@@ -38,9 +38,39 @@ ListView {
 
     ScrollBar.vertical: ScrollBar { }
 
+    function rename() {
+        if (currentIndex !== -1) {
+            var renameAction = control.model.action("rename")
+            if (renameAction && !renameAction.enabled)
+                return
+
+            if (!control.editor)
+                control.editor = editorComponent.createObject(control)
+
+            control.editor.targetItem = control.currentItem
+        }
+    }
+
+    function cancelRename() {
+        if (control.editor) {
+            control.editor.cancel()
+            control.editor.destroy()
+            control.editor = null
+        }
+    }
+
+    function reset() {
+        currentIndex = -1
+        anchorIndex = 0
+        previouslySelectedItemIndex = -1
+        cancelRename()
+        hoveredItem = null
+        pressedItem = null
+        cPress = null
+    }
+
     highlightMoveDuration: 0
-    keyNavigationEnabled : true
-    keyNavigationWraps : true
+    Keys.enabled: true
     Keys.onPressed: {
         if (event.key === Qt.Key_Control) {
             ctrlPressed = true
@@ -53,12 +83,47 @@ ListView {
 
         control.keyPress(event)
     }
+
     Keys.onReleased: {
         if (event.key === Qt.Key_Control) {
             ctrlPressed = false
         } else if (event.key === Qt.Key_Shift) {
             shiftPressed = false
             anchorIndex = 0
+        }
+    }
+
+    Keys.onEscapePressed: {
+        if (!editor || !editor.targetItem) {
+            previouslySelectedItemIndex = -1
+            folderModel.clearSelection()
+            event.accepted = false
+        }
+    }
+
+    Keys.onUpPressed: {
+        if (!editor || !editor.targetItem) {
+            var newIndex = currentIndex
+            newIndex--;
+
+            if (newIndex < 0)
+                newIndex = 0
+
+            currentIndex = newIndex
+            updateSelection(event.modifiers)
+        }
+    }
+
+    Keys.onDownPressed: {
+        if (!editor || !editor.targetItem) {
+            var newIndex = currentIndex
+            newIndex++
+
+            if (newIndex >= control.count)
+                return
+
+            currentIndex = newIndex
+            updateSelection(event.modifiers)
         }
     }
 
@@ -86,26 +151,6 @@ ListView {
 
     onPressYChanged: {
         cPress = mapToItem(control.contentItem, pressX, pressY)
-    }
-
-    function rename() {
-        if (currentIndex !== -1) {
-            var renameAction = control.model.action("rename")
-            if (renameAction && !renameAction.enabled)
-                return
-
-            if (!control.editor)
-                control.editor = editorComponent.createObject(control)
-
-            control.editor.targetItem = control.currentItem
-        }
-    }
-
-    function cancelRename() {
-        if (control.editor) {
-            control.editor.cancel()
-            control.editor = null
-        }
     }
 
     MouseArea {
@@ -253,6 +298,9 @@ ListView {
                     control.dragY = -1
                     clearPressState()
                 } else {
+                    if (control.editor && control.editor.targetItem)
+                        return;
+
                     folderModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
                     control.interactive = false
@@ -306,9 +354,9 @@ ListView {
 
     function updateSelection(modifier) {
         if (modifier & Qt.ShiftModifier) {
-            folderModel.setRangeSelected(anchorIndex, hoveredItem)
+            folderModel.setRangeSelected(anchorIndex, currentIndex)
         } else {
-            folderModel.clear()
+            folderModel.clearSelection()
             folderModel.setSelected(currentIndex)
             if (currentIndex == -1)
                 previouslySelectedItemIndex = -1
@@ -319,46 +367,33 @@ ListView {
     Component {
         id: editorComponent
 
-        TextArea {
+        TextField {
             id: _editor
             visible: false
             wrapMode: Text.NoWrap
-            textMargin: 0
             verticalAlignment: TextEdit.AlignVCenter
-            leftPadding: 0
+            z: 999
 
             property Item targetItem: null
-
-            background: Item {}
 
             onTargetItemChanged: {
                 if (targetItem != null) {
                     var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
                     width = targetItem.labelArea.width
-                    height = targetItem.height
+                    height = Meui.Units.fontMetrics.height + Meui.Units.largeSpacing * 2
                     x = control.mapFromItem(targetItem.labelArea, 0, 0).x
-                    y = pos.y
+                    y = pos.y + (targetItem.height - height) / 2
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
                     targetItem.labelArea2.visible = false
                     _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
                     visible = true
+                    control.interactive = false
                 } else {
                     x: 0
                     y: 0
                     visible = false
-                }
-            }
-
-            Keys.onPressed: {
-                switch (event.key) {
-                case Qt.Key_Return:
-                case Qt.Key_Enter:
-                    commit()
-                    break
-                case Qt.Key_Escape:
-                    cancel()
-                    break
+                    control.interactive = true
                 }
             }
 
@@ -369,6 +404,20 @@ ListView {
                     control.forceActiveFocus()
             }
 
+            Keys.onPressed: {
+                switch (event.key) {
+                case Qt.Key_Return:
+                case Qt.Key_Enter:
+                    commit()
+                    event.accepted = true
+                    break
+                case Qt.Key_Escape:
+                    cancel()
+                    event.accepted = true
+                    break
+                }
+            }
+
             function commit() {
                 if (targetItem) {
                     targetItem.labelArea.visible = true
@@ -376,6 +425,8 @@ ListView {
                     folderModel.rename(targetItem.index, text)
                     control.currentIndex = targetItem.index
                     targetItem = null
+
+                    control.editor.destroy()
                 }
             }
 
@@ -383,7 +434,10 @@ ListView {
                 if (targetItem) {
                     targetItem.labelArea.visible = true
                     targetItem.labelArea2.visible = true
+                    control.currentIndex = targetItem.index
                     targetItem = null
+
+                    control.editor.destroy()
                 }
             }
         }

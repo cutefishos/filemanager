@@ -63,10 +63,20 @@ GridView {
         }
     }
 
+    function reset() {
+        currentIndex = -1
+        anchorIndex = 0
+        previouslySelectedItemIndex = -1
+        cancelRename()
+        hoveredItem = null
+        pressedItem = null
+        cPress = null
+    }
+
     highlightMoveDuration: 0
     keyNavigationEnabled : true
     keyNavigationWraps : true
-    Keys.onPressed: {
+    Keys.onPressed: {        
         if (event.key === Qt.Key_Control) {
             ctrlPressed = true
         } else if (event.key === Qt.Key_Shift) {
@@ -88,6 +98,13 @@ GridView {
         } else if (event.key === Qt.Key_Shift) {
             shiftPressed = false
             anchorIndex = 0
+        }
+    }
+    Keys.onEscapePressed: {
+        if (!editor || !editor.targetItem) {
+            previouslySelectedItemIndex = -1
+            folderModel.clearSelection()
+            event.accepted = false
         }
     }
 
@@ -269,6 +286,9 @@ GridView {
                     control.dragY = -1
                     clearPressState()
                 } else {
+                    if (control.editor && control.editor.targetItem)
+                        return;
+
                     folderModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
                     control.interactive = false
@@ -429,6 +449,8 @@ GridView {
             wrapMode: TextEdit.Wrap
             horizontalAlignment: TextEdit.AlignHCenter
             z: 999
+            topPadding: Meui.Units.smallSpacing
+            bottomPadding: Meui.Units.smallSpacing
 
             property Item targetItem: null
 
@@ -443,12 +465,14 @@ GridView {
                     targetItem.labelArea.visible = false
                     _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
                     visible = true
+                    control.interactive = false
                 } else {
                     x = 0
                     y = 0
                     width = 0
                     height = 0
                     visible = false
+                    control.interactive = true
                 }
             }
 
@@ -457,9 +481,11 @@ GridView {
                 case Qt.Key_Return:
                 case Qt.Key_Enter:
                     commit()
+                    event.accepted = true
                     break
                 case Qt.Key_Escape:
                     cancel()
+                    event.accepted = true
                     break
                 }
             }
@@ -477,13 +503,18 @@ GridView {
                     folderModel.rename(targetItem.index, text)
                     control.currentIndex = targetItem.index
                     targetItem = null
+
+                    control.editor.destroy()
                 }
             }
 
             function cancel() {
                 if (targetItem) {
                     targetItem.labelArea.visible = true
+                    control.currentIndex = targetItem.index
                     targetItem = null
+
+                    control.editor.destroy()
                 }
             }
         }

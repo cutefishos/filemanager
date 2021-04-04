@@ -17,6 +17,7 @@ Item {
     signal requestPathEditor()
 
     onCurrentUrlChanged: {
+        _viewLoader.item.reset()
         _viewLoader.item.forceActiveFocus()
     }
 
@@ -31,7 +32,8 @@ Item {
 
     Label {
         id: _fileTips
-        text: qsTr("No files")
+        text: qsTr("Empty folder")
+        font.pointSize: 20
         anchors.centerIn: parent
         visible: false
     }
@@ -70,6 +72,11 @@ Item {
                              case 0: return _listViewComponent
                              case 1: return _gridViewComponent
                              }
+
+            onSourceComponentChanged: {
+                // 焦点
+                _viewLoader.item.forceActiveFocus()
+            }
         }
 
         Loader {

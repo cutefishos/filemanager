@@ -7,12 +7,12 @@ import MeuiKit 1.0 as Meui
 Window {
     id: control
 
-    title: qsTr("New Folder")
+    title: qsTr("New folder name")
     flags: Qt.Dialog
     visible: true
 
     width: 400 + Meui.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + Meui.Units.largeSpacing * 4
+    height: _mainLayout.implicitHeight + Meui.Units.largeSpacing * 2
 
     minimumWidth: width
     minimumHeight: height
@@ -31,16 +31,15 @@ Window {
         anchors.rightMargin: Meui.Units.largeSpacing
         spacing: 0
 
-        RowLayout {
-            Label {
-                text: qsTr("Name")
-            }
+        TextField {
+            id: _textField
+            Layout.fillWidth: true
+            Keys.onEscapePressed: control.close()
+            text: qsTr("New folder")
+            focus: true
 
-            TextField {
-                id: _textField
-                Layout.fillWidth: true
-                Keys.onEscapePressed: control.close()
-                focus: true
+            Component.onCompleted: {
+                _textField.selectAll()
             }
         }
 

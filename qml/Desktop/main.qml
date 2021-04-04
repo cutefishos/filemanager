@@ -64,6 +64,16 @@ Item {
         id: folderModel
         url: desktopPath()
         isDesktop: true
+        viewAdapter: viewAdapter
+    }
+
+    ItemViewAdapter {
+        id: viewAdapter
+        adapterView: _folderView
+        adapterModel: folderModel
+        adapterIconSize: 40
+        adapterVisibleArea: Qt.rect(_folderView.contentX, _folderView.contentY,
+                                    _folderView.contentWidth, _folderView.contentHeight)
     }
 
     FolderGridView {
@@ -93,6 +103,10 @@ Item {
         onActiveFocusChanged: {
             if (!activeFocus)
                 folderModel.clearSelection()
+        }
+
+        Component.onCompleted: {
+            folderModel.requestRename.connect(rename)
         }
     }
 
