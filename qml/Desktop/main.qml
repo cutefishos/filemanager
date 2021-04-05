@@ -61,7 +61,7 @@ Item {
     }
 
     FolderModel {
-        id: folderModel
+        id: dirModel
         url: desktopPath()
         isDesktop: true
         viewAdapter: viewAdapter
@@ -70,7 +70,7 @@ Item {
     ItemViewAdapter {
         id: viewAdapter
         adapterView: _folderView
-        adapterModel: folderModel
+        adapterModel: dirModel
         adapterIconSize: 40
         adapterVisibleArea: Qt.rect(_folderView.contentX, _folderView.contentY,
                                     _folderView.contentWidth, _folderView.contentHeight)
@@ -85,7 +85,7 @@ Item {
         maximumIconSize: globalSettings.maximumIconSize
         minimumIconSize: globalSettings.minimumIconSize
         focus: true
-        model: folderModel
+        model: dirModel
 
         onIconSizeChanged: {
             globalSettings.desktopIconSize = _folderView.iconSize
@@ -102,11 +102,11 @@ Item {
 
         onActiveFocusChanged: {
             if (!activeFocus)
-                folderModel.clearSelection()
+                dirModel.clearSelection()
         }
 
         Component.onCompleted: {
-            folderModel.requestRename.connect(rename)
+            dirModel.requestRename.connect(rename)
         }
     }
 
@@ -115,21 +115,21 @@ Item {
 
         function onKeyPress(event) {
             if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
-                folderModel.openSelected()
+                dirModel.openSelected()
             else if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier)
-                folderModel.copy()
+                dirModel.copy()
             else if (event.key === Qt.Key_X && event.modifiers & Qt.ControlModifier)
-                folderModel.cut()
+                dirModel.cut()
             else if (event.key === Qt.Key_V && event.modifiers & Qt.ControlModifier)
-                folderModel.paste()
+                dirModel.paste()
             else if (event.key === Qt.Key_F2)
-                folderModel.requestRename()
+                dirModel.requestRename()
             else if (event.key === Qt.Key_L && event.modifiers & Qt.ControlModifier)
                 folderPage.requestPathEditor()
             else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
-                folderModel.selectAll()
+                dirModel.selectAll()
             else if (event.key === Qt.Key_Backspace)
-                folderModel.up()
+                dirModel.up()
         }
     }
 
