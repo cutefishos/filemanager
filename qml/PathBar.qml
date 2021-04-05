@@ -81,6 +81,10 @@ Item {
 
         text: control.url
 
+        background: Rectangle {
+            radius: Meui.Theme.smallRadius
+        }
+
         onAccepted: {
             control.editorAccepted(text)
             closeEditor()
