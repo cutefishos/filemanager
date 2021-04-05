@@ -10,7 +10,7 @@ import "./Dialogs"
 Item {
     id: folderPage
 
-    property alias currentUrl: folderModel.url
+    property alias currentUrl: dirModel.url
     property Item currentView: _viewLoader.item
     property int statusBarHeight: 30
 
@@ -39,21 +39,22 @@ Item {
     }
 
     FolderModel {
-        id: folderModel
+        id: dirModel
         viewAdapter: viewAdapter
+
 
         Component.onCompleted: {
             if (arg)
-                folderModel.url = arg
+                dirModel.url = arg
             else
-                folderModel.url = folderModel.homePath()
+                dirModel.url = dirModel.homePath()
         }
     }
 
     ItemViewAdapter {
         id: viewAdapter
         adapterView: _viewLoader.item
-        adapterModel: folderModel
+        adapterModel: _viewLoader.item.positioner ? _viewLoader.item.positioner : dirModel
         adapterIconSize: 40
         adapterVisibleArea: Qt.rect(_viewLoader.item.contentX, _viewLoader.item.contentY,
                                     _viewLoader.item.contentWidth, _viewLoader.item.contentHeight)
@@ -90,7 +91,7 @@ Item {
     }
 
     Component.onCompleted: {
-        folderModel.requestRename.connect(rename)
+        dirModel.requestRename.connect(rename)
     }
 
     Component {
@@ -109,14 +110,14 @@ Item {
 
                 Label {
                     Layout.alignment: Qt.AlignLeft
-                    text: folderModel.count == 1 ? qsTr("%1 item").arg(folderModel.count)
-                                                 : qsTr("%1 items").arg(folderModel.count)
+                    text: dirModel.count == 1 ? qsTr("%1 item").arg(dirModel.count)
+                                                 : qsTr("%1 items").arg(dirModel.count)
                 }
 
                 Label {
                     Layout.alignment: Qt.AlignLeft
-                    text: qsTr("%1 selected").arg(folderModel.selectionCound)
-                    visible: folderModel.selectionCound >= 1
+                    text: qsTr("%1 selected").arg(dirModel.selectionCound)
+                    visible: dirModel.selectionCound >= 1
                 }
 
                 Item {
@@ -127,8 +128,8 @@ Item {
                     Layout.fillHeight: true
                     Layout.alignment: Qt.AlignRight
                     text: qsTr("Empty Trash")
-                    onClicked: folderModel.emptyTrash()
-                    visible: folderModel.url === "trash:/"
+                    onClicked: dirModel.emptyTrash()
+                    visible: dirModel.url === "trash:/"
                 }
             }
         }
@@ -139,7 +140,7 @@ Item {
 
         FolderGridView {
             id: _gridView
-            model: folderModel
+            model: dirModel
             delegate: FolderGridItem {}
 
             leftMargin: Meui.Units.largeSpacing
@@ -163,7 +164,7 @@ Item {
 
         FolderListView {
             id: _folderListView
-            model: folderModel
+            model: dirModel
 
             topMargin: Meui.Units.largeSpacing
             leftMargin: Meui.Units.largeSpacing
@@ -219,36 +220,36 @@ Item {
 
         function onKeyPress(event) {
             if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
-                folderModel.openSelected()
+                dirModel.openSelected()
             else if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier)
-                folderModel.copy()
+                dirModel.copy()
             else if (event.key === Qt.Key_X && event.modifiers & Qt.ControlModifier)
-                folderModel.cut()
+                dirModel.cut()
             else if (event.key === Qt.Key_V && event.modifiers & Qt.ControlModifier)
-                folderModel.paste()
+                dirModel.paste()
             else if (event.key === Qt.Key_F2)
-                folderModel.requestRename()
+                dirModel.requestRename()
             else if (event.key === Qt.Key_L && event.modifiers & Qt.ControlModifier)
                 folderPage.requestPathEditor()
             else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
-                folderModel.selectAll()
+                dirModel.selectAll()
             else if (event.key === Qt.Key_Backspace)
-                folderModel.up()
+                dirModel.up()
             else if (event.key === Qt.Key_Delete)
-                folderModel.keyDeletePress()
+                dirModel.keyDeletePress()
         }
     }
 
     function openUrl(url) {
-        folderModel.url = url
+        dirModel.url = url
         _viewLoader.item.forceActiveFocus()
     }
 
     function goBack() {
-        folderModel.goBack()
+        dirModel.goBack()
     }
 
     function goForward() {
-        folderModel.goForward()
+        dirModel.goForward()
     }
 }

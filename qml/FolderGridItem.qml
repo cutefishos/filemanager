@@ -81,7 +81,7 @@ Item {
                         anchors.centerIn: parent
                         width: Math.min(parent.width, _image.paintedWidth)
                         height: Math.min(parent.height, _image.paintedHeight)
-                        radius: Meui.Theme.smallRadius / 2
+                        radius: height * 0.1
                     }
                 }
             }

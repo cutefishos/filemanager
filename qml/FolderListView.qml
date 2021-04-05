@@ -96,7 +96,7 @@ ListView {
     Keys.onEscapePressed: {
         if (!editor || !editor.targetItem) {
             previouslySelectedItemIndex = -1
-            folderModel.clearSelection()
+            dirModel.clearSelection()
             event.accepted = false
         }
     }
@@ -134,7 +134,7 @@ ListView {
         if (cachedRectangleSelection.length)
             control.currentIndex[0]
 
-        folderModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
+        dirModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
     }
 
     onContentXChanged: {
@@ -165,7 +165,7 @@ ListView {
 
         onDoubleClicked: {
             if (mouse.button === Qt.LeftButton && control.pressedItem)
-                folderModel.openSelected()
+                dirModel.openSelected()
         }
 
         onPressed: {
@@ -192,36 +192,36 @@ ListView {
                 if (!control.ctrlPressed) {
                     control.currentIndex = -1
                     control.previouslySelectedItemIndex = -1
-                    folderModel.clearSelection()
+                    dirModel.clearSelection()
                 }
 
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    folderModel.openContextMenu(null, mouse.modifiers)
+                    dirModel.openContextMenu(null, mouse.modifiers)
                     mouse.accepted = true
                 }
             } else {
                 pressedItem = hoveredItem
 
                 if (control.shiftPressed && control.currentIndex !== -1) {
-                    folderModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
+                    dirModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
-                    if (!control.ctrlPressed && !folderModel.isSelected(hoveredItem.index)) {
+                    if (!control.ctrlPressed && !dirModel.isSelected(hoveredItem.index)) {
                         previouslySelectedItemIndex = -1
-                        folderModel.clearSelection()
+                        dirModel.clearSelection()
                     }
 
                     if (control.ctrlPressed)
-                        folderModel.toggleSelected(hoveredItem.index)
+                        dirModel.toggleSelected(hoveredItem.index)
                     else
-                        folderModel.setSelected(hoveredItem.index)
+                        dirModel.setSelected(hoveredItem.index)
                 }
 
                 control.currentIndex = hoveredItem.index
 
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    folderModel.openContextMenu(null, mouse.modifiers)
+                    dirModel.openContextMenu(null, mouse.modifiers)
                     mouse.accepted = true
                 }
             }
@@ -289,11 +289,11 @@ ListView {
 
             // Drag
             if (pressX != -1) {
-                if (pressedItem != null && folderModel.isSelected(pressedItem.index)) {
+                if (pressedItem != null && dirModel.isSelected(pressedItem.index)) {
                     control.dragX = mouse.x
                     control.dragY = mouse.y
                     control.verticalDropHitscanOffset = pressedItem.y + (pressedItem.height / 2)
-                    folderModel.dragSelected(mouse.x, mouse.y)
+                    dirModel.dragSelected(mouse.x, mouse.y)
                     control.dragX = -1
                     control.dragY = -1
                     clearPressState()
@@ -301,7 +301,7 @@ ListView {
                     if (control.editor && control.editor.targetItem)
                         return;
 
-                    folderModel.pinSelection()
+                    dirModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
                     control.interactive = false
                 }
@@ -329,7 +329,7 @@ ListView {
 
             control.interactive = true
             control.cachedRectangleSelection = null
-            folderModel.unpinSelection()
+            dirModel.unpinSelection()
         }
 
         clearPressState()
@@ -354,10 +354,10 @@ ListView {
 
     function updateSelection(modifier) {
         if (modifier & Qt.ShiftModifier) {
-            folderModel.setRangeSelected(anchorIndex, currentIndex)
+            dirModel.setRangeSelected(anchorIndex, currentIndex)
         } else {
-            folderModel.clearSelection()
-            folderModel.setSelected(currentIndex)
+            dirModel.clearSelection()
+            dirModel.setSelected(currentIndex)
             if (currentIndex == -1)
                 previouslySelectedItemIndex = -1
             previouslySelectedItemIndex = currentIndex
@@ -386,7 +386,7 @@ ListView {
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
                     targetItem.labelArea2.visible = false
-                    _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
+                    _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
                     visible = true
                     control.interactive = false
                 } else {
@@ -422,7 +422,7 @@ ListView {
                 if (targetItem) {
                     targetItem.labelArea.visible = true
                     targetItem.labelArea2.visible = true
-                    folderModel.rename(targetItem.index, text)
+                    dirModel.rename(targetItem.index, text)
                     control.currentIndex = targetItem.index
                     targetItem = null
 

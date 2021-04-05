@@ -144,15 +144,17 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case IconNameRole:
         return item.iconName();
     case ThumbnailRole: {
-        // Svg Image
-        if (item.mimetype() == "image/svg" ||
-                item.mimetype() == "image/svg+xml") {
-            return item.url();
-        }
+        if (item.isLocalFile()) {
+            // Svg Image
+            if (item.mimetype() == "image/svg" ||
+                    item.mimetype() == "image/svg+xml") {
+                return item.url();
+            }
 
-        // Support
-        if (isSupportThumbnails(item.mimetype())) {
-            return "image://thumbnailer/" + item.url().toString();
+            // Support
+            if (isSupportThumbnails(item.mimetype())) {
+                return "image://thumbnailer/" + item.url().toString();
+            }
         }
 
         return QVariant();

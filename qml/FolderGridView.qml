@@ -14,6 +14,9 @@ GridView {
     property Item hoveredItem: null
     property Item pressedItem: null
 
+    property alias positions: positioner.positions
+    property alias positioner: positioner
+
     property int verticalDropHitscanOffset: 0
 
     property int pressX: -1
@@ -42,6 +45,50 @@ GridView {
     property bool scrollDown: false
 
     signal keyPress(var event)
+
+    function effectiveNavDirection(flow, layoutDirection, direction) {
+        if (direction === Qt.LeftArrow) {
+            if (flow === GridView.FlowLeftToRight) {
+                if (layoutDirection === Qt.LeftToRight) {
+                    return Qt.LeftArrow;
+                } else {
+                    return Qt.RightArrow;
+                }
+            } else {
+                if (layoutDirection === Qt.LeftToRight) {
+                    return Qt.UpArrow;
+                } else {
+                    return Qt.DownArrow;
+                }
+            }
+        } else if (direction === Qt.RightArrow) {
+            if (flow === GridView.FlowLeftToRight) {
+                if (layoutDirection === Qt.LeftToRight) {
+                    return Qt.RightArrow;
+                } else {
+                    return Qt.LeftArrow;
+                }
+            } else {
+                if (layoutDirection === Qt.LeftToRight) {
+                    return Qt.DownArrow;
+                } else {
+                    return Qt.UpArrow;
+                }
+            }
+        } else if (direction === Qt.UpArrow) {
+            if (flow === GridView.FlowLeftToRight) {
+                return Qt.UpArrow;
+            } else {
+                return Qt.LeftArrow;
+            }
+        } else if (direction === Qt.DownArrow) {
+            if (flow === GridView.FlowLeftToRight) {
+                return Qt.DownArrow;
+            } else {
+                return Qt.RightArrow
+            }
+        }
+    }
 
     function rename() {
         if (control.currentIndex != -1) {
@@ -103,8 +150,40 @@ GridView {
     Keys.onEscapePressed: {
         if (!editor || !editor.targetItem) {
             previouslySelectedItemIndex = -1
-            folderModel.clearSelection()
+            dirModel.clearSelection()
             event.accepted = false
+        }
+    }
+    Keys.onUpPressed: {
+        var newIndex = positioner.nearestItem(currentIndex,
+                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.UpArrow))
+        if (newIndex !== -1) {
+            currentIndex = newIndex
+            updateSelection(event.modifiers)
+        }
+    }
+    Keys.onDownPressed: {
+        var newIndex = positioner.nearestItem(currentIndex,
+                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.DownArrow))
+        if (newIndex !== -1) {
+            currentIndex = newIndex
+            updateSelection(event.modifiers)
+        }
+    }
+    Keys.onLeftPressed: {
+        var newIndex = positioner.nearestItem(currentIndex,
+                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.LeftArrow))
+        if (newIndex !== -1) {
+            currentIndex = newIndex;
+            updateSelection(event.modifiers)
+        }
+    }
+    Keys.onRightPressed: {
+        var newIndex = positioner.nearestItem(currentIndex,
+                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.RightArrow))
+        if (newIndex !== -1) {
+            currentIndex = newIndex;
+            updateSelection(event.modifiers)
         }
     }
 
@@ -150,7 +229,32 @@ GridView {
         if (cachedRectangleSelection.length)
             control.currentIndex[0]
 
-        folderModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
+        dirModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
+    }
+
+    Positioner {
+        id: positioner
+        enabled: true
+        folderModel: dirModel
+        perStripe: Math.floor(((control.flow == GridView.FlowLeftToRight)
+            ? control.width : control.height) / ((control.flow == GridView.FlowLeftToRight)
+            ? control.cellWidth : control.cellHeight));
+    }
+
+    DropArea {
+        id: _dropArea
+        anchors.fill: parent
+
+        onDropped: {
+            var dropPos = mapToItem(control.contentItem, drop.x, drop.y)
+            var dropIndex = control.indexAt(drop.x, drop.y)
+            var dragPos = mapToItem(control.contentItem, control.dragX, control.dragY)
+            var dragIndex = control.indexAt(dragPos.x, dragPos.y)
+
+            if (control.dragX == -1 || dragIndex !== dropIndex) {
+
+            }
+        }
     }
 
     MouseArea {
@@ -182,38 +286,38 @@ GridView {
 
                 // Shift 处理, 选择区域
                 if (control.shiftPressed && control.currentIndex !== -1) {
-                    folderModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
+                    dirModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
                     // Ctrl 处理
-                    if (!control.ctrlPressed && !folderModel.isSelected(hoveredItem.index)) {
-                        folderModel.clearSelection()
+                    if (!control.ctrlPressed && !dirModel.isSelected(hoveredItem.index)) {
+                        dirModel.clearSelection()
                     }
 
                     // Item 选择
                     if (control.ctrlPressed) {
-                        folderModel.toggleSelected(hoveredItem.index)
+                        dirModel.toggleSelected(hoveredItem.index)
                     } else {
-                        folderModel.setSelected(hoveredItem.index)
+                        dirModel.setSelected(hoveredItem.index)
                     }
                 }
 
                 // 弹出 Item 菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    folderModel.openContextMenu(null, mouse.modifiers)
+                    dirModel.openContextMenu(null, mouse.modifiers)
                     mouse.accepted = true
                 }
             } else {
                 // 处理空白区域点击
                 if (!control.ctrlPressed) {
                     control.currentIndex = -1
-                    folderModel.clearSelection()
+                    dirModel.clearSelection()
                 }
 
                 // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    folderModel.openContextMenu(null, mouse.modifiers)
+                    dirModel.openContextMenu(null, mouse.modifiers)
                     mouse.accepted = true
                 }
             }
@@ -277,11 +381,11 @@ GridView {
             }
 
             if (pressX != -1) {
-                if (pressedItem != null && folderModel.isSelected(pressedItem.index)) {
+                if (pressedItem != null && dirModel.isSelected(pressedItem.index)) {
                     control.dragX = mouse.x
                     control.dragY = mouse.y
                     control.verticalDropHitscanOffset = pressedItem.y + (pressedItem.height / 2)
-                    folderModel.dragSelected(mouse.x, mouse.y)
+                    dirModel.dragSelected(mouse.x, mouse.y)
                     control.dragX = -1
                     control.dragY = -1
                     clearPressState()
@@ -289,7 +393,7 @@ GridView {
                     if (control.editor && control.editor.targetItem)
                         return;
 
-                    folderModel.pinSelection()
+                    dirModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
                     control.interactive = false
                 }
@@ -300,13 +404,13 @@ GridView {
             clearPressState()
 
             if (mouse.buttons & Qt.RightButton) {
-                folderModel.openContextMenu(null, mouse.modifiers)
+                dirModel.openContextMenu(null, mouse.modifiers)
             }
         }
 
         onDoubleClicked: {
             if (mouse.button === Qt.LeftButton && control.pressedItem)
-                folderModel.openSelected()
+                dirModel.openSelected()
         }
 
         onReleased: pressCanceled()
@@ -337,7 +441,7 @@ GridView {
 
             control.interactive = true
             control.cachedRectangleSelection = null
-            folderModel.unpinSelection()
+            dirModel.unpinSelection()
         }
 
         clearPressState()
@@ -363,7 +467,7 @@ GridView {
                     break
                 }
 
-                if (folderModel.isBlank(index)) {
+                if (dirModel.isBlank(index)) {
                     continue
                 }
 
@@ -440,6 +544,18 @@ GridView {
         iconSize -= (iconSize * 0.1)
     }
 
+    function updateSelection(modifier) {
+        if (modifier & Qt.ShiftModifier) {
+            dirModel.setRangeSelected(anchorIndex, currentIndex)
+        } else {
+            dirModel.clearSelection()
+            dirModel.setSelected(currentIndex)
+            if (currentIndex == -1)
+                previouslySelectedItemIndex = -1
+            previouslySelectedItemIndex = currentIndex
+        }
+    }
+
     Component {
         id: editorComponent
 
@@ -463,7 +579,7 @@ GridView {
                     y = pos.y - Meui.Units.largeSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
-                    _editor.select(0, folderModel.fileExtensionBoundary(targetItem.index))
+                    _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
                     visible = true
                     control.interactive = false
                 } else {
@@ -500,7 +616,7 @@ GridView {
             function commit() {
                 if (targetItem) {
                     targetItem.labelArea.visible = true
-                    folderModel.rename(targetItem.index, text)
+                    dirModel.rename(targetItem.index, text)
                     control.currentIndex = targetItem.index
                     targetItem = null
 

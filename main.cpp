@@ -28,6 +28,7 @@
 #include "model/placesmodel.h"
 #include "model/foldermodel.h"
 #include "model/pathbarmodel.h"
+#include "model/positioner.h"
 #include "widgets/rubberband.h"
 #include "widgets/itemviewadapter.h"
 #include "desktop/desktopsettings.h"
@@ -58,6 +59,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<PlacesModel>(uri, 1, 0, "PlacesModel");
     qmlRegisterType<FolderModel>(uri, 1, 0, "FolderModel");
     qmlRegisterType<PathBarModel>(uri, 1, 0, "PathBarModel");
+    qmlRegisterType<Positioner>(uri, 1, 0, "Positioner");
     qmlRegisterType<RubberBand>(uri, 1, 0, "RubberBand");
     qmlRegisterType<ItemViewAdapter>(uri, 1, 0, "ItemViewAdapter");
     qmlRegisterType<DesktopSettings>(uri, 1, 0, "DesktopSettings");

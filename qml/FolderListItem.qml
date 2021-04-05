@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import QtGraphicalEffects 1.0
 import MeuiKit 1.0 as Meui
 
 Item {
@@ -78,6 +79,21 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 smooth: false
+
+                layer.enabled: true
+                layer.effect: OpacityMask {
+                    maskSource: Item {
+                        width: _image.width
+                        height: _image.height
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: Math.min(parent.width, _image.paintedWidth)
+                            height: Math.min(parent.height, _image.paintedHeight)
+                            radius: height * 0.1
+                        }
+                    }
+                }
             }
         }
 
