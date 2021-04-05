@@ -80,9 +80,13 @@ Item {
         inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
 
         text: control.url
+        color: Meui.Theme.darkMode ? "white" : "black"
 
         background: Rectangle {
             radius: Meui.Theme.smallRadius
+            color: Meui.Theme.darkMode ? Qt.darker(Meui.Theme.backgroundColor, 1.1) : "white"
+            border.width: Meui.Units.extendBorderWidth
+            border.color: Meui.Theme.highlightColor
         }
 
         onAccepted: {
