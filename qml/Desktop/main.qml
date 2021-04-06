@@ -87,6 +87,8 @@ Item {
         focus: true
         model: dirModel
 
+        ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+
         onIconSizeChanged: {
             globalSettings.desktopIconSize = _folderView.iconSize
         }

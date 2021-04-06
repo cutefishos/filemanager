@@ -130,6 +130,7 @@ Item {
                     text: qsTr("Empty Trash")
                     onClicked: dirModel.emptyTrash()
                     visible: dirModel.url === "trash:/"
+                    focusPolicy: Qt.NoFocus
                 }
             }
         }
