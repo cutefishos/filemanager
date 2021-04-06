@@ -72,10 +72,7 @@ Meui.Window {
                 source: settings.viewMethod === 0 ? listSource : gridSource
 
                 onClicked: {
-                    if (settings.viewMethod === 1)
-                        settings.viewMethod = 0
-                    else
-                        settings.viewMethod = 1
+                    settings.viewMethod ^= 1    // reverse settings.viewMethod
                 }
             }
         }
