@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     if (parser.isSet(desktopOption)) {
+        app.setApplicationName("cutefish-desktop");
         DesktopView view;
         view.show();
         return app.exec();
