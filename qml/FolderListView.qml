@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
 
 ListView {
@@ -27,7 +27,7 @@ ListView {
     property Item editor: null
     property int anchorIndex: 0
 
-    property var itemHeight: Meui.Units.fontMetrics.height * 2 + Meui.Units.largeSpacing
+    property var itemHeight: FishUI.Units.fontMetrics.height * 2 + FishUI.Units.largeSpacing
 
     property variant cachedRectangleSelection: null
 
@@ -380,7 +380,7 @@ ListView {
                 if (targetItem != null) {
                     var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
                     width = targetItem.labelArea.width
-                    height = Meui.Units.fontMetrics.height + Meui.Units.largeSpacing * 2
+                    height = FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing * 2
                     x = control.mapFromItem(targetItem.labelArea, 0, 0).x
                     y = pos.y + (targetItem.height - height) / 2
                     text = targetItem.labelArea.text

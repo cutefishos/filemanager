@@ -3,7 +3,7 @@ import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtGraphicalEffects 1.0
 
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
 
 ListView {
@@ -18,13 +18,13 @@ ListView {
     model: placesModel
     clip: true
 
-    leftMargin: Meui.Units.smallSpacing
-    rightMargin: Meui.Units.smallSpacing
-    bottomMargin: Meui.Units.smallSpacing
-    spacing: Meui.Units.smallSpacing
+    leftMargin: FishUI.Units.smallSpacing
+    rightMargin: FishUI.Units.smallSpacing
+    bottomMargin: FishUI.Units.smallSpacing
+    spacing: FishUI.Units.smallSpacing
 
     ScrollBar.vertical: ScrollBar {
-        bottomPadding: Meui.Units.smallSpacing
+        bottomPadding: FishUI.Units.smallSpacing
     }
 
     highlightFollowsCurrentItem: true
@@ -32,8 +32,8 @@ ListView {
     highlightResizeDuration : 0
 
     highlight: Rectangle {
-        radius: Meui.Theme.smallRadius
-        color: Meui.Theme.highlightColor
+        radius: FishUI.Theme.smallRadius
+        color: FishUI.Theme.highlightColor
     }
 
     delegate: Item {
@@ -42,8 +42,8 @@ ListView {
         height: 40
 
         property bool checked: sideBar.currentIndex === index
-        property color hoveredColor: Meui.Theme.darkMode ? Qt.lighter(Meui.Theme.backgroundColor, 1.1)
-                                                         : Qt.darker(Meui.Theme.backgroundColor, 1.1)
+        property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
+                                                         : Qt.darker(FishUI.Theme.backgroundColor, 1.1)
         MouseArea {
             id: _mouseArea
             anchors.fill: parent
@@ -60,15 +60,15 @@ ListView {
 
         Rectangle {
             anchors.fill: parent
-            radius: Meui.Theme.smallRadius
+            radius: FishUI.Theme.smallRadius
             color: _mouseArea.containsMouse && !checked ? _item.hoveredColor : "transparent"
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: Meui.Units.smallSpacing
-            anchors.rightMargin: Meui.Units.smallSpacing
-            spacing: Meui.Units.smallSpacing
+            anchors.leftMargin: FishUI.Units.smallSpacing
+            anchors.rightMargin: FishUI.Units.smallSpacing
+            spacing: FishUI.Units.smallSpacing
 
             Image {
                 height: _item.height * 0.55
@@ -81,14 +81,14 @@ ListView {
                     anchors.fill: parent
                     source: parent
                     color: _label.color
-                    visible: Meui.Theme.darkMode && model.iconPath || checked
+                    visible: FishUI.Theme.darkMode && model.iconPath || checked
                 }
             }
 
             Label {
                 id: _label
                 text: model.name
-                color: checked ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+                color: checked ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter

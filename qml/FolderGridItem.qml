@@ -4,7 +4,7 @@ import QtQuick.Controls 2.12
 import QtGraphicalEffects 1.0
 
 import Cutefish.FileManager 1.0
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 Item {
     id: control
@@ -25,11 +25,11 @@ Item {
     Rectangle {
         id: _background
         width: Math.max(_iconItem.width, _label.paintedWidth)
-        height: _iconItem.height + _label.paintedHeight + Meui.Units.largeSpacing
+        height: _iconItem.height + _label.paintedHeight + FishUI.Units.largeSpacing
         x: (parent.width - width) / 2
         y: _iconItem.y
-        color: selected || hovered ? Meui.Theme.highlightColor : "transparent"
-        radius: Meui.Theme.mediumRadius
+        color: selected || hovered ? FishUI.Theme.highlightColor : "transparent"
+        radius: FishUI.Theme.mediumRadius
         visible: selected || hovered
         opacity: selected ? 1.0 : 0.2
     }
@@ -38,11 +38,11 @@ Item {
         id: _iconItem
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: Meui.Units.largeSpacing
-        anchors.bottomMargin: Meui.Units.largeSpacing
+        anchors.topMargin: FishUI.Units.largeSpacing
+        anchors.bottomMargin: FishUI.Units.largeSpacing
         z: 2
 
-        width: parent.width - Meui.Units.largeSpacing * 2
+        width: parent.width - FishUI.Units.largeSpacing * 2
         height: control.GridView.view.iconSize
 
         Image {
@@ -58,9 +58,9 @@ Item {
         Image {
             id: _image
             anchors.fill: parent
-            anchors.topMargin: Meui.Units.smallSpacing
-            anchors.leftMargin: Meui.Units.smallSpacing
-            anchors.rightMargin: Meui.Units.smallSpacing
+            anchors.topMargin: FishUI.Units.smallSpacing
+            anchors.leftMargin: FishUI.Units.smallSpacing
+            anchors.rightMargin: FishUI.Units.smallSpacing
             fillMode: Image.PreserveAspectFit
             visible: status === Image.Ready
             horizontalAlignment: Qt.AlignHCenter
@@ -93,16 +93,16 @@ Item {
         z: 2
         anchors.top: _iconItem.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: Meui.Units.smallSpacing
+        anchors.topMargin: FishUI.Units.smallSpacing
         maximumLineCount: 2
         horizontalAlignment: Text.AlignHCenter
-        width: parent.width - Meui.Units.largeSpacing * 2 - Meui.Units.smallSpacing
+        width: parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
         text: model.fileName
         color: control.GridView.view.isDesktopView ? "white"
-                                                   : selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+                                                   : selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
     }
 
     DropShadow {
@@ -111,7 +111,7 @@ Item {
         z: 1
         horizontalOffset: 1
         verticalOffset: 1
-        radius: Math.round(4 * Meui.Units.devicePixelRatio)
+        radius: Math.round(4 * FishUI.Units.devicePixelRatio)
         samples: radius * 2 + 1
         spread: 0.35
         color: Qt.rgba(0, 0, 0, 0.3)

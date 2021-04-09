@@ -3,7 +3,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 
 import Cutefish.FileManager 1.0
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 GridView {
     id: control
@@ -188,7 +188,7 @@ GridView {
     }
 
     cellHeight: {
-        var iconHeight = iconSize + (Meui.Units.fontMetrics.height * 2) + Meui.Units.largeSpacing * 2
+        var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 2) + FishUI.Units.largeSpacing * 2
         if (isDesktopView) {
             var extraHeight = calcExtraSpacing(iconHeight, control.height - topMargin - bottomMargin)
             return iconHeight + extraHeight
@@ -197,7 +197,7 @@ GridView {
     }
 
     cellWidth: {
-        var iconWidth = iconSize + Meui.Units.largeSpacing * 4
+        var iconWidth = iconSize + FishUI.Units.largeSpacing * 4
         var extraWidth = calcExtraSpacing(iconWidth, control.width - leftMargin - rightMargin)
         return iconWidth + extraWidth
     }
@@ -317,7 +317,8 @@ GridView {
                 // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    dirModel.openContextMenu(null, mouse.modifiers)
+                    // dirModel.openContextMenu(null, mouse.modifiers)
+                    folderMenu.open()
                     mouse.accepted = true
                 }
             }
@@ -453,8 +454,8 @@ GridView {
         var step = rows ? cellWidth : cellHeight
         var perStripe = Math.floor(axis / step)
         var stripes = Math.ceil(control.count / perStripe)
-        var cWidth = control.cellWidth - (2 * Meui.Units.smallSpacing)
-        var cHeight = control.cellHeight - (2 * Meui.Units.smallSpacing)
+        var cWidth = control.cellWidth - (2 * FishUI.Units.smallSpacing)
+        var cHeight = control.cellHeight - (2 * FishUI.Units.smallSpacing)
         var midWidth = control.cellWidth / 2
         var midHeight = control.cellHeight / 2
         var indices = []
@@ -482,7 +483,7 @@ GridView {
 
                 // Check if the rubberband intersects this cell first to avoid doing more
                 // expensive work.
-                if (control.rubberBand.intersects(Qt.rect(itemX + Meui.Units.smallSpacing, itemY + Meui.Units.smallSpacing,
+                if (control.rubberBand.intersects(Qt.rect(itemX + FishUI.Units.smallSpacing, itemY + FishUI.Units.smallSpacing,
                     cWidth, cHeight))) {
                     var item = control.contentItem.childAt(itemX + midWidth, itemY + midHeight)
 
@@ -520,7 +521,7 @@ GridView {
         var extraSpacing = 0
         if (availableColumns > 0) {
             var allColumnSize = availableColumns * cellSize
-            var extraSpace = Math.max(containerSize - allColumnSize, Meui.Units.largeSpacing)
+            var extraSpace = Math.max(containerSize - allColumnSize, FishUI.Units.largeSpacing)
             extraSpacing = extraSpace / availableColumns
         }
         return Math.floor(extraSpacing)
@@ -565,18 +566,18 @@ GridView {
             wrapMode: TextEdit.Wrap
             horizontalAlignment: TextEdit.AlignHCenter
             z: 999
-            topPadding: Meui.Units.smallSpacing
-            bottomPadding: Meui.Units.smallSpacing
+            topPadding: FishUI.Units.smallSpacing
+            bottomPadding: FishUI.Units.smallSpacing
 
             property Item targetItem: null
 
             onTargetItemChanged: {
                 if (targetItem != null) {
                     var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
-                    width = targetItem.width - Meui.Units.smallSpacing
-                    height = targetItem.labelArea.paintedHeight + Meui.Units.largeSpacing * 2
+                    width = targetItem.width - FishUI.Units.smallSpacing
+                    height = targetItem.labelArea.paintedHeight + FishUI.Units.largeSpacing * 2
                     x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
-                    y = pos.y - Meui.Units.largeSpacing
+                    y = pos.y - FishUI.Units.largeSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
                     _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))

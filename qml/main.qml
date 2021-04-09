@@ -2,11 +2,11 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Window 2.12
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 import "./Controls"
 
-Meui.Window {
+FishUI.Window {
     id: root
     width: settings.width
     height: settings.height
@@ -15,8 +15,8 @@ Meui.Window {
     visible: true
     title: qsTr("File Manager")
 
-    headerBarHeight: 35 + Meui.Units.largeSpacing
-    backgroundColor: Meui.Theme.secondBackgroundColor
+    headerBarHeight: 35 + FishUI.Units.largeSpacing
+    backgroundColor: FishUI.Theme.secondBackgroundColor
 
     property QtObject settings: GlobalSettings { }
 
@@ -31,17 +31,17 @@ Meui.Window {
     headerBar: Item {
         RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: Meui.Units.smallSpacing
-            anchors.rightMargin: Meui.Units.smallSpacing
-            anchors.topMargin: Meui.Units.smallSpacing
-            anchors.bottomMargin: Meui.Units.smallSpacing
+            anchors.leftMargin: FishUI.Units.smallSpacing
+            anchors.rightMargin: FishUI.Units.smallSpacing
+            anchors.topMargin: FishUI.Units.smallSpacing
+            anchors.bottomMargin: FishUI.Units.smallSpacing
 
-            spacing: Meui.Units.smallSpacing
+            spacing: FishUI.Units.smallSpacing
 
             IconButton {
                 Layout.fillHeight: true
                 implicitWidth: height
-                source: Meui.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
+                source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
                                             : "qrc:/images/light/go-previous.svg"
                 onClicked: _folderPage.goBack()
             }
@@ -49,7 +49,7 @@ Meui.Window {
             IconButton {
                 Layout.fillHeight: true
                 implicitWidth: height
-                source: Meui.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
+                source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
                                             : "qrc:/images/light/go-next.svg"
                 onClicked: _folderPage.goForward()
             }
@@ -66,8 +66,8 @@ Meui.Window {
                 Layout.fillHeight: true
                 implicitWidth: height
 
-                property var gridSource: Meui.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
-                property var listSource: Meui.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
+                property var gridSource: FishUI.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
+                property var listSource: FishUI.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
 
                 source: settings.viewMethod === 0 ? listSource : gridSource
 
@@ -86,7 +86,7 @@ Meui.Window {
         SideBar {
             id: _sideBar
             Layout.fillHeight: true
-            width: 200 + Meui.Units.largeSpacing
+            width: 200 + FishUI.Units.largeSpacing
             onClicked: _folderPage.openUrl(path)
         }
 

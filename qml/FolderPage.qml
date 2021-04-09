@@ -3,7 +3,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 
 import Cutefish.FileManager 1.0
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 import "./Dialogs"
 
@@ -24,10 +24,10 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
-        anchors.rightMargin: Meui.Theme.smallRadius
-        anchors.bottomMargin: Meui.Theme.smallRadius
-        radius: Meui.Theme.smallRadius
-        color: Meui.Theme.backgroundColor
+        anchors.rightMargin: FishUI.Theme.smallRadius
+        anchors.bottomMargin: FishUI.Theme.smallRadius
+        radius: FishUI.Theme.smallRadius
+        color: FishUI.Theme.backgroundColor
     }
 
     Label {
@@ -60,9 +60,23 @@ Item {
                                     _viewLoader.item.contentWidth, _viewLoader.item.contentHeight)
     }
 
+    FishUI.DesktopMenu {
+        id: folderMenu
+
+        MenuItem {
+            text: qsTr("Open")
+            onTriggered: dirModel.openSelected()
+        }
+
+        MenuItem {
+            text: qsTr("Properties")
+            onTriggered: dirModel.openPropertiesDialog()
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
-        anchors.bottomMargin: Meui.Theme.smallRadius
+        anchors.bottomMargin: FishUI.Theme.smallRadius
         spacing: 0
 
         Loader {
@@ -103,10 +117,10 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: Meui.Units.largeSpacing
-                anchors.rightMargin: Meui.Units.largeSpacing
+                anchors.leftMargin: FishUI.Units.largeSpacing
+                anchors.rightMargin: FishUI.Units.largeSpacing
                 anchors.bottomMargin: 1
-                spacing: Meui.Units.largeSpacing
+                spacing: FishUI.Units.largeSpacing
 
                 Label {
                     Layout.alignment: Qt.AlignLeft
@@ -144,10 +158,10 @@ Item {
             model: dirModel
             delegate: FolderGridItem {}
 
-            leftMargin: Meui.Units.largeSpacing
-            rightMargin: Meui.Units.largeSpacing
-            topMargin: Meui.Units.smallSpacing
-            bottomMargin: Meui.Units.smallSpacing
+            leftMargin: FishUI.Units.largeSpacing
+            rightMargin: FishUI.Units.largeSpacing
+            topMargin: FishUI.Units.smallSpacing
+            bottomMargin: FishUI.Units.smallSpacing
 
             onIconSizeChanged: {
                 // Save
@@ -167,10 +181,10 @@ Item {
             id: _folderListView
             model: dirModel
 
-            topMargin: Meui.Units.largeSpacing
-            leftMargin: Meui.Units.largeSpacing
-            rightMargin: Meui.Units.largeSpacing + Meui.Theme.smallRadius
-            spacing: Meui.Units.largeSpacing
+            topMargin: FishUI.Units.largeSpacing
+            leftMargin: FishUI.Units.largeSpacing
+            rightMargin: FishUI.Units.largeSpacing + FishUI.Theme.smallRadius
+            spacing: FishUI.Units.largeSpacing
 
             onCountChanged: {
                 _fileTips.visible = count === 0
@@ -189,7 +203,7 @@ Item {
             width: 0
             height: 0
             z: 99999
-            color: Meui.Theme.highlightColor
+            color: FishUI.Theme.highlightColor
 
             function close() {
                 opacityAnimation.restart()

@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 Window {
     id: control
@@ -13,7 +13,7 @@ Window {
 
     Rectangle {
         anchors.fill: parent
-        color: Meui.Theme.backgroundColor
+        color: FishUI.Theme.backgroundColor
     }
 
     onVisibleChanged: {
@@ -45,14 +45,14 @@ Window {
         ColumnLayout {
             id: _mainLayout
             anchors.fill: parent
-            anchors.leftMargin: Meui.Units.largeSpacing * 2
-            anchors.rightMargin: Meui.Units.largeSpacing * 2
-            anchors.topMargin: Meui.Units.largeSpacing
-            anchors.bottomMargin: Meui.Units.largeSpacing
-            spacing: Meui.Units.largeSpacing
+            anchors.leftMargin: FishUI.Units.largeSpacing * 2
+            anchors.rightMargin: FishUI.Units.largeSpacing * 2
+            anchors.topMargin: FishUI.Units.largeSpacing
+            anchors.bottomMargin: FishUI.Units.largeSpacing
+            spacing: FishUI.Units.largeSpacing
 
             RowLayout {
-                spacing: Meui.Units.largeSpacing * 2
+                spacing: FishUI.Units.largeSpacing * 2
 
                 Image {
                     width: 64
@@ -73,8 +73,8 @@ Window {
 
             GridLayout {
                 columns: 2
-                columnSpacing: Meui.Units.largeSpacing
-                rowSpacing: Meui.Units.largeSpacing
+                columnSpacing: FishUI.Units.largeSpacing
+                rowSpacing: FishUI.Units.largeSpacing
                 Layout.alignment: Qt.AlignTop
 
                 onHeightChanged: updateWindowSize()
@@ -83,7 +83,7 @@ Window {
                 Label {
                     text: qsTr("Type:")
                     Layout.alignment: Qt.AlignRight
-                    color: Meui.Theme.disabledTextColor
+                    color: FishUI.Theme.disabledTextColor
                     visible: mimeType.visible
                 }
 
@@ -96,7 +96,7 @@ Window {
                 Label {
                     text: qsTr("Location:")
                     Layout.alignment: Qt.AlignRight
-                    color: Meui.Theme.disabledTextColor
+                    color: FishUI.Theme.disabledTextColor
                 }
 
                 Label {
@@ -107,7 +107,7 @@ Window {
                 Label {
                     text: qsTr("Size:")
                     Layout.alignment: Qt.AlignRight
-                    color: Meui.Theme.disabledTextColor
+                    color: FishUI.Theme.disabledTextColor
                     // visible: size.visible
                 }
 
@@ -120,7 +120,7 @@ Window {
                 Label {
                     text: qsTr("Created:")
                     Layout.alignment: Qt.AlignRight
-                    color: Meui.Theme.disabledTextColor
+                    color: FishUI.Theme.disabledTextColor
                     visible: creationTime.visible
                 }
 
@@ -133,7 +133,7 @@ Window {
                 Label {
                     text: qsTr("Modified:")
                     Layout.alignment: Qt.AlignRight
-                    color: Meui.Theme.disabledTextColor
+                    color: FishUI.Theme.disabledTextColor
                     visible: modifiedTime.visible
                 }
 
@@ -146,7 +146,7 @@ Window {
                 Label {
                     text: qsTr("Accessed:")
                     Layout.alignment: Qt.AlignRight
-                    color: Meui.Theme.disabledTextColor
+                    color: FishUI.Theme.disabledTextColor
                     visible: accessTime.visible
                 }
 
@@ -158,12 +158,12 @@ Window {
             }
 
             Item {
-                height: Meui.Units.largeSpacing
+                height: FishUI.Units.largeSpacing
             }
 
             RowLayout {
                 Layout.alignment: Qt.AlignRight
-                spacing: Meui.Units.largeSpacing
+                spacing: FishUI.Units.largeSpacing
 
                 Button {
                     text: qsTr("Cancel")

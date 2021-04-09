@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
 import QtQuick.Layouts 1.12
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 Window {
     id: control
@@ -11,8 +11,8 @@ Window {
     flags: Qt.Dialog
     visible: true
 
-    width: 400 + Meui.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + Meui.Units.largeSpacing * 2
+    width: 400 + FishUI.Units.largeSpacing * 2
+    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
 
     minimumWidth: width
     minimumHeight: height
@@ -21,14 +21,14 @@ Window {
 
     Rectangle {
         anchors.fill: parent
-        color: Meui.Theme.backgroundColor
+        color: FishUI.Theme.backgroundColor
     }
 
     ColumnLayout {
         id: _mainLayout
         anchors.fill: parent
-        anchors.leftMargin: Meui.Units.largeSpacing
-        anchors.rightMargin: Meui.Units.largeSpacing
+        anchors.leftMargin: FishUI.Units.largeSpacing
+        anchors.rightMargin: FishUI.Units.largeSpacing
         spacing: 0
 
         TextField {

@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtGraphicalEffects 1.0
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 Item {
     id: _listItem
@@ -21,10 +21,10 @@ Item {
     property bool selected: model.selected
     property bool blank: model.blank
 
-    property color hoveredColor: Meui.Theme.darkMode ? Qt.lighter(Meui.Theme.backgroundColor, 1.1)
-                                                     : Qt.darker(Meui.Theme.backgroundColor, 1.05)
-    property color selectedColor: Meui.Theme.darkMode ? Qt.lighter(Meui.Theme.backgroundColor, 1.2)
-                                                      : Qt.darker(Meui.Theme.backgroundColor, 1.15)
+    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
+                                                     : Qt.darker(FishUI.Theme.backgroundColor, 1.05)
+    property color selectedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.2)
+                                                      : Qt.darker(FishUI.Theme.backgroundColor, 1.15)
 //    onSelectedChanged: {
 //        if (selected && !blank) {
 //            _listItem.grabToImage(function(result) {
@@ -39,17 +39,17 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
-        radius: Meui.Theme.smallRadius
-        color: selected ? Meui.Theme.highlightColor : hovered ? hoveredColor : "transparent"
+        radius: FishUI.Theme.smallRadius
+        color: selected ? FishUI.Theme.highlightColor : hovered ? hoveredColor : "transparent"
         visible: selected || hovered
     }
 
     RowLayout {
         id: _mainLayout
         anchors.fill: parent
-        anchors.leftMargin: Meui.Units.smallSpacing
-        anchors.rightMargin: Meui.Units.smallSpacing
-        spacing: Meui.Units.largeSpacing
+        anchors.leftMargin: FishUI.Units.smallSpacing
+        anchors.rightMargin: FishUI.Units.smallSpacing
+        spacing: FishUI.Units.largeSpacing
 
         Item {
             id: iconItem
@@ -104,21 +104,21 @@ Item {
                 id: _label
                 text: model.fileName
                 Layout.fillWidth: true
-                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                 elide: Qt.ElideMiddle
             }
 
             Label {
                 id: _label2
                 text: model.fileSize
-                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.disabledTextColor
+                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
                 Layout.fillWidth: true
             }
         }
 
         Label {
             text: model.modified
-            color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.disabledTextColor
+            color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
         }
     }
 }

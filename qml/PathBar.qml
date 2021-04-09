@@ -3,7 +3,7 @@ import QtQuick.Controls 2.12
 import QtGraphicalEffects 1.0
 
 import Cutefish.FileManager 1.0
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 
 Item {
     id: control
@@ -23,7 +23,7 @@ Item {
 
         leftMargin: 3
         rightMargin: 3
-        spacing: Meui.Units.smallSpacing
+        spacing: FishUI.Units.smallSpacing
 
         onCountChanged: {
             _pathView.currentIndex = _pathView.count - 1
@@ -32,8 +32,8 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: Meui.Theme.backgroundColor
-            radius: Meui.Theme.smallRadius
+            color: FishUI.Theme.backgroundColor
+            radius: FishUI.Theme.smallRadius
             z: -1
         }
 
@@ -47,7 +47,7 @@ Item {
         delegate: MouseArea {
             id: _item
             height: ListView.view.height
-            width: _name.width + Meui.Units.largeSpacing
+            width: _name.width + FishUI.Units.largeSpacing
             z: -1
 
             property bool selected: index === _pathView.count - 1
@@ -58,15 +58,15 @@ Item {
                 anchors.fill: parent
                 anchors.topMargin: 2
                 anchors.bottomMargin: 2
-                color: Meui.Theme.highlightColor
-                radius: Meui.Theme.smallRadius
+                color: FishUI.Theme.highlightColor
+                radius: FishUI.Theme.smallRadius
                 visible: selected
             }
 
             Label {
                 id: _name
                 text: model.name
-                color: selected ? Meui.Theme.highlightedTextColor : Meui.Theme.textColor
+                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                 anchors.centerIn: parent
             }
         }
@@ -80,13 +80,13 @@ Item {
         inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
 
         text: control.url
-        color: Meui.Theme.darkMode ? "white" : "black"
+        color: FishUI.Theme.darkMode ? "white" : "black"
 
         background: Rectangle {
-            radius: Meui.Theme.smallRadius
-            color: Meui.Theme.darkMode ? Qt.darker(Meui.Theme.backgroundColor, 1.1) : "white"
-            border.width: Meui.Units.extendBorderWidth
-            border.color: Meui.Theme.highlightColor
+            radius: FishUI.Theme.smallRadius
+            color: FishUI.Theme.darkMode ? Qt.darker(FishUI.Theme.backgroundColor, 1.1) : "white"
+            border.width: FishUI.Units.extendBorderWidth
+            border.color: FishUI.Theme.highlightColor
         }
 
         onAccepted: {

@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.12
 import QtGraphicalEffects 1.0
 
 import Cutefish.FileManager 1.0
-import MeuiKit 1.0 as Meui
+import FishUI 1.0 as FishUI
 import "../"
 
 Item {
@@ -48,7 +48,7 @@ Item {
                 anchors.fill: parent
                 source: parent
                 color: "#000000"
-                opacity: Meui.Theme.darkMode && settings.dimsWallpaper ? 0.4 : 0.0
+                opacity: FishUI.Theme.darkMode && settings.dimsWallpaper ? 0.4 : 0.0
 
                 Behavior on opacity {
                     NumberAnimation {
@@ -128,6 +128,8 @@ Item {
                 dirModel.requestRename()
             else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
                 dirModel.selectAll()
+            else if (event.key === Qt.Key_Delete)
+                dirModel.keyDeletePress()
         }
     }
 
@@ -140,7 +142,7 @@ Item {
             width: 0
             height: 0
             z: 99999
-            color: Meui.Theme.highlightColor
+            color: FishUI.Theme.highlightColor
 
             function close() {
                 opacityAnimation.restart()
