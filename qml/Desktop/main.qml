@@ -126,12 +126,8 @@ Item {
                 dirModel.paste()
             else if (event.key === Qt.Key_F2)
                 dirModel.requestRename()
-            else if (event.key === Qt.Key_L && event.modifiers & Qt.ControlModifier)
-                folderPage.requestPathEditor()
             else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
                 dirModel.selectAll()
-            else if (event.key === Qt.Key_Backspace)
-                dirModel.up()
         }
     }
 
