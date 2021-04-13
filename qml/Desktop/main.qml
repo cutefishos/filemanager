@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import QtQuick.Window 2.12
 import QtGraphicalEffects 1.0
 
 import Cutefish.FileManager 1.0
@@ -38,7 +39,8 @@ Item {
 
         Image {
             source: "file://" + settings.wallpaper
-            sourceSize: Qt.size(width, height)
+            sourceSize: Qt.size(width * Screen.devicePixelRatio,
+                                height * Screen.devicePixelRatio)
             fillMode: Image.PreserveAspectCrop
             clip: true
             cache: false
