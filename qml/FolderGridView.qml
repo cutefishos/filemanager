@@ -297,7 +297,9 @@ GridView {
                     if (control.ctrlPressed) {
                         dirModel.toggleSelected(hoveredItem.index)
                     } else {
-                        dirModel.clearSelection()
+                        if (mouse.button == Qt.LeftButton)
+                            dirModel.clearSelection()
+
                         dirModel.setSelected(hoveredItem.index)
                     }
                 }

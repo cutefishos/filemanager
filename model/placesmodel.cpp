@@ -116,7 +116,7 @@ PlacesModel::~PlacesModel()
 
 QHash<int, QByteArray> PlacesModel::roleNames() const
 {
-    QHash<int, QByteArray> roleNames; // = QAbstractItemModel::roleNames();
+    QHash<int, QByteArray> roleNames;
     roleNames[PlacesModel::NameRole] = "name";
     roleNames[PlacesModel::IconNameRole] = "icon";
     roleNames[PlacesModel::IconPathRole] = "iconPath";

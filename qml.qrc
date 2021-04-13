@@ -29,5 +29,7 @@
         <file>qml/GlobalSettings.qml</file>
         <file>qml/FolderGridItem.qml</file>
         <file>qml/Dialogs/CreateFolderDialog.qml</file>
+        <file>images/drive-harddisk.svg</file>
+        <file>images/drive-harddisk-root.svg</file>
     </qresource>
 </RCC>

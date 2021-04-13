@@ -181,7 +181,7 @@ Item {
             id: _folderListView
             model: dirModel
 
-            topMargin: FishUI.Units.largeSpacing
+            topMargin: FishUI.Units.smallSpacing
             leftMargin: FishUI.Units.largeSpacing
             rightMargin: FishUI.Units.largeSpacing + FishUI.Theme.smallRadius
             spacing: FishUI.Units.largeSpacing

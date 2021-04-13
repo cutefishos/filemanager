@@ -27,7 +27,7 @@ ListView {
     property Item editor: null
     property int anchorIndex: 0
 
-    property var itemHeight: FishUI.Units.fontMetrics.height * 2 + FishUI.Units.largeSpacing
+    property var itemHeight: FishUI.Units.fontMetrics.height * 2 + FishUI.Units.smallSpacing
 
     property variant cachedRectangleSelection: null
 
@@ -214,7 +214,9 @@ ListView {
                     if (control.ctrlPressed) {
                         dirModel.toggleSelected(hoveredItem.index)
                     } else {
-                        dirModel.clearSelection()
+                        if (mouse.button == Qt.LeftButton)
+                            dirModel.clearSelection()
+
                         dirModel.setSelected(hoveredItem.index)
                     }
                 }
@@ -245,7 +247,7 @@ ListView {
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
             var cPos = mapToItem(control.contentItem, mouse.x, mouse.y)
-            var item = control.itemAt(mouse.x, mouse.y + control.contentY)
+            var item = control.itemAt(mouse.x - control.leftMargin, mouse.y + control.contentY)
             var leftEdge = Math.min(control.contentX, control.originX)
 
             if (!item || item.blank) {
@@ -347,8 +349,8 @@ ListView {
     function rectangleSelect(x, y, width, height) {
         var indexes = []
         for (var i = y; i <= y + height; i += 10) {
-            const index = control.indexAt(x, i)
-            if(!indexes.includes(index) && index > -1 && index< control.count)
+            const index = control.indexAt(control.leftMargin, i)
+            if(!indexes.includes(index) && index > -1 && index < control.count)
                 indexes.push(index)
         }
         cachedRectangleSelection = indexes

@@ -113,6 +113,7 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
     if (m_device.isValid()) {
         m_access = m_device.as<Solid::StorageAccess>();
         m_iconName = m_device.icon();
+        m_iconPath = QString("qrc:/images/%1.svg").arg(m_iconName);
         m_displayName = m_device.displayName();
 
         if (m_access) {
