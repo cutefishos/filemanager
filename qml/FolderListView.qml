@@ -214,9 +214,6 @@ ListView {
                     if (control.ctrlPressed) {
                         dirModel.toggleSelected(hoveredItem.index)
                     } else {
-                        if (mouse.button == Qt.LeftButton)
-                            dirModel.clearSelection()
-
                         dirModel.setSelected(hoveredItem.index)
                     }
                 }
@@ -322,7 +319,17 @@ ListView {
             }
         }
 
-        onReleased: pressCanceled()
+        onReleased: {
+            if (pressedItem != null &&
+                    !control.rubberBand &&
+                    !dirModel.dragging) {
+                dirModel.clearSelection()
+                dirModel.setSelected(pressedItem.index)
+            }
+
+            pressCanceled()
+        }
+
         onCanceled: pressCanceled()
     }
 

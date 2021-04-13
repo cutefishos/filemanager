@@ -18,8 +18,8 @@ ListView {
     model: placesModel
     clip: true
 
-    leftMargin: FishUI.Units.smallSpacing
-    rightMargin: FishUI.Units.smallSpacing
+    leftMargin: FishUI.Units.smallSpacing * 1.5
+    rightMargin: FishUI.Units.smallSpacing * 1.5
     bottomMargin: FishUI.Units.smallSpacing
     spacing: FishUI.Units.smallSpacing
 

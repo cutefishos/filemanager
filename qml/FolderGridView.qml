@@ -297,9 +297,6 @@ GridView {
                     if (control.ctrlPressed) {
                         dirModel.toggleSelected(hoveredItem.index)
                     } else {
-                        if (mouse.button == Qt.LeftButton)
-                            dirModel.clearSelection()
-
                         dirModel.setSelected(hoveredItem.index)
                     }
                 }
@@ -416,7 +413,18 @@ GridView {
                 dirModel.openSelected()
         }
 
-        onReleased: pressCanceled()
+        onReleased: {
+            // 当选择多个文件的时候，在这选择里的文件中点击
+            if (pressedItem != null &&
+                    !control.rubberBand &&
+                    !dirModel.dragging) {
+                dirModel.clearSelection()
+                dirModel.setSelected(pressedItem.index)
+            }
+
+            pressCanceled()
+        }
+
         onCanceled: pressCanceled()
 
         onWheel: {
