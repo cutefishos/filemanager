@@ -297,6 +297,7 @@ GridView {
                     if (control.ctrlPressed) {
                         dirModel.toggleSelected(hoveredItem.index)
                     } else {
+                        dirModel.clearSelection()
                         dirModel.setSelected(hoveredItem.index)
                     }
                 }
@@ -317,8 +318,7 @@ GridView {
                 // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    // dirModel.openContextMenu(null, mouse.modifiers)
-                    folderMenu.open()
+                    dirModel.openContextMenu(null, mouse.modifiers)
                     mouse.accepted = true
                 }
             }

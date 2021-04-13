@@ -211,10 +211,12 @@ ListView {
                         dirModel.clearSelection()
                     }
 
-                    if (control.ctrlPressed)
+                    if (control.ctrlPressed) {
                         dirModel.toggleSelected(hoveredItem.index)
-                    else
+                    } else {
+                        dirModel.clearSelection()
                         dirModel.setSelected(hoveredItem.index)
+                    }
                 }
 
                 control.currentIndex = hoveredItem.index

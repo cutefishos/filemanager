@@ -48,9 +48,9 @@ DesktopView::DesktopView(QQuickView *parent)
 
     onGeometryChanged();
 
-    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onGeometryChanged);
-    connect(qApp->primaryScreen(), &QScreen::geometryChanged, this, &DesktopView::onGeometryChanged);
-    connect(qApp->primaryScreen(), &QScreen::availableGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
+    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onGeometryChanged, Qt::QueuedConnection);
+    connect(qApp->primaryScreen(), &QScreen::geometryChanged, this, &DesktopView::onGeometryChanged, Qt::QueuedConnection);
+    connect(qApp->primaryScreen(), &QScreen::availableGeometryChanged, this, &DesktopView::onAvailableGeometryChanged, Qt::QueuedConnection);
 }
 
 QRect DesktopView::screenRect()
@@ -67,7 +67,6 @@ void DesktopView::onGeometryChanged()
 {
     m_screenRect = qApp->primaryScreen()->geometry();
     setGeometry(qApp->primaryScreen()->geometry());
-
     emit screenRectChanged();
 }
 
