@@ -417,6 +417,8 @@ GridView {
             // 当选择多个文件的时候，在这选择里的文件中点击
             if (pressedItem != null &&
                     !control.rubberBand &&
+                    !control.shiftPressed &&
+                    !control.ctrlPressed &&
                     !dirModel.dragging) {
                 dirModel.clearSelection()
                 dirModel.setSelected(pressedItem.index)

@@ -85,7 +85,7 @@ FishUI.Window {
         SideBar {
             id: _sideBar
             Layout.fillHeight: true
-            width: 200 + FishUI.Units.largeSpacing
+            width: 180 + FishUI.Units.largeSpacing
             onClicked: _folderPage.openUrl(path)
         }
 

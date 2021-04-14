@@ -322,6 +322,8 @@ ListView {
         onReleased: {
             if (pressedItem != null &&
                     !control.rubberBand &&
+                    !control.shiftPressed &&
+                    !control.ctrlPressed &&
                     !dirModel.dragging) {
                 dirModel.clearSelection()
                 dirModel.setSelected(pressedItem.index)

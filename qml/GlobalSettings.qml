@@ -8,7 +8,7 @@ Settings {
     property int height: 580
     property int desktopIconSize: 72
     property int maximumIconSize: 256
-    property int minimumIconSize: 72
+    property int minimumIconSize: 64
 
-    property int gridIconSize: 72
+    property int gridIconSize: 64
 }
