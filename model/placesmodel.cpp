@@ -220,6 +220,9 @@ void PlacesModel::requestSetup(const int &index)
         Solid::Device device = Solid::Device(item->udi());
         Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
         access->setup();
+        connect(access, &Solid::StorageAccess::setupDone, this, [this, access]() {
+            emit deviceSetupDone(access->filePath());
+        });
     }
 }
 

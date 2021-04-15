@@ -13,6 +13,7 @@ ListView {
 
     PlacesModel {
         id: placesModel
+        onDeviceSetupDone: sideBar.clicked(filePath)    // 设备挂载上后，模拟点击了该设备以打开该页面
     }
 
     model: placesModel

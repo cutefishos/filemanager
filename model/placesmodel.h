@@ -56,6 +56,9 @@ public:
     Q_INVOKABLE void requestSetup(const int &index);
     Q_INVOKABLE void requestEject(const int &index);
 
+signals:
+    void deviceSetupDone(const QString &filePath);
+
 private slots:
     void onDeviceAdded(const QString &udi);
     void onDeviceRemoved(const QString &udi);
