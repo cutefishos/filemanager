@@ -39,7 +39,7 @@ ListView {
     delegate: Item {
         id: _item
         width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
-        height: 40
+        height: FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing * 1.5
 
         property bool checked: sideBar.currentIndex === index
         property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)

@@ -12,7 +12,7 @@ Item {
 
     property alias currentUrl: dirModel.url
     property Item currentView: _viewLoader.item
-    property int statusBarHeight: 30
+    property int statusBarHeight: 22
 
     signal requestPathEditor()
 
@@ -33,7 +33,7 @@ Item {
     Label {
         id: _fileTips
         text: qsTr("Empty folder")
-        font.pointSize: 20
+        font.pointSize: 15
         anchors.centerIn: parent
         visible: false
     }
@@ -117,19 +117,21 @@ Item {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: FishUI.Units.largeSpacing
+                anchors.leftMargin: FishUI.Units.smallSpacing
                 anchors.rightMargin: FishUI.Units.largeSpacing
                 anchors.bottomMargin: 1
                 spacing: FishUI.Units.largeSpacing
 
                 Label {
                     Layout.alignment: Qt.AlignLeft
-                    text: dirModel.count == 1 ? qsTr("%1 item").arg(dirModel.count)
-                                                 : qsTr("%1 items").arg(dirModel.count)
+                    font.pointSize: 10
+                    text: dirModel.count === 1 ? qsTr("%1 item").arg(dirModel.count)
+                                               : qsTr("%1 items").arg(dirModel.count)
                 }
 
                 Label {
                     Layout.alignment: Qt.AlignLeft
+                    font.pointSize: 10
                     text: qsTr("%1 selected").arg(dirModel.selectionCound)
                     visible: dirModel.selectionCound >= 1
                 }
@@ -142,6 +144,7 @@ Item {
                     Layout.fillHeight: true
                     Layout.alignment: Qt.AlignRight
                     text: qsTr("Empty Trash")
+                    font.pointSize: 10
                     onClicked: dirModel.emptyTrash()
                     visible: dirModel.url === "trash:/"
                     focusPolicy: Qt.NoFocus
@@ -158,7 +161,7 @@ Item {
             model: dirModel
             delegate: FolderGridItem {}
 
-            leftMargin: FishUI.Units.largeSpacing
+            leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
             topMargin: FishUI.Units.smallSpacing
             bottomMargin: FishUI.Units.smallSpacing
