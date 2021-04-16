@@ -42,7 +42,6 @@ Item {
         id: dirModel
         viewAdapter: viewAdapter
 
-
         Component.onCompleted: {
             if (arg)
                 dirModel.url = arg

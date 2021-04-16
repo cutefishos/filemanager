@@ -38,6 +38,11 @@ Window {
             text: qsTr("New folder")
             focus: true
 
+            onAccepted: {
+                main.newFolder(_textField.text)
+                control.close()
+            }
+
             Component.onCompleted: {
                 _textField.selectAll()
             }
