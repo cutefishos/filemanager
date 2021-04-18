@@ -220,8 +220,12 @@ void PlacesModel::requestSetup(const int &index)
         Solid::Device device = Solid::Device(item->udi());
         Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
         access->setup();
-        connect(access, &Solid::StorageAccess::setupDone, this, [this, access]() {
-            emit deviceSetupDone(access->filePath());
+        connect(access, &Solid::StorageAccess::setupDone, this, [this, item, access]() {
+            if (item) {
+                // 更新信息，让 qml 里的 sidebar 识别到
+                item->setUrl(QUrl::fromLocalFile(access->filePath()));
+                emit deviceSetupDone(access->filePath());
+            }
         });
     }
 }

@@ -62,9 +62,6 @@ void PlacesItem::setIconPath(const QString &path)
 
 QUrl PlacesItem::url() const
 {
-    if (m_access)
-        return QUrl::fromLocalFile(m_access->filePath());
-
     return m_url;
 }
 
@@ -75,7 +72,10 @@ void PlacesItem::setUrl(const QUrl &url)
 
 QString PlacesItem::path() const
 {
-    return m_url.toString(QUrl::PreferLocalFile);
+    if (m_url.isValid())
+        return m_url.toString(QUrl::PreferLocalFile);
+
+    return QString();
 }
 
 QString PlacesItem::udi() const
