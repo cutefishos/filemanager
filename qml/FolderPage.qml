@@ -162,7 +162,7 @@ Item {
 
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
-            topMargin: FishUI.Units.smallSpacing
+            topMargin: 0
             bottomMargin: FishUI.Units.smallSpacing
 
             onIconSizeChanged: {
