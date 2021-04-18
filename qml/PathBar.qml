@@ -85,7 +85,7 @@ Item {
         background: Rectangle {
             radius: FishUI.Theme.smallRadius
             color: FishUI.Theme.darkMode ? Qt.darker(FishUI.Theme.backgroundColor, 1.1) : "white"
-            border.width: FishUI.Units.extendBorderWidth
+            border.width: 1
             border.color: FishUI.Theme.highlightColor
         }
 

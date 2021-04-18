@@ -18,7 +18,8 @@
  */
 
 #include "pathbarmodel.h"
-#include<QDebug>
+#include <QDir>
+#include <QDebug>
 
 PathBarModel::PathBarModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -39,36 +40,34 @@ void PathBarModel::setUrl(const QString &url)
 {
     if (m_url != url) {
         beginResetModel();
+
         m_url = url;
 
         qDeleteAll(m_pathList);
         m_pathList.clear();
 
-        QString _url = url;
-        while (_url.endsWith("/"))
-            _url.chop(1);
-        _url += '/';
-
-        int count = _url.count("/");
-
-        for (int i = 0; i < count; ++i) {
-            _url = QString(_url).left(_url.lastIndexOf("/"));
-            QString label = QString(_url).right(_url.length() - _url.lastIndexOf("/") - 1);
-
-            if (label.isEmpty())
-                continue;
-
+        if (m_url.startsWith("trash:/")) {
             PathBarItem *item = new PathBarItem;
-
-            if (label.contains(":") && i == count - 1) {
-                item->name = "/";
-                item->url = QUrl(_url + "///");
-            } else {
-                item->name = label;
-                item->url = QUrl(_url);
-            }
-
+            item->name = m_url;
+            item->url = m_url;
             m_pathList.append(item);
+        } else {
+            QDir dir(m_url);
+            while (true) {
+                if (dir.isRoot()) {
+                    PathBarItem *item = new PathBarItem;
+                    item->name = "/";
+                    item->url = "/";
+                    m_pathList.append(item);
+                    break;
+                }
+
+                PathBarItem *item = new PathBarItem;
+                item->name = dir.dirName();
+                item->url = QUrl::fromLocalFile(dir.absolutePath());
+                m_pathList.append(item);
+                dir.cdUp();
+            }
         }
 
         std::reverse(m_pathList.begin(), m_pathList.end());
