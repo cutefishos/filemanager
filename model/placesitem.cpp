@@ -117,7 +117,7 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
         m_displayName = m_device.displayName();
 
         if (m_access) {
-            // m_url = m_access->filePath();
+            m_url = QUrl::fromLocalFile(m_access->filePath());
             connect(m_access.data(), &Solid::StorageAccess::accessibilityChanged, this, &PlacesItem::onAccessibilityChanged);
             onAccessibilityChanged(m_access->isAccessible());
         }

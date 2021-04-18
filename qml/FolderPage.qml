@@ -24,8 +24,8 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
-        anchors.rightMargin: FishUI.Theme.smallRadius
-        anchors.bottomMargin: FishUI.Theme.smallRadius
+        anchors.rightMargin: FishUI.Units.smallSpacing * 1.5
+        anchors.bottomMargin: FishUI.Units.smallSpacing * 1.5
         radius: FishUI.Theme.smallRadius
         color: FishUI.Theme.backgroundColor
     }
