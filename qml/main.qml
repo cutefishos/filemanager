@@ -16,7 +16,7 @@ FishUI.Window {
     title: qsTr("File Manager")
 
     headerBarHeight: 35 + FishUI.Units.smallSpacing * 3
-    backgroundColor: FishUI.Theme.secondBackgroundColor
+    backgroundColor: FishUI.Theme.darkMode ? "#262626" : "#F2F2F7"
 
     property QtObject settings: GlobalSettings { }
 
@@ -26,6 +26,10 @@ FishUI.Window {
             settings.width = root.width
             settings.height = root.height
         }
+    }
+
+    OptionsMenu {
+        id: optionsMenu
     }
 
     headerBar: Item {
@@ -72,7 +76,7 @@ FishUI.Window {
                 source: settings.viewMethod === 0 ? listSource : gridSource
 
                 onClicked: {
-                    settings.viewMethod ^= 1    // reverse settings.viewMethod
+                    optionsMenu.popup()
                 }
             }
         }

@@ -31,5 +31,16 @@
         <file>qml/Dialogs/CreateFolderDialog.qml</file>
         <file>images/drive-harddisk.svg</file>
         <file>images/drive-harddisk-root.svg</file>
+        <file>images/light/checked.svg</file>
+        <file>images/dark/checked.svg</file>
+        <file>images/light/order_by_name.svg</file>
+        <file>images/dark/order_by_name.svg</file>
+        <file>images/light/date.svg</file>
+        <file>images/dark/date.svg</file>
+        <file>images/light/size.svg</file>
+        <file>images/dark/size.svg</file>
+        <file>qml/OptionsMenu.qml</file>
+        <file>images/light/up.svg</file>
+        <file>images/dark/up.svg</file>
     </qresource>
 </RCC>
