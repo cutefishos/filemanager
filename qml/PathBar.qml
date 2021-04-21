@@ -79,7 +79,7 @@ Item {
         selectByMouse: true
         inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
 
-        text: control.url
+        text: _pathBarModel.url
         color: FishUI.Theme.darkMode ? "white" : "black"
 
         background: Rectangle {
@@ -116,7 +116,7 @@ Item {
     }
 
     function openEditor() {
-        _pathEditor.text = control.url
+        _pathEditor.text = _pathBarModel.url
         _pathEditor.visible = true
         _pathEditor.forceActiveFocus()
         _pathEditor.selectAll()

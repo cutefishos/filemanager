@@ -155,35 +155,43 @@ GridView {
         }
     }
     Keys.onUpPressed: {
-        var newIndex = positioner.nearestItem(currentIndex,
-                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.UpArrow))
-        if (newIndex !== -1) {
-            currentIndex = newIndex
-            updateSelection(event.modifiers)
+        if (!editor || !editor.targetItem) {
+            var newIndex = positioner.nearestItem(currentIndex,
+                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.UpArrow))
+            if (newIndex !== -1) {
+                currentIndex = newIndex
+                updateSelection(event.modifiers)
+            }
         }
     }
     Keys.onDownPressed: {
-        var newIndex = positioner.nearestItem(currentIndex,
-                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.DownArrow))
-        if (newIndex !== -1) {
-            currentIndex = newIndex
-            updateSelection(event.modifiers)
+        if (!editor || !editor.targetItem) {
+            var newIndex = positioner.nearestItem(currentIndex,
+                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.DownArrow))
+            if (newIndex !== -1) {
+                currentIndex = newIndex
+                updateSelection(event.modifiers)
+            }
         }
     }
     Keys.onLeftPressed: {
-        var newIndex = positioner.nearestItem(currentIndex,
-                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.LeftArrow))
-        if (newIndex !== -1) {
-            currentIndex = newIndex;
-            updateSelection(event.modifiers)
+        if (!editor || !editor.targetItem) {
+            var newIndex = positioner.nearestItem(currentIndex,
+                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.LeftArrow))
+            if (newIndex !== -1) {
+                currentIndex = newIndex;
+                updateSelection(event.modifiers)
+            }
         }
     }
     Keys.onRightPressed: {
-        var newIndex = positioner.nearestItem(currentIndex,
-                                              effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.RightArrow))
-        if (newIndex !== -1) {
-            currentIndex = newIndex;
-            updateSelection(event.modifiers)
+        if (!editor || !editor.targetItem) {
+            var newIndex = positioner.nearestItem(currentIndex,
+                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.RightArrow))
+            if (newIndex !== -1) {
+                currentIndex = newIndex;
+                updateSelection(event.modifiers)
+            }
         }
     }
 

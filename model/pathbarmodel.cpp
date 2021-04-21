@@ -41,7 +41,12 @@ void PathBarModel::setUrl(const QString &url)
     if (m_url != url) {
         beginResetModel();
 
-        m_url = url;
+        QUrl _url = QUrl::fromUserInput(url);
+        if (_url.isValid() && !_url.toLocalFile().isEmpty()) {
+            m_url = _url.toLocalFile();
+        } else {
+            m_url = url;
+        }
 
         qDeleteAll(m_pathList);
         m_pathList.clear();
@@ -53,7 +58,8 @@ void PathBarModel::setUrl(const QString &url)
             m_pathList.append(item);
         } else {
             QDir dir(m_url);
-            while (true) {
+
+            do {
                 if (dir.isRoot()) {
                     PathBarItem *item = new PathBarItem;
                     item->name = "/";
@@ -66,8 +72,7 @@ void PathBarModel::setUrl(const QString &url)
                 item->name = dir.dirName();
                 item->url = QUrl::fromLocalFile(dir.absolutePath());
                 m_pathList.append(item);
-                dir.cdUp();
-            }
+            } while (dir.cdUp());
         }
 
         std::reverse(m_pathList.begin(), m_pathList.end());
