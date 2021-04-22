@@ -585,9 +585,9 @@ GridView {
             visible: false
             wrapMode: TextEdit.Wrap
             horizontalAlignment: TextEdit.AlignHCenter
-            z: 999
             topPadding: FishUI.Units.smallSpacing
             bottomPadding: FishUI.Units.smallSpacing
+            z: 999
 
             property Item targetItem: null
 
@@ -597,6 +597,7 @@ GridView {
                     width = targetItem.width - FishUI.Units.smallSpacing
                     height = targetItem.labelArea.paintedHeight + FishUI.Units.largeSpacing * 2
                     x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
+                    x = targetItem.x + (targetItem.width - _editor.width)
                     y = pos.y - FishUI.Units.largeSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false

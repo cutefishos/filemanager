@@ -28,6 +28,8 @@
 #include "../dialogs/propertiesdialog.h"
 #include "../dialogs/createfolderdialog.h"
 
+#include "../helper/datehelper.h"
+
 // Qt
 #include <QDir>
 #include <QMenu>
@@ -184,7 +186,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     case ModifiedRole: {
-        return item.timeString(KFileItem::ModificationTime);
+        return DateHelper::friendlyTime(item.time(KFileItem::ModificationTime));
     }
     default:
         break;

@@ -34,6 +34,7 @@
 #include "desktop/desktopsettings.h"
 #include "desktop/desktopview.h"
 #include "helper/thumbnailer.h"
+#include "helper/datehelper.h"
 
 int main(int argc, char *argv[])
 {
