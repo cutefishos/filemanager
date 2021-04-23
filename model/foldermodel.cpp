@@ -85,6 +85,7 @@ FolderModel::FolderModel(QObject *parent)
     m_dirModel = new KDirModel(this);
     m_dirModel->setDirLister(dirLister);
     m_dirModel->setDropsAllowed(KDirModel::DropOnDirectory | KDirModel::DropOnLocalExecutable);
+    m_dirModel->moveToThread(qApp->thread());
 
     m_selectionModel = new QItemSelectionModel(this, this);
     connect(m_selectionModel, &QItemSelectionModel::selectionChanged, this, &FolderModel::selectionChanged);
