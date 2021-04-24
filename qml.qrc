@@ -23,6 +23,7 @@
         <file>images/folder-picture.svg</file>
         <file>images/folder-video.svg</file>
         <file>images/user-trash.svg</file>
+        <file>images/drive-removable-media-usb.svg</file>
         <file>qml/PathBar.qml</file>
         <file>qml/Desktop/main.qml</file>
         <file>qml/FolderGridView.qml</file>
