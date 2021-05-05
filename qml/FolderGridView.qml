@@ -214,6 +214,10 @@ GridView {
     currentIndex: -1
     ScrollBar.vertical: ScrollBar { }
 
+    FishUI.WheelHandler {
+        target: control
+    }
+
     onPressXChanged: {
         cPress = mapToItem(control.contentItem, pressX, pressY)
     }

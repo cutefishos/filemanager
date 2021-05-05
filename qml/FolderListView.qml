@@ -37,6 +37,11 @@ ListView {
     clip: true
 
     ScrollBar.vertical: ScrollBar { }
+    boundsBehavior: Flickable.StopAtBounds
+
+    FishUI.WheelHandler {
+        target: control
+    }
 
     function rename() {
         if (currentIndex !== -1) {

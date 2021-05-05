@@ -105,8 +105,10 @@ Item {
         delegate: FolderGridItem {}
 
         onActiveFocusChanged: {
-            if (!activeFocus)
+            if (!activeFocus) {
+                _folderView.cancelRename()
                 dirModel.clearSelection()
+            }
         }
 
         Component.onCompleted: {
