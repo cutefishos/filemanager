@@ -348,6 +348,9 @@ int Positioner::columnCount(const QModelIndex &parent) const
 
 void Positioner::reset()
 {
+    if (m_positions.isEmpty())
+        return;
+
     beginResetModel();
 
     initMaps();
