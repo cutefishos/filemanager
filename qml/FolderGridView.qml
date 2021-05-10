@@ -46,6 +46,11 @@ GridView {
 
     signal keyPress(var event)
 
+    onIconSizeChanged: {
+        // 图标大小改变时需要重置状态，否则选中定位不准确
+        positioner.reset()
+    }
+
     function effectiveNavDirection(flow, layoutDirection, direction) {
         if (direction === Qt.LeftArrow) {
             if (flow === GridView.FlowLeftToRight) {
