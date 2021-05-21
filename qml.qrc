@@ -43,5 +43,6 @@
         <file>qml/OptionsMenu.qml</file>
         <file>images/light/up.svg</file>
         <file>images/dark/up.svg</file>
+        <file>qml/Dialogs/EmptyTrashDialog.qml</file>
     </qresource>
 </RCC>

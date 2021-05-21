@@ -44,6 +44,7 @@
 #include <QPainter>
 #include <QDrag>
 #include <QDir>
+#include <QProcess>
 
 // Qt Quick
 #include <QQuickItem>
@@ -54,7 +55,6 @@
 #include <KIO/PreviewJob>
 #include <KIO/DeleteJob>
 #include <KIO/DropJob>
-#include <KIO/EmptyTrashJob>
 #include <KIO/FileUndoManager>
 #include <KIO/JobUiDelegate>
 #include <KIO/Paste>
@@ -749,13 +749,7 @@ void FolderModel::moveSelectedToTrash()
 
 void FolderModel::emptyTrash()
 {
-    KIO::JobUiDelegate uiDelegate;
-    uiDelegate.setWindow(QApplication::desktop());
-
-    if (uiDelegate.askDeleteConfirmation(QList<QUrl>(), KIO::JobUiDelegate::EmptyTrash, KIO::JobUiDelegate::DefaultConfirmation)) {
-        KIO::Job *job = KIO::emptyTrash();
-        job->uiDelegate()->setAutoErrorHandlingEnabled(true);
-    }
+    QProcess::startDetached("cutefish-filemanager", QStringList() << "-e");
 }
 
 void FolderModel::keyDeletePress()

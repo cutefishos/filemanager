@@ -35,6 +35,7 @@
 #include "desktop/desktopview.h"
 #include "helper/thumbnailer.h"
 #include "helper/datehelper.h"
+#include "helper/fm.h"
 
 int main(int argc, char *argv[])
 {
@@ -64,6 +65,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<RubberBand>(uri, 1, 0, "RubberBand");
     qmlRegisterType<ItemViewAdapter>(uri, 1, 0, "ItemViewAdapter");
     qmlRegisterType<DesktopSettings>(uri, 1, 0, "DesktopSettings");
+    qmlRegisterType<Fm>(uri, 1, 0, "Fm");
     qmlRegisterAnonymousType<QAction>(uri, 1);
 
     QCommandLineParser parser;
@@ -74,12 +76,22 @@ int main(int argc, char *argv[])
 
     QCommandLineOption desktopOption(QStringList() << "d" << "desktop" << "Desktop Mode");
     parser.addOption(desktopOption);
+
+    QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
+    parser.addOption(emptyTrashOption);
+
     parser.process(app);
 
     if (parser.isSet(desktopOption)) {
         app.setApplicationName("cutefish-desktop");
         DesktopView view;
         view.show();
+        return app.exec();
+    } else if (parser.isSet(emptyTrashOption)) {
+        // Empty Dialog
+        QQmlApplicationEngine engine;
+        const QUrl url(QStringLiteral("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
+        engine.load(url);
         return app.exec();
     }
 
