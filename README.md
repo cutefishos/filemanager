@@ -1,6 +1,6 @@
 # File Manager
 
-Cutefish File Manager
+Cutefish File Manager, simple to use, beautiful, and retain the classic PC interactive design. 
 
 ## Dependencies
 
