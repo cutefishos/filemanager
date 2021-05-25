@@ -825,8 +825,8 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
     const QModelIndexList indexes = m_selectionModel->selectedIndexes();
     QMenu *menu = new QMenu;
 
+    // Open folder menu.
     if (indexes.isEmpty()) {
-        // Open folder menu.
         QAction *selectAll = new QAction(tr("Select All"), this);
         connect(selectAll, &QAction::triggered, this, &FolderModel::selectAll);
 
@@ -838,6 +838,11 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
             menu->addSeparator();
             menu->addAction(m_actionCollection.action("terminal"));
         }
+
+        if (m_isDesktop) {
+            menu->addAction(m_actionCollection.action("changeBackground"));
+        }
+
         menu->addSeparator();
         menu->addAction(m_actionCollection.action("emptyTrash"));
         menu->addAction(m_actionCollection.action("properties"));
@@ -910,6 +915,11 @@ void FolderModel::openInTerminal()
     }
 
     KToolInvocation::invokeTerminal(QString(), url);
+}
+
+void FolderModel::openChangeWallpaperDialog()
+{
+    QProcess::startDetached("cutefish-settings", QStringList() << "-m" << "background");
 }
 
 void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -1065,6 +1075,9 @@ void FolderModel::createActions()
     QAction *properties = new QAction(tr("Properties"), this);
     QObject::connect(properties, &QAction::triggered, this, &FolderModel::openPropertiesDialog);
 
+    QAction *changeBackground = new QAction(tr("Change background"), this);
+    QObject::connect(changeBackground, &QAction::triggered, this, &FolderModel::openChangeWallpaperDialog);
+
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
     m_actionCollection.addAction(QStringLiteral("copy"), copy);
@@ -1077,6 +1090,7 @@ void FolderModel::createActions()
     m_actionCollection.addAction(QStringLiteral("terminal"), terminal);
     m_actionCollection.addAction(QStringLiteral("wallpaper"), wallpaper);
     m_actionCollection.addAction(QStringLiteral("properties"), properties);
+    m_actionCollection.addAction(QStringLiteral("changeBackground"), changeBackground);
 }
 
 void FolderModel::updateActions()

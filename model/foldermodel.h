@@ -177,6 +177,7 @@ public:
     Q_INVOKABLE void openContextMenu(QQuickItem *visualParent = nullptr, Qt::KeyboardModifiers modifiers = Qt::NoModifier);
     Q_INVOKABLE void openPropertiesDialog();
     Q_INVOKABLE void openInTerminal();
+    Q_INVOKABLE void openChangeWallpaperDialog();
 
     bool isDesktop() const;
     void setIsDesktop(bool isDesktop);
