@@ -20,7 +20,6 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
-import QtGraphicalEffects 1.0
 
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
@@ -91,18 +90,12 @@ ListView {
             spacing: FishUI.Units.smallSpacing
 
             Image {
-                height: _item.height * 0.55
+                height: 22
                 width: height
                 sourceSize: Qt.size(width, height)
-                source: model.iconPath ? model.iconPath : "image://icontheme/" + model.iconName
+                // source: model.iconPath ? model.iconPath : "image://icontheme/" + model.iconName
+                source: "qrc:/images/" + (FishUI.Theme.darkMode || _item.checked ? "dark/" : "light/") + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
-
-                ColorOverlay {
-                    anchors.fill: parent
-                    source: parent
-                    color: _label.color
-                    visible: FishUI.Theme.darkMode && model.iconPath || checked
-                }
             }
 
             Label {

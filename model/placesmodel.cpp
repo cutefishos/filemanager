@@ -37,54 +37,54 @@ PlacesModel::PlacesModel(QObject *parent)
 
     if (QDir(homePath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Home"), QUrl::fromLocalFile(homePath));
-        item->setIconPath("qrc:/images/folder-home.svg");
+        item->setIconPath("folder-home.svg");
         m_items.append(item);
     }
 
     const QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     if (QDir(desktopPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Desktop"), QUrl::fromLocalFile(desktopPath));
-        item->setIconPath("qrc:/images/folder-desktop.svg");
+        item->setIconPath("folder-desktop.svg");
         m_items.append(item);
     }
 
     const QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     if (QDir(documentsPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Documents"), QUrl::fromLocalFile(documentsPath));
-        item->setIconPath("qrc:/images/folder-document.svg");
+        item->setIconPath("folder-document.svg");
         m_items.append(item);
     }
 
     const QString downloadPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
     if (QDir(downloadPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Downloads"), QUrl::fromLocalFile(downloadPath));
-        item->setIconPath("qrc:/images/folder-download.svg");
+        item->setIconPath("folder-download.svg");
         m_items.append(item);
     }
 
     const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     if (QDir(musicPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Music"), QUrl::fromLocalFile(musicPath));
-        item->setIconPath("qrc:/images/folder-music.svg");
+        item->setIconPath("folder-music.svg");
         m_items.append(item);
     }
 
     const QString picturePath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (QDir(picturePath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Pictures"), QUrl::fromLocalFile(picturePath));
-        item->setIconPath("qrc:/images/folder-picture.svg");
+        item->setIconPath("folder-picture.svg");
         m_items.append(item);
     }
 
     const QString videoPath = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     if (QDir(videoPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Videos"), QUrl::fromLocalFile(videoPath));
-        item->setIconPath("qrc:/images/folder-video.svg");
+        item->setIconPath("folder-video.svg");
         m_items.append(item);
     }
 
     PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:/")));
-    trashItem->setIconPath("qrc:/images/user-trash.svg");
+    trashItem->setIconPath("user-trash.svg");
     m_items.append(trashItem);
 
     QString predicateStr(
