@@ -31,7 +31,7 @@ Window {
     visible: true
 
     width: 400 + FishUI.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing
 
     minimumWidth: width
     minimumHeight: height
@@ -48,7 +48,8 @@ Window {
         anchors.fill: parent
         anchors.leftMargin: FishUI.Units.largeSpacing
         anchors.rightMargin: FishUI.Units.largeSpacing
-        spacing: 0
+        anchors.bottomMargin: FishUI.Units.largeSpacing
+        spacing: FishUI.Units.largeSpacing
 
         TextField {
             id: _textField

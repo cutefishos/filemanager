@@ -83,7 +83,7 @@ PlacesModel::PlacesModel(QObject *parent)
         m_items.append(item);
     }
 
-    PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:/")));
+    PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:///")));
     trashItem->setIconPath("user-trash.svg");
     m_items.append(trashItem);
 

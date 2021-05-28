@@ -96,6 +96,8 @@ ListView {
     highlightMoveDuration: 0
     Keys.enabled: true
     Keys.onPressed: {
+        control.keyPress(event)
+
         if (event.key === Qt.Key_Control) {
             ctrlPressed = true
         } else if (event.key === Qt.Key_Shift) {
@@ -104,8 +106,6 @@ ListView {
             if (currentIndex != -1)
                 anchorIndex = currentIndex
         }
-
-        control.keyPress(event)
     }
 
     Keys.onReleased: {

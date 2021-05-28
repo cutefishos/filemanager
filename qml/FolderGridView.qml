@@ -147,7 +147,9 @@ GridView {
     highlightMoveDuration: 0
     keyNavigationEnabled : true
     keyNavigationWraps : true
-    Keys.onPressed: {        
+    Keys.onPressed: {
+        control.keyPress(event)
+
         if (event.key === Qt.Key_Control) {
             ctrlPressed = true
         } else if (event.key === Qt.Key_Shift) {
@@ -160,8 +162,6 @@ GridView {
         } else if (event.key === Qt.Key_Minus && event.modifiers & Qt.ControlModifier) {
             control.decreaseIconSize()
         }
-
-        control.keyPress(event)
     }
     Keys.onReleased: {
         if (event.key === Qt.Key_Control) {
@@ -625,7 +625,6 @@ GridView {
                     width = targetItem.width - FishUI.Units.smallSpacing
                     height = targetItem.labelArea.paintedHeight + FishUI.Units.largeSpacing * 2
                     x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
-                    x = targetItem.x + (targetItem.width - _editor.width)
                     y = pos.y - FishUI.Units.largeSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
