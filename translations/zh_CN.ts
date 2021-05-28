@@ -6,12 +6,12 @@
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="29"/>
         <source>New folder name</source>
-        <translation>新文件夹名</translation>
+        <translation>新建文件夹名称</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="57"/>
         <source>New folder</source>
-        <translation>新文件夹</translation>
+        <translation>新建文件夹</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="72"/>

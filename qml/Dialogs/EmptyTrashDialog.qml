@@ -32,7 +32,7 @@ Window {
     visible: true
 
     width: 300 + FishUI.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 3
+    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
 
     minimumWidth: width
     minimumHeight: height
