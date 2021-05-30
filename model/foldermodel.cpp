@@ -455,7 +455,7 @@ int FolderModel::count() const
     return rowCount();
 }
 
-int FolderModel::selectionCound() const
+int FolderModel::selectionCount() const
 {
     return m_selectionModel->selectedIndexes().size();
 }
@@ -944,7 +944,7 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
 
     updateActions();
 
-    emit selectionCoundChanged();
+    emit selectionCountChanged();
 }
 
 void FolderModel::dragSelectedInternal(int x, int y)
