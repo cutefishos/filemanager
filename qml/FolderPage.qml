@@ -150,8 +150,8 @@ Item {
                 Label {
                     Layout.alignment: Qt.AlignLeft
                     font.pointSize: 10
-                    text: qsTr("%1 selected").arg(dirModel.selectionCound)
-                    visible: dirModel.selectionCound >= 1
+                    text: qsTr("%1 selected").arg(dirModel.selectionCount)
+                    visible: dirModel.selectionCount >= 1
                 }
 
                 Item {

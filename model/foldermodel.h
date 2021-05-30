@@ -50,7 +50,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
     Q_PROPERTY(QObject *viewAdapter READ viewAdapter WRITE setViewAdapter NOTIFY viewAdapterChanged)
     Q_PROPERTY(bool isDesktop READ isDesktop WRITE setIsDesktop NOTIFY isDesktopChanged)
-    Q_PROPERTY(int selectionCound READ selectionCound NOTIFY selectionCoundChanged)
+    Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
 
 public:
@@ -131,7 +131,7 @@ public:
     KFileItem rootItem() const;
 
     int count() const;
-    int selectionCound() const;
+    int selectionCount() const;
 
     Q_INVOKABLE QString homePath() const;
     Q_INVOKABLE QString desktopPath() const;
@@ -193,7 +193,7 @@ signals:
     void draggingChanged();
     void viewAdapterChanged();
     void isDesktopChanged();
-    void selectionCoundChanged();
+    void selectionCountChanged();
     void countChanged();
 
 private slots:
@@ -224,6 +224,7 @@ private:
 
     bool m_complete;
     bool m_isDesktop;
+    bool m_suffixVisible;
 
     KActionCollection m_actionCollection;
     QHash<int, DragImage *> m_dragImages;
