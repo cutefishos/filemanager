@@ -93,7 +93,7 @@ FishUI.DesktopMenu {
         onTriggered: settings.viewMethod = 0
     }
 
-    MenuSeparator {}
+    // MenuSeparator {}
 
     MenuItem {
         Layout.fillWidth: true
