@@ -998,8 +998,8 @@ void FolderModel::dragSelectedInternal(int x, int y)
 bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 {
     const QStringList supportsMimetypes = {"image/bmp", "image/png", "image/gif", "image/jpeg", "image/web",
-                                           "application/pdf", "application/rtf", "application/doc", "application/odf",
-                                           "audio/mpeg", "video/mp4"};
+                                           /*"application/pdf", "application/rtf", "application/doc", "application/odf",
+                                           "audio/mpeg", "video/mp4"*/};
 
     if (supportsMimetypes.contains(mimeType))
         return true;

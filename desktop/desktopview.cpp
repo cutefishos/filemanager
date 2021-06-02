@@ -33,7 +33,7 @@ DesktopView::DesktopView(QQuickView *parent)
     : QQuickView(parent)
 {
     m_screenRect = qApp->primaryScreen()->geometry();
-    m_screenAvailableRect = qApp->primaryScreen()->availableGeometry();
+    m_screenAvailableRect = qApp->primaryScreen()->availableVirtualGeometry();
 
     KWindowSystem::setType(winId(), NET::Desktop);
     KWindowSystem::setState(winId(), NET::KeepBelow);
@@ -48,9 +48,10 @@ DesktopView::DesktopView(QQuickView *parent)
 
     onGeometryChanged();
 
-    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onGeometryChanged, Qt::QueuedConnection);
-    connect(qApp->primaryScreen(), &QScreen::geometryChanged, this, &DesktopView::onGeometryChanged, Qt::QueuedConnection);
-    connect(qApp->primaryScreen(), &QScreen::availableGeometryChanged, this, &DesktopView::onAvailableGeometryChanged, Qt::QueuedConnection);
+    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onGeometryChanged);
+    connect(qApp->primaryScreen(), &QScreen::geometryChanged, this, &DesktopView::onGeometryChanged);
+    connect(qApp->primaryScreen(), &QScreen::availableGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
+    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
 }
 
 QRect DesktopView::screenRect()
@@ -72,6 +73,8 @@ void DesktopView::onGeometryChanged()
 
 void DesktopView::onAvailableGeometryChanged(const QRect &geometry)
 {
-    m_screenAvailableRect = geometry;
+    Q_UNUSED(geometry);
+
+    m_screenAvailableRect = qApp->primaryScreen()->availableVirtualGeometry();
     emit screenAvailableGeometryChanged();
 }

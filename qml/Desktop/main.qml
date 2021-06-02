@@ -110,18 +110,34 @@ Item {
 
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-        onIconSizeChanged: {
-            globalSettings.desktopIconSize = _folderView.iconSize
-        }
+        // Handle for topbar
+        anchors.topMargin: desktopView.screenAvailableRect.y
 
-        leftMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.x : 0
-        topMargin: desktopView.screenAvailableRect ? desktopView.screenAvailableRect.y : 0
+        leftMargin: desktopView.screenAvailableRect.x
+        topMargin: 0
         rightMargin: desktopView.screenRect.width - (desktopView.screenAvailableRect.x + desktopView.screenAvailableRect.width)
         bottomMargin: desktopView.screenRect.height - (desktopView.screenAvailableRect.y + desktopView.screenAvailableRect.height)
+
+        Behavior on anchors.topMargin {
+            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+        }
+        Behavior on leftMargin {
+            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+        }
+        Behavior on rightMargin {
+            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+        }
+        Behavior on bottomMargin {
+            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+        }
 
         flow: GridView.FlowTopToBottom
 
         delegate: FolderGridItem {}
+
+        onIconSizeChanged: {
+            globalSettings.desktopIconSize = _folderView.iconSize
+        }
 
         onActiveFocusChanged: {
             if (!activeFocus) {
