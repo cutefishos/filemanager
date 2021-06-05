@@ -35,7 +35,7 @@ FishUI.Window {
     title: qsTr("File Manager")
 
     headerBarHeight: 35 + FishUI.Units.smallSpacing * 3
-    backgroundColor: FishUI.Theme.darkMode ? "#262626" : "#F2F2F7"
+    backgroundColor: FishUI.Theme.darkMode ? "#262626" : "#F3F4F9"
 
     property QtObject settings: GlobalSettings { }
 

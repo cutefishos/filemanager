@@ -119,16 +119,16 @@ Item {
         bottomMargin: desktopView.screenRect.height - (desktopView.screenAvailableRect.y + desktopView.screenAvailableRect.height)
 
         Behavior on anchors.topMargin {
-            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+            NumberAnimation { duration: 125; easing.type: Easing.Linear }
         }
         Behavior on leftMargin {
-            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+            NumberAnimation { duration: 125; easing.type: Easing.Linear }
         }
         Behavior on rightMargin {
-            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+            NumberAnimation { duration: 125; easing.type: Easing.Linear }
         }
         Behavior on bottomMargin {
-            NumberAnimation { duration: 200; easing.type: Easing.Linear }
+            NumberAnimation { duration: 125; easing.type: Easing.Linear }
         }
 
         flow: GridView.FlowTopToBottom
