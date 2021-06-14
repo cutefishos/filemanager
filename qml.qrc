@@ -55,5 +55,7 @@
         <file>images/dark/folder-picture.svg</file>
         <file>images/dark/folder-video.svg</file>
         <file>images/dark/user-trash.svg</file>
+        <file>images/dark/drive-optical.svg</file>
+        <file>images/light/drive-optical.svg</file>
     </qresource>
 </RCC>
