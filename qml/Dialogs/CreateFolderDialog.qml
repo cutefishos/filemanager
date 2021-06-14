@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
@@ -31,7 +30,7 @@ Window {
     visible: true
 
     width: 400 + FishUI.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing
+    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
 
     minimumWidth: width
     minimumHeight: height
@@ -46,9 +45,7 @@ Window {
     ColumnLayout {
         id: _mainLayout
         anchors.fill: parent
-        anchors.leftMargin: FishUI.Units.largeSpacing
-        anchors.rightMargin: FishUI.Units.largeSpacing
-        anchors.bottomMargin: FishUI.Units.largeSpacing
+        anchors.margins: FishUI.Units.largeSpacing
         spacing: FishUI.Units.largeSpacing
 
         TextField {
