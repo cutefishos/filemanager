@@ -4,22 +4,22 @@
 <context>
     <name>CreateFolderDialog</name>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="29"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="28"/>
         <source>New folder name</source>
         <translation>新建文件夹名称</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="57"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
         <source>New folder</source>
         <translation>新建文件夹</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="72"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="70"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="78"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="76"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
