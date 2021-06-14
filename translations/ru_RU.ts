@@ -6,22 +6,22 @@
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="28"/>
         <source>New folder name</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя новой папки</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
         <source>New folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая папка</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="70"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="76"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>ОК</translation>
     </message>
 </context>
 <context>
@@ -29,37 +29,37 @@
     <message>
         <location filename="../helper/datehelper.cpp" line="15"/>
         <source>Now</source>
-        <translation type="unfinished"></translation>
+        <translation>Сейчас</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="17"/>
         <source>1 minute ago</source>
-        <translation type="unfinished"></translation>
+        <translation>1 минуту назад</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="19"/>
         <source>%1 minutes ago</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 минут назад</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="23"/>
         <source>1 hour ago</source>
-        <translation type="unfinished"></translation>
+        <translation>1 час назад</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="25"/>
         <source>%1 hours ago</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 часов назад</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="29"/>
         <source>1 day ago</source>
-        <translation type="unfinished"></translation>
+        <translation>1 день назад</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="31"/>
         <source>%1 days ago</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 дней назад</translation>
     </message>
 </context>
 <context>
@@ -67,7 +67,7 @@
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
         <source>Desktop</source>
-        <translation type="unfinished"></translation>
+        <translation>Рабочий стол</translation>
     </message>
 </context>
 <context>
@@ -75,22 +75,22 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="30"/>
         <source>File Manager</source>
-        <translation type="unfinished"></translation>
+        <translation>Файловый менеджер</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="60"/>
         <source>Do you want to permanently delete all files from the Trash?</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы хотите навсегда удалить все файлы из корзины?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="69"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="75"/>
         <source>Empty Trash</source>
-        <translation type="unfinished"></translation>
+        <translation>Очистить корзину</translation>
     </message>
 </context>
 <context>
@@ -98,82 +98,82 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="166"/>
         <source>%1 item</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 объект</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="166"/>
         <source>%1 items</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 объектов</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="830"/>
         <source>Select All</source>
-        <translation type="unfinished"></translation>
+        <translation>Выделить всё</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1042"/>
         <source>Open</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1045"/>
         <source>Cut</source>
-        <translation type="unfinished"></translation>
+        <translation>Вырезать</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1048"/>
         <source>Copy</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1051"/>
         <source>Paste</source>
-        <translation type="unfinished"></translation>
+        <translation>Вставить</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1054"/>
         <source>New Folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая папка</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1057"/>
         <source>Move To Trash</source>
-        <translation type="unfinished"></translation>
+        <translation>Переместить в корзину</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1060"/>
         <source>Empty Trash</source>
-        <translation type="unfinished"></translation>
+        <translation>Очистить корзину</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1063"/>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1066"/>
         <source>Rename</source>
-        <translation type="unfinished"></translation>
+        <translation>Переименовать</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1069"/>
         <source>Open in Terminal</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть в Терминале</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1072"/>
         <source>Set as Wallpaper</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить как Обои</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1075"/>
         <source>Properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1078"/>
         <source>Change background</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить фон</translation>
     </message>
 </context>
 <context>
@@ -181,37 +181,37 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="54"/>
         <source>Empty folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Пустая папка</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="85"/>
         <source>Open</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="90"/>
         <source>Properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="146"/>
         <source>%1 item</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 объект</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="147"/>
         <source>%1 items</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 объектов</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="153"/>
         <source>%1 selected</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 выделено</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="164"/>
         <source>Empty Trash</source>
-        <translation type="unfinished"></translation>
+        <translation>Очистить Корзину</translation>
     </message>
 </context>
 <context>
@@ -219,27 +219,27 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="45"/>
         <source>Icons</source>
-        <translation type="unfinished"></translation>
+        <translation>Иконки</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="79"/>
         <source>List</source>
-        <translation type="unfinished"></translation>
+        <translation>Список</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="115"/>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="149"/>
         <source>Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Дата</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="183"/>
         <source>Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер</translation>
     </message>
 </context>
 <context>
@@ -247,42 +247,42 @@
     <message>
         <location filename="../model/placesmodel.cpp" line="39"/>
         <source>Home</source>
-        <translation type="unfinished"></translation>
+        <translation>Домашний каталог</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="46"/>
         <source>Desktop</source>
-        <translation type="unfinished"></translation>
+        <translation>Рабочий стол</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="53"/>
         <source>Documents</source>
-        <translation type="unfinished"></translation>
+        <translation>Документы</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="60"/>
         <source>Downloads</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузки</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="67"/>
         <source>Music</source>
-        <translation type="unfinished"></translation>
+        <translation>Музыка</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="74"/>
         <source>Pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Изображения</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="81"/>
         <source>Videos</source>
-        <translation type="unfinished"></translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="86"/>
         <source>Trash</source>
-        <translation type="unfinished"></translation>
+        <translation>Корзина</translation>
     </message>
 </context>
 <context>
@@ -290,57 +290,57 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="28"/>
         <source>Properties</source>
-        <translation type="unfinished"></translation>
+        <translation>Свойства</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="103"/>
         <source>Type:</source>
-        <translation type="unfinished"></translation>
+        <translation>Тип:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="116"/>
         <source>Location:</source>
-        <translation type="unfinished"></translation>
+        <translation>Размещение:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="127"/>
         <source>Size:</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="135"/>
         <source>Calculating...</source>
-        <translation type="unfinished"></translation>
+        <translation>Вычисление...</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="140"/>
         <source>Created:</source>
-        <translation type="unfinished"></translation>
+        <translation>Создано:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="153"/>
         <source>Modified:</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменено:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="166"/>
         <source>Accessed:</source>
-        <translation type="unfinished"></translation>
+        <translation>Доступ:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="188"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="197"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>ОК</translation>
     </message>
     <message>
         <location filename="../dialogs/propertiesdialog.cpp" line="209"/>
         <source>%1 files</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 файлов</translation>
     </message>
 </context>
 <context>
@@ -348,7 +348,7 @@
     <message>
         <location filename="../qml/main.qml" line="35"/>
         <source>File Manager</source>
-        <translation type="unfinished"></translation>
+        <translation>Файловый менеджер</translation>
     </message>
 </context>
 </TS>
