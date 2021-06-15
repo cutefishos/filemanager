@@ -325,7 +325,7 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="166"/>
         <source>Accessed:</source>
-        <translation type="unfinished"></translation>
+        <translation>Senast öppnad:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="188"/>
