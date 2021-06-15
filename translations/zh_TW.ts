@@ -181,7 +181,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="54"/>
         <source>Empty folder</source>
-        <translation type="unfinished">空資料夾</translation>
+        <translation>空資料夾</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="85"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="79"/>
         <source>List</source>
-        <translation type="unfinished"></translation>
+        <translation>列表視圖</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="115"/>
@@ -315,17 +315,17 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="140"/>
         <source>Created:</source>
-        <translation>已建立：</translation>
+        <translation>建立時間：</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="153"/>
         <source>Modified:</source>
-        <translation>已修改：</translation>
+        <translation>修改時間：</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="166"/>
         <source>Accessed:</source>
-        <translation type="unfinished">已讀取：</translation>
+        <translation>訪問時間：</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="188"/>
