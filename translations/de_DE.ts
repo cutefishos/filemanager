@@ -181,7 +181,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="54"/>
         <source>Empty folder</source>
-        <translation>Ordner leeren</translation>
+        <translation>Leerer Ordner</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="85"/>
