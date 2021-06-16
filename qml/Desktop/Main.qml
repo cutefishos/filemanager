@@ -23,14 +23,14 @@ import QtQuick.Layouts 1.12
 import QtQuick.Window 2.12
 import QtGraphicalEffects 1.0
 
-import Cutefish.FileManager 1.0
+import Cutefish.FileManager 1.0 as FM
 import FishUI 1.0 as FishUI
 import "../"
 
 Item {
     id: rootItem
 
-    DesktopSettings {
+    FM.DesktopSettings {
         id: settings
     }
 
@@ -81,20 +81,25 @@ Item {
         }
     }
 
-    FolderModel {
+    FM.FolderModel {
         id: dirModel
         url: desktopPath()
         isDesktop: true
         viewAdapter: viewAdapter
     }
 
-    ItemViewAdapter {
+    FM.ItemViewAdapter {
         id: viewAdapter
         adapterView: _folderView
         adapterModel: dirModel
         adapterIconSize: 40
         adapterVisibleArea: Qt.rect(_folderView.contentX, _folderView.contentY,
                                     _folderView.contentWidth, _folderView.contentHeight)
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: _folderView.forceActiveFocus()
     }
 
     FolderGridView {
@@ -118,19 +123,6 @@ Item {
         rightMargin: desktopView.screenRect.width - (desktopView.screenAvailableRect.x + desktopView.screenAvailableRect.width)
         bottomMargin: desktopView.screenRect.height - (desktopView.screenAvailableRect.y + desktopView.screenAvailableRect.height)
 
-        Behavior on anchors.topMargin {
-            NumberAnimation { duration: 125; easing.type: Easing.Linear }
-        }
-        Behavior on leftMargin {
-            NumberAnimation { duration: 125; easing.type: Easing.Linear }
-        }
-        Behavior on rightMargin {
-            NumberAnimation { duration: 125; easing.type: Easing.Linear }
-        }
-        Behavior on bottomMargin {
-            NumberAnimation { duration: 125; easing.type: Easing.Linear }
-        }
-
         flow: GridView.FlowTopToBottom
 
         delegate: FolderGridItem {}
@@ -151,31 +143,46 @@ Item {
         }
     }
 
-    Connections {
-        target: _folderView
+    FM.ShortCut {
+        id: shortCut
 
-        function onKeyPress(event) {
-            if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
-                dirModel.openSelected()
-            else if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier)
-                dirModel.copy()
-            else if (event.key === Qt.Key_X && event.modifiers & Qt.ControlModifier)
-                dirModel.cut()
-            else if (event.key === Qt.Key_V && event.modifiers & Qt.ControlModifier)
-                dirModel.paste()
-            else if (event.key === Qt.Key_F2)
-                dirModel.requestRename()
-            else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
-                dirModel.selectAll()
-            else if (event.key === Qt.Key_Delete)
-                dirModel.keyDeletePress()
+        Component.onCompleted: {
+            shortCut.install(_folderView)
+        }
+
+        onOpen: {
+            dirModel.openSelected()
+        }
+        onCopy: {
+            dirModel.copy()
+        }
+        onCut: {
+            dirModel.cut()
+        }
+        onPaste: {
+            dirModel.paste()
+        }
+        onRename: {
+            dirModel.requestRename()
+        }
+        onOpenPathEditor: {
+            folderPage.requestPathEditor()
+        }
+        onSelectAll: {
+            dirModel.selectAll()
+        }
+        onBackspace: {
+            dirModel.up()
+        }
+        onDeleteFile: {
+            dirModel.keyDeletePress()
         }
     }
 
     Component {
         id: rubberBandObject
 
-        RubberBand {
+        FM.RubberBand {
             id: rubberBand
 
             width: 0

@@ -44,7 +44,7 @@ DesktopView::DesktopView(QQuickView *parent)
     setTitle(tr("Desktop"));
     setScreen(qApp->primaryScreen());
     setResizeMode(QQuickView::SizeRootObjectToView);
-    setSource(QStringLiteral("qrc:/qml/Desktop/main.qml"));
+    setSource(QStringLiteral("qrc:/qml/Desktop/Main.qml"));
 
     onGeometryChanged();
 
@@ -67,7 +67,7 @@ QRect DesktopView::screenAvailableRect()
 void DesktopView::onGeometryChanged()
 {
     m_screenRect = qApp->primaryScreen()->geometry();
-    setGeometry(qApp->primaryScreen()->geometry());
+    setGeometry(m_screenRect);
     emit screenRectChanged();
 }
 

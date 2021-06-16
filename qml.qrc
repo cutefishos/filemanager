@@ -16,7 +16,7 @@
         <file>images/light/grid.svg</file>
         <file>images/light/list.svg</file>
         <file>qml/PathBar.qml</file>
-        <file>qml/Desktop/main.qml</file>
+        <file>qml/Desktop/Main.qml</file>
         <file>qml/FolderGridView.qml</file>
         <file>qml/GlobalSettings.qml</file>
         <file>qml/FolderGridItem.qml</file>

@@ -21,7 +21,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 
-import Cutefish.FileManager 1.0
+import Cutefish.FileManager 1.0 as FM
 import FishUI 1.0 as FishUI
 
 import "./Dialogs"
@@ -57,7 +57,7 @@ Item {
         visible: false
     }
 
-    FolderModel {
+    FM.FolderModel {
         id: dirModel
         viewAdapter: viewAdapter
 
@@ -69,7 +69,7 @@ Item {
         }
     }
 
-    ItemViewAdapter {
+    FM.ItemViewAdapter {
         id: viewAdapter
         adapterView: _viewLoader.item
         adapterModel: _viewLoader.item.positioner ? _viewLoader.item.positioner : dirModel
@@ -107,8 +107,11 @@ Item {
                              }
 
             onSourceComponentChanged: {
-                // 焦点
+                // Focus
                 _viewLoader.item.forceActiveFocus()
+
+                // ShortCut
+                shortCut.install(_viewLoader.item)
             }
         }
 
@@ -218,7 +221,7 @@ Item {
     Component {
         id: rubberBandObject
 
-        RubberBand {
+        FM.RubberBand {
             id: rubberBand
 
             width: 0
@@ -251,28 +254,35 @@ Item {
         }
     }
 
-    Connections {
-        target: _viewLoader.item
+    FM.ShortCut {
+        id: shortCut
 
-        function onKeyPress(event) {
-            if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
-                dirModel.openSelected()
-            else if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier)
-                dirModel.copy()
-            else if (event.key === Qt.Key_X && event.modifiers & Qt.ControlModifier)
-                dirModel.cut()
-            else if (event.key === Qt.Key_V && event.modifiers & Qt.ControlModifier)
-                dirModel.paste()
-            else if (event.key === Qt.Key_F2)
-                dirModel.requestRename()
-            else if (event.key === Qt.Key_L && event.modifiers & Qt.ControlModifier)
-                folderPage.requestPathEditor()
-            else if (event.key === Qt.Key_A && event.modifiers & Qt.ControlModifier)
-                dirModel.selectAll()
-            else if (event.key === Qt.Key_Backspace)
-                dirModel.up()
-            else if (event.key === Qt.Key_Delete)
-                dirModel.keyDeletePress()
+        onOpen: {
+            dirModel.openSelected()
+        }
+        onCopy: {
+            dirModel.copy()
+        }
+        onCut: {
+            dirModel.cut()
+        }
+        onPaste: {
+            dirModel.paste()
+        }
+        onRename: {
+            dirModel.requestRename()
+        }
+        onOpenPathEditor: {
+            folderPage.requestPathEditor()
+        }
+        onSelectAll: {
+            dirModel.selectAll()
+        }
+        onBackspace: {
+            dirModel.up()
+        }
+        onDeleteFile: {
+            dirModel.keyDeletePress()
         }
     }
 
