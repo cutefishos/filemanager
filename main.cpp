@@ -36,6 +36,7 @@
 #include "helper/thumbnailer.h"
 #include "helper/datehelper.h"
 #include "helper/fm.h"
+#include "helper/shortcut.h"
 
 int main(int argc, char *argv[])
 {
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<ItemViewAdapter>(uri, 1, 0, "ItemViewAdapter");
     qmlRegisterType<DesktopSettings>(uri, 1, 0, "DesktopSettings");
     qmlRegisterType<Fm>(uri, 1, 0, "Fm");
+    qmlRegisterType<ShortCut>(uri, 1, 0, "ShortCut");
     qmlRegisterAnonymousType<QAction>(uri, 1);
 
     QCommandLineParser parser;

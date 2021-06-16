@@ -665,11 +665,25 @@ void FolderModel::copy()
 
 void FolderModel::paste()
 {
-    if (QAction *action = m_actionCollection.action("paste"))
-        if (!action->isEnabled())
-            return;
+    const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+    bool enable = false;
 
-    KIO::paste(QApplication::clipboard()->mimeData(), m_dirModel->dirLister()->url());
+    // Update paste action
+    if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
+        QList<QUrl> urls = KUrlMimeData::urlsFromMimeData(mimeData);
+
+        if (!urls.isEmpty()) {
+            if (!rootItem().isNull()) {
+                enable = rootItem().isWritable();
+            }
+        }
+
+        paste->setEnabled(enable);
+    }
+
+    if (enable) {
+        KIO::paste(mimeData, m_dirModel->dirLister()->url());
+    }
 }
 
 void FolderModel::cut()
@@ -1135,10 +1149,13 @@ void FolderModel::updateActions()
     if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
         bool enable = false;
 
-        QList<QUrl> urls = KUrlMimeData::urlsFromMimeData(QApplication::clipboard()->mimeData());
+        const QMimeData *mimeData = QApplication::clipboard()->mimeData();
+        QList<QUrl> urls = KUrlMimeData::urlsFromMimeData(mimeData);
 
-        if (!urls.isEmpty() && rootItem().isWritable()) {
-            enable = rootItem().isWritable();
+        if (!urls.isEmpty()) {
+            if (!rootItem().isNull()) {
+                enable = rootItem().isWritable();
+            }
         }
 
         paste->setEnabled(enable);
