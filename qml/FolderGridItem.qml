@@ -47,10 +47,13 @@ Item {
         height: _iconItem.height + _label.paintedHeight + FishUI.Units.largeSpacing
         x: (parent.width - width) / 2
         y: _iconItem.y
-        color: selected || hovered ? FishUI.Theme.highlightColor : "transparent"
-        radius: FishUI.Theme.mediumRadius
-        visible: selected || hovered
-        opacity: selected ? 1.0 : 0.2
+
+        // (Deprecated) Rectangle rounded corner.
+        //color: selected || hovered ? FishUI.Theme.highlightColor : "transparent"
+        color: "transparent"
+        // radius: FishUI.Theme.mediumRadius
+        // visible: selected || hovered
+        // opacity: selected ? 1.0 : 0.2
     }
 
     Item {
@@ -72,6 +75,22 @@ Item {
             sourceSize: Qt.size(width, height)
             source: "image://icontheme/" + model.iconName
             visible: !_image.visible
+
+            ColorOverlay {
+                anchors.fill: _icon
+                source: _icon
+                color: FishUI.Theme.highlightColor
+                opacity: 0.5
+                visible: control.selected
+            }
+
+            ColorOverlay {
+                anchors.fill: _icon
+                source: _icon
+                color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
+                opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
+                visible: control.hovered && !control.selected
+            }
         }
 
         Image {
@@ -90,7 +109,24 @@ Item {
             asynchronous: true
             cache: true
 
-            layer.enabled: true
+            // Because of the effect of OpacityMask.
+            ColorOverlay {
+                anchors.fill: _image
+                source: _image
+                color: FishUI.Theme.highlightColor
+                opacity: 0.5
+                visible: control.selected
+            }
+
+            ColorOverlay {
+                anchors.fill: _image
+                source: _image
+                color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
+                opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
+                visible: control.hovered && !control.selected
+            }
+
+            layer.enabled: _image.visible
             layer.effect: OpacityMask {
                 maskSource: Item {
                     width: _image.width
@@ -105,6 +141,24 @@ Item {
                 }
             }
         }
+
+//        ColorOverlay {
+//            id: _selectedColorOverlay
+//            anchors.fill: _image.visible ? _image : _icon
+//            source: _image.visible ? _image : _icon
+//            color: FishUI.Theme.highlightColor
+//            opacity: 0.5
+//            visible: control.selected
+//        }
+
+//        ColorOverlay {
+//            id: _hoveredColorOverlay
+//            anchors.fill: _image.visible ? _image : _icon
+//            source: _image.visible ? _image : _icon
+//            color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
+//            opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
+//            visible: control.hovered && !control.selected
+//        }
     }
 
     Label {
@@ -124,6 +178,17 @@ Item {
                                                    : selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
     }
 
+    Rectangle {
+        z: 1
+        x: _label.x
+        y: _label.y
+        width: _label.width
+        height: _label.height
+        radius: 4
+        color: FishUI.Theme.highlightColor
+        opacity: control.selected ? 1.0 : 0
+    }
+
     DropShadow {
         anchors.fill: _label
         source: _label
@@ -135,6 +200,6 @@ Item {
         spread: 0.35
         color: Qt.rgba(0, 0, 0, 0.3)
         opacity: model.isHidden ? 0.6 : 1
-        visible: control.GridView.view.isDesktopView
+        visible: control.GridView.view.isDesktopView && !control.selected
     }
 }
