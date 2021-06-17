@@ -67,7 +67,7 @@ Window {
             anchors.leftMargin: FishUI.Units.largeSpacing * 2
             anchors.rightMargin: FishUI.Units.largeSpacing * 2
             anchors.topMargin: FishUI.Units.largeSpacing
-            anchors.bottomMargin: FishUI.Units.largeSpacing
+            anchors.bottomMargin: FishUI.Units.largeSpacing * 1.5
             spacing: FishUI.Units.largeSpacing
 
             RowLayout {
