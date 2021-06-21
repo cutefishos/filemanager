@@ -80,7 +80,7 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="60"/>
         <source>Do you want to permanently delete all files from the Trash?</source>
-        <translation>Voulez-vous supprimer définitivement tous les fichiers de la Corbeille&#xa0;?</translation>
+        <translation>Voulez-vous supprimer définitivement tous les fichiers de la corbeille&#xa0;?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="69"/>
@@ -90,7 +90,7 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="75"/>
         <source>Empty Trash</source>
-        <translation>Vider la Corbeille</translation>
+        <translation>Vider la corbeille</translation>
     </message>
 </context>
 <context>
@@ -143,7 +143,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1060"/>
         <source>Empty Trash</source>
-        <translation>Vider la Corbeille</translation>
+        <translation>Vider la corbeille</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1063"/>
@@ -158,7 +158,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1069"/>
         <source>Open in Terminal</source>
-        <translation>Ouvrir dans le Terminal</translation>
+        <translation>Ouvrir dans le terminal</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1072"/>
@@ -211,7 +211,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="164"/>
         <source>Empty Trash</source>
-        <translation>Vider la Corbeille</translation>
+        <translation>Vider la corbeille</translation>
     </message>
 </context>
 <context>
