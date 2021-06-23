@@ -87,8 +87,8 @@ Item {
             ColorOverlay {
                 anchors.fill: _icon
                 source: _icon
-                color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
-                opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
+                color: "white"
+                opacity: FishUI.Theme.darkMode ? 0.3 : 0.4
                 visible: control.hovered && !control.selected
             }
         }
@@ -121,8 +121,8 @@ Item {
             ColorOverlay {
                 anchors.fill: _image
                 source: _image
-                color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
-                opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
+                color: "white"
+                opacity: FishUI.Theme.darkMode ? 0.3 : 0.4
                 visible: control.hovered && !control.selected
             }
 
