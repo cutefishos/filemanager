@@ -34,8 +34,16 @@ FishUI.Window {
     visible: true
     title: qsTr("File Manager")
 
-    header.height: 35 + FishUI.Units.smallSpacing * 3
+    header.height: 36 + FishUI.Units.largeSpacing
     background.color: FishUI.Theme.darkMode ? "#262626" : "#F3F4F9"
+    background.opacity: 0.95
+
+    FishUI.WindowBlur {
+        view: root
+        geometry: Qt.rect(root.x, root.y, root.width, root.height)
+        windowRadius: root.background.radius
+        enabled: true
+    }
 
     property QtObject settings: GlobalSettings { }
 
