@@ -20,6 +20,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import Qt.labs.platform 1.0
 
 import Cutefish.FileManager 1.0 as FM
 import FishUI 1.0 as FishUI
@@ -38,6 +39,51 @@ Item {
     onCurrentUrlChanged: {
         _viewLoader.item.reset()
         _viewLoader.item.forceActiveFocus()
+    }
+
+    // Global Menu
+    MenuBar {
+        id: appMenu
+
+        Menu {
+            title: qsTr("File")
+
+            MenuItem {
+                text: qsTr("New Folder")
+                onTriggered: dirModel.newFolder()
+            }
+
+            MenuSeparator {}
+
+            MenuItem {
+                text: qsTr("Properties")
+                onTriggered: dirModel.openPropertiesDialog()
+            }
+
+            MenuSeparator {}
+
+            MenuItem {
+                text: qsTr("Quit")
+                onTriggered: Qt.quit()
+            }
+        }
+
+        Menu {
+            title: qsTr("Edit")
+
+            MenuItem {
+                text: qsTr("Select All")
+                onTriggered: dirModel.selectAll()
+            }
+        }
+
+        Menu {
+            title: qsTr("Help")
+
+            MenuItem {
+                text: qsTr("About")
+            }
+        }
     }
 
     Rectangle {

@@ -79,8 +79,16 @@ ListView {
 
         Rectangle {
             anchors.fill: parent
-            radius: FishUI.Theme.smallRadius
-            color: _mouseArea.containsMouse && !checked ? _item.hoveredColor : "transparent"
+            radius: FishUI.Theme.mediumRadius
+            color: _mouseArea.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
+                                               FishUI.Theme.textColor.g,
+                                               FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
+                   _mouseArea.containsMouse || checked ? Qt.rgba(FishUI.Theme.textColor.r,
+                                                                  FishUI.Theme.textColor.g,
+                                                                  FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
+                                                          "transparent"
+
+            smooth: true
         }
 
         RowLayout {
@@ -96,6 +104,7 @@ ListView {
                 // source: model.iconPath ? model.iconPath : "image://icontheme/" + model.iconName
                 source: "qrc:/images/" + (FishUI.Theme.darkMode || _item.checked ? "dark/" : "light/") + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
+                smooth: true
             }
 
             Label {
