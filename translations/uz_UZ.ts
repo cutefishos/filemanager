@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="be">
+<TS version="2.1" language="uz">
 <context>
     <name>CreateFolderDialog</name>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="28"/>
         <source>New folder name</source>
-        <translation>Назва новай папкі</translation>
+        <translation>Yangi jild nomi</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
         <source>New folder</source>
-        <translation>Новая папка</translation>
+        <translation>Yangi jild</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="70"/>
         <source>Cancel</source>
-        <translation>Адмена</translation>
+        <translation>Bekor</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="76"/>
         <source>OK</source>
-        <translation>ОК</translation>
+        <translation>Mayli</translation>
     </message>
 </context>
 <context>
@@ -29,37 +29,37 @@
     <message>
         <location filename="../helper/datehelper.cpp" line="15"/>
         <source>Now</source>
-        <translation>Зараз</translation>
+        <translation>Hozir</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="17"/>
         <source>1 minute ago</source>
-        <translation>1 хвіліну таму</translation>
+        <translation>1 daqiqa avval</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="19"/>
         <source>%1 minutes ago</source>
-        <translation>%1 хвілін таму</translation>
+        <translation>%1 daqiqa avval</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="23"/>
         <source>1 hour ago</source>
-        <translation>1 гадзіну таму</translation>
+        <translation>1 soat avval</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="25"/>
         <source>%1 hours ago</source>
-        <translation>%1 гадзін таму</translation>
+        <translation>%1 soatlar avval</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="29"/>
         <source>1 day ago</source>
-        <translation>1 дзень таму</translation>
+        <translation>1 kun aval</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="31"/>
         <source>%1 days ago</source>
-        <translation>%1 дзён таму</translation>
+        <translation>%1 kun avval</translation>
     </message>
 </context>
 <context>
@@ -67,7 +67,7 @@
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
         <source>Desktop</source>
-        <translation>Працоўны стол</translation>
+        <translation>Ishchi Stol</translation>
     </message>
 </context>
 <context>
@@ -75,22 +75,22 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="30"/>
         <source>File Manager</source>
-        <translation>Менеджар файлаў</translation>
+        <translation>Fayllar Boshqaruvchisi</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="60"/>
         <source>Do you want to permanently delete all files from the Trash?</source>
-        <translation>Вы хочаце назаўжды выдаліць усе файлы з сметніцы?</translation>
+        <translation>Barcha fayllarni axlat qutisidan butunlay o&apos;chirib tashlamoqchimisiz?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="69"/>
         <source>Cancel</source>
-        <translation>Адмена</translation>
+        <translation>Bekor</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="75"/>
         <source>Empty Trash</source>
-        <translation>Ачысціць сметніцу</translation>
+        <translation>Qutichani bo&apos;shatish</translation>
     </message>
 </context>
 <context>
@@ -98,82 +98,82 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="166"/>
         <source>%1 item</source>
-        <translation>%1 аб&apos;ект</translation>
+        <translation>%1 element</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="166"/>
         <source>%1 items</source>
-        <translation>%1 аб&apos;ектаў</translation>
+        <translation>%1 element</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="830"/>
         <source>Select All</source>
-        <translation>Вылучыць усё</translation>
+        <translation>Barchasini belgilash</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1042"/>
         <source>Open</source>
-        <translation>Адкрыць</translation>
+        <translation>Ochish</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1045"/>
         <source>Cut</source>
-        <translation>Выразаць</translation>
+        <translation>Qirqish</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1048"/>
         <source>Copy</source>
-        <translation>Капіяваць</translation>
+        <translation>Nusxa olish</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1051"/>
         <source>Paste</source>
-        <translation>Уставіць</translation>
+        <translation>Joylash</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1054"/>
         <source>New Folder</source>
-        <translation>Новая папка</translation>
+        <translation>Yangi jild</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1057"/>
         <source>Move To Trash</source>
-        <translation>Перамясціць у сметніцу</translation>
+        <translation>Savatchaga joylash</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1060"/>
         <source>Empty Trash</source>
-        <translation>Ачысціць сметніцу</translation>
+        <translation>Savatchani tozalash</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1063"/>
         <source>Delete</source>
-        <translation>Выдаліць</translation>
+        <translation>O&apos;chirish</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1066"/>
         <source>Rename</source>
-        <translation>Перайменаваць</translation>
+        <translation>Qayta nomlash</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1069"/>
         <source>Open in Terminal</source>
-        <translation>Адкрыць у тэрмінале</translation>
+        <translation>Terminalda ochish</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1072"/>
         <source>Set as Wallpaper</source>
-        <translation>Усталяваць як шпалеры</translation>
+        <translation>Fon rasmi</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1075"/>
         <source>Properties</source>
-        <translation>Уласцівасці</translation>
+        <translation>Xususiyatlari</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1078"/>
         <source>Change background</source>
-        <translation>Змяніць фон</translation>
+        <translation>Fon rasmini almashtirish</translation>
     </message>
 </context>
 <context>
@@ -181,37 +181,37 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="54"/>
         <source>Empty folder</source>
-        <translation>Пустая папка</translation>
+        <translation>Bo&apos;sh jild</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="85"/>
         <source>Open</source>
-        <translation>Адкрыць</translation>
+        <translation>Ochish</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="90"/>
         <source>Properties</source>
-        <translation>Уласцівасці</translation>
+        <translation>Xususiyatlar</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="146"/>
         <source>%1 item</source>
-        <translation>%1 аб&apos;ект</translation>
+        <translation>%1 element</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="147"/>
         <source>%1 items</source>
-        <translation>%1 аб&apos;ектаў</translation>
+        <translation>%1 element</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="153"/>
         <source>%1 selected</source>
-        <translation>%1 вылучаны</translation>
+        <translation>%1 belgilangan</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="164"/>
         <source>Empty Trash</source>
-        <translation>Ачысціць сметніцу</translation>
+        <translation>Savatchani bo&apos;shatish</translation>
     </message>
 </context>
 <context>
@@ -219,27 +219,27 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="45"/>
         <source>Icons</source>
-        <translation>Іконкі</translation>
+        <translation>Belgichalar</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="79"/>
         <source>List</source>
-        <translation>Спіс</translation>
+        <translation>Ro&apos;yxat</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="115"/>
         <source>Name</source>
-        <translation>Імя</translation>
+        <translation>Nom</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="149"/>
         <source>Date</source>
-        <translation>Дата</translation>
+        <translation>Sana</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="183"/>
         <source>Size</source>
-        <translation>Памер</translation>
+        <translation>O&apos;lcham</translation>
     </message>
 </context>
 <context>
@@ -247,42 +247,42 @@
     <message>
         <location filename="../model/placesmodel.cpp" line="39"/>
         <source>Home</source>
-        <translation>Дамашняя папка</translation>
+        <translation>Uy</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="46"/>
         <source>Desktop</source>
-        <translation>Працоўны стол</translation>
+        <translation>Ishchi Stol</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="53"/>
         <source>Documents</source>
-        <translation>Дакументы</translation>
+        <translation>Hujjatlar</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="60"/>
         <source>Downloads</source>
-        <translation>Запампоўкі</translation>
+        <translation>Yuklanmalar</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="67"/>
         <source>Music</source>
-        <translation>Музыка</translation>
+        <translation>Misiqalar</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="74"/>
         <source>Pictures</source>
-        <translation>Відарысы</translation>
+        <translation>Suratlar</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="81"/>
         <source>Videos</source>
-        <translation>Відэа</translation>
+        <translation>VIdeolar</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="86"/>
         <source>Trash</source>
-        <translation>Сметніца</translation>
+        <translation>Savatcha</translation>
     </message>
 </context>
 <context>
@@ -290,47 +290,47 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="28"/>
         <source>Properties</source>
-        <translation>Уласцівасці</translation>
+        <translation>Xususiyatlar</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="103"/>
         <source>Type:</source>
-        <translation>Тып:</translation>
+        <translation>Turi:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="116"/>
         <source>Location:</source>
-        <translation>Размяшчэнне:</translation>
+        <translation>Joylashuvi:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="127"/>
         <source>Size:</source>
-        <translation>Памер:</translation>
+        <translation>O&apos;lchami:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="135"/>
         <source>Calculating...</source>
-        <translation>Вылічэнне...</translation>
+        <translation>Hisoblanmoqda...</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="140"/>
         <source>Created:</source>
-        <translation>Створана:</translation>
+        <translation>Yaratildi:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="153"/>
         <source>Modified:</source>
-        <translation>Зменена:</translation>
+        <translation>O&apos;zgartirildi:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="166"/>
         <source>Accessed:</source>
-        <translation>Доступ:</translation>
+        <translation>Kirish:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="188"/>
         <source>Cancel</source>
-        <translation>Адмена</translation>
+        <translation>Bekor</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="197"/>
@@ -340,7 +340,7 @@
     <message>
         <location filename="../dialogs/propertiesdialog.cpp" line="209"/>
         <source>%1 files</source>
-        <translation>%1 файлаў</translation>
+        <translation>%1 fayllar</translation>
     </message>
 </context>
 <context>
@@ -348,7 +348,7 @@
     <message>
         <location filename="../qml/main.qml" line="35"/>
         <source>File Manager</source>
-        <translation>Файлавы мэнэджар</translation>
+        <translation>Faylar boshqaruvchisi</translation>
     </message>
 </context>
 </TS>
