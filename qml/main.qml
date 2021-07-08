@@ -35,7 +35,6 @@ FishUI.Window {
     title: qsTr("File Manager")
 
     header.height: 36 + FishUI.Units.largeSpacing
-    background.color: FishUI.Theme.darkMode ? "#262626" : "#F3F4F9"
     background.opacity: 0.95
 
     FishUI.WindowBlur {
@@ -73,7 +72,7 @@ FishUI.Window {
                 Layout.fillHeight: true
                 implicitWidth: height
                 source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
-                                            : "qrc:/images/light/go-previous.svg"
+                                              : "qrc:/images/light/go-previous.svg"
                 onClicked: _folderPage.goBack()
             }
 
@@ -81,7 +80,7 @@ FishUI.Window {
                 Layout.fillHeight: true
                 implicitWidth: height
                 source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
-                                            : "qrc:/images/light/go-next.svg"
+                                              : "qrc:/images/light/go-next.svg"
                 onClicked: _folderPage.goForward()
             }
 

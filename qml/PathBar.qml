@@ -51,7 +51,8 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            color: FishUI.Theme.backgroundColor
+            color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
+                                         : FishUI.Theme.secondBackgroundColor
             radius: FishUI.Theme.smallRadius
             z: -1
         }
@@ -103,7 +104,8 @@ Item {
 
         background: Rectangle {
             radius: FishUI.Theme.smallRadius
-            color: FishUI.Theme.darkMode ? Qt.darker(FishUI.Theme.backgroundColor, 1.1) : "white"
+            color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.7)
+                                         : FishUI.Theme.secondBackgroundColor
             border.width: 1
             border.color: FishUI.Theme.highlightColor
         }

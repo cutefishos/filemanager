@@ -92,7 +92,7 @@ Item {
         anchors.rightMargin: FishUI.Units.smallSpacing * 1.5
         anchors.bottomMargin: FishUI.Units.smallSpacing * 1.5
         radius: FishUI.Theme.smallRadius
-        color: FishUI.Theme.backgroundColor
+        color: FishUI.Theme.secondBackgroundColor
     }
 
     Label {

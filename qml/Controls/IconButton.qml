@@ -26,10 +26,12 @@ Item {
     height: 24
 
     property alias source: _image.source
-    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
-                                                   : Qt.darker(FishUI.Theme.backgroundColor, 1.2)
-    property color pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.2)
-                                                     : Qt.darker(FishUI.Theme.backgroundColor, 1.3)
+    property color backgroundColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
+                                                          : FishUI.Theme.secondBackgroundColor
+    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.7)
+                                                   : Qt.darker(FishUI.Theme.secondBackgroundColor, 1.2)
+    property color pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.4)
+                                                     : Qt.darker(FishUI.Theme.secondBackgroundColor, 1.3)
 
     signal clicked()
 
@@ -37,7 +39,7 @@ Item {
         id: _background
         anchors.fill: parent
         radius: FishUI.Theme.smallRadius
-        color: _mouseArea.pressed ? pressedColor : _mouseArea.containsMouse ? control.hoveredColor : FishUI.Theme.backgroundColor
+        color: _mouseArea.pressed ? pressedColor : _mouseArea.containsMouse ? control.hoveredColor : control.backgroundColor
     }
 
     Image {
