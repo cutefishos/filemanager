@@ -48,7 +48,7 @@ Window {
         anchors.margins: FishUI.Units.largeSpacing
         spacing: FishUI.Units.largeSpacing
 
-        TextField {
+        FishUI.ActionTextField {
             id: _textField
             Layout.fillWidth: true
             Keys.onEscapePressed: control.close()
@@ -63,6 +63,15 @@ Window {
             Component.onCompleted: {
                 _textField.selectAll()
             }
+            
+            rightActions: [
+                Action {
+                    icon.source: "image://icontheme/edit-clear"
+                    onTriggered: {
+                        _textField.text = ""
+                    }
+                }
+            ]
         }
 
         RowLayout {
