@@ -80,21 +80,13 @@ Window {
                     source: "image://icontheme/" + main.iconName
                 }
 
-                FishUI.ActionTextField {
+                TextField {
                     id: _textField
                     text: main.fileName
                     focus: true
                     Layout.fillWidth: true
                     Keys.onEscapePressed: control.close()
                     enabled: !main.multiple && main.isWritable
-                    rightActions: [
-                        Action {
-                            icon.source: "image://icontheme/edit-clear"
-                            onTriggered: {
-                                _textField.text = ""
-                            }
-                        }
-                    ]
                 }
             }
 
