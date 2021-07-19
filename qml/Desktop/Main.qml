@@ -171,9 +171,6 @@ Item {
         onSelectAll: {
             dirModel.selectAll()
         }
-        onBackspace: {
-            dirModel.up()
-        }
         onDeleteFile: {
             dirModel.keyDeletePress()
         }
