@@ -41,10 +41,10 @@ Item {
     property bool selected: model.selected
     property bool blank: model.blank
 
-    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
-                                                     : Qt.darker(FishUI.Theme.backgroundColor, 1.05)
+    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 2.3)
+                                                       : Qt.darker(FishUI.Theme.backgroundColor, 1.05)
     property color selectedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.2)
-                                                      : Qt.darker(FishUI.Theme.backgroundColor, 1.15)
+                                                        : Qt.darker(FishUI.Theme.backgroundColor, 1.15)
 //    onSelectedChanged: {
 //        if (selected && !blank) {
 //            _listItem.grabToImage(function(result) {
