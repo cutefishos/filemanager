@@ -39,6 +39,7 @@ add_executable(cutefish-filemanager
   helper/pathhistory.cpp
   helper/fm.cpp
   helper/shortcut.cpp
+  helper/thumbnailerjob.cpp
 
   desktopiconprovider.cpp
 

@@ -21,6 +21,8 @@
 
 #include <KIO/PreviewJob>
 
+#include "thumbnailerjob.h"
+
 #include <QDebug>
 #include <QImage>
 
@@ -34,20 +36,35 @@ AsyncImageResponse::AsyncImageResponse(const QString &id, const QSize &requested
     : m_id(id)
     , m_requestedSize(requestedSize)
 {
-    QStringList plugins = KIO::PreviewJob::defaultPlugins();
-    auto job = new KIO::PreviewJob(KFileItemList() << KFileItem(QUrl::fromUserInput(id)), requestedSize, &plugins);
-
-    connect(job, &KIO::PreviewJob::gotPreview, [this](KFileItem, QPixmap pixmap) {
+    auto job_ = new ThumbnailerJob(QUrl::fromUserInput(id).toLocalFile(), requestedSize);
+    connect(job_, &ThumbnailerJob::gotPreview, [this] (QPixmap pixmap) {
         m_image = pixmap.toImage();
         emit this->finished();
     });
 
-    connect(job, &KIO::PreviewJob::failed, [this](KFileItem) {
+    connect(job_, &ThumbnailerJob::failed, [this] {
         emit this->cancel();
         emit this->finished();
     });
 
-    job->start();
+    job_->start();
+
+
+
+//    QStringList plugins = KIO::PreviewJob::defaultPlugins();
+//    auto job = new KIO::PreviewJob(KFileItemList() << KFileItem(QUrl::fromUserInput(id)), requestedSize, &plugins);
+
+//    connect(job, &KIO::PreviewJob::gotPreview, [this](KFileItem, QPixmap pixmap) {
+//        m_image = pixmap.toImage();
+//        emit this->finished();
+//    });
+
+//    connect(job, &KIO::PreviewJob::failed, [this](KFileItem) {
+//        emit this->cancel();
+//        emit this->finished();
+//    });
+
+//    job->start();
 }
 
 QQuickTextureFactory *AsyncImageResponse::textureFactory() const
