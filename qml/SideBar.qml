@@ -111,7 +111,6 @@ ListView {
                 id: _label
                 text: model.name
                 color: checked ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
-                elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
             }
