@@ -20,6 +20,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import QtGraphicalEffects 1.0
 import Qt.labs.platform 1.0
 
 import Cutefish.FileManager 1.0 as FM
@@ -89,10 +90,26 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
-        anchors.rightMargin: FishUI.Units.smallSpacing * 1.5
-        anchors.bottomMargin: FishUI.Units.smallSpacing * 1.5
         radius: FishUI.Theme.smallRadius
         color: FishUI.Theme.secondBackgroundColor
+
+        Rectangle {
+            id: _topRightRect
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: FishUI.Theme.smallRadius
+            width: FishUI.Theme.smallRadius
+            color: FishUI.Theme.secondBackgroundColor
+        }
+
+        Rectangle {
+            id: _bottomLeftRect
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            height: FishUI.Theme.smallRadius
+            width: FishUI.Theme.smallRadius
+            color: FishUI.Theme.secondBackgroundColor
+        }
     }
 
     Label {
@@ -140,7 +157,7 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.bottomMargin: FishUI.Theme.smallRadius
+        anchors.bottomMargin: 2
         spacing: 0
 
         Loader {
@@ -161,9 +178,64 @@ Item {
             }
         }
 
-        Loader {
-            Layout.fillWidth: true
-            sourceComponent: _statusBar
+        Item {
+            visible: settings.viewMethod === 0
+            height: statusBarHeight
+        }
+    }
+
+    Item {
+        id: _statusBar
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: statusBarHeight
+        z: 999
+
+        Rectangle {
+            anchors.fill: parent
+            color: FishUI.Theme.backgroundColor
+            opacity: 0.7
+        }
+
+        MouseArea {
+            anchors.fill: parent
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: FishUI.Units.smallSpacing
+            anchors.rightMargin: FishUI.Units.smallSpacing
+            // anchors.bottomMargin: 1
+            spacing: FishUI.Units.largeSpacing
+
+            Label {
+                Layout.alignment: Qt.AlignLeft
+                font.pointSize: 10
+                text: dirModel.count === 1 ? qsTr("%1 item").arg(dirModel.count)
+                                           : qsTr("%1 items").arg(dirModel.count)
+            }
+
+            Label {
+                Layout.alignment: Qt.AlignLeft
+                font.pointSize: 10
+                text: qsTr("%1 selected").arg(dirModel.selectionCount)
+                visible: dirModel.selectionCount >= 1
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            Button {
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignRight
+                text: qsTr("Empty Trash")
+                font.pointSize: 10
+                onClicked: dirModel.emptyTrash()
+                visible: dirModel.url === "trash:///"
+                focusPolicy: Qt.NoFocus
+            }
         }
     }
 
@@ -173,51 +245,6 @@ Item {
 
     Component.onCompleted: {
         dirModel.requestRename.connect(rename)
-    }
-
-    Component {
-        id: _statusBar
-
-        Item {
-            height: statusBarHeight
-            z: 999
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: FishUI.Units.smallSpacing
-                anchors.rightMargin: FishUI.Units.largeSpacing
-                anchors.bottomMargin: 1
-                spacing: FishUI.Units.largeSpacing
-
-                Label {
-                    Layout.alignment: Qt.AlignLeft
-                    font.pointSize: 10
-                    text: dirModel.count === 1 ? qsTr("%1 item").arg(dirModel.count)
-                                               : qsTr("%1 items").arg(dirModel.count)
-                }
-
-                Label {
-                    Layout.alignment: Qt.AlignLeft
-                    font.pointSize: 10
-                    text: qsTr("%1 selected").arg(dirModel.selectionCount)
-                    visible: dirModel.selectionCount >= 1
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Button {
-                    Layout.fillHeight: true
-                    Layout.alignment: Qt.AlignRight
-                    text: qsTr("Empty Trash")
-                    font.pointSize: 10
-                    onClicked: dirModel.emptyTrash()
-                    visible: dirModel.url === "trash:/"
-                    focusPolicy: Qt.NoFocus
-                }
-            }
-        }
     }
 
     Component {
@@ -253,7 +280,8 @@ Item {
 
             topMargin: FishUI.Units.smallSpacing
             leftMargin: FishUI.Units.largeSpacing
-            rightMargin: FishUI.Units.largeSpacing + FishUI.Theme.smallRadius
+            rightMargin: FishUI.Units.largeSpacing
+            bottomMargin: FishUI.Units.largeSpacing
             spacing: FishUI.Units.largeSpacing
 
             onCountChanged: {
