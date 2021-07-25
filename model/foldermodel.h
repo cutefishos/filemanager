@@ -32,6 +32,7 @@
 #include <QItemSelectionModel>
 #include <QQmlParserStatus>
 #include <QQuickItem>
+#include <QPointer>
 
 #include <KDirLister>
 #include <KDirModel>
