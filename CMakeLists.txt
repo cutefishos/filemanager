@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt5 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
-find_package(FishUI REQUIRED)
+# find_package(FishUI REQUIRED)
 
 find_package(KF5KIO)
 find_package(KF5Solid)
@@ -57,7 +57,7 @@ target_link_libraries(cutefish-filemanager
   KF5::KIOWidgets
   KF5::Solid
 
-  FishUI
+  # FishUI
 )
 
 file(GLOB TS_FILES translations/*.ts)

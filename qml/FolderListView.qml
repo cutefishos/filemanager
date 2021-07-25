@@ -410,6 +410,16 @@ ListView {
             verticalAlignment: TextEdit.AlignVCenter
             z: 999
 
+            background: Item {
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.topMargin: FishUI.Units.smallSpacing
+                    anchors.bottomMargin: FishUI.Units.smallSpacing
+                    radius: FishUI.Theme.smallRadius
+                    color: FishUI.Theme.backgroundColor
+                }
+            }
+
             property Item targetItem: null
 
             onTargetItemChanged: {
