@@ -281,7 +281,7 @@ Item {
             topMargin: FishUI.Units.smallSpacing
             leftMargin: FishUI.Units.largeSpacing
             rightMargin: FishUI.Units.largeSpacing
-            bottomMargin: FishUI.Units.largeSpacing
+            bottomMargin: FishUI.Units.smallSpacing
             spacing: FishUI.Units.largeSpacing
 
             onCountChanged: {
