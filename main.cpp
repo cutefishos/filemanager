@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<DesktopSettings>(uri, 1, 0, "DesktopSettings");
     qmlRegisterType<Fm>(uri, 1, 0, "Fm");
     qmlRegisterType<ShortCut>(uri, 1, 0, "ShortCut");
-    qmlRegisterAnonymousType<QAction>(uri, 1);
+    // qmlRegisterAnonymousType<QAction>(uri, 1);
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("File Manager"));
