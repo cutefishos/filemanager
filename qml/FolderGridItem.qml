@@ -41,6 +41,25 @@ Item {
     property bool blank: model.blank
     property var fileName: model.fileName
 
+    // For desktop
+    visible: GridView.view.isDesktopView ? !blank : true
+
+    onSelectedChanged: {
+        if (!GridView.view.isDesktopView)
+            return
+
+        if (selected && !blank) {
+            control.grabToImage(function(result) {
+                dirModel.addItemDragImage(control.index,
+                                          control.x,
+                                          control.y,
+                                          control.width,
+                                          control.height,
+                                          result.image)
+            })
+        }
+    }
+
     Rectangle {
         id: _background
         width: Math.max(_iconItem.width, _label.paintedWidth)
