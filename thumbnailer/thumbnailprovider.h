@@ -17,43 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef THUMBNAILERJOB_H
-#define THUMBNAILERJOB_H
+#ifndef THUMBNAILPROVIDER_H
+#define THUMBNAILPROVIDER_H
 
-#include <QObject>
-#include <QThread>
-#include <QSize>
-#include <QUrl>
+#include <QQuickImageProvider>
 
-class ThumbnailerJob : public QThread
+class ThumbnailProvider : public QQuickImageProvider
 {
-    Q_OBJECT
-
 public:
-    explicit ThumbnailerJob(const QString &fileName, const QSize &size, QObject *parent = nullptr);
-    ~ThumbnailerJob();
+    ThumbnailProvider()
+        : QQuickImageProvider(QQuickImageProvider::Image)
+    {
+    }
 
-    void run() override;
-
-signals:
-    void gotPreview(const QPixmap &pixmap);
-    void failed();
-
-private:
-    void emitPreview(const QImage &image);
-
-private:
-    QUrl m_url;
-    QSize m_size;
-
-    // thumbnail cache folder
-    QString m_thumbnailsDir;
-    QString m_thumbnailsPath;
-    QString m_thumbnailsName;
-
-    uchar *shmaddr;
-    size_t shmsize;
-    int shmid;
+    QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
 };
 
-#endif // THUMBNAILERJOB_H
+#endif // THUMBNAILPROVIDER_H

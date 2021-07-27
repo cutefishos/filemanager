@@ -18,7 +18,7 @@
  */
 
 #include "desktopview.h"
-#include "helper/thumbnailer.h"
+#include "thumbnailer/thumbnailprovider.h"
 
 #include <QQmlEngine>
 #include <QQmlContext>
@@ -39,7 +39,7 @@ DesktopView::DesktopView(QQuickView *parent)
     KWindowSystem::setState(winId(), NET::KeepBelow);
 
     engine()->rootContext()->setContextProperty("desktopView", this);
-    engine()->addImageProvider("thumbnailer", new Thumbnailer());
+    engine()->addImageProvider("thumbnailer", new ThumbnailProvider());
 
     setTitle(tr("Desktop"));
     setScreen(qApp->primaryScreen());
