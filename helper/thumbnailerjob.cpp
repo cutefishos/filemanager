@@ -116,6 +116,12 @@ void ThumbnailerJob::run()
 
     QCryptographicHash md5(QCryptographicHash::Md5);
     md5.addData(origName);
+    // Image size
+    md5.addData(QString::number(m_size.width()).toStdString().c_str());
+    md5.addData(QString::number(m_size.height()).toStdString().c_str());
+    // Time
+    md5.addData(QString::number(info.lastModified().toTime_t()).toStdString().c_str());
+
     m_thumbnailsName = QString::fromLatin1(md5.result().toHex()) + QLatin1String(".png");
 
     // 是否需要生成缓存
