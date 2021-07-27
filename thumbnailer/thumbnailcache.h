@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     revenmartin <revenmartin@gmail.com>
+ * Author:     Reion Wong <reionwong@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef THUMBNAILER_H
-#define THUMBNAILER_H
+#ifndef THUMBNAILCACHE_H
+#define THUMBNAILCACHE_H
 
 #include <QObject>
-#include <QQuickImageProvider>
 
-class AsyncImageResponse : public QQuickImageResponse
+class QImageReader;
+class ThumbnailCache : public QObject
 {
+    Q_OBJECT
+
 public:
-    AsyncImageResponse(const QString &id, const QSize &requestedSize);
-    QQuickTextureFactory *textureFactory() const override;
+    static ThumbnailCache *self();
+    explicit ThumbnailCache(QObject *parent = nullptr);
+
+    QString requestThumbnail(const QString &filePath, const QSize &requestedSize);
+    QString generateThumbnail(const QString &source, const QString &target, const QSize &requestedSize);
+    QString writeCacheFile(const QString &path, const QImage &image);
 
 private:
-    QString m_id;
-    QSize m_requestedSize;
-    QImage m_image;
+    // thumbnail cache folder
+    QString m_thumbnailsDir;
 };
 
-class Thumbnailer : public QQuickAsyncImageProvider
-{
-public:
-    QQuickImageResponse *requestImageResponse(const QString &id, const QSize &requestedSize) override;
-};
-
-#endif // THUMBNAILER_H
+#endif // THUMBNAILCACHE_H

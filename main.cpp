@@ -33,10 +33,11 @@
 #include "widgets/itemviewadapter.h"
 #include "desktop/desktopsettings.h"
 #include "desktop/desktopview.h"
-#include "helper/thumbnailer.h"
 #include "helper/datehelper.h"
 #include "helper/fm.h"
 #include "helper/shortcut.h"
+
+#include "thumbnailer/thumbnailprovider.h"
 
 int main(int argc, char *argv[])
 {
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<DesktopSettings>(uri, 1, 0, "DesktopSettings");
     qmlRegisterType<Fm>(uri, 1, 0, "Fm");
     qmlRegisterType<ShortCut>(uri, 1, 0, "ShortCut");
-    // qmlRegisterAnonymousType<QAction>(uri, 1);
+    qmlRegisterAnonymousType<QAction>(uri, 1);
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("File Manager"));
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
     }
 
     engine.load(url);
-    engine.addImageProvider("thumbnailer", new Thumbnailer());
+    engine.addImageProvider("thumbnailer", new ThumbnailProvider());
 
     return app.exec();
 }

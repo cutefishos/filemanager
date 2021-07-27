@@ -35,11 +35,12 @@ add_executable(cutefish-filemanager
   desktop/desktopsettings.cpp
 
   helper/datehelper.cpp
-  helper/thumbnailer.cpp
   helper/pathhistory.cpp
   helper/fm.cpp
   helper/shortcut.cpp
-  helper/thumbnailerjob.cpp
+
+  thumbnailer/thumbnailprovider.cpp
+  thumbnailer/thumbnailcache.cpp
 
   desktopiconprovider.cpp
 
