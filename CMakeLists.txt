@@ -38,6 +38,10 @@ add_executable(cutefish-filemanager
   helper/pathhistory.cpp
   helper/fm.cpp
   helper/shortcut.cpp
+  helper/filelauncher.cpp
+
+  mimetype/mimeappmanager.cpp
+  mimetype/xdgdesktopfile.cpp
 
   thumbnailer/thumbnailprovider.cpp
   thumbnailer/thumbnailcache.cpp

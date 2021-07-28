@@ -27,6 +27,7 @@
 
 #include "../widgets/itemviewadapter.h"
 #include "../helper/pathhistory.h"
+#include "../mimetype/mimeappmanager.h"
 
 #include <QSortFilterProxyModel>
 #include <QItemSelectionModel>
@@ -237,6 +238,7 @@ private:
 
     // Save path history
     PathHistory m_pathHistory;
+    MimeAppManager *m_mimeAppManager;
 };
 
 #endif // FOLDERMODEL_H
