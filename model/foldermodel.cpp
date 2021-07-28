@@ -716,6 +716,24 @@ void FolderModel::openSelected()
 
     for (const QUrl &url : urls) {
         KFileItem item(url);
+        QString mimeType = item.mimetype();
+
+        // runnable
+        if (mimeType == "application/x-executable" ||
+            mimeType == "application/x-sharedlib" ||
+            mimeType == "application/x-iso9660-appimage" ||
+            mimeType == "application/vnd.appimage") {
+            QFileInfo fileInfo(url.toLocalFile());
+            if (!fileInfo.isExecutable()) {
+                QFile file(url.toLocalFile());
+                file.setPermissions(file.permissions() | QFile::ExeOwner | QFile::ExeUser | QFile::ExeGroup | QFile::ExeOther);
+            }
+
+            FileLauncher::self()->launchExecutable(url.toLocalFile());
+
+            continue;
+        }
+
         QString defaultAppDesktopFile = m_mimeAppManager->getDefaultAppByMimeType(item.currentMimeType());
 
         // If no default application is found,

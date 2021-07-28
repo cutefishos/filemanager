@@ -179,7 +179,7 @@ Item {
         }
 
         Item {
-            visible: settings.viewMethod === 0
+            visible: true
             height: statusBarHeight
         }
     }
