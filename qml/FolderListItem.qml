@@ -99,6 +99,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 smooth: false
+                cache: false
 
                 layer.enabled: true
                 layer.effect: OpacityMask {

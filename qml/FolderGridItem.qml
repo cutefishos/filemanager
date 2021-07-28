@@ -126,7 +126,7 @@ Item {
             sourceSize.height: height
             source: model.thumbnail ? model.thumbnail : ""
             asynchronous: true
-            cache: true
+            cache: false
 
             // Because of the effect of OpacityMask.
             ColorOverlay {

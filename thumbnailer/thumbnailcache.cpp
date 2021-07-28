@@ -31,22 +31,6 @@
 
 static ThumbnailCache *SELF = nullptr;
 
-QImage scaleImage(const QImage &image, const QSize &requestedSize, bool crop, Qt::TransformationMode mode)
-{
-    const QImage scaledImage(image.size() != requestedSize
-            ? image.scaled(requestedSize, crop ? Qt::KeepAspectRatioByExpanding : Qt::KeepAspectRatio, mode)
-            : image);
-
-    if (crop && scaledImage.size() != requestedSize) {
-        QRect cropRect(0, 0, requestedSize.width(), requestedSize.height());
-        cropRect.moveCenter(QPoint(scaledImage.width() / 2, scaledImage.height() / 2));
-
-        return scaledImage.copy(cropRect);
-    } else {
-        return scaledImage;
-    }
-}
-
 ThumbnailCache *ThumbnailCache::self()
 {
     if (!SELF) {

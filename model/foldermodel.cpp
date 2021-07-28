@@ -29,6 +29,7 @@
 #include "../dialogs/createfolderdialog.h"
 
 #include "../helper/datehelper.h"
+#include "../helper/filelauncher.h"
 
 // Qt
 #include <QDir>
@@ -45,6 +46,7 @@
 #include <QDrag>
 #include <QDir>
 #include <QProcess>
+#include <QDesktopServices>
 
 // Qt Quick
 #include <QQuickItem>
@@ -63,8 +65,6 @@
 #include <KUrlMimeData>
 #include <KFileItemListProperties>
 #include <KDesktopFile>
-#include <KRun>
-#include <KToolInvocation>
 
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
@@ -77,6 +77,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_actionCollection(this)
     , m_dragInProgress(false)
     , m_viewAdapter(nullptr)
+    , m_mimeAppManager(MimeAppManager::self())
 {
     DirLister *dirLister = new DirLister(this);
     dirLister->setDelayedMimeTypes(true);
@@ -714,7 +715,24 @@ void FolderModel::openSelected()
     }
 
     for (const QUrl &url : urls) {
-        (void)new KRun(url, nullptr);
+        KFileItem item(url);
+        QString defaultAppDesktopFile = m_mimeAppManager->getDefaultAppByMimeType(item.currentMimeType());
+
+        // If no default application is found,
+        // look for the first one of the frequently used applications.
+        if (defaultAppDesktopFile.isEmpty()) {
+            QStringList recommendApps = m_mimeAppManager->getRecommendedAppsByMimeType(item.currentMimeType());
+            if (recommendApps.count() > 0) {
+                defaultAppDesktopFile = recommendApps.first();
+            }
+        }
+
+        if (!defaultAppDesktopFile.isEmpty()) {
+            FileLauncher::self()->launchApp(defaultAppDesktopFile, url.toLocalFile());
+            continue;
+        }
+
+        QDesktopServices::openUrl(url);
     }
 }
 
@@ -928,7 +946,7 @@ void FolderModel::openInTerminal()
         url = rootItem().url().toLocalFile();
     }
 
-    KToolInvocation::invokeTerminal(QString(), url);
+    m_mimeAppManager->launchTerminal(url);
 }
 
 void FolderModel::openChangeWallpaperDialog()
