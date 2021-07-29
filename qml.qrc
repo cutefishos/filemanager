@@ -57,5 +57,6 @@
         <file>images/dark/user-trash.svg</file>
         <file>images/dark/drive-optical.svg</file>
         <file>images/light/drive-optical.svg</file>
+        <file>qml/Dialogs/OpenWithDialog.qml</file>
     </qresource>
 </RCC>

@@ -164,6 +164,7 @@ public:
     Q_INVOKABLE void paste();
     Q_INVOKABLE void cut();
     Q_INVOKABLE void openSelected();
+    Q_INVOKABLE void showOpenWithDialog();
     Q_INVOKABLE void deleteSelected();
     Q_INVOKABLE void moveSelectedToTrash();
     Q_INVOKABLE void emptyTrash();

@@ -17,38 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XDGDESKTOPFILE_H
-#define XDGDESKTOPFILE_H
+#ifndef OPENWITHDIALOG_H
+#define OPENWITHDIALOG_H
 
-#include <QObject>
-#include <QVariant>
-#include <QMap>
+#include <QQuickView>
 
-class XdgDesktopFile
+class OpenWithDialog : public QQuickView
 {
+    Q_OBJECT
+    Q_PROPERTY(QString url READ url CONSTANT)
+
 public:
-    explicit XdgDesktopFile(const QString &fileName = QString());
+    explicit OpenWithDialog(const QUrl &url, QQuickView *parent = nullptr);
 
-    bool valid() const;
-
-    QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    void setValue(const QString &key, const QVariant &value);
-
-    bool load();
-    bool save();
-
-    QStringList keys() const;
-
-    QString localeName() const;
-    QString prefix() const;
+    QString url() const;
 
 private:
-    bool read(const QString &prefix);
-
-private:
-    bool m_isValid;
-    QString m_fileName;
-    QMap<QString, QVariant> m_items;
+    QString m_url;
 };
 
-#endif // XDGDESKTOPFILE_H
+#endif // OPENWITHDIALOG_H
