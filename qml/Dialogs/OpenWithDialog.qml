@@ -47,6 +47,14 @@ Item {
         doneButton.focus = true
     }
 
+    function openApp() {
+        if (defaultCheckBox.checked)
+            mimeAppManager.setDefaultAppForFile(control.url, listView.model.get(listView.currentIndex).desktopFile)
+
+        launcher.launchApp(listView.model.get(listView.currentIndex).desktopFile, control.url)
+        main.close()
+    }
+
     Keys.enabled: true
     Keys.onEscapePressed: main.close()
 
@@ -89,10 +97,9 @@ Item {
                     id: mouseArea
                     anchors.fill: parent
                     hoverEnabled: true
-
-                    onClicked: {
-                        listView.currentIndex = index
-                    }
+                    acceptedButtons: Qt.LeftButton
+                    onDoubleClicked: control.openApp()
+                    onClicked: listView.currentIndex = index
                 }
 
                 Rectangle {
@@ -153,13 +160,7 @@ Item {
                 flat: true
                 text: qsTr("Open")
                 Layout.fillWidth: true
-                onClicked: {
-                    if (defaultCheckBox.checked)
-                        mimeAppManager.setDefaultAppForFile(control.url, listView.model.get(listView.currentIndex).desktopFile)
-
-                    launcher.launchApp(listView.model.get(listView.currentIndex).desktopFile, control.url)
-                    main.close()
-                }
+                onClicked: control.openApp()
             }
 
         }
