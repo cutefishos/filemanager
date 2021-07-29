@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     revenmartin <revenmartin@gmail.com>
+ * Author:     Reion Wong <reionwong@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,37 +17,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROPERTIESDIALOG_H
-#define PROPERTIESDIALOG_H
+#ifndef FILEPROPERTIESDIALOG_H
+#define FILEPROPERTIESDIALOG_H
 
-#include <QObject>
+#include <QQuickView>
+#include <QTimer>
 #include <QUrl>
 
 #include <KFileItem>
 #include <KIO/DirectorySizeJob>
 
-class PropertiesDialog : public QObject
+class FilePropertiesDialog : public QQuickView
 {
     Q_OBJECT
-    Q_PROPERTY(QString location READ location CONSTANT)
+    Q_PROPERTY(QString location READ location NOTIFY locationChanged)
     Q_PROPERTY(QString fileName READ fileName NOTIFY fileNameChanged)
     Q_PROPERTY(QString iconName READ iconName NOTIFY iconNameChanged)
-    Q_PROPERTY(QString mimeType READ mimeType CONSTANT)
-    Q_PROPERTY(QString size READ size NOTIFY sizeChanged)
-    Q_PROPERTY(QString creationTime READ creationTime CONSTANT)
-    Q_PROPERTY(QString modifiedTime READ modifiedTime CONSTANT)
-    Q_PROPERTY(QString accessedTime READ accessedTime CONSTANT)
+    Q_PROPERTY(QString mimeType READ mimeType NOTIFY mimeTypeChanged)
+    Q_PROPERTY(QString fileSize READ fileSize NOTIFY fileSizeChanged)
+    Q_PROPERTY(QString creationTime READ creationTime NOTIFY creationTimeChanged)
+    Q_PROPERTY(QString modifiedTime READ modifiedTime NOTIFY modifiedTimeChanged)
+    Q_PROPERTY(QString accessedTime READ accessedTime NOTIFY accessedTimeChanged)
     Q_PROPERTY(bool multiple READ multiple CONSTANT)
-    Q_PROPERTY(bool isWritable READ isWritable CONSTANT)
+    Q_PROPERTY(bool isWritable READ isWritable NOTIFY isWritableChanged)
 
 public:
-    explicit PropertiesDialog(const KFileItem &item, QObject *parent = nullptr);
-    explicit PropertiesDialog(const KFileItemList &items, QObject *parent = nullptr);
-    explicit PropertiesDialog(const QUrl &url, QObject *parent = nullptr);
-    ~PropertiesDialog();
+    explicit FilePropertiesDialog(const KFileItem &item, QQuickView *parent = nullptr);
+    explicit FilePropertiesDialog(const KFileItemList &items, QQuickView *parent = nullptr);
+    explicit FilePropertiesDialog(const QUrl &url, QQuickView *parent = nullptr);
+    ~FilePropertiesDialog();
 
-    static void showDialog(const KFileItem &item);
-    static void showDialog(const KFileItemList &items);
+    Q_INVOKABLE void accept(const QString &text);
+    Q_INVOKABLE void reject();
 
     bool multiple() const;
     bool isWritable() const;
@@ -56,21 +57,26 @@ public:
     QString fileName() const;
     QString iconName() const;
     QString mimeType() const;
-    QString size() const;
+    QString fileSize() const;
 
     QString creationTime() const;
     QString modifiedTime() const;
     QString accessedTime() const;
 
-    KFileItemList items() const;
-
-    Q_INVOKABLE void accept(const QString &text);
-    Q_INVOKABLE void reject();
-
 signals:
+    void locationChanged();
     void fileNameChanged();
     void iconNameChanged();
-    void sizeChanged();
+    void mimeTypeChanged();
+    void fileSizeChanged();
+
+    void creationTimeChanged();
+    void modifiedTimeChanged();
+    void accessedTimeChanged();
+    void isWritableChanged();
+
+protected:
+    bool event(QEvent *e) override;
 
 private:
     void init();
@@ -89,9 +95,11 @@ private:
     QString m_modifiedTime;
     QString m_accessedTime;
 
+    QTimer *m_dirSizeUpdateTimer = nullptr;
     KIO::DirectorySizeJob *m_dirSizeJob;
 
     bool m_multiple;
+    bool m_isWritable;
 };
 
-#endif // PROPERTIESDIALOG_H
+#endif // FILEPROPERTIESDIALOG_H

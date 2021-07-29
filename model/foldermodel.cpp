@@ -25,7 +25,7 @@
 #include "foldermodel.h"
 #include "dirlister.h"
 
-#include "../dialogs/propertiesdialog.h"
+#include "../dialogs/filepropertiesdialog.h"
 #include "../dialogs/createfolderdialog.h"
 
 #include "../helper/datehelper.h"
@@ -936,7 +936,8 @@ void FolderModel::openPropertiesDialog()
     const QModelIndexList indexes = m_selectionModel->selectedIndexes();
 
     if (indexes.isEmpty()) {
-        PropertiesDialog::showDialog(QUrl::fromLocalFile(url()));
+        FilePropertiesDialog *dlg = new FilePropertiesDialog(QUrl::fromLocalFile(url()));
+        dlg->show();
         return;
     }
 
@@ -949,7 +950,8 @@ void FolderModel::openPropertiesDialog()
         }
     }
 
-    PropertiesDialog::showDialog(items);
+    FilePropertiesDialog *dlg = new FilePropertiesDialog(items);
+    dlg->show();
 }
 
 void FolderModel::openInTerminal()
