@@ -23,12 +23,15 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import FishUI 1.0 as FishUI
 
-Window {
+Item {
     id: control
-    title: qsTr("Properties")
-    flags: Qt.Dialog
 
-    visible: true
+    width: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 4
+    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+
+    focus: true
+    Keys.enabled: true
+    Keys.onEscapePressed: main.reject()
 
     Rectangle {
         anchors.fill: parent
@@ -39,169 +42,151 @@ Window {
         if (visible) updateWindowSize()
     }
 
+    function close() {
+        main.close()
+    }
+
     function updateWindowSize() {
         if (visible) {
-            control.width = _mainLayout.implicitWidth + _mainLayout.anchors.leftMargin + _mainLayout.anchors.rightMargin
-            control.height = _mainLayout.implicitHeight + _mainLayout.anchors.topMargin + _mainLayout.anchors.bottomMargin
-            control.minimumWidth = control.width
-            control.minimumHeight = control.height
-            control.maximumWidth = control.width
-            control.maximumHeight = control.height
-
             if (_textField.enabled)
                 _textField.forceActiveFocus()
         }
     }
 
-    Item {
-        id: _contentItem
+    ColumnLayout {
+        id: _mainLayout
         anchors.fill: parent
-        focus: true
+        anchors.leftMargin: FishUI.Units.largeSpacing * 2
+        anchors.rightMargin: FishUI.Units.largeSpacing * 2
+        anchors.topMargin: FishUI.Units.smallSpacing
+        anchors.bottomMargin: FishUI.Units.largeSpacing * 1.5
+        spacing: FishUI.Units.largeSpacing
 
-        Keys.enabled: true
-        Keys.onEscapePressed: control.close()
+        RowLayout {
+            spacing: FishUI.Units.largeSpacing * 2
 
-        ColumnLayout {
-            id: _mainLayout
-            anchors.fill: parent
-            anchors.leftMargin: FishUI.Units.largeSpacing * 2
-            anchors.rightMargin: FishUI.Units.largeSpacing * 2
-            anchors.topMargin: FishUI.Units.largeSpacing
-            anchors.bottomMargin: FishUI.Units.largeSpacing * 1.5
+            Image {
+                width: 64
+                height: width
+                sourceSize: Qt.size(width, height)
+                source: "image://icontheme/" + main.iconName
+            }
+
+            TextField {
+                id: _textField
+                text: main.fileName
+                focus: true
+                Layout.fillWidth: true
+                Keys.onEscapePressed: main.reject()
+                enabled: main.isWritable
+            }
+        }
+
+        GridLayout {
+            columns: 2
+            columnSpacing: FishUI.Units.largeSpacing
+            rowSpacing: FishUI.Units.largeSpacing
+            Layout.alignment: Qt.AlignTop
+
+            onHeightChanged: updateWindowSize()
+            onImplicitHeightChanged: updateWindowSize()
+
+            Label {
+                text: qsTr("Type:")
+                Layout.alignment: Qt.AlignRight
+                color: FishUI.Theme.disabledTextColor
+                visible: mimeType.visible
+            }
+
+            Label {
+                id: mimeType
+                text: main.mimeType
+                visible: text
+            }
+
+            Label {
+                text: qsTr("Location:")
+                Layout.alignment: Qt.AlignRight
+                color: FishUI.Theme.disabledTextColor
+            }
+
+            Label {
+                id: location
+                text: main.location
+            }
+
+            Label {
+                text: qsTr("Size:")
+                Layout.alignment: Qt.AlignRight
+                color: FishUI.Theme.disabledTextColor
+            }
+
+            Label {
+                id: size
+                text: main.fileSize ? main.fileSize : qsTr("Calculating...")
+            }
+
+            Label {
+                text: qsTr("Created:")
+                Layout.alignment: Qt.AlignRight
+                color: FishUI.Theme.disabledTextColor
+                visible: creationTime.visible
+            }
+
+            Label {
+                id: creationTime
+                text: main.creationTime
+                visible: text
+            }
+
+            Label {
+                text: qsTr("Modified:")
+                Layout.alignment: Qt.AlignRight
+                color: FishUI.Theme.disabledTextColor
+                visible: modifiedTime.visible
+            }
+
+            Label {
+                id: modifiedTime
+                text: main.modifiedTime
+                visible: text
+            }
+
+            Label {
+                text: qsTr("Accessed:")
+                Layout.alignment: Qt.AlignRight
+                color: FishUI.Theme.disabledTextColor
+                visible: accessTime.visible
+            }
+
+            Label {
+                id: accessTime
+                text: main.accessedTime
+                visible: text
+            }
+        }
+
+        Item {
+            height: FishUI.Units.smallSpacing
+        }
+
+        RowLayout {
+            Layout.alignment: Qt.AlignRight
             spacing: FishUI.Units.largeSpacing
 
-            RowLayout {
-                spacing: FishUI.Units.largeSpacing * 2
-
-                Image {
-                    width: 64
-                    height: width
-                    sourceSize: Qt.size(width, height)
-                    source: "image://icontheme/" + main.iconName
-                }
-
-                TextField {
-                    id: _textField
-                    text: main.fileName
-                    focus: true
-                    Layout.fillWidth: true
-                    Keys.onEscapePressed: control.close()
-                    enabled: !main.multiple && main.isWritable
-                }
+            Button {
+                text: qsTr("Cancel")
+                Layout.fillWidth: true
+                onClicked: main.reject()
             }
 
-            GridLayout {
-                columns: 2
-                columnSpacing: FishUI.Units.largeSpacing
-                rowSpacing: FishUI.Units.largeSpacing
-                Layout.alignment: Qt.AlignTop
-
-                onHeightChanged: updateWindowSize()
-                onImplicitHeightChanged: updateWindowSize()
-
-                Label {
-                    text: qsTr("Type:")
-                    Layout.alignment: Qt.AlignRight
-                    color: FishUI.Theme.disabledTextColor
-                    visible: mimeType.visible
+            Button {
+                text: qsTr("OK")
+                Layout.fillWidth: true
+                onClicked: {
+                    main.accept(_textField.text)
                 }
-
-                Label {
-                    id: mimeType
-                    text: main.mimeType
-                    visible: text
-                }
-
-                Label {
-                    text: qsTr("Location:")
-                    Layout.alignment: Qt.AlignRight
-                    color: FishUI.Theme.disabledTextColor
-                }
-
-                Label {
-                    id: location
-                    text: main.location
-                }
-
-                Label {
-                    text: qsTr("Size:")
-                    Layout.alignment: Qt.AlignRight
-                    color: FishUI.Theme.disabledTextColor
-                    // visible: size.visible
-                }
-
-                Label {
-                    id: size
-                    text: main.size ? main.size : qsTr("Calculating...")
-                    // visible: text
-                }
-
-                Label {
-                    text: qsTr("Created:")
-                    Layout.alignment: Qt.AlignRight
-                    color: FishUI.Theme.disabledTextColor
-                    visible: creationTime.visible
-                }
-
-                Label {
-                    id: creationTime
-                    text: main.creationTime
-                    visible: text
-                }
-
-                Label {
-                    text: qsTr("Modified:")
-                    Layout.alignment: Qt.AlignRight
-                    color: FishUI.Theme.disabledTextColor
-                    visible: modifiedTime.visible
-                }
-
-                Label {
-                    id: modifiedTime
-                    text: main.modifiedTime
-                    visible: text
-                }
-
-                Label {
-                    text: qsTr("Accessed:")
-                    Layout.alignment: Qt.AlignRight
-                    color: FishUI.Theme.disabledTextColor
-                    visible: accessTime.visible
-                }
-
-                Label {
-                    id: accessTime
-                    text: main.accessedTime
-                    visible: text
-                }
-            }
-
-            Item {
-                height: FishUI.Units.largeSpacing
-            }
-
-            RowLayout {
-                Layout.alignment: Qt.AlignRight
-                spacing: FishUI.Units.largeSpacing
-
-                Button {
-                    text: qsTr("Cancel")
-                    Layout.fillWidth: true
-                    onClicked: {
-                        control.close()
-                        main.reject()
-                    }
-                }
-
-                Button {
-                    text: qsTr("OK")
-                    Layout.fillWidth: true
-                    onClicked: {
-                        main.accept(_textField.text)
-                        control.close()
-                    }
-                    flat: true
-                }
+                flat: true
             }
         }
     }
