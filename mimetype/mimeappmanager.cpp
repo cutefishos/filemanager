@@ -268,6 +268,8 @@ QString MimeAppManager::getDefaultAppDesktopByMimeType(const QString &mimeType)
 
 bool MimeAppManager::setDefaultAppForType(const QString &mimeType, const QString &app)
 {
+    Q_UNUSED(mimeType);
+
     // ref: https://specifications.freedesktop.org/mime-apps-spec/1.0.1/ar01s03.html
 
     QString mimeappsFile = mimeAppsListFilePath();
@@ -397,11 +399,11 @@ QVariantList MimeAppManager::recommendedApps(const QUrl &url)
         for (const QString &path : getRecommendedAppsByFilePath(filePath)) {
             XdgDesktopFile desktop(path);
 
-            if (desktop.valid())
+            if (!desktop.valid())
                 continue;
 
             QVariantMap item;
-            item["icon"] = desktop.value("IconName").toString();
+            item["icon"] = desktop.value("Icon").toString();
             item["name"] = desktop.localeName();
             item["desktopFile"] = path;
 

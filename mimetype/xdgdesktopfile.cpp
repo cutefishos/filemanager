@@ -94,15 +94,20 @@ bool XdgDesktopFile::save()
     return true;
 }
 
+QStringList XdgDesktopFile::keys() const
+{
+    return m_items.keys();
+}
+
 QString XdgDesktopFile::localeName() const
 {
     QString localeKey = QString("Name[%1]").arg(QLocale::system().name());
 
     if (m_items.contains(localeKey)) {
-        return m_items[localeKey].toString();
+        return XdgDesktopFile::value("Name").toString();
     }
 
-    return m_items["Name"].toString();
+    return XdgDesktopFile::value("Name").toString();
 }
 
 QString XdgDesktopFile::prefix() const

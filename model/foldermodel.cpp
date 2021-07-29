@@ -27,6 +27,7 @@
 
 #include "../dialogs/filepropertiesdialog.h"
 #include "../dialogs/createfolderdialog.h"
+#include "../dialogs/openwithdialog.h"
 
 #include "../helper/datehelper.h"
 #include "../helper/filelauncher.h"
@@ -754,6 +755,17 @@ void FolderModel::openSelected()
     }
 }
 
+void FolderModel::showOpenWithDialog()
+{
+    if (!m_selectionModel->hasSelection())
+        return;
+
+    const QList<QUrl> urls = selectedUrls();
+
+    OpenWithDialog *dlg = new OpenWithDialog(urls.first());
+    dlg->show();
+}
+
 void FolderModel::deleteSelected()
 {
     if (!m_selectionModel->hasSelection()) {
@@ -899,6 +911,7 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
     } else {
         // Open the items menu.
         menu->addAction(m_actionCollection.action("open"));
+        menu->addAction(m_actionCollection.action("openWith"));
         menu->addAction(m_actionCollection.action("cut"));
         menu->addAction(m_actionCollection.action("copy"));
         menu->addAction(m_actionCollection.action("trash"));
@@ -1094,6 +1107,9 @@ void FolderModel::createActions()
     QAction *open = new QAction(tr("Open"), this);
     connect(open, &QAction::triggered, this, &FolderModel::openSelected);
 
+    QAction *openWith = new QAction(tr("Open with"), this);
+    connect(openWith, &QAction::triggered, this, &FolderModel::showOpenWithDialog);
+
     QAction *cut = new QAction(tr("Cut"), this);
     connect(cut, &QAction::triggered, this, &FolderModel::cut);
 
@@ -1131,6 +1147,7 @@ void FolderModel::createActions()
     QObject::connect(changeBackground, &QAction::triggered, this, &FolderModel::openChangeWallpaperDialog);
 
     m_actionCollection.addAction(QStringLiteral("open"), open);
+    m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
     m_actionCollection.addAction(QStringLiteral("copy"), copy);
     m_actionCollection.addAction(QStringLiteral("paste"), paste);
@@ -1177,6 +1194,10 @@ void FolderModel::updateActions()
         if (file.hasLinkType() && file.readUrl() == QLatin1String("trash:/")) {
             isTrashLink = true;
         }
+    }
+
+    if (QAction *openWith = m_actionCollection.action(QStringLiteral("openWith"))) {
+        openWith->setVisible(items.count() == 1);
     }
 
     if (QAction *newFolder = m_actionCollection.action(QStringLiteral("newFolder"))) {
