@@ -76,6 +76,23 @@ Item {
                 text: qsTr("Select All")
                 onTriggered: dirModel.selectAll()
             }
+
+            MenuSeparator {}
+
+            MenuItem {
+                text: qsTr("Cut")
+                onTriggered: dirModel.cut()
+            }
+
+            MenuItem {
+                text: qsTr("Copy")
+                onTriggered: dirModel.copy()
+            }
+
+            MenuItem {
+                text: qsTr("Paste")
+                onTriggered: dirModel.paste()
+            }
         }
 
         Menu {
