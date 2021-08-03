@@ -80,7 +80,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.height * 0.6
             onClicked: {
-                selected = !selected
+                dirModel.toggleSelected(index)
             }
         }
 
