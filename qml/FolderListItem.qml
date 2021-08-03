@@ -55,6 +55,9 @@ Item {
 //            })
 //        }
 //    }
+    onSelectedChanged: {
+        _fileCheckBox.checked = selected
+    }
 
     Rectangle {
         id: _background
@@ -70,6 +73,17 @@ Item {
         anchors.leftMargin: FishUI.Units.smallSpacing
         anchors.rightMargin: FishUI.Units.smallSpacing
         spacing: FishUI.Units.largeSpacing
+
+        CheckBox {
+            id: _fileCheckBox
+            checked: false
+            anchors.verticalCenter: parent.verticalCenter
+            width: parent.height * 0.6
+            onClicked: {
+                selected = !selected
+            }
+        }
+
 
         Item {
             id: iconItem
