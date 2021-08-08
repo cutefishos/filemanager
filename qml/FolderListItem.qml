@@ -86,6 +86,7 @@ Item {
                 source: "image://icontheme/" + model.iconName
                 visible: !_image.visible
                 asynchronous: true
+                smooth: false
             }
 
             Image {

@@ -94,6 +94,7 @@ Item {
             sourceSize: Qt.size(width, height)
             source: "image://icontheme/" + model.iconName
             visible: !_image.visible
+            smooth: false
 
             ColorOverlay {
                 anchors.fill: _icon
@@ -127,6 +128,7 @@ Item {
             source: model.thumbnail ? model.thumbnail : ""
             asynchronous: true
             cache: false
+            smooth: false
 
             // Because of the effect of OpacityMask.
             ColorOverlay {

@@ -104,7 +104,7 @@ ListView {
                 // source: model.iconPath ? model.iconPath : "image://icontheme/" + model.iconName
                 source: "qrc:/images/" + (FishUI.Theme.darkMode || _item.checked ? "dark/" : "light/") + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
-                smooth: true
+                smooth: false
             }
 
             Label {
