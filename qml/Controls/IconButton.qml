@@ -48,6 +48,7 @@ Item {
         width: control.height * 0.64
         height: width
         sourceSize: Qt.size(width, height)
+        smooth: false
     }
 
     MouseArea {

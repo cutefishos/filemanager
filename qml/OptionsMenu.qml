@@ -34,8 +34,10 @@ FishUI.DesktopMenu {
             anchors.left: parent.left
             anchors.leftMargin: FishUI.Units.largeSpacing
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
+            smooth: false
         }
 
         Text {
@@ -51,9 +53,11 @@ FishUI.DesktopMenu {
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/checked.svg" : "qrc:/images/light/checked.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
             visible: settings.viewMethod === 1
+            smooth: false
         }
 
         onTriggered: settings.viewMethod = 1
@@ -68,8 +72,10 @@ FishUI.DesktopMenu {
             anchors.left: parent.left
             anchors.leftMargin: FishUI.Units.largeSpacing
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
+            smooth: false
         }
 
         Text {
@@ -85,9 +91,11 @@ FishUI.DesktopMenu {
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/checked.svg" : "qrc:/images/light/checked.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
             visible: settings.viewMethod === 0
+            smooth: false
         }
 
         onTriggered: settings.viewMethod = 0
@@ -104,8 +112,10 @@ FishUI.DesktopMenu {
             anchors.left: parent.left
             anchors.leftMargin: FishUI.Units.largeSpacing
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/order_by_name.svg" : "qrc:/images/light/order_by_name.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
+            smooth: false
         }
 
         Text {
@@ -121,9 +131,11 @@ FishUI.DesktopMenu {
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/up.svg" : "qrc:/images/light/up.svg"
+            sourceSize: Qt.size(width, height)
             height: width
             width: 22
             visible: settings.orderBy === 0
+            smooth: false
         }
 
         onTriggered: settings.orderBy = 0
@@ -138,8 +150,10 @@ FishUI.DesktopMenu {
             anchors.left: parent.left
             anchors.leftMargin: FishUI.Units.largeSpacing
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/date.svg" : "qrc:/images/light/date.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
+            smooth: false
         }
 
         Text {
@@ -155,9 +169,11 @@ FishUI.DesktopMenu {
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/up.svg" : "qrc:/images/light/up.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
             visible: settings.orderBy === 1
+            smooth: false
         }
 
         onTriggered: settings.orderBy = 1
@@ -172,8 +188,10 @@ FishUI.DesktopMenu {
             anchors.left: parent.left
             anchors.leftMargin: FishUI.Units.largeSpacing
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/size.svg" : "qrc:/images/light/size.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
+            smooth: false
         }
 
         Text {
@@ -189,9 +207,11 @@ FishUI.DesktopMenu {
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
             source: FishUI.Theme.darkMode ? "qrc:/images/dark/up.svg" : "qrc:/images/light/up.svg"
+            sourceSize: Qt.size(width, height)
             width: 22
             height: width
             visible: settings.orderBy === 2
+            smooth: false
         }
 
         onTriggered: settings.orderBy = 2

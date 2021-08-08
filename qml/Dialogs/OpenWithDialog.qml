@@ -69,9 +69,9 @@ Item {
             Layout.fillWidth: true
             Layout.preferredHeight: 200
             model: ListModel {}
-            clip: true
-            spacing: FishUI.Units.largeSpacing
+            spacing: FishUI.Units.smallSpacing * 1.5
             ScrollBar.vertical: ScrollBar {}
+            clip: true
 
             Label {
                 anchors.centerIn: parent
@@ -82,7 +82,7 @@ Item {
             delegate: Item {
                 id: item
                 width: ListView.view.width
-                height: 45
+                height: 30 + FishUI.Units.largeSpacing
                 scale: mouseArea.pressed ? 0.95 : 1.0
 
                 Behavior on scale {
@@ -116,12 +116,12 @@ Item {
                 RowLayout {
                     anchors.fill: parent
                     anchors.margins: FishUI.Units.smallSpacing
-                    spacing: FishUI.Units.largeSpacing
+                    spacing: FishUI.Units.smallSpacing
 
                     Image {
                         id: icon
                         source: "image://icontheme/" + model.icon
-                        width: item.height * 0.7
+                        width: 30
                         height: width
                         sourceSize: Qt.size(width, height)
                         Layout.alignment: Qt.AlignLeft
