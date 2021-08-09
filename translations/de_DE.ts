@@ -67,7 +67,7 @@
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
         <source>Desktop</source>
-        <translation>Computer-Ansicht</translation>
+        <translation>Schreibtisch</translation>
     </message>
 </context>
 <context>
@@ -186,7 +186,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="85"/>
         <source>Open</source>
-        <translation>Ouvrir</translation>
+        <translation>Öffnen</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="90"/>
@@ -252,7 +252,7 @@
     <message>
         <location filename="../model/placesmodel.cpp" line="46"/>
         <source>Desktop</source>
-        <translation>Computer-Ansicht</translation>
+        <translation>Schreibtisch</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="53"/>

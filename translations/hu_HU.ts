@@ -108,7 +108,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="830"/>
         <source>Select All</source>
-        <translation>Mind kijelölése</translation>
+        <translation>Összes kijelölése</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1042"/>
