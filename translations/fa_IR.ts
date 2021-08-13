@@ -138,12 +138,12 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1057"/>
         <source>Move To Trash</source>
-        <translation>انتقال به زباله‌دانی</translation>
+        <translation>انتقال به سطل زباله</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1060"/>
         <source>Empty Trash</source>
-        <translation>خالی کردن زباله‌دانی</translation>
+        <translation>خالی کردن سطل زباله</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1063"/>
