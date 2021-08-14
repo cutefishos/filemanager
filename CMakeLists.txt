@@ -71,6 +71,6 @@ qt5_create_translation(QM_FILES ${TS_FILES})
 add_custom_target(translations DEPENDS ${QM_FILES} SOURCES ${TS_FILES})
 add_dependencies(cutefish-filemanager translations)
 
-install(TARGETS cutefish-filemanager RUNTIME DESTINATION /usr/bin)
+install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")
 install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translations)
