@@ -21,7 +21,7 @@ sudo pacman -S extra-cmake-modules qt5-base qt5-quickcontrols2 taglib kio
 ```shell
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
 make
 ```
 
