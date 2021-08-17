@@ -127,6 +127,7 @@ Item {
                 text: model.fileName
                 Layout.fillWidth: true
                 color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                textFormat: Text.PlainText
                 elide: Qt.ElideMiddle
             }
 
@@ -134,12 +135,14 @@ Item {
                 id: _label2
                 text: model.fileSize
                 color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
+                textFormat: Text.PlainText
                 Layout.fillWidth: true
             }
         }
 
         Label {
             text: model.modified
+            textFormat: Text.PlainText
             color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
         }
     }

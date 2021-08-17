@@ -105,12 +105,14 @@ ListView {
                 source: "qrc:/images/" + (FishUI.Theme.darkMode || _item.checked ? "dark/" : "light/") + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
                 smooth: false
+                antialiasing: true
             }
 
             Label {
                 id: _label
                 text: model.name
                 color: checked ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
             }

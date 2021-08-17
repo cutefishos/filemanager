@@ -135,11 +135,13 @@ QHash<int, QByteArray> FolderModel::staticRoleNames()
     roleNames[SelectedRole] = "selected";
     roleNames[IsDirRole] = "isDir";
     roleNames[UrlRole] = "url";
+    roleNames[DisplayNameRole] = "displayName";
     roleNames[FileNameRole] = "fileName";
     roleNames[FileSizeRole] = "fileSize";
     roleNames[IconNameRole] = "iconName";
     roleNames[ThumbnailRole] = "thumbnail";
     roleNames[ModifiedRole] = "modified";
+    roleNames[IsDesktopFileRole] = "desktopFile";
     return roleNames;
 }
 
@@ -157,8 +159,17 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return m_selectionModel->isSelected(index);
     case UrlRole:
         return item.url();
+    case DisplayNameRole: {
+        if (item.isDesktopFile())
+            return "";
+
+        return item.url().fileName();
+    }
     case FileNameRole: {
         return item.url().fileName();
+    }
+    case IsDesktopFileRole: {
+        return item.isDesktopFile();
     }
     case FileSizeRole: {
         if (item.isDir()) {
