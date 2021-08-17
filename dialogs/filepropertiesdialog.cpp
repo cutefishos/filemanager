@@ -172,7 +172,7 @@ bool FilePropertiesDialog::event(QEvent *e)
 void FilePropertiesDialog::init()
 {
     engine()->rootContext()->setContextProperty("main", this);
-    engine()->addImageProvider(QStringLiteral("icontheme"), new DesktopIconProvider());
+    // engine()->addImageProvider(QStringLiteral("icontheme"), new DesktopIconProvider());
 
     setFlag(Qt::Dialog);
     setTitle(tr("Properties"));
@@ -225,9 +225,11 @@ void FilePropertiesDialog::init()
         m_isWritable = false;
         m_fileName = tr("%1 files").arg(m_items.count());
         m_location = QFileInfo(m_items.first().localPath()).dir().path();
+        m_iconName = "unknown";
 
         emit fileNameChanged();
         emit locationChanged();
+        emit iconNameChanged();
     }
 
     emit isWritableChanged();

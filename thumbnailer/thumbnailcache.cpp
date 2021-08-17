@@ -126,7 +126,7 @@ QString ThumbnailCache::requestThumbnail(const QString &filePath, const QSize &r
     md5.addData(QString::number(info.lastModified().toTime_t()).toStdString().c_str());
 
     QString thumbnailsName = QString::fromLatin1(md5.result().toHex()) + QLatin1String(".png");
-    QString thumbnailsPath = m_thumbnailsDir + thumbnailsName;
+    QString thumbnailsPath = m_thumbnailsDir + thumbDir + thumbnailsName;
 
     if (!QFile::exists(thumbnailsPath)) {
         return generateThumbnail(path, thumbnailsPath, requestedSize);

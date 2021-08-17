@@ -86,7 +86,6 @@ Item {
                 source: "image://icontheme/" + model.iconName
                 visible: !_image.visible
                 asynchronous: true
-                smooth: false
             }
 
             Image {
@@ -99,7 +98,6 @@ Item {
                 visible: _image.status === Image.Ready
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
-                smooth: false
                 cache: false
 
                 layer.enabled: true

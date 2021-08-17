@@ -65,11 +65,10 @@ Item {
         RowLayout {
             spacing: FishUI.Units.largeSpacing * 2
 
-            Image {
+            FishUI.IconItem {
                 width: 64
-                height: width
-                sourceSize: Qt.size(width, height)
-                source: "image://icontheme/" + main.iconName
+                height: 64
+                source: main.iconName
             }
 
             TextField {
