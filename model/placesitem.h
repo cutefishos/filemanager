@@ -56,6 +56,9 @@ public:
     bool isDevice();
     bool setupNeeded();
 
+    QString category() const;
+    void setCategory(const QString &category);
+
 signals:
     void itemChanged(PlacesItem *);
 
@@ -69,6 +72,7 @@ private:
     QString m_iconPath;
     QString m_udi;
     QUrl m_url;
+    QString m_category;
 
     bool m_isAccessible;
 

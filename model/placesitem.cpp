@@ -26,6 +26,7 @@ PlacesItem::PlacesItem(const QString &displayName,
     : QObject(parent)
     , m_displayName(displayName)
     , m_url(url)
+    , m_category("")
     , m_isAccessible(false)
 {
 }
@@ -131,4 +132,14 @@ void PlacesItem::onAccessibilityChanged(bool isAccessible)
     m_isAccessible = isAccessible;
 
     emit itemChanged(this);
+}
+
+QString PlacesItem::category() const
+{
+    return m_category;
+}
+
+void PlacesItem::setCategory(const QString &category)
+{
+    m_category = category;
 }

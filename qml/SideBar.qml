@@ -55,6 +55,25 @@ ListView {
         color: FishUI.Theme.highlightColor
     }
 
+    section.property: "category"
+    section.delegate: Item {
+        width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
+        height: FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
+
+        Text {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.leftMargin: Qt.application.layoutDirection === Qt.RightToLeft ? 0 : FishUI.Units.smallSpacing
+            anchors.rightMargin: FishUI.Units.smallSpacing
+            anchors.topMargin: FishUI.Units.largeSpacing
+            anchors.bottomMargin: FishUI.Units.smallSpacing
+            color: FishUI.Theme.textColor
+            font.pointSize: 9
+            font.bold: true
+            text: section
+        }
+    }
+
     delegate: Item {
         id: _item
         width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
