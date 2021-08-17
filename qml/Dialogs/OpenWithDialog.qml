@@ -118,12 +118,11 @@ Item {
                     anchors.margins: FishUI.Units.smallSpacing
                     spacing: FishUI.Units.smallSpacing
 
-                    Image {
+                    FishUI.IconItem {
                         id: icon
-                        source: "image://icontheme/" + model.icon
-                        width: 30
-                        height: width
-                        sourceSize: Qt.size(width, height)
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: height
+                        source: model.icon
                         Layout.alignment: Qt.AlignLeft
                     }
 
