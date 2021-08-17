@@ -106,6 +106,7 @@ PlacesModel::PlacesModel(QObject *parent)
     for (const Solid::Device &device : deviceList) {
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(device.udi());
+        deviceItem->setCategory(tr("Drives"));
         m_items.append(deviceItem);
     }
 }
@@ -124,6 +125,7 @@ QHash<int, QByteArray> PlacesModel::roleNames() const
     roleNames[PlacesModel::PathRole] = "path";
     roleNames[PlacesModel::IsDeviceRole] = "isDevice";
     roleNames[PlacesModel::setupNeededRole] = "setupNeeded";
+    roleNames[PlacesModel::CategoryRole] = "category";
     return roleNames;
 }
 
@@ -169,6 +171,9 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
         break;
     case PlacesModel::setupNeededRole:
         return item->setupNeeded();
+        break;
+    case PlacesModel::CategoryRole:
+        return item->category();
         break;
     default:
         break;

@@ -36,7 +36,8 @@ public:
         UrlRole,
         PathRole,
         IsDeviceRole,
-        setupNeededRole
+        setupNeededRole,
+        CategoryRole
     };
     Q_ENUMS(DataRole);
 
