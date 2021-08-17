@@ -209,11 +209,11 @@ Item {
         height: statusBarHeight
         z: 999
 
-        Rectangle {
-            anchors.fill: parent
-            color: FishUI.Theme.backgroundColor
-            opacity: 0.7
-        }
+//        Rectangle {
+//            anchors.fill: parent
+//            color: FishUI.Theme.backgroundColor
+//            opacity: 0.7
+//        }
 
         MouseArea {
             anchors.fill: parent

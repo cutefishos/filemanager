@@ -61,11 +61,13 @@ public:
         SelectedRole,
         IsDirRole,
         UrlRole,
+        DisplayNameRole,
         FileNameRole,
         FileSizeRole,
         IconNameRole,
         ThumbnailRole,
-        ModifiedRole
+        ModifiedRole,
+        IsDesktopFileRole
     };
 
     enum FilterMode {

@@ -41,6 +41,7 @@ Item {
     Loader {
         id: backgroundLoader
         anchors.fill: parent
+        anchors.margins: 0
         sourceComponent: settings.backgroundType === 0 ? wallpaper : background
     }
 

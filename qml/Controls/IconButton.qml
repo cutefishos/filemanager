@@ -49,6 +49,7 @@ Item {
         height: width
         sourceSize: Qt.size(width, height)
         smooth: false
+        antialiasing: true
     }
 
     MouseArea {

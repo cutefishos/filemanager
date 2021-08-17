@@ -66,7 +66,7 @@ QRect DesktopView::screenAvailableRect()
 
 void DesktopView::onGeometryChanged()
 {
-    m_screenRect = qApp->primaryScreen()->geometry();
+    m_screenRect = qApp->primaryScreen()->geometry().adjusted(0, 0, 1, 1);
     setGeometry(m_screenRect);
     emit screenRectChanged();
 }

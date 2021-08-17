@@ -95,6 +95,7 @@ Item {
             source: "image://icontheme/" + model.iconName
             visible: !_image.visible
             smooth: false
+            antialiasing: true
 
             ColorOverlay {
                 anchors.fill: _icon
@@ -123,12 +124,12 @@ Item {
             visible: status === Image.Ready
             horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
-            sourceSize.width: width
-            sourceSize.height: height
+            sourceSize: Qt.size(width, height)
             source: model.thumbnail ? model.thumbnail : ""
             asynchronous: true
             cache: false
             smooth: false
+            antialiasing: true
 
             // Because of the effect of OpacityMask.
             ColorOverlay {
