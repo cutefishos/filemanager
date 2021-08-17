@@ -37,6 +37,10 @@ OpenWithDialog::OpenWithDialog(const QUrl &url, QQuickView *parent)
     engine()->rootContext()->setContextProperty("launcher", FileLauncher::self());
 
     setSource(QUrl("qrc:/qml/Dialogs/OpenWithDialog.qml"));
+
+    QRect rect = geometry();
+    setMinimumSize(rect.size());
+    setMaximumSize(rect.size());
 }
 
 QString OpenWithDialog::url() const

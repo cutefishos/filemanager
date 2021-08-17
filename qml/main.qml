@@ -35,7 +35,7 @@ FishUI.Window {
     title: qsTr("File Manager")
 
     header.height: 36 + FishUI.Units.largeSpacing
-    background.opacity: 0.9
+    background.opacity: root.compositing ? 0.9 : 1.0
 
     FishUI.WindowBlur {
         view: root
