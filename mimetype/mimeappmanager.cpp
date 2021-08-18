@@ -91,6 +91,9 @@ void MimeAppManager::initApplications()
             if (!desktopFile.valid())
                 continue;
 
+            if (desktopFile.value("Terminal").toBool())
+                continue;
+
             m_desktopFiles.append(filePath);
             m_desktopObjects.insert(filePath, desktopFile);
 
