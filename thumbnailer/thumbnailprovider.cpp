@@ -33,6 +33,9 @@ QImage ThumbnailProvider::requestImage(const QString &id, QSize *size, const QSi
     if (size)
         *size = requestedSize;
 
+    QString f = id;
+    qDebug() << id << QFile::exists(f.replace("file://", ""));
+
     QString thumbnail = ThumbnailCache::self()->requestThumbnail(id, requestedSize);
 
     if (!thumbnail.isEmpty()) {
