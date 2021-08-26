@@ -254,6 +254,7 @@ void PlacesModel::onDeviceAdded(const QString &udi)
         beginInsertRows(QModelIndex(), rowCount(), rowCount());
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(udi);
+        deviceItem->setCategory(tr("Drives"));
         m_items.append(deviceItem);
         endInsertRows();
     }
