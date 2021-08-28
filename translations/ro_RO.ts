@@ -6,22 +6,22 @@
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="28"/>
         <source>New folder name</source>
-        <translation type="unfinished"></translation>
+        <translation>Noul nume de dosar</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
         <source>New folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Dosar nou</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="79"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Anulare</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="85"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>Ok</translation>
     </message>
 </context>
 <context>
@@ -29,17 +29,17 @@
     <message>
         <location filename="../helper/datehelper.cpp" line="15"/>
         <source>Now</source>
-        <translation type="unfinished"></translation>
+        <translation>Acum</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="17"/>
         <source>1 minute ago</source>
-        <translation type="unfinished"></translation>
+        <translation>1 minut în urmă</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="19"/>
         <source>%1 minutes ago</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 minute în urmă</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="23"/>
