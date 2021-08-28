@@ -158,12 +158,12 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1069"/>
         <source>Open in Terminal</source>
-        <translation>Открыть в Терминале</translation>
+        <translation>Открыть в терминале</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1072"/>
         <source>Set as Wallpaper</source>
-        <translation>Установить как Обои</translation>
+        <translation>Установить как обои</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1075"/>
@@ -211,7 +211,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="164"/>
         <source>Empty Trash</source>
-        <translation>Очистить Корзину</translation>
+        <translation>Очистить корзину</translation>
     </message>
 </context>
 <context>
