@@ -20,6 +20,8 @@
 #include "placesitem.h"
 #include <QDebug>
 
+#include <solid_version.h>
+
 PlacesItem::PlacesItem(const QString &displayName,
                        QUrl url,
                        QObject *parent)
@@ -116,7 +118,7 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
         m_iconName = m_device.icon();
         m_iconPath = QString("%1.svg").arg(m_iconName);
 
-#if SOLID_ENABLE_DEPRECATED_SINCE(5, 71)
+#if SOLID_VERSION_MAJOR >= 5 && SOLID_VERSION_MINOR >= 71
         m_displayName = m_device.displayName();
 #elif
         m_displayName = m_device.description();
