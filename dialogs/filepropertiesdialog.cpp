@@ -56,8 +56,9 @@ FilePropertiesDialog::FilePropertiesDialog(const KFileItemList &items, QQuickVie
 
 FilePropertiesDialog::FilePropertiesDialog(const QUrl &url, QQuickView *parent)
     : QQuickView(parent)
-    , m_items { KFileItem(url) }
 {
+    m_items.append(KFileItem(url));
+
     init();
 }
 
