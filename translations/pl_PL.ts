@@ -98,12 +98,12 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="166"/>
         <source>%1 item</source>
-        <translation type="unfinished">% jednej rzeczy</translation>
+        <translation>%1 rzecz</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="166"/>
         <source>%1 items</source>
-        <translation type="unfinished">% jednych rzeczy</translation>
+        <translation>%1 rzeczy</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="830"/>
@@ -196,12 +196,12 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="146"/>
         <source>%1 item</source>
-        <translation type="unfinished">% jednej rzeczy</translation>
+        <translation>%1 rzecz</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="147"/>
         <source>%1 items</source>
-        <translation type="unfinished">% jednych rzeczy</translation>
+        <translation>%1 rzeczy</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="153"/>
@@ -340,7 +340,7 @@
     <message>
         <location filename="../dialogs/propertiesdialog.cpp" line="209"/>
         <source>%1 files</source>
-        <translation type="unfinished">% plików</translation>
+        <translation>%1 plików</translation>
     </message>
 </context>
 <context>
