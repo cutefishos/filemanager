@@ -115,7 +115,12 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
         m_access = m_device.as<Solid::StorageAccess>();
         m_iconName = m_device.icon();
         m_iconPath = QString("%1.svg").arg(m_iconName);
+
+#if SOLID_BUILD_DEPRECATED_SINCE(5, 71)
         m_displayName = m_device.displayName();
+#elif
+        m_displayName = m_device.description();
+#endif
 
         if (m_access) {
             m_url = QUrl::fromLocalFile(m_access->filePath());
