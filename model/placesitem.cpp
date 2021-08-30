@@ -116,7 +116,7 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
         m_iconName = m_device.icon();
         m_iconPath = QString("%1.svg").arg(m_iconName);
 
-#if SOLID_BUILD_DEPRECATED_SINCE(5, 71)
+#if SOLID_ENABLE_DEPRECATED_SINCE(5, 71)
         m_displayName = m_device.displayName();
 #elif
         m_displayName = m_device.description();
