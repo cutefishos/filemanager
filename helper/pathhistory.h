@@ -21,6 +21,7 @@
 #define PATHHISTORY_H
 
 #include <QObject>
+#include <QVector>
 
 class PathHistory : public QObject
 {
