@@ -120,7 +120,7 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
 
 #if SOLID_VERSION_MAJOR >= 5 && SOLID_VERSION_MINOR >= 71
         m_displayName = m_device.displayName();
-#elif
+#else
         m_displayName = m_device.description();
 #endif
 
