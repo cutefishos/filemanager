@@ -16,6 +16,7 @@ find_package(Qt5 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
 
 find_package(KF5KIO)
 find_package(KF5Solid)
+find_package(KF5WindowSystem)
 
 add_executable(cutefish-filemanager
   main.cpp
@@ -62,6 +63,7 @@ target_link_libraries(cutefish-filemanager
   KF5::KIOFileWidgets
   KF5::KIOWidgets
   KF5::Solid
+  KF5::WindowSystem
 
   # FishUI
 )

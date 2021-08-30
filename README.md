@@ -4,10 +4,12 @@ Cutefish File Manager, simple to use, beautiful, and retain the classic PC inter
 
 ## Dependencies
 
-### Ubuntu
+### Debian/Ubuntu
 
 ```
-sudo apt install libkf5solid-dev libkf5kio-dev -y
+sudo apt install equivs curl git devscripts lintian build-essential automake autotools-dev --no-install-recommends
+
+sudo mk-build-deps -i -t "apt-get --yes" -r
 ```
 
 ### ArchLinux
