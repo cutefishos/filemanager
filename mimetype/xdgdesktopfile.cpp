@@ -83,11 +83,19 @@ bool XdgDesktopFile::save()
 
         if (sect != section) {
             section = sect;
+#if QT_VERSION >= 0x050e00
             stream << QLatin1Char('[') << section << QChar(']') << Qt::endl;
+#else
+            stream << QLatin1Char('[') << section << QChar(']') << endl;
+#endif
         }
 
         QString key = path.section(QChar('/'), 1);
+#if QT_VERSION >= 0x050e00
         stream << key << QLatin1Char('=') << i.value().toString() << Qt::endl;
+#else
+        stream << key << QLatin1Char('=') << i.value().toString() << endl;
+#endif
         ++i;
     }
 
