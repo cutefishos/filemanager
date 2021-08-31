@@ -150,6 +150,14 @@ Item {
         }
     }
 
+    Connections {
+        target: dirModel
+
+        function onNotification(text) {
+            root.showPassiveNotification(text, 3000)
+        }
+    }
+
     FM.ItemViewAdapter {
         id: viewAdapter
         adapterView: _viewLoader.item

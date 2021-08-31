@@ -158,6 +158,7 @@ Item {
                 focus: true
                 flat: true
                 text: qsTr("Open")
+                enabled: listView.count > 0
                 Layout.fillWidth: true
                 onClicked: control.openApp()
             }
