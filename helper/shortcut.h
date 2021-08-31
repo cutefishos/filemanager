@@ -50,6 +50,7 @@ signals:
     void cut();
     void paste();
     void rename();
+    void refresh();
     void openPathEditor();
     void selectAll();
     void backspace();
