@@ -53,7 +53,10 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(QObject *viewAdapter READ viewAdapter WRITE setViewAdapter NOTIFY viewAdapterChanged)
     Q_PROPERTY(bool isDesktop READ isDesktop WRITE setIsDesktop NOTIFY isDesktopChanged)
     Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
+    Q_PROPERTY(int filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
+    Q_PROPERTY(QString filterPattern READ filterPattern WRITE setFilterPattern NOTIFY filterPatternChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
+    Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY filterMimeTypesChanged)
 
 public:
     enum DataRole {
@@ -120,6 +123,15 @@ public:
 
     bool sortDirsFirst() const;
     void setSortDirsFirst(bool enable);
+
+    int filterMode() const;
+    void setFilterMode(int filterMode);
+
+    QStringList filterMimeTypes() const;
+    void setFilterMimeTypes(const QStringList &mimeList);
+
+    QString filterPattern() const;
+    void setFilterPattern(const QString &pattern);
 
     QObject *viewAdapter() const;
     void setViewAdapter(QObject *adapter);
@@ -195,12 +207,15 @@ signals:
     void sortModeChanged();
     void sortDescChanged();
     void sortDirsFirstChanged();
+    void filterModeChanged();
     void requestRename();
     void draggingChanged();
     void viewAdapterChanged();
     void isDesktopChanged();
     void selectionCountChanged();
     void countChanged();
+    void filterPatternChanged();
+    void filterMimeTypesChanged();
 
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -215,6 +230,11 @@ private:
 
     bool isSupportThumbnails(const QString &mimeType) const;
 
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
+    bool matchMimeType(const KFileItem &item) const;
+    bool matchPattern(const KFileItem &item) const;
+
 private:
     KDirModel *m_dirModel;
     KDirWatch *m_dirWatch;
@@ -227,6 +247,12 @@ private:
     int m_sortMode;
     bool m_sortDesc;
     bool m_sortDirsFirst;
+
+    FilterMode m_filterMode;
+    QString m_filterPattern;
+    bool m_filterPatternMatchAll;
+    QSet<QString> m_mimeSet;
+    QList<QRegExp> m_regExps;
 
     bool m_complete;
     bool m_isDesktop;

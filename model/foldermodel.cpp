@@ -73,6 +73,8 @@ FolderModel::FolderModel(QObject *parent)
     , m_sortMode(0)
     , m_sortDesc(false)
     , m_sortDirsFirst(true)
+    , m_filterMode(NoFilter)
+    , m_filterPatternMatchAll(true)
     , m_complete(false)
     , m_isDesktop(false)
     , m_actionCollection(this)
@@ -339,6 +341,70 @@ void FolderModel::setSortDirsFirst(bool enable)
 
         emit sortDirsFirstChanged();
     }
+}
+
+int FolderModel::filterMode() const
+{
+    return m_filterMode;
+}
+
+void FolderModel::setFilterMode(int filterMode)
+{
+    if (m_filterMode != (FilterMode)filterMode) {
+        m_filterMode = (FilterMode)filterMode;
+
+        invalidateFilterIfComplete();
+
+        emit filterModeChanged();
+    }
+}
+
+QStringList FolderModel::filterMimeTypes() const
+{
+    return m_mimeSet.values();
+}
+
+void FolderModel::setFilterMimeTypes(const QStringList &mimeList)
+{
+    const QSet<QString> set(mimeList.constBegin(), mimeList.constEnd());
+
+    if (m_mimeSet != set) {
+        m_mimeSet = set;
+
+        invalidateFilterIfComplete();
+
+        emit filterMimeTypesChanged();
+    }
+}
+
+QString FolderModel::filterPattern() const
+{
+    return m_filterPattern;
+}
+
+void FolderModel::setFilterPattern(const QString &pattern)
+{
+    if (m_filterPattern == pattern) {
+        return;
+    }
+
+    m_filterPattern = pattern;
+    m_filterPatternMatchAll = (pattern == QLatin1String("*"));
+
+    const QStringList patterns = pattern.split(QLatin1Char(' '));
+    m_regExps.clear();
+    m_regExps.reserve(patterns.count());
+
+    foreach (const QString &pattern, patterns) {
+        QRegExp rx(pattern);
+        rx.setPatternSyntax(QRegExp::Wildcard);
+        rx.setCaseSensitivity(Qt::CaseInsensitive);
+        m_regExps.append(rx);
+    }
+
+    invalidateFilterIfComplete();
+
+    emit filterPatternChanged();
 }
 
 QObject *FolderModel::viewAdapter() const
@@ -1084,6 +1150,53 @@ bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 
     if (supportsMimetypes.contains(mimeType))
         return true;
+
+    return false;
+}
+
+bool FolderModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    const KDirModel *dirModel = static_cast<KDirModel *>(sourceModel());
+    const KFileItem item = dirModel->itemForIndex(dirModel->index(sourceRow, KDirModel::Name, sourceParent));
+
+    if (m_filterMode == NoFilter) {
+        return true;
+    }
+
+    if (m_filterMode == FilterShowMatches) {
+        return (matchPattern(item) && matchMimeType(item));
+    } else {
+        return !(matchPattern(item) && matchMimeType(item));
+    }
+}
+
+bool FolderModel::matchMimeType(const KFileItem &item) const
+{
+    if (m_mimeSet.isEmpty()) {
+        return false;
+    }
+
+    if (m_mimeSet.contains(QLatin1String("all/all")) || m_mimeSet.contains(QLatin1String("all/allfiles"))) {
+        return true;
+    }
+
+    const QString mimeType = item.determineMimeType().name();
+    return m_mimeSet.contains(mimeType);
+}
+
+bool FolderModel::matchPattern(const KFileItem &item) const
+{
+    if (m_filterPatternMatchAll) {
+        return true;
+    }
+
+    const QString name = item.name();
+    QListIterator<QRegExp> i(m_regExps);
+    while (i.hasNext()) {
+        if (i.next().exactMatch(name)) {
+            return true;
+        }
+    }
 
     return false;
 }
