@@ -85,6 +85,7 @@ FolderModel::FolderModel(QObject *parent)
     DirLister *dirLister = new DirLister(this);
     dirLister->setDelayedMimeTypes(true);
     dirLister->setAutoErrorHandlingEnabled(false, nullptr);
+    // connect(dirLister, &DirLister::error, this, &FolderModel::notification);
 
     m_dirModel = new KDirModel(this);
     m_dirModel->setDirLister(dirLister);
@@ -241,6 +242,11 @@ void FolderModel::setUrl(const QString &url)
         return;
 
     const QUrl &resolvedNewUrl = resolve(url);
+
+    if (!QFile::exists(resolvedNewUrl.toLocalFile()) && !url.startsWith("trash:/")) {
+        emit notification(tr("The file or folder %1 does not exist.").arg(url));
+        return;
+    }
 
     // Refresh this directory.
     if (url == m_url) {

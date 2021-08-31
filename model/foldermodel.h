@@ -217,6 +217,8 @@ signals:
     void filterPatternChanged();
     void filterMimeTypesChanged();
 
+    void notification(const QString &message);
+
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void dragSelectedInternal(int x, int y);
