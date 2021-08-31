@@ -140,6 +140,7 @@ Item {
     FM.FolderModel {
         id: dirModel
         viewAdapter: viewAdapter
+        sortMode: settings.sortMode
 
         Component.onCompleted: {
             if (arg)
@@ -374,6 +375,9 @@ Item {
         }
         onDeleteFile: {
             dirModel.keyDeletePress()
+        }
+        onRefresh: {
+            dirModel.refresh()
         }
     }
 

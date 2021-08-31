@@ -517,6 +517,11 @@ void FolderModel::goForward()
     setUrl(url.toString());
 }
 
+void FolderModel::refresh()
+{
+    m_dirModel->dirLister()->updateDirectory(m_dirModel->dirLister()->url());
+}
+
 bool FolderModel::supportSetAsWallpaper(const QString &mimeType)
 {
     if (mimeType == "image/jpeg" || mimeType == "image/png")

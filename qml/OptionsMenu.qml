@@ -101,25 +101,27 @@ FishUI.DesktopMenu {
         onTriggered: settings.viewMethod = 0
     }
 
-    // MenuSeparator {}
+    MenuSeparator {
+        Layout.fillWidth: true
+    }
 
     MenuItem {
         Layout.fillWidth: true
 
-        Image {
-            id: orderByNameIcon
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: FishUI.Units.largeSpacing
-            source: FishUI.Theme.darkMode ? "qrc:/images/dark/order_by_name.svg" : "qrc:/images/light/order_by_name.svg"
-            sourceSize: Qt.size(width, height)
-            width: 22
-            height: width
-            smooth: false
-        }
+//        Image {
+//            id: orderByNameIcon
+//            anchors.verticalCenter: parent.verticalCenter
+//            anchors.left: parent.left
+//            anchors.leftMargin: FishUI.Units.largeSpacing
+//            source: FishUI.Theme.darkMode ? "qrc:/images/dark/order_by_name.svg" : "qrc:/images/light/order_by_name.svg"
+//            sourceSize: Qt.size(width, height)
+//            width: 22
+//            height: width
+//            smooth: false
+//        }
 
         Text {
-            anchors.left: orderByNameIcon.right
+            anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: FishUI.Units.largeSpacing
             text: qsTr("Name")
@@ -130,34 +132,34 @@ FishUI.DesktopMenu {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
-            source: FishUI.Theme.darkMode ? "qrc:/images/dark/up.svg" : "qrc:/images/light/up.svg"
+            source: FishUI.Theme.darkMode ? "qrc:/images/dark/checked.svg" : "qrc:/images/light/checked.svg"
             sourceSize: Qt.size(width, height)
             height: width
             width: 22
-            visible: settings.orderBy === 0
+            visible: settings.sortMode === 0
             smooth: false
         }
 
-        onTriggered: settings.orderBy = 0
+        onTriggered: settings.sortMode = 0
     }
 
     MenuItem {
         Layout.fillWidth: true
 
-        Image {
-            id: orderByDateIcon
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: FishUI.Units.largeSpacing
-            source: FishUI.Theme.darkMode ? "qrc:/images/dark/date.svg" : "qrc:/images/light/date.svg"
-            sourceSize: Qt.size(width, height)
-            width: 22
-            height: width
-            smooth: false
-        }
+//        Image {
+//            id: orderByDateIcon
+//            anchors.verticalCenter: parent.verticalCenter
+//            anchors.left: parent.left
+//            anchors.leftMargin: FishUI.Units.largeSpacing
+//            source: FishUI.Theme.darkMode ? "qrc:/images/dark/date.svg" : "qrc:/images/light/date.svg"
+//            sourceSize: Qt.size(width, height)
+//            width: 22
+//            height: width
+//            smooth: false
+//        }
 
         Text {
-            anchors.left: orderByDateIcon.right
+            anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: FishUI.Units.largeSpacing
             text: qsTr("Date")
@@ -168,34 +170,58 @@ FishUI.DesktopMenu {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
-            source: FishUI.Theme.darkMode ? "qrc:/images/dark/up.svg" : "qrc:/images/light/up.svg"
+            source: FishUI.Theme.darkMode ? "qrc:/images/dark/checked.svg" : "qrc:/images/light/checked.svg"
             sourceSize: Qt.size(width, height)
             width: 22
             height: width
-            visible: settings.orderBy === 1
+            visible: settings.sortMode === 2
             smooth: false
         }
 
-        onTriggered: settings.orderBy = 1
+        onTriggered: settings.sortMode = 2
+    }
+
+    MenuItem {
+        Text {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: FishUI.Units.largeSpacing
+            text: qsTr("Type")
+            color: FishUI.Theme.textColor
+        }
+
+        Image {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
+            source: FishUI.Theme.darkMode ? "qrc:/images/dark/checked.svg" : "qrc:/images/light/checked.svg"
+            sourceSize: Qt.size(width, height)
+            width: 22
+            height: width
+            visible: settings.sortMode === 6
+            smooth: false
+        }
+
+        onTriggered: settings.sortMode = 6
     }
 
     MenuItem {
         Layout.fillWidth: true
 
-        Image {
-            id: orderBySizeIcon
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: FishUI.Units.largeSpacing
-            source: FishUI.Theme.darkMode ? "qrc:/images/dark/size.svg" : "qrc:/images/light/size.svg"
-            sourceSize: Qt.size(width, height)
-            width: 22
-            height: width
-            smooth: false
-        }
+//        Image {
+//            id: orderBySizeIcon
+//            anchors.verticalCenter: parent.verticalCenter
+//            anchors.left: parent.left
+//            anchors.leftMargin: FishUI.Units.largeSpacing
+//            source: FishUI.Theme.darkMode ? "qrc:/images/dark/size.svg" : "qrc:/images/light/size.svg"
+//            sourceSize: Qt.size(width, height)
+//            width: 22
+//            height: width
+//            smooth: false
+//        }
 
         Text {
-            anchors.left: orderBySizeIcon.right
+            anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: FishUI.Units.largeSpacing
             text: qsTr("Size")
@@ -206,14 +232,14 @@ FishUI.DesktopMenu {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
-            source: FishUI.Theme.darkMode ? "qrc:/images/dark/up.svg" : "qrc:/images/light/up.svg"
+            source: FishUI.Theme.darkMode ? "qrc:/images/dark/checked.svg" : "qrc:/images/light/checked.svg"
             sourceSize: Qt.size(width, height)
             width: 22
             height: width
-            visible: settings.orderBy === 2
+            visible: settings.sortMode === 1
             smooth: false
         }
 
-        onTriggered: settings.orderBy = 2
+        onTriggered: settings.sortMode = 1
     }
 }

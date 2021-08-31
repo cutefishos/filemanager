@@ -144,6 +144,7 @@ public:
     Q_INVOKABLE void up();
     Q_INVOKABLE void goBack();
     Q_INVOKABLE void goForward();
+    Q_INVOKABLE void refresh();
 
     Q_INVOKABLE bool supportSetAsWallpaper(const QString &mimeType);
     Q_INVOKABLE int fileExtensionBoundary(int row);

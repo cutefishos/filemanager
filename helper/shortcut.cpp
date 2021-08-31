@@ -65,6 +65,8 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             emit backspace();
         } else if (keyEvent->key() == Qt::Key_Delete) {
             emit deleteFile();
+        } else if (keyEvent->key() == Qt::Key_F5) {
+            emit refresh();
         }
     }
 
