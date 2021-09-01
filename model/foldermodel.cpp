@@ -33,6 +33,7 @@
 #include "../helper/filelauncher.h"
 
 // Qt
+#include <QSet>
 #include <QDir>
 #include <QMenu>
 #include <QAction>
@@ -266,15 +267,15 @@ void FolderModel::setUrl(const QString &url)
     emit urlChanged();
     emit resolvedUrlChanged();
 
-    if (m_dirWatch) {
-        delete m_dirWatch;
-        m_dirWatch = nullptr;
-    }
+//    if (m_dirWatch) {
+//        delete m_dirWatch;
+//        m_dirWatch = nullptr;
+//    }
 
-    if (resolvedNewUrl.isValid()) {
-        m_dirWatch = new KDirWatch(this);
-        m_dirWatch->addFile(resolvedNewUrl.toLocalFile() + QLatin1String("/.directory"));
-    }
+//    if (resolvedNewUrl.isValid()) {
+//        m_dirWatch = new KDirWatch(this);
+//        m_dirWatch->addFile(resolvedNewUrl.toLocalFile() + QLatin1String("/.directory"));
+//    }
 }
 
 QUrl FolderModel::resolvedUrl() const
