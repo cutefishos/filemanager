@@ -373,7 +373,7 @@ QStringList FolderModel::filterMimeTypes() const
 
 void FolderModel::setFilterMimeTypes(const QStringList &mimeList)
 {
-    const QSet<QString> set(mimeList.constBegin(), mimeList.constEnd());
+    QSet<QString> set(mimeList.begin(), mimeList.end());
 
     if (m_mimeSet != set) {
         m_mimeSet = set;
