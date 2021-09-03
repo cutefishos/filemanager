@@ -1003,6 +1003,10 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         menu->addAction(m_actionCollection.action("properties"));
     } else {
         // Open the items menu.
+
+        // Trash items
+        menu->addAction(m_actionCollection.action("restore"));
+
         menu->addAction(m_actionCollection.action("open"));
         menu->addAction(m_actionCollection.action("openWith"));
         menu->addAction(m_actionCollection.action("cut"));
@@ -1078,6 +1082,20 @@ void FolderModel::openInTerminal()
 void FolderModel::openChangeWallpaperDialog()
 {
     QProcess::startDetached("cutefish-settings", QStringList() << "-m" << "background");
+}
+
+void FolderModel::restoreFromTrash()
+{
+    if (!m_selectionModel->hasSelection())
+        return;
+
+    if (QAction *action = m_actionCollection.action("restore"))
+        if (!action->isVisible())
+            return;
+
+
+    KIO::RestoreJob *job = KIO::restoreFromTrash(selectedUrls());
+    job->start();
 }
 
 void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
@@ -1286,6 +1304,9 @@ void FolderModel::createActions()
     QAction *changeBackground = new QAction(tr("Change background"), this);
     QObject::connect(changeBackground, &QAction::triggered, this, &FolderModel::openChangeWallpaperDialog);
 
+    QAction *restore = new QAction(tr("Restore"), this);
+    QObject::connect(restore, &QAction::triggered, this, &FolderModel::restoreFromTrash);
+
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
@@ -1300,6 +1321,7 @@ void FolderModel::createActions()
     m_actionCollection.addAction(QStringLiteral("wallpaper"), wallpaper);
     m_actionCollection.addAction(QStringLiteral("properties"), properties);
     m_actionCollection.addAction(QStringLiteral("changeBackground"), changeBackground);
+    m_actionCollection.addAction(QStringLiteral("restore"), restore);
 }
 
 void FolderModel::updateActions()
@@ -1336,8 +1358,24 @@ void FolderModel::updateActions()
         }
     }
 
+    if (QAction *openAction = m_actionCollection.action(QStringLiteral("open"))) {
+        openAction->setVisible(!isTrash);
+    }
+
+    if (QAction *copyAction = m_actionCollection.action(QStringLiteral("copy"))) {
+        copyAction->setVisible(!isTrash);
+    }
+
+    if (QAction *cutAction = m_actionCollection.action(QStringLiteral("cut"))) {
+        cutAction->setVisible(!isTrash);
+    }
+
+    if (QAction *restoreAction = m_actionCollection.action(QStringLiteral("restore"))) {
+        restoreAction->setVisible(items.count() >= 1 && isTrash);
+    }
+
     if (QAction *openWith = m_actionCollection.action(QStringLiteral("openWith"))) {
-        openWith->setVisible(items.count() == 1);
+        openWith->setVisible(items.count() == 1 && !isTrash);
     }
 
     if (QAction *newFolder = m_actionCollection.action(QStringLiteral("newFolder"))) {
@@ -1379,7 +1417,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *terminal = m_actionCollection.action("terminal")) {
-        terminal->setVisible(items.size() == 1 && items.first().isDir());
+        terminal->setVisible(items.size() == 1 && items.first().isDir() && !isTrash);
     }
 
     if (QAction *terminal = m_actionCollection.action("wallpaper")) {
