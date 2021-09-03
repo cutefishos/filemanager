@@ -196,6 +196,7 @@ public:
     Q_INVOKABLE void openPropertiesDialog();
     Q_INVOKABLE void openInTerminal();
     Q_INVOKABLE void openChangeWallpaperDialog();
+    Q_INVOKABLE void openDeleteDialog();
 
     void restoreFromTrash();
 
