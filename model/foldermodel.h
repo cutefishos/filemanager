@@ -197,6 +197,8 @@ public:
     Q_INVOKABLE void openInTerminal();
     Q_INVOKABLE void openChangeWallpaperDialog();
 
+    void restoreFromTrash();
+
     bool isDesktop() const;
     void setIsDesktop(bool isDesktop);
 
