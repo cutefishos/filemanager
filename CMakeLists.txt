@@ -27,6 +27,9 @@ add_executable(cutefish-filemanager
   model/dirlister.cpp
   model/positioner.cpp
 
+  cio/cfilejob.cpp
+  cio/cfilesizejob.cpp
+
   dialogs/createfolderdialog.cpp
   dialogs/filepropertiesdialog.cpp
   dialogs/openwithdialog.cpp
