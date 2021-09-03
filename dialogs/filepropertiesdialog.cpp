@@ -64,10 +64,10 @@ FilePropertiesDialog::FilePropertiesDialog(const QUrl &url, QQuickView *parent)
 
 FilePropertiesDialog::~FilePropertiesDialog()
 {
-    if (m_dirSizeJob) {
-        m_dirSizeJob->kill();
-        m_dirSizeJob->deleteLater();
-        m_dirSizeJob = nullptr;
+    if (m_sizeJob) {
+        m_sizeJob->stop();
+        m_sizeJob->deleteLater();
+        m_sizeJob = nullptr;
     }
 }
 
@@ -107,6 +107,12 @@ void FilePropertiesDialog::accept(const QString &text)
 
 void FilePropertiesDialog::reject()
 {
+    if (m_sizeJob) {
+        m_sizeJob->stop();
+        m_sizeJob->deleteLater();
+        m_sizeJob = nullptr;
+    }
+
     this->destroy();
     this->deleteLater();
 }
@@ -181,17 +187,17 @@ void FilePropertiesDialog::init()
     setSource(QUrl("qrc:/qml/Dialogs/PropertiesDialog.qml"));
 
     m_multiple = m_items.count() > 1;
-    m_dirSizeJob = KIO::directorySize(m_items);
 
-    // Update
-    m_dirSizeUpdateTimer = new QTimer(this);
-    connect(m_dirSizeUpdateTimer, &QTimer::timeout, this, [=] {
-        m_size = KIO::convertSize(m_dirSizeJob->totalSize());
-        emit fileSizeChanged();
-    });
-    m_dirSizeUpdateTimer->start(500);
+    QList<QUrl> list;
+    for (KFileItem item : m_items) {
+        list.append(item.url());
+    }
 
-    connect(m_dirSizeJob, &KIO::DirectorySizeJob::result, this, &FilePropertiesDialog::slotDirSizeFinished);
+    m_sizeJob = std::shared_ptr<CFileSizeJob>(new CFileSizeJob);
+    m_sizeJob->start(list);
+
+    connect(m_sizeJob.get(), &CFileSizeJob::sizeChanged, this, &FilePropertiesDialog::updateTotalSize);
+    connect(m_sizeJob.get(), &CFileSizeJob::result, this, &FilePropertiesDialog::updateTotalSize);
 
     if (!m_multiple) {
         KFileItem item = m_items.first();
@@ -236,16 +242,11 @@ void FilePropertiesDialog::init()
     emit isWritableChanged();
 }
 
-void FilePropertiesDialog::slotDirSizeFinished(KJob *job)
+void FilePropertiesDialog::updateTotalSize()
 {
-    if (job->error())
+    if (!m_sizeJob)
         return;
 
-    m_dirSizeUpdateTimer->stop();
-    m_size = KIO::convertSize(m_dirSizeJob->totalSize());
-
-    m_dirSizeJob = 0;
-
+    m_size = KIO::convertSize(m_sizeJob->totalSize());
     emit fileSizeChanged();
 }
-

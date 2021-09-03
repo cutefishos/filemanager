@@ -23,9 +23,12 @@
 #include <QQuickView>
 #include <QTimer>
 #include <QUrl>
+#include <QSharedPointer>
 
 #include <KFileItem>
 #include <KIO/DirectorySizeJob>
+
+#include "cio/cfilesizejob.h"
 
 class FilePropertiesDialog : public QQuickView
 {
@@ -82,7 +85,7 @@ private:
     void init();
 
 private slots:
-    void slotDirSizeFinished(KJob *job);
+    void updateTotalSize();
 
 private:
     KFileItemList m_items;
@@ -95,8 +98,7 @@ private:
     QString m_modifiedTime;
     QString m_accessedTime;
 
-    QTimer *m_dirSizeUpdateTimer = nullptr;
-    KIO::DirectorySizeJob *m_dirSizeJob;
+    std::shared_ptr<CFileSizeJob> m_sizeJob;
 
     bool m_multiple;
     bool m_isWritable;

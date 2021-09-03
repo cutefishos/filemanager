@@ -41,6 +41,11 @@ OpenWithDialog::OpenWithDialog(const QUrl &url, QQuickView *parent)
     QRect rect = geometry();
     setMinimumSize(rect.size());
     setMaximumSize(rect.size());
+
+    connect(this, &QQuickView::visibleChanged, this, [=] {
+        if (!this->isVisible())
+            this->deleteLater();
+    });
 }
 
 QString OpenWithDialog::url() const
