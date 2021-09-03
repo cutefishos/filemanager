@@ -63,6 +63,24 @@
     </message>
 </context>
 <context>
+    <name>DeleteDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
+        <source>Do you want to delete it permanently?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Atsisakyti</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>DesktopView</name>
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
@@ -85,7 +103,7 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="69"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Atsisakyti</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="75"/>
@@ -109,93 +127,103 @@
 <context>
     <name>FolderModel</name>
     <message>
-        <location filename="../model/foldermodel.cpp" line="182"/>
+        <location filename="../model/foldermodel.cpp" line="184"/>
         <source>%1 item</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="182"/>
+        <location filename="../model/foldermodel.cpp" line="184"/>
         <source>%1 items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="247"/>
+        <location filename="../model/foldermodel.cpp" line="249"/>
         <source>The file or folder %1 does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="980"/>
+        <location filename="../model/foldermodel.cpp" line="981"/>
         <source>Select All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1242"/>
-        <source>Open</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1245"/>
-        <source>Open with</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1248"/>
-        <source>Cut</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1251"/>
-        <source>Copy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1254"/>
-        <source>Paste</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1257"/>
-        <source>New Folder</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1260"/>
-        <source>Move To Trash</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1263"/>
-        <source>Empty Trash</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1266"/>
-        <source>Delete</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1269"/>
-        <source>Rename</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1272"/>
-        <source>Open in Terminal</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1275"/>
-        <source>Set as Wallpaper</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1278"/>
-        <source>Properties</source>
+        <location filename="../model/foldermodel.cpp" line="1088"/>
+        <source>File Manager</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1281"/>
+        <source>Open</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1284"/>
+        <source>Open with</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1287"/>
+        <source>Cut</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1290"/>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1293"/>
+        <source>Paste</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1296"/>
+        <source>New Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1299"/>
+        <source>Move To Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1302"/>
+        <source>Empty Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1305"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1308"/>
+        <source>Rename</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1311"/>
+        <source>Open in Terminal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1314"/>
+        <source>Set as Wallpaper</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1317"/>
+        <source>Properties</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1320"/>
         <source>Change background</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1323"/>
+        <source>Restore</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -303,7 +331,7 @@
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Atsisakyti</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="160"/>
@@ -357,43 +385,43 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="46"/>
+        <location filename="../model/placesmodel.cpp" line="47"/>
         <source>Desktop</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="53"/>
+        <location filename="../model/placesmodel.cpp" line="55"/>
         <source>Documents</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="60"/>
+        <location filename="../model/placesmodel.cpp" line="63"/>
         <source>Downloads</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="67"/>
+        <location filename="../model/placesmodel.cpp" line="71"/>
         <source>Music</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="74"/>
+        <location filename="../model/placesmodel.cpp" line="79"/>
         <source>Pictures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="81"/>
+        <location filename="../model/placesmodel.cpp" line="87"/>
         <source>Videos</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="86"/>
+        <location filename="../model/placesmodel.cpp" line="93"/>
         <source>Trash</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="109"/>
-        <location filename="../model/placesmodel.cpp" line="257"/>
+        <location filename="../model/placesmodel.cpp" line="117"/>
+        <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
         <translation type="unfinished"></translation>
     </message>
@@ -438,12 +466,12 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="177"/>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Atsisakyti</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="183"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Gerai</translation>
     </message>
 </context>
 <context>
