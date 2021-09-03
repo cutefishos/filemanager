@@ -52,6 +52,7 @@
 
 // Qt Quick
 #include <QQuickItem>
+#include <QQmlContext>
 
 // KIO
 #include <KIO/CopyJob>
@@ -871,13 +872,8 @@ void FolderModel::deleteSelected()
         }
     }
 
-    const QList<QUrl> urls = selectedUrls();
-    KIO::JobUiDelegate uiDelegate;
-
-    if (uiDelegate.askDeleteConfirmation(urls, KIO::JobUiDelegate::Delete, KIO::JobUiDelegate::DefaultConfirmation)) {
-        KIO::Job *job = KIO::del(urls);
-        job->uiDelegate()->setAutoErrorHandlingEnabled(true);
-    }
+    KIO::DeleteJob *job = KIO::del(selectedUrls());
+    job->start();
 }
 
 void FolderModel::moveSelectedToTrash()
@@ -912,7 +908,7 @@ void FolderModel::keyDeletePress()
     if (!m_selectionModel->hasSelection())
         return;
 
-    resolvedUrl().scheme() == "trash" ? deleteSelected() : moveSelectedToTrash();
+    resolvedUrl().scheme() == "trash" ? openDeleteDialog() : moveSelectedToTrash();
 }
 
 void FolderModel::setDragHotSpotScrollOffset(int x, int y)
@@ -1082,6 +1078,26 @@ void FolderModel::openInTerminal()
 void FolderModel::openChangeWallpaperDialog()
 {
     QProcess::startDetached("cutefish-settings", QStringList() << "-m" << "background");
+}
+
+void FolderModel::openDeleteDialog()
+{
+    QQuickView *view = new QQuickView;
+    view->setModality(Qt::ApplicationModal);
+    view->setFlags(Qt::Dialog);
+    view->setTitle(tr("File Manager"));
+    view->setResizeMode(QQuickView::SizeRootObjectToView);
+    view->setSource(QUrl("qrc:/qml/Dialogs/DeleteDialog.qml"));
+    view->rootContext()->setContextProperty("model", this);
+    view->rootContext()->setContextProperty("view", view);
+
+    connect(view, &QQuickView::visibleChanged, this, [=] {
+        if (!view->isVisible()) {
+            view->deleteLater();
+        }
+    });
+
+    view->show();
 }
 
 void FolderModel::restoreFromTrash()
@@ -1287,7 +1303,7 @@ void FolderModel::createActions()
     connect(emptyTrash, &QAction::triggered, this, &FolderModel::emptyTrash);
 
     QAction *del = new QAction(tr("Delete"), this);
-    connect(del, &QAction::triggered, this, &FolderModel::deleteSelected);
+    connect(del, &QAction::triggered, this, &FolderModel::openDeleteDialog);
 
     QAction *rename = new QAction(tr("Rename"), this);
     connect(rename, &QAction::triggered, this, &FolderModel::requestRename);
