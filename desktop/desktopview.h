@@ -21,6 +21,7 @@
 #define DESKTOPVIEW_H
 
 #include <QQuickView>
+#include <QScreen>
 
 class DesktopView : public QQuickView
 {
@@ -29,7 +30,7 @@ class DesktopView : public QQuickView
     Q_PROPERTY(QRect screenAvailableRect READ screenAvailableRect NOTIFY screenAvailableGeometryChanged)
 
 public:
-    explicit DesktopView(QQuickView *parent = nullptr);
+    explicit DesktopView(QScreen *screen = nullptr, QQuickView *parent = nullptr);
 
     QRect screenRect();
     QRect screenAvailableRect();
@@ -39,10 +40,12 @@ signals:
     void screenAvailableGeometryChanged();
 
 private slots:
+    void onPrimaryScreenChanged(QScreen *screen);
     void onGeometryChanged();
     void onAvailableGeometryChanged(const QRect &geometry);
 
 private:
+    QScreen *m_screen;
     QRect m_screenRect;
     QRect m_screenAvailableRect;
 };

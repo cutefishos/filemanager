@@ -41,6 +41,7 @@
 #include <KActionCollection>
 
 class QDrag;
+class CFileSizeJob;
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
 {
     Q_OBJECT
@@ -57,6 +58,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(QString filterPattern READ filterPattern WRITE setFilterPattern NOTIFY filterPatternChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY filterMimeTypesChanged)
+    Q_PROPERTY(QString selectedItemSize READ selectedItemSize NOTIFY selectedItemSizeChanged)
 
 public:
     enum DataRole {
@@ -198,10 +200,14 @@ public:
     Q_INVOKABLE void openChangeWallpaperDialog();
     Q_INVOKABLE void openDeleteDialog();
 
+    Q_INVOKABLE void updateSelectedItemsSize();
+
     void restoreFromTrash();
 
     bool isDesktop() const;
     void setIsDesktop(bool isDesktop);
+
+    QString selectedItemSize() const;
 
 signals:
     void urlChanged();
@@ -219,6 +225,7 @@ signals:
     void countChanged();
     void filterPatternChanged();
     void filterMimeTypesChanged();
+    void selectedItemSizeChanged();
 
     void notification(const QString &message);
 
@@ -263,6 +270,8 @@ private:
     bool m_isDesktop;
     bool m_suffixVisible;
 
+    QString m_selectedItemSize;
+
     KActionCollection m_actionCollection;
     QHash<int, DragImage *> m_dragImages;
     QModelIndexList m_dragIndexes;
@@ -274,6 +283,8 @@ private:
     // Save path history
     PathHistory m_pathHistory;
     MimeAppManager *m_mimeAppManager;
+
+    CFileSizeJob *m_sizeJob;
 };
 
 #endif // FOLDERMODEL_H

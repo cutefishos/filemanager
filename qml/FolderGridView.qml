@@ -64,7 +64,7 @@ GridView {
 
     signal keyPress(var event)
 
-    cacheBuffer: Math.max(0, contentHeight)
+    cacheBuffer: Math.max(0, control.height * 1.5)
 
     onIconSizeChanged: {
         // 图标大小改变时需要重置状态，否则选中定位不准确
@@ -460,6 +460,8 @@ GridView {
                 dirModel.clearSelection()
                 dirModel.setSelected(pressedItem.index)
             }
+
+            dirModel.updateSelectedItemsSize()
 
             pressCanceled()
         }

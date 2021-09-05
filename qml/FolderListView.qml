@@ -53,6 +53,7 @@ ListView {
 
     currentIndex: -1
     clip: true
+    cacheBuffer: width
 
     ScrollBar.vertical: ScrollBar { }
     boundsBehavior: Flickable.StopAtBounds

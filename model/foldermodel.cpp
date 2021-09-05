@@ -32,6 +32,8 @@
 #include "../helper/datehelper.h"
 #include "../helper/filelauncher.h"
 
+#include "../cio/cfilesizejob.h"
+
 // Qt
 #include <QSet>
 #include <QDir>
@@ -79,10 +81,12 @@ FolderModel::FolderModel(QObject *parent)
     , m_filterPatternMatchAll(true)
     , m_complete(false)
     , m_isDesktop(false)
+    , m_selectedItemSize("")
     , m_actionCollection(this)
     , m_dragInProgress(false)
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
+    , m_sizeJob(nullptr)
 {
     DirLister *dirLister = new DirLister(this);
     dirLister->setDelayedMimeTypes(true);
@@ -1100,6 +1104,10 @@ void FolderModel::openDeleteDialog()
     view->show();
 }
 
+void FolderModel::updateSelectedItemsSize()
+{
+}
+
 void FolderModel::restoreFromTrash()
 {
     if (!m_selectionModel->hasSelection())
@@ -1132,6 +1140,35 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
         foreach (const QModelIndex &idx, deselected.indexes()) {
             delete m_dragImages.take(idx.row());
         }
+    }
+
+    if (m_sizeJob == nullptr) {
+        m_sizeJob = new CFileSizeJob;
+
+        connect(m_sizeJob, &CFileSizeJob::sizeChanged, this, [=] {
+            m_selectedItemSize = KIO::convertSize(m_sizeJob->totalSize());
+            if (!m_selectionModel->hasSelection())
+                m_selectedItemSize = "";
+            emit selectedItemSizeChanged();
+        });
+
+        connect(m_sizeJob, &CFileSizeJob::result, this, [=] {
+            m_selectedItemSize = KIO::convertSize(m_sizeJob->totalSize());
+            if (!m_selectionModel->hasSelection())
+                m_selectedItemSize = "";
+            emit selectedItemSizeChanged();
+        });
+    }
+
+    m_sizeJob->stop();
+
+    if (!m_selectionModel->hasSelection()) {
+        m_sizeJob->blockSignals(true);
+        m_selectedItemSize = "";
+        emit selectedItemSizeChanged();
+    } else {
+        m_sizeJob->blockSignals(false);
+        m_sizeJob->start(selectedUrls());
     }
 
     updateActions();
@@ -1244,6 +1281,11 @@ bool FolderModel::matchPattern(const KFileItem &item) const
     }
 
     return false;
+}
+
+QString FolderModel::selectedItemSize() const
+{
+    return m_selectedItemSize;
 }
 
 bool FolderModel::isDesktop() const

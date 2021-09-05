@@ -59,5 +59,6 @@
         <file>images/light/drive-optical.svg</file>
         <file>qml/Dialogs/OpenWithDialog.qml</file>
         <file>qml/Dialogs/DeleteDialog.qml</file>
+        <file>qml/Desktop/Wallpaper.qml</file>
     </qresource>
 </RCC>
