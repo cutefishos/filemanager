@@ -249,6 +249,10 @@ Item {
                 visible: dirModel.selectionCount >= 1
             }
 
+            Label {
+                text: dirModel.selectedItemSize
+            }
+
             Item {
                 Layout.fillWidth: true
             }

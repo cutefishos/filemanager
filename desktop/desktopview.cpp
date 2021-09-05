@@ -24,16 +24,19 @@
 #include <QQmlContext>
 
 #include <QDebug>
-#include <QApplication>
+#include <QGuiApplication>
 #include <QScreen>
 
 #include <KWindowSystem>
 
-DesktopView::DesktopView(QQuickView *parent)
+DesktopView::DesktopView(QScreen *screen, QQuickView *parent)
     : QQuickView(parent)
+    , m_screen(screen)
 {
-    m_screenRect = qApp->primaryScreen()->geometry();
-    m_screenAvailableRect = qApp->primaryScreen()->availableVirtualGeometry();
+    m_screenRect = m_screen->geometry();
+    m_screenAvailableRect = m_screen->availableVirtualGeometry();
+
+    qDebug() << screen->name() << m_screenAvailableRect;
 
     KWindowSystem::setType(winId(), NET::Desktop);
     KWindowSystem::setState(winId(), NET::KeepBelow);
@@ -42,16 +45,19 @@ DesktopView::DesktopView(QQuickView *parent)
     engine()->addImageProvider("thumbnailer", new ThumbnailProvider());
 
     setTitle(tr("Desktop"));
-    setScreen(qApp->primaryScreen());
+    setScreen(m_screen);
     setResizeMode(QQuickView::SizeRootObjectToView);
-    setSource(QStringLiteral("qrc:/qml/Desktop/Main.qml"));
 
     onGeometryChanged();
+    onPrimaryScreenChanged(QGuiApplication::primaryScreen());
 
-    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onGeometryChanged);
-    connect(qApp->primaryScreen(), &QScreen::geometryChanged, this, &DesktopView::onGeometryChanged);
-    connect(qApp->primaryScreen(), &QScreen::availableGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
-    connect(qApp->primaryScreen(), &QScreen::virtualGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
+    // 主屏改变
+    connect(qGuiApp, &QGuiApplication::primaryScreenChanged, this, &DesktopView::onPrimaryScreenChanged);
+
+    connect(m_screen, &QScreen::virtualGeometryChanged, this, &DesktopView::onGeometryChanged);
+    connect(m_screen, &QScreen::geometryChanged, this, &DesktopView::onGeometryChanged);
+    connect(m_screen, &QScreen::availableGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
+    connect(m_screen, &QScreen::virtualGeometryChanged, this, &DesktopView::onAvailableGeometryChanged);
 }
 
 QRect DesktopView::screenRect()
@@ -64,9 +70,17 @@ QRect DesktopView::screenAvailableRect()
     return m_screenAvailableRect;
 }
 
+void DesktopView::onPrimaryScreenChanged(QScreen *screen)
+{
+    bool isPrimaryScreen = m_screen->name() == screen->name();
+
+    setSource(isPrimaryScreen ? QStringLiteral("qrc:/qml/Desktop/Main.qml")
+                              : QStringLiteral("qrc:/qml/Desktop/Wallpaper.qml"));
+}
+
 void DesktopView::onGeometryChanged()
 {
-    m_screenRect = qApp->primaryScreen()->geometry().adjusted(0, 0, 1, 1);
+    m_screenRect = m_screen->geometry().adjusted(0, 0, 1, 1);
     setGeometry(m_screenRect);
     emit screenRectChanged();
 }
@@ -75,6 +89,6 @@ void DesktopView::onAvailableGeometryChanged(const QRect &geometry)
 {
     Q_UNUSED(geometry);
 
-    m_screenAvailableRect = qApp->primaryScreen()->availableVirtualGeometry();
+    m_screenAvailableRect = m_screen->availableVirtualGeometry();
     emit screenAvailableGeometryChanged();
 }

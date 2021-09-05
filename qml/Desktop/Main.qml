@@ -30,56 +30,12 @@ import "../"
 Item {
     id: rootItem
 
-    FM.DesktopSettings {
-        id: settings
-    }
-
     GlobalSettings {
         id: globalSettings
     }
 
-    Loader {
-        id: backgroundLoader
+    Wallpaper {
         anchors.fill: parent
-        anchors.margins: 0
-        sourceComponent: settings.backgroundType === 0 ? wallpaper : background
-    }
-
-    Component {
-        id: background
-
-        Rectangle {
-            anchors.fill: parent
-            color: settings.backgroundColor
-        }
-    }
-
-    Component {
-        id: wallpaper
-
-        Image {
-            source: "file://" + settings.wallpaper
-            sourceSize: Qt.size(width * Screen.devicePixelRatio,
-                                height * Screen.devicePixelRatio)
-            fillMode: Image.PreserveAspectCrop
-            clip: true
-            cache: false
-
-            ColorOverlay {
-                id: dimsWallpaper
-                anchors.fill: parent
-                source: parent
-                color: "#000000"
-                opacity: FishUI.Theme.darkMode && settings.dimsWallpaper ? 0.4 : 0.0
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 200
-                    }
-                }
-
-            }
-        }
     }
 
     FM.FolderModel {

@@ -31,6 +31,7 @@
 #include "model/positioner.h"
 #include "widgets/rubberband.h"
 #include "widgets/itemviewadapter.h"
+#include "desktop/desktop.h"
 #include "desktop/desktopsettings.h"
 #include "desktop/desktopview.h"
 #include "helper/datehelper.h"
@@ -94,8 +95,7 @@ int main(int argc, char *argv[])
 
     if (parser.isSet(desktopOption)) {
         app.setApplicationName("cutefish-desktop");
-        DesktopView view;
-        view.show();
+        Desktop desktop;
         return app.exec();
     } else if (parser.isSet(emptyTrashOption)) {
         // Empty Dialog
