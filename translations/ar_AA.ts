@@ -67,17 +67,17 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation>متأكد من حذف هذا العنصر بشكل نهائي؟</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">إلغاء</translation>
+        <translation>إلغاء</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation type="unfinished">حذف</translation>
+        <translation>حذف</translation>
     </message>
 </context>
 <context>
@@ -139,7 +139,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="249"/>
         <source>The file or folder %1 does not exist.</source>
-        <translation type="unfinished"></translation>
+        <translation>الملف أو المجلد %1 غير موجود.</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="981"/>
@@ -149,7 +149,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1088"/>
         <source>File Manager</source>
-        <translation type="unfinished">مدير الملفات</translation>
+        <translation>مستعرض الملفات</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1281"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>إستعادة</translation>
     </message>
 </context>
 <context>
@@ -273,17 +273,17 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="83"/>
         <source>Cut</source>
-        <translation type="unfinished">قص</translation>
+        <translation>قص</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="88"/>
         <source>Copy</source>
-        <translation type="unfinished">نسخ</translation>
+        <translation>نسخ</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="93"/>
         <source>Paste</source>
-        <translation type="unfinished">لصق</translation>
+        <translation>لصق</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="99"/>
@@ -369,7 +369,7 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="189"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>النوع</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="227"/>
@@ -423,7 +423,7 @@
         <location filename="../model/placesmodel.cpp" line="117"/>
         <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
-        <translation type="unfinished"></translation>
+        <translation>الأقراص</translation>
     </message>
 </context>
 <context>
@@ -479,7 +479,7 @@
     <message>
         <location filename="../qml/main.qml" line="35"/>
         <source>File Manager</source>
-        <translation>مدير الملفات</translation>
+        <translation>مستعرض الملفات</translation>
     </message>
 </context>
 </TS>
