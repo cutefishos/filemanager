@@ -22,6 +22,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+#include <QPixmapCache>
 #include <QTranslator>
 #include <QLocale>
 
@@ -48,6 +49,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setOrganizationName("cutefishos");
     app.setWindowIcon(QIcon::fromTheme("file-manager"));
+
+    QPixmapCache::setCacheLimit(1024 * 10);
 
     // Translations
     QLocale locale;

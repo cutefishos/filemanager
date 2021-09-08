@@ -18,11 +18,37 @@
  */
 
 #include "desktop.h"
+#include <QQmlContext>
+#include <QQmlEngine>
+
 #include <QGuiApplication>
+#include <QDBusServiceWatcher>
 
 Desktop::Desktop(QObject *parent)
     : QObject(parent)
+    , m_dockInterface("org.cutefish.Dock",
+                    "/Dock",
+                    "org.cutefish.Dock", QDBusConnection::sessionBus())
+    , m_leftMargin(0)
+    , m_rightMargin(0)
+    , m_bottomMargin(0)
 {
+    if (m_dockInterface.isValid()) {
+        updateMargins();
+        connect(&m_dockInterface, SIGNAL(primaryGeometryChanged()), this, SLOT(updateMargins()));
+        connect(&m_dockInterface, SIGNAL(directionChanged()), this, SLOT(updateMargins()));
+    } else {
+        QDBusServiceWatcher *watcher = new QDBusServiceWatcher("org.cutefish.Dock",
+                                                               QDBusConnection::sessionBus(),
+                                                               QDBusServiceWatcher::WatchForUnregistration,
+                                                               this);
+        connect(watcher, &QDBusServiceWatcher::serviceUnregistered, this, [=] {
+            updateMargins();
+            connect(&m_dockInterface, SIGNAL(primaryGeometryChanged()), this, SLOT(updateMargins()));
+            connect(&m_dockInterface, SIGNAL(directionChanged()), this, SLOT(updateMargins()));
+        });
+    }
+
     for (QScreen *screen : QGuiApplication::screens()) {
         screenAdded(screen);
     }
@@ -31,10 +57,26 @@ Desktop::Desktop(QObject *parent)
     connect(qApp, &QGuiApplication::screenRemoved, this, &Desktop::screenRemoved);
 }
 
+int Desktop::leftMargin() const
+{
+    return m_leftMargin;
+}
+
+int Desktop::rightMargin() const
+{
+    return m_rightMargin;
+}
+
+int Desktop::bottomMargin() const
+{
+    return m_bottomMargin;
+}
+
 void Desktop::screenAdded(QScreen *screen)
 {
     if (!m_list.contains(screen)) {
         DesktopView *view = new DesktopView(screen);
+        view->engine()->rootContext()->setContextProperty("Desktop", this);
         view->show();
         m_list.insert(screen, view);
     }
@@ -48,4 +90,24 @@ void Desktop::screenRemoved(QScreen *screen)
         view->deleteLater();
         m_list.remove(screen);
     }
+}
+
+void Desktop::updateMargins()
+{
+    QRect dockGeometry = m_dockInterface.property("primaryGeometry").toRect();
+    int dockDirection = m_dockInterface.property("direction").toInt();
+
+    m_leftMargin = 0;
+    m_rightMargin = 0;
+    m_bottomMargin = 0;
+
+    if (dockDirection == 0) {
+        m_leftMargin = dockGeometry.width();
+    } else if (dockDirection == 1) {
+        m_bottomMargin = dockGeometry.height();
+    } else if (dockDirection == 2) {
+        m_rightMargin = dockGeometry.width();
+    }
+
+    emit marginsChanged();
 }
