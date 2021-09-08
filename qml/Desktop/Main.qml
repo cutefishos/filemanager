@@ -73,12 +73,12 @@ Item {
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
         // Handle for topbar
-        anchors.topMargin: desktopView.screenAvailableRect.y
+        topMargin: 28
 
-        leftMargin: desktopView.screenAvailableRect.x
-        topMargin: 0
-        rightMargin: desktopView.screenRect.width - (desktopView.screenAvailableRect.x + desktopView.screenAvailableRect.width)
-        bottomMargin: desktopView.screenRect.height - (desktopView.screenAvailableRect.y + desktopView.screenAvailableRect.height)
+        // From dock
+        leftMargin: Desktop.leftMargin
+        rightMargin: Desktop.rightMargin
+        bottomMargin: Desktop.bottomMargin
 
         flow: GridView.FlowTopToBottom
 

@@ -22,22 +22,39 @@
 
 #include <QObject>
 #include <QScreen>
+#include <QDBusInterface>
 
 #include "desktopview.h"
 
 class Desktop : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int leftMargin READ leftMargin NOTIFY marginsChanged)
+    Q_PROPERTY(int rightMargin READ rightMargin NOTIFY marginsChanged)
+    Q_PROPERTY(int bottomMargin READ bottomMargin NOTIFY marginsChanged)
 
 public:
     explicit Desktop(QObject *parent = nullptr);
 
+    int leftMargin() const;
+    int rightMargin() const;
+    int bottomMargin() const;
+
+signals:
+    void marginsChanged();
+
 private slots:
     void screenAdded(QScreen *qscreen);
     void screenRemoved(QScreen *qscreen);
+    void updateMargins();
 
 private:
     QMap<QScreen *, DesktopView *> m_list;
+    QDBusInterface m_dockInterface;
+
+    int m_leftMargin;
+    int m_rightMargin;
+    int m_bottomMargin;
 };
 
 #endif // DESKTOP_H
