@@ -107,6 +107,7 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
+        anchors.rightMargin: 1
         radius: FishUI.Theme.smallRadius
         color: FishUI.Theme.secondBackgroundColor
 

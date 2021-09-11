@@ -221,7 +221,7 @@ GridView {
     }
 
     cellHeight: {
-        var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 2) + FishUI.Units.largeSpacing * 2
+        var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 3) + FishUI.Units.largeSpacing
         if (isDesktopView) {
             var extraHeight = calcExtraSpacing(iconHeight, control.height - topMargin - bottomMargin)
             return iconHeight + extraHeight

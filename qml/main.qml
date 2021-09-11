@@ -37,6 +37,9 @@ FishUI.Window {
     header.height: 36 + FishUI.Units.largeSpacing
     background.opacity: root.compositing ? 0.9 : 1.0
 
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     FishUI.WindowBlur {
         view: root
         geometry: Qt.rect(root.x, root.y, root.width, root.height)
