@@ -30,6 +30,9 @@ import "../"
 Item {
     id: rootItem
 
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
+
     GlobalSettings {
         id: globalSettings
     }

@@ -79,8 +79,8 @@ Item {
         id: _iconItem
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: FishUI.Units.largeSpacing
-        anchors.bottomMargin: FishUI.Units.largeSpacing
+        anchors.topMargin: FishUI.Units.smallSpacing
+        anchors.bottomMargin: FishUI.Units.smallSpacing
         z: 2
 
         width: parent.width - FishUI.Units.largeSpacing * 2
@@ -189,7 +189,7 @@ Item {
         anchors.top: _iconItem.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: FishUI.Units.smallSpacing
-        maximumLineCount: 2
+        maximumLineCount: control.selected ? 3 : 2
         horizontalAlignment: Text.AlignHCenter
         width: parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText

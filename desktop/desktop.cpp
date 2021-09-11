@@ -37,6 +37,7 @@ Desktop::Desktop(QObject *parent)
         updateMargins();
         connect(&m_dockInterface, SIGNAL(primaryGeometryChanged()), this, SLOT(updateMargins()));
         connect(&m_dockInterface, SIGNAL(directionChanged()), this, SLOT(updateMargins()));
+        connect(&m_dockInterface, SIGNAL(visibilityChanged()), this, SLOT(updateMargins()));
     } else {
         QDBusServiceWatcher *watcher = new QDBusServiceWatcher("org.cutefish.Dock",
                                                                QDBusConnection::sessionBus(),
@@ -46,6 +47,7 @@ Desktop::Desktop(QObject *parent)
             updateMargins();
             connect(&m_dockInterface, SIGNAL(primaryGeometryChanged()), this, SLOT(updateMargins()));
             connect(&m_dockInterface, SIGNAL(directionChanged()), this, SLOT(updateMargins()));
+            connect(&m_dockInterface, SIGNAL(visibilityChanged()), this, SLOT(updateMargins()));
         });
     }
 
@@ -96,10 +98,17 @@ void Desktop::updateMargins()
 {
     QRect dockGeometry = m_dockInterface.property("primaryGeometry").toRect();
     int dockDirection = m_dockInterface.property("direction").toInt();
+    int visibility = m_dockInterface.property("visibility").toInt();
 
     m_leftMargin = 0;
     m_rightMargin = 0;
     m_bottomMargin = 0;
+
+    // AlwaysHide
+    if (visibility == 1) {
+        emit marginsChanged();
+        return;
+    }
 
     if (dockDirection == 0) {
         m_leftMargin = dockGeometry.width();
