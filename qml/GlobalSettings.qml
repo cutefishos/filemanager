@@ -22,7 +22,9 @@ import Qt.labs.settings 1.0
 
 Settings {
     property int viewMethod: 1          // controls display mode: list or grid
-    property bool showHidden: false
+
+    // Port to C++
+    // property bool showHiddenFiles: false
 
     // Name, Date, Size
     property int orderBy: 0

@@ -114,12 +114,12 @@
 <context>
     <name>FilePropertiesDialog</name>
     <message>
-        <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="185"/>
         <source>Properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="233"/>
         <source>%1 files</source>
         <translation type="unfinished"></translation>
     </message>
@@ -127,191 +127,196 @@
 <context>
     <name>FolderModel</name>
     <message>
-        <location filename="../model/foldermodel.cpp" line="184"/>
+        <location filename="../model/foldermodel.cpp" line="202"/>
         <source>%1 item</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="184"/>
+        <location filename="../model/foldermodel.cpp" line="202"/>
         <source>%1 items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="249"/>
+        <location filename="../model/foldermodel.cpp" line="267"/>
         <source>The file or folder %1 does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="981"/>
+        <location filename="../model/foldermodel.cpp" line="999"/>
         <source>Select All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1088"/>
+        <location filename="../model/foldermodel.cpp" line="1108"/>
         <source>File Manager</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1281"/>
+        <location filename="../model/foldermodel.cpp" line="1359"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1284"/>
+        <location filename="../model/foldermodel.cpp" line="1362"/>
         <source>Open with</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1287"/>
+        <location filename="../model/foldermodel.cpp" line="1365"/>
         <source>Cut</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1290"/>
+        <location filename="../model/foldermodel.cpp" line="1368"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1293"/>
+        <location filename="../model/foldermodel.cpp" line="1371"/>
         <source>Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1296"/>
+        <location filename="../model/foldermodel.cpp" line="1374"/>
         <source>New Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1299"/>
+        <location filename="../model/foldermodel.cpp" line="1377"/>
         <source>Move To Trash</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1302"/>
+        <location filename="../model/foldermodel.cpp" line="1380"/>
         <source>Empty Trash</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1305"/>
+        <location filename="../model/foldermodel.cpp" line="1383"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1308"/>
+        <location filename="../model/foldermodel.cpp" line="1386"/>
         <source>Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1311"/>
+        <location filename="../model/foldermodel.cpp" line="1389"/>
         <source>Open in Terminal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1314"/>
+        <location filename="../model/foldermodel.cpp" line="1392"/>
         <source>Set as Wallpaper</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1317"/>
+        <location filename="../model/foldermodel.cpp" line="1395"/>
         <source>Properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1320"/>
+        <location filename="../model/foldermodel.cpp" line="1398"/>
         <source>Change background</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1323"/>
+        <location filename="../model/foldermodel.cpp" line="1401"/>
         <source>Restore</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1404"/>
+        <source>Show hidden files</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>FolderPage</name>
     <message>
-        <location filename="../qml/FolderPage.qml" line="134"/>
+        <location filename="../qml/FolderPage.qml" line="136"/>
         <source>Empty folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="174"/>
+        <location filename="../qml/FolderPage.qml" line="177"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="60"/>
-        <location filename="../qml/FolderPage.qml" line="179"/>
+        <location filename="../qml/FolderPage.qml" line="61"/>
+        <location filename="../qml/FolderPage.qml" line="182"/>
         <source>Properties</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="50"/>
+        <location filename="../qml/FolderPage.qml" line="51"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="53"/>
+        <location filename="../qml/FolderPage.qml" line="54"/>
         <source>New Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="67"/>
+        <location filename="../qml/FolderPage.qml" line="68"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="73"/>
+        <location filename="../qml/FolderPage.qml" line="74"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="76"/>
+        <location filename="../qml/FolderPage.qml" line="77"/>
         <source>Select All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="83"/>
+        <location filename="../qml/FolderPage.qml" line="84"/>
         <source>Cut</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="88"/>
+        <location filename="../qml/FolderPage.qml" line="89"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="93"/>
+        <location filename="../qml/FolderPage.qml" line="94"/>
         <source>Paste</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="99"/>
+        <location filename="../qml/FolderPage.qml" line="100"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="102"/>
+        <location filename="../qml/FolderPage.qml" line="103"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="241"/>
+        <location filename="../qml/FolderPage.qml" line="244"/>
         <source>%1 item</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="242"/>
+        <location filename="../qml/FolderPage.qml" line="245"/>
         <source>%1 items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="248"/>
+        <location filename="../qml/FolderPage.qml" line="251"/>
         <source>%1 selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="259"/>
+        <location filename="../qml/FolderPage.qml" line="266"/>
         <source>Empty Trash</source>
         <translation type="unfinished"></translation>
     </message>

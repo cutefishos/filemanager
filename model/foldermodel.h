@@ -59,12 +59,14 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(int count READ count NOTIFY countChanged)
     Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY filterMimeTypesChanged)
     Q_PROPERTY(QString selectedItemSize READ selectedItemSize NOTIFY selectedItemSizeChanged)
+    Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
 
 public:
     enum DataRole {
         BlankRole = Qt::UserRole + 1,
         SelectedRole,
         IsDirRole,
+        IsHiddenRole,
         UrlRole,
         DisplayNameRole,
         FileNameRole,
@@ -209,6 +211,9 @@ public:
 
     QString selectedItemSize() const;
 
+    bool showHiddenFiles() const;
+    void setShowHiddenFiles(bool showHiddenFiles);
+
 signals:
     void urlChanged();
     void resolvedUrlChanged();
@@ -226,6 +231,7 @@ signals:
     void filterPatternChanged();
     void filterMimeTypesChanged();
     void selectedItemSizeChanged();
+    void showHiddenFilesChanged();
 
     void notification(const QString &message);
 
@@ -250,6 +256,7 @@ protected:
 private:
     KDirModel *m_dirModel;
     KDirWatch *m_dirWatch;
+    KDirLister *m_dirLister;
 
     QItemSelectionModel *m_selectionModel;
     QItemSelection m_pinnedSelection;
@@ -259,6 +266,8 @@ private:
     int m_sortMode;
     bool m_sortDesc;
     bool m_sortDirsFirst;
+
+    bool m_showHiddenFiles;
 
     FilterMode m_filterMode;
     QString m_filterPattern;
