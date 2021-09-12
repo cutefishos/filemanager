@@ -5,6 +5,7 @@
  *   Copyright (C) 2011 Marco Martin <mart@kde.org>                        *
  *   Copyright (C) 2014 by Eike Hein <hein@kde.org>                        *
  *   Copyright (C) 2021 Reven Martin <revenmartin@gmail.com>               *
+ *   Copyright (C) 2021 Reion Wong <reionwong@gmail.com>                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -50,6 +51,7 @@
 #include <QDrag>
 #include <QDir>
 #include <QProcess>
+#include <QSettings>
 #include <QDesktopServices>
 
 // Qt Quick
@@ -77,6 +79,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_sortMode(0)
     , m_sortDesc(false)
     , m_sortDirsFirst(true)
+    , m_showHiddenFiles(false)
     , m_filterMode(NoFilter)
     , m_filterPatternMatchAll(true)
     , m_complete(false)
@@ -88,13 +91,17 @@ FolderModel::FolderModel(QObject *parent)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
 {
-    DirLister *dirLister = new DirLister(this);
-    dirLister->setDelayedMimeTypes(true);
-    dirLister->setAutoErrorHandlingEnabled(false, nullptr);
+    QSettings settings("cutefishos", qApp->applicationName());
+    m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
+
+    m_dirLister = new DirLister(this);
+    m_dirLister->setDelayedMimeTypes(true);
+    m_dirLister->setAutoErrorHandlingEnabled(false, nullptr);
+    m_dirLister->setShowingDotFiles(m_showHiddenFiles);
     // connect(dirLister, &DirLister::error, this, &FolderModel::notification);
 
     m_dirModel = new KDirModel(this);
-    m_dirModel->setDirLister(dirLister);
+    m_dirModel->setDirLister(m_dirLister);
     m_dirModel->setDropsAllowed(KDirModel::DropOnDirectory | KDirModel::DropOnLocalExecutable);
     m_dirModel->moveToThread(qApp->thread());
 
@@ -143,6 +150,7 @@ QHash<int, QByteArray> FolderModel::staticRoleNames()
     roleNames[BlankRole] = "blank";
     roleNames[SelectedRole] = "selected";
     roleNames[IsDirRole] = "isDir";
+    roleNames[IsHiddenRole] = "isHidden";
     roleNames[UrlRole] = "url";
     roleNames[DisplayNameRole] = "displayName";
     roleNames[FileNameRole] = "fileName";
@@ -179,6 +187,12 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     }
     case IsDesktopFileRole: {
         return item.isDesktopFile();
+    }
+    case IsDirRole: {
+        return item.isDir();
+    }
+    case IsHiddenRole: {
+        return item.isHidden();
     }
     case FileSizeRole: {
         if (item.isDir()) {
@@ -998,6 +1012,8 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
             menu->addAction(m_actionCollection.action("changeBackground"));
         }
 
+        menu->addAction(m_actionCollection.action("showHidden"));
+
         menu->addSeparator();
         menu->addAction(m_actionCollection.action("emptyTrash"));
         menu->addAction(m_actionCollection.action("properties"));
@@ -1283,6 +1299,26 @@ bool FolderModel::matchPattern(const KFileItem &item) const
     return false;
 }
 
+bool FolderModel::showHiddenFiles() const
+{
+    return m_showHiddenFiles;
+}
+
+void FolderModel::setShowHiddenFiles(bool showHiddenFiles)
+{
+    if (m_showHiddenFiles != showHiddenFiles) {
+        m_showHiddenFiles = showHiddenFiles;
+
+        m_dirLister->setShowingDotFiles(m_showHiddenFiles);
+        m_dirLister->emitChanges();
+
+        QSettings settings("cutefishos", qApp->applicationName());
+        settings.setValue("showHiddenFiles", m_showHiddenFiles);
+
+        emit showHiddenFilesChanged();
+    }
+}
+
 QString FolderModel::selectedItemSize() const
 {
     return m_selectedItemSize;
@@ -1365,6 +1401,11 @@ void FolderModel::createActions()
     QAction *restore = new QAction(tr("Restore"), this);
     QObject::connect(restore, &QAction::triggered, this, &FolderModel::restoreFromTrash);
 
+    QAction *showHidden = new QAction(tr("Show hidden files"), this);
+    QObject::connect(showHidden, &QAction::triggered, this, [=] {
+        setShowHiddenFiles(!m_showHiddenFiles);
+    });
+
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
@@ -1380,6 +1421,7 @@ void FolderModel::createActions()
     m_actionCollection.addAction(QStringLiteral("properties"), properties);
     m_actionCollection.addAction(QStringLiteral("changeBackground"), changeBackground);
     m_actionCollection.addAction(QStringLiteral("restore"), restore);
+    m_actionCollection.addAction(QStringLiteral("showHidden"), showHidden);
 }
 
 void FolderModel::updateActions()
@@ -1484,6 +1526,11 @@ void FolderModel::updateActions()
 
     if (QAction *properties = m_actionCollection.action("properties")) {
         properties->setVisible(!isTrash);
+    }
+
+    if (QAction *showHidden = m_actionCollection.action("showHidden")) {
+        showHidden->setCheckable(true);
+        showHidden->setChecked(m_showHiddenFiles);
     }
 }
 

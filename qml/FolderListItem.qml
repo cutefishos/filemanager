@@ -75,6 +75,7 @@ Item {
             id: iconItem
             Layout.fillHeight: true
             width: parent.height * 0.8
+            opacity: model.isHidden ? 0.5 : 1.0
 
             Image {
                 id: _icon
@@ -127,6 +128,7 @@ Item {
                 color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                 textFormat: Text.PlainText
                 elide: Qt.ElideMiddle
+                opacity: model.isHidden ? 0.8 : 1.0
             }
 
             Label {
@@ -135,6 +137,7 @@ Item {
                 color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
                 textFormat: Text.PlainText
                 Layout.fillWidth: true
+                opacity: model.isHidden ? 0.8 : 1.0
             }
         }
 
@@ -142,6 +145,7 @@ Item {
             text: model.modified
             textFormat: Text.PlainText
             color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
+            opacity: model.isHidden ? 0.8 : 1.0
         }
     }
 }

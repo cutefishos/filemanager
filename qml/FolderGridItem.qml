@@ -86,6 +86,8 @@ Item {
         width: parent.width - FishUI.Units.largeSpacing * 2
         height: control.GridView.view.iconSize
 
+        opacity: model.isHidden ? 0.5 : 1.0
+
         Image {
             id: _icon
             width: control.GridView.view.iconSize
@@ -197,7 +199,9 @@ Item {
         wrapMode: Text.Wrap
         text: model.fileName
         color: control.GridView.view.isDesktopView ? "white"
-                                                   : selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                                                   : selected ? FishUI.Theme.highlightedTextColor
+                                                              : FishUI.Theme.textColor
+        opacity: model.isHidden ? 0.8 : 1.0
     }
 
     Rectangle {

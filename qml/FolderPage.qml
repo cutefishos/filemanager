@@ -32,6 +32,7 @@ Item {
     id: folderPage
 
     property alias currentUrl: dirModel.url
+    property alias model: dirModel
     property Item currentView: _viewLoader.item
     property int statusBarHeight: 22
 
@@ -142,6 +143,7 @@ Item {
         id: dirModel
         viewAdapter: viewAdapter
         sortMode: settings.sortMode
+        // showHiddenFiles: settings.showHiddenFiles
 
         Component.onCompleted: {
             if (arg)
