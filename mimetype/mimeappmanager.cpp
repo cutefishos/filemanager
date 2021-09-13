@@ -252,14 +252,22 @@ QString MimeAppManager::getDefaultAppByMimeType(const QMimeType &mimeType)
 
     settings.beginGroup("Default Applications");
     // TODO: User applications directory?
-    if (settings.contains(mimeType.name()))
-        return QString("/usr/share/applications/%1").arg(settings.value(mimeType.name()).toString());
+    if (settings.contains(mimeType.name())) {
+        const QString desktopFile = QString("/usr/share/applications/%1").arg(settings.value(mimeType.name()).toString());
+        if (QFile::exists(desktopFile)) {
+            return desktopFile;
+        }
+    }
 
     settings.endGroup();
 
     settings.beginGroup("Added Associations");
-    if (settings.contains(mimeType.name()))
-        return QString("/usr/share/applications/%1").arg(settings.value(mimeType.name()).toString());
+    if (settings.contains(mimeType.name())) {
+        QString desktopFile = QString("/usr/share/applications/%1").arg(settings.value(mimeType.name()).toString());
+        if (QFile::exists(desktopFile)) {
+            return desktopFile;
+        }
+    }
 
     return QString();
 }
@@ -314,15 +322,15 @@ bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString
         value = info.fileName();
     }
 
-//    QSettings settings(mimeappsFile, QSettings::IniFormat);
-//    settings.setIniCodec("UTF-8");
+    QSettings settings(mimeappsFile, QSettings::IniFormat);
+    settings.setIniCodec("UTF-8");
 
-//    if (!settings.isWritable())
-//        return false;
+    if (!settings.isWritable())
+        return false;
 
-//    settings.beginGroup("Default Applications"); // Added Associations
-//    settings.setValue(mimeType.name(), value);
-//    settings.sync();
+    settings.beginGroup("Default Applications"); // Added Associations
+    settings.setValue(mimeType.name(), value);
+    settings.sync();
 
     return true;
 }
