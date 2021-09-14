@@ -19,6 +19,7 @@
 
 #include "mimeappmanager.h"
 
+#include <QStandardPaths>
 #include <QDirIterator>
 #include <QUrl>
 #include <QDir>
@@ -71,7 +72,9 @@ QStringList MimeAppManager::desktopPaths()
 
 QString MimeAppManager::mimeAppsListFilePath()
 {
-    return QString("%1/.config/mimeapps.list").arg(QDir::homePath());
+    // return QString("%1/.config/mimeapps.list").arg(QDir::homePath());
+
+    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + QLatin1String("/mimeapps.list");
 }
 
 void MimeAppManager::initApplications()
@@ -328,7 +331,7 @@ bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString
     if (!settings.isWritable())
         return false;
 
-    settings.beginGroup("Default Applications"); // Added Associations
+    settings.beginGroup(QStringLiteral("Default Applications")); // Added Associations
     settings.setValue(mimeType.name(), value);
     settings.sync();
 

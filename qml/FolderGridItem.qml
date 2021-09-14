@@ -206,10 +206,10 @@ Item {
 
     Rectangle {
         z: 1
-        x: _label.x
+        x: _label.x + (_label.width - _label.paintedWidth) / 2 - (FishUI.Units.smallSpacing / 2)
         y: _label.y
-        width: _label.width
-        height: _label.height
+        width: _label.paintedWidth + FishUI.Units.smallSpacing
+        height: _label.paintedHeight
         radius: 4
         color: FishUI.Theme.highlightColor
         opacity: control.selected ? 1.0 : 0
