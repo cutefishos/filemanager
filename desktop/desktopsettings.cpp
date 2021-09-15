@@ -24,13 +24,13 @@
 
 DesktopSettings::DesktopSettings(QObject *parent)
     : QObject(parent)
-    , m_interface("org.cutefish.Settings",
-                  "/Theme", "org.cutefish.Theme",
+    , m_interface("com.cutefish.Settings",
+                  "/Theme", "com.cutefish.Theme",
                   QDBusConnection::sessionBus(), this)
 {
     QDBusServiceWatcher *watcher = new QDBusServiceWatcher(this);
     watcher->setConnection(QDBusConnection::sessionBus());
-    watcher->addWatchedService("org.cutefish.Settings");
+    watcher->addWatchedService("com.cutefish.Settings");
     connect(watcher, &QDBusServiceWatcher::serviceRegistered, this, &DesktopSettings::init);
 
     init();

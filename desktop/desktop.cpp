@@ -26,9 +26,9 @@
 
 Desktop::Desktop(QObject *parent)
     : QObject(parent)
-    , m_dockInterface("org.cutefish.Dock",
+    , m_dockInterface("com.cutefish.Dock",
                     "/Dock",
-                    "org.cutefish.Dock", QDBusConnection::sessionBus())
+                    "com.cutefish.Dock", QDBusConnection::sessionBus())
     , m_leftMargin(0)
     , m_rightMargin(0)
     , m_bottomMargin(0)
@@ -39,7 +39,7 @@ Desktop::Desktop(QObject *parent)
         connect(&m_dockInterface, SIGNAL(directionChanged()), this, SLOT(updateMargins()));
         connect(&m_dockInterface, SIGNAL(visibilityChanged()), this, SLOT(updateMargins()));
     } else {
-        QDBusServiceWatcher *watcher = new QDBusServiceWatcher("org.cutefish.Dock",
+        QDBusServiceWatcher *watcher = new QDBusServiceWatcher("com.cutefish.Dock",
                                                                QDBusConnection::sessionBus(),
                                                                QDBusServiceWatcher::WatchForUnregistration,
                                                                this);

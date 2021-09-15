@@ -978,8 +978,8 @@ void FolderModel::setWallpaperSelected()
     if (!url.isLocalFile())
         return;
 
-    QDBusInterface iface("org.cutefish.Settings", "/Theme",
-                         "org.cutefish.Theme",
+    QDBusInterface iface("com.cutefish.Settings", "/Theme",
+                         "com.cutefish.Theme",
                          QDBusConnection::sessionBus(), nullptr);
     if (iface.isValid())
         iface.call("setWallpaper", url.toLocalFile());

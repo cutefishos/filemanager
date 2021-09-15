@@ -201,6 +201,7 @@ void FilePropertiesDialog::init()
 
     if (!m_multiple) {
         KFileItem item = m_items.first();
+        QFileInfo info(item.url().toLocalFile());
 
         QString path;
         m_fileName = m_items.first().name();
@@ -212,11 +213,15 @@ void FilePropertiesDialog::init()
 
         m_mimeType = m_items.first().mimetype();
         m_size = KIO::convertSize(m_items.first().size());
-        m_location = QFileInfo(m_items.first().localPath()).dir().path();
+        m_location = info.dir().path();
 
-        m_creationTime = item.time(KFileItem::CreationTime).toString();
-        m_modifiedTime = item.time(KFileItem::ModificationTime).toString();
-        m_accessedTime = item.time(KFileItem::AccessTime).toString();
+        m_creationTime = info.birthTime().toString(Qt::SystemLocaleLongDate);
+        m_modifiedTime = info.lastModified().toString(Qt::SystemLocaleLongDate);
+        m_accessedTime = info.lastRead().toString(Qt::SystemLocaleLongDate);
+
+//        m_creationTime = item.time(KFileItem::CreationTime).toString();
+//        m_modifiedTime = item.time(KFileItem::ModificationTime).toString();
+//        m_accessedTime = item.time(KFileItem::AccessTime).toString();
 
         m_isWritable = m_items.first().isWritable();
 
