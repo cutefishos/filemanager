@@ -69,7 +69,7 @@ Item {
         isDesktopView: true
         iconSize: globalSettings.desktopIconSize
         maximumIconSize: globalSettings.maximumIconSize
-        minimumIconSize: globalSettings.minimumIconSize
+        minimumIconSize: 22
         focus: true
         model: dirModel
 

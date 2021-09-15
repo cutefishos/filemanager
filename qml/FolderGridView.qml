@@ -53,7 +53,7 @@ GridView {
 
     property var iconSize: settings.gridIconSize
     property var maximumIconSize: settings.maximumIconSize
-    property var minimumIconSize: settings.minimumIconSize
+    property var minimumIconSize: 22 //settings.minimumIconSize
 
     property variant cachedRectangleSelection: null
 
@@ -221,7 +221,7 @@ GridView {
     }
 
     cellHeight: {
-        var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 3) + FishUI.Units.largeSpacing
+        var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 2) + FishUI.Units.largeSpacing * 2
         if (isDesktopView) {
             var extraHeight = calcExtraSpacing(iconHeight, control.height - topMargin - bottomMargin)
             return iconHeight + extraHeight
@@ -628,7 +628,7 @@ GridView {
                     width = targetItem.width - FishUI.Units.smallSpacing
                     height = targetItem.labelArea.paintedHeight + FishUI.Units.largeSpacing * 2
                     x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
-                    y = pos.y - FishUI.Units.largeSpacing
+                    y = pos.y - FishUI.Units.smallSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
                     _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
