@@ -90,6 +90,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
+    , m_keyboardSearchManager(KeyboardSearchManager::self())
 {
     QSettings settings("cutefishos", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
@@ -119,6 +120,9 @@ FolderModel::FolderModel(QObject *parent)
     connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)), SIGNAL(countChanged()));
     connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)), SIGNAL(countChanged()));
     connect(this, SIGNAL(modelReset()), SIGNAL(countChanged()));
+
+    connect(m_keyboardSearchManager, &KeyboardSearchManager::searchTextChanged,
+            this, &FolderModel::keyboardSearchChanged);
 }
 
 FolderModel::~FolderModel()
@@ -232,9 +236,37 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     return QSortFilterProxyModel::data(index, role);
 }
 
+int FolderModel::indexForKeyboardSearch(const QString &text, int startFromIndex) const
+{
+    startFromIndex = qMax(0, startFromIndex);
+
+    for (int i = startFromIndex; i < rowCount(); ++i) {
+        if (fileItem(i).text().startsWith(text, Qt::CaseInsensitive)) {
+            return i;
+        }
+    }
+
+    for (int i = 0; i < startFromIndex; ++i) {
+        if (fileItem(i).text().startsWith(text, Qt::CaseInsensitive)) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 KFileItem FolderModel::itemForIndex(const QModelIndex &index) const
 {
     return m_dirModel->itemForIndex(mapToSource(index));
+}
+
+KFileItem FolderModel::fileItem(int index) const
+{
+    if (index >= 0 && index < count()) {
+        return itemForIndex(FolderModel::index(index, 0));
+    }
+
+    return KFileItem();
 }
 
 QList<QUrl> FolderModel::selectedUrls() const
@@ -1238,6 +1270,37 @@ void FolderModel::dragSelectedInternal(int x, int y)
         m_dragIndexes.clear();
         // TODO: Optimize to emit contiguous groups.
         emit dataChanged(first, last, QVector<int>() << BlankRole);
+    }
+}
+
+void FolderModel::keyboardSearchChanged(const QString &text, bool searchFromNextItem)
+{
+    Q_UNUSED(searchFromNextItem);
+
+    if (rowCount() == 0)
+        return;
+
+    int index;
+    int currentIndex = -1;
+
+    if (m_selectionModel->hasSelection()) {
+        currentIndex = m_selectionModel->selectedIndexes().first().row();
+    }
+
+//    if (searchFromNextItem) {
+//        index = indexForKeyboardSearch(text, (currentIndex + 1) % rowCount());
+//    } else {
+//        index = indexForKeyboardSearch(text, 0);
+//    }
+
+    index = indexForKeyboardSearch(text, (currentIndex + 1) % rowCount());
+
+    if (index < 0 || currentIndex == index)
+        return;
+
+    if (index >= 0) {
+        clearSelection();
+        setSelected(index);
     }
 }
 

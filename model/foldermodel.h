@@ -26,6 +26,7 @@
 #define FOLDERMODEL_H
 
 #include "../widgets/itemviewadapter.h"
+#include "../helper/keyboardsearchmanager.h"
 #include "../helper/pathhistory.h"
 #include "../mimetype/mimeappmanager.h"
 
@@ -109,7 +110,10 @@ public:
     static QHash<int, QByteArray> staticRoleNames();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    int indexForKeyboardSearch(const QString &text, int startFromIndex = 0) const;
     KFileItem itemForIndex(const QModelIndex &index) const;
+
+    KFileItem fileItem(int index) const;
 
     QList<QUrl> selectedUrls() const;
 
@@ -238,6 +242,7 @@ signals:
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void dragSelectedInternal(int x, int y);
+    void keyboardSearchChanged(const QString &text, bool searchFromNextItem);
 
 private:
     void invalidateIfComplete();
@@ -294,6 +299,8 @@ private:
     MimeAppManager *m_mimeAppManager;
 
     CFileSizeJob *m_sizeJob;
+
+    KeyboardSearchManager *m_keyboardSearchManager;
 };
 
 #endif // FOLDERMODEL_H
