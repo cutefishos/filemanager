@@ -111,7 +111,7 @@ Item {
                 anchors.fill: _icon
                 source: _icon
                 color: "white"
-                opacity: FishUI.Theme.darkMode ? 0.3 : 0.4
+                opacity: 0.3
                 visible: control.hovered && !control.selected
             }
         }

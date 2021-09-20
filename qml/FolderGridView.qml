@@ -46,7 +46,6 @@ GridView {
     property bool ctrlPressed: false
     property bool shiftPressed: false
 
-    property int previouslySelectedItemIndex: -1
     property variant cPress: null
     property Item editor: null
     property int anchorIndex: 0
@@ -138,7 +137,6 @@ GridView {
     function reset() {
         currentIndex = -1
         anchorIndex = 0
-        previouslySelectedItemIndex = -1
         cancelRename()
         hoveredItem = null
         pressedItem = null
@@ -174,7 +172,6 @@ GridView {
     }
     Keys.onEscapePressed: {
         if (!editor || !editor.targetItem) {
-            previouslySelectedItemIndex = -1
             dirModel.clearSelection()
             event.accepted = false
         }
@@ -602,9 +599,6 @@ GridView {
         } else {
             dirModel.clearSelection()
             dirModel.setSelected(currentIndex)
-            if (currentIndex == -1)
-                previouslySelectedItemIndex = -1
-            previouslySelectedItemIndex = currentIndex
         }
     }
 

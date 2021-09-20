@@ -45,6 +45,7 @@ add_executable(cutefish-filemanager
   helper/fm.cpp
   helper/shortcut.cpp
   helper/filelauncher.cpp
+  helper/keyboardsearchmanager.cpp
 
   mimetype/mimeappmanager.cpp
   mimetype/xdgdesktopfile.cpp

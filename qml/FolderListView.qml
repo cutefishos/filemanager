@@ -40,7 +40,6 @@ ListView {
     property bool ctrlPressed: false
     property bool shiftPressed: false
 
-    property int previouslySelectedItemIndex: -1
     property variant cPress: null
     property Item editor: null
     property int anchorIndex: 0
@@ -86,7 +85,6 @@ ListView {
     function reset() {
         currentIndex = -1
         anchorIndex = 0
-        previouslySelectedItemIndex = -1
         cancelRename()
         hoveredItem = null
         pressedItem = null
@@ -119,7 +117,6 @@ ListView {
 
     Keys.onEscapePressed: {
         if (!editor || !editor.targetItem) {
-            previouslySelectedItemIndex = -1
             dirModel.clearSelection()
             event.accepted = false
         }
@@ -215,7 +212,6 @@ ListView {
             if (!hoveredItem || hoveredItem.blank) {
                 if (!control.ctrlPressed) {
                     control.currentIndex = -1
-                    control.previouslySelectedItemIndex = -1
                     dirModel.clearSelection()
                 }
 
@@ -231,7 +227,6 @@ ListView {
                     dirModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
                     if (!control.ctrlPressed && !dirModel.isSelected(hoveredItem.index)) {
-                        previouslySelectedItemIndex = -1
                         dirModel.clearSelection()
                     }
 
@@ -395,9 +390,6 @@ ListView {
         } else {
             dirModel.clearSelection()
             dirModel.setSelected(currentIndex)
-            if (currentIndex == -1)
-                previouslySelectedItemIndex = -1
-            previouslySelectedItemIndex = currentIndex
         }
     }
 

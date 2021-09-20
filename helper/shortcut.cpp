@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2021 Reion Wong <aj@cutefishos.com>                         *
+ *   Copyright 2021 Reion Wong <reion@cutefishos.com>                      *
  *   Copyright Ken <https://stackoverflow.com/users/1568857/ken>           *
  *   Copyright 2016 Leslie Zhai <xiangzhai83@gmail.com>                    *
  *                                                                         *
@@ -20,6 +20,7 @@
  ***************************************************************************/
 
 #include "shortcut.h"
+#include "keyboardsearchmanager.h"
 
 #include <QKeyEvent>
 
@@ -67,6 +68,10 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             emit deleteFile();
         } else if (keyEvent->key() == Qt::Key_F5) {
             emit refresh();
+        } else if (keyEvent->key() >= Qt::Key_A && keyEvent->key() <= Qt::Key_Z) {
+            // Handle select
+            KeyboardSearchManager::self()->addKeys(keyEvent->text());
+            keyEvent->ignore();
         }
     }
 
