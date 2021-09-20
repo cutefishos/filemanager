@@ -29,8 +29,8 @@ Item {
     property int widthValue: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 4
     property int heightValue: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
 
-    // width: widthValue
-    // height: heightValue
+    width: widthValue
+    height: heightValue
 
     onWidthValueChanged: main.updateSize(widthValue, heightValue)
     onHeightValueChanged: main.updateSize(widthValue, heightValue)
