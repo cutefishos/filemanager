@@ -71,6 +71,13 @@ FilePropertiesDialog::~FilePropertiesDialog()
     }
 }
 
+void FilePropertiesDialog::updateSize(int width, int height)
+{
+    setBaseSize(QSize(width, height));
+    setMinimumSize(QSize(width, height));
+    setMaximumSize(QSize(width, height));
+}
+
 void FilePropertiesDialog::accept(const QString &text)
 {
     KFileItemList list = m_items;

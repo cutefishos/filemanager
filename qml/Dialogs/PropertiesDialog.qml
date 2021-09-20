@@ -26,8 +26,14 @@ import FishUI 1.0 as FishUI
 Item {
     id: control
 
-    width: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 4
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+    property int widthValue: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 4
+    property int heightValue: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+
+    // width: widthValue
+    // height: heightValue
+
+    onWidthValueChanged: main.updateSize(widthValue, heightValue)
+    onHeightValueChanged: main.updateSize(widthValue, heightValue)
 
     focus: true
     Keys.enabled: true
