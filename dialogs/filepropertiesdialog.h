@@ -50,6 +50,8 @@ public:
     explicit FilePropertiesDialog(const QUrl &url, QQuickView *parent = nullptr);
     ~FilePropertiesDialog();
 
+    Q_INVOKABLE void updateSize(int width, int height);
+
     Q_INVOKABLE void accept(const QString &text);
     Q_INVOKABLE void reject();
 
