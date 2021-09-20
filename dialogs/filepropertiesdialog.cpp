@@ -73,7 +73,7 @@ FilePropertiesDialog::~FilePropertiesDialog()
 
 void FilePropertiesDialog::updateSize(int width, int height)
 {
-    setBaseSize(QSize(width, height));
+    resize(QSize(width, height));
     setMinimumSize(QSize(width, height));
     setMaximumSize(QSize(width, height));
 }
