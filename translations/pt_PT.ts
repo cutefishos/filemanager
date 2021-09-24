@@ -21,7 +21,7 @@
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="85"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation>Aceitar</translation>
     </message>
 </context>
 <context>
@@ -77,7 +77,7 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation>Apagar</translation>
+        <translation>Eliminar</translation>
     </message>
 </context>
 <context>
@@ -85,7 +85,7 @@
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
         <source>Desktop</source>
-        <translation>Ambiente de Trabalho</translation>
+        <translation>Ambiente de trabalho</translation>
     </message>
 </context>
 <context>
@@ -144,7 +144,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="981"/>
         <source>Select All</source>
-        <translation>Selecionar Tudo</translation>
+        <translation>Selecionar tudo</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1088"/>
@@ -194,7 +194,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1305"/>
         <source>Delete</source>
-        <translation>Apagar</translation>
+        <translation>Eliminar</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1308"/>
@@ -209,7 +209,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1314"/>
         <source>Set as Wallpaper</source>
-        <translation>Definir como Papel de Parede</translation>
+        <translation>Definir como Papel de parede</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1317"/>
@@ -219,7 +219,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1320"/>
         <source>Change background</source>
-        <translation>Mudar plano de fundo</translation>
+        <translation>Mudar de fundo</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
@@ -268,7 +268,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="76"/>
         <source>Select All</source>
-        <translation>Selecionar Tudo</translation>
+        <translation>Selecionar tudo</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="83"/>
@@ -341,7 +341,7 @@
     <message>
         <location filename="../dialogs/openwithdialog.cpp" line="32"/>
         <source>Open With</source>
-        <translation>Abrir Com</translation>
+        <translation>Abrir com</translation>
     </message>
 </context>
 <context>
@@ -387,7 +387,7 @@
     <message>
         <location filename="../model/placesmodel.cpp" line="47"/>
         <source>Desktop</source>
-        <translation>Ambiente de Trabalho</translation>
+        <translation>Ambiente de trabalho</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="55"/>
@@ -397,7 +397,7 @@
     <message>
         <location filename="../model/placesmodel.cpp" line="63"/>
         <source>Downloads</source>
-        <translation>Downloads</translation>
+        <translation>Transferências</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="71"/>
@@ -465,7 +465,7 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="155"/>
         <source>Accessed:</source>
-        <translation>Acessado:</translation>
+        <translation>Acedido:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="177"/>
@@ -475,7 +475,7 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="183"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation>Aceitar</translation>
     </message>
     <message>
         <source>%1 files</source>
