@@ -149,7 +149,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1088"/>
         <source>File Manager</source>
-        <translation>مستعرض الملفات</translation>
+        <translation>مدير الملفات</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1281"/>
@@ -479,7 +479,7 @@
     <message>
         <location filename="../qml/main.qml" line="35"/>
         <source>File Manager</source>
-        <translation>مستعرض الملفات</translation>
+        <translation>مدير الملفات</translation>
     </message>
 </context>
 </TS>
