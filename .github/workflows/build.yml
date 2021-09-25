@@ -37,4 +37,3 @@ jobs:
       run: sudo mk-build-deps -i -t "apt-get --yes" -r
     - name: Build Package
       run: dpkg-buildpackage -b -uc -us -j$(nproc)
-
