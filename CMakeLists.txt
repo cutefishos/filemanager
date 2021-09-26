@@ -18,8 +18,14 @@ find_package(KF5KIO)
 find_package(KF5Solid)
 find_package(KF5WindowSystem)
 
+qt5_add_dbus_adaptor(DBUS_SOURCES
+                     com.cutefish.FileManager.xml
+                     application.h Application)
+
 add_executable(cutefish-filemanager
   main.cpp
+  application.cpp
+  window.cpp
   model/foldermodel.cpp
   model/placesmodel.cpp
   model/placesitem.cpp
@@ -56,6 +62,8 @@ add_executable(cutefish-filemanager
   desktopiconprovider.cpp
 
   qml.qrc
+
+  ${DBUS_SOURCES}
 )
 
 target_link_libraries(cutefish-filemanager

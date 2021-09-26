@@ -17,15 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QApplication>
-#include <QCommandLineParser>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-
-#include <QPixmapCache>
-#include <QTranslator>
-#include <QLocale>
-
+#include "application.h"
 #include "model/placesmodel.h"
 #include "model/foldermodel.h"
 #include "model/pathbarmodel.h"
@@ -39,30 +31,10 @@
 #include "helper/fm.h"
 #include "helper/shortcut.h"
 
-#include "thumbnailer/thumbnailprovider.h"
-
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
-
-    QApplication app(argc, argv);
-    app.setOrganizationName("cutefishos");
-    app.setWindowIcon(QIcon::fromTheme("file-manager"));
-
-    QPixmapCache::setCacheLimit(1024 * 10);
-
-    // Translations
-    QLocale locale;
-    QString qmFilePath = QString("%1/%2.qm").arg("/usr/share/cutefish-filemanager/translations/").arg(locale.name());
-    if (QFile::exists(qmFilePath)) {
-        QTranslator *translator = new QTranslator(app.instance());
-        if (translator->load(qmFilePath)) {
-            app.installTranslator(translator);
-        } else {
-            translator->deleteLater();
-        }
-    }
 
     // Register QML Type.
     const char *uri = "Cutefish.FileManager";
@@ -82,57 +54,6 @@ int main(int argc, char *argv[])
     qmlRegisterAnonymousType<QAction>(uri, 1);
 #endif
 
-    QCommandLineParser parser;
-    parser.setApplicationDescription(QStringLiteral("File Manager"));
-    parser.addHelpOption();
-
-    parser.addPositionalArgument("files", "Files", "[FILE1, FILE2,...]");
-
-    QCommandLineOption desktopOption(QStringList() << "d" << "desktop" << "Desktop Mode");
-    parser.addOption(desktopOption);
-
-    QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
-    parser.addOption(emptyTrashOption);
-
-    parser.process(app);
-
-    if (parser.isSet(desktopOption)) {
-        app.setApplicationName("cutefish-desktop");
-        Desktop desktop;
-        return app.exec();
-    } else if (parser.isSet(emptyTrashOption)) {
-        // Empty Dialog
-        QQmlApplicationEngine engine;
-        const QUrl url(QStringLiteral("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
-        engine.load(url);
-        return app.exec();
-    }
-
-    QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                     &app, [url](QObject *obj, const QUrl &objUrl) {
-        if (!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
-
-    // Handle urls
-    if (!parser.positionalArguments().isEmpty()) {
-        QStringList arguments = parser.positionalArguments();
-        QUrl url(arguments.first());
-        if (!url.isValid())
-            url = QUrl::fromLocalFile(arguments.first());
-
-        if (url.isValid())
-            engine.rootContext()->setContextProperty("arg", arguments.first());
-        else
-            engine.rootContext()->setContextProperty("arg", "");
-    } else {
-        engine.rootContext()->setContextProperty("arg", "");
-    }
-
-    engine.load(url);
-    engine.addImageProvider("thumbnailer", new ThumbnailProvider());
-
-    return app.exec();
+    Application app(argc, argv);
+    return app.run();
 }
