@@ -37,6 +37,7 @@ public:
 
 private:
     void openWindow(const QString &path);
+    QStringList formatUriList(const QStringList &list);
 
 private:
     bool parseCommandLineArgs();

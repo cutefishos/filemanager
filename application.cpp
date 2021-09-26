@@ -31,6 +31,7 @@
 #include <QDBusConnection>
 #include <QPixmapCache>
 #include <QTranslator>
+#include <QFileInfo>
 #include <QIcon>
 #include <QDir>
 
@@ -91,6 +92,17 @@ void Application::openWindow(const QString &path)
     w->load(QUrl("qrc:/qml/main.qml"));
 }
 
+QStringList Application::formatUriList(const QStringList &list)
+{
+    QStringList val = list;
+
+    if (list.isEmpty()) {
+        val.append(QDir::currentPath());
+    }
+
+    return val;
+}
+
 bool Application::parseCommandLineArgs()
 {
     QCommandLineParser parser;
@@ -113,13 +125,7 @@ bool Application::parseCommandLineArgs()
         if (parser.isSet(desktopOption)) {
             Desktop desktop;
         } else {
-            QStringList paths = parser.positionalArguments();
-
-            if (paths.isEmpty()) {
-                paths.append(QDir::currentPath());
-            }
-
-            openFiles(paths);
+            openFiles(formatUriList(parser.positionalArguments()));
         }
     } else {
         QDBusInterface iface("com.cutefish.FileManager",
@@ -131,13 +137,7 @@ bool Application::parseCommandLineArgs()
             // Empty Dialog
             iface.call("emptyTrash");
         } else {
-            QStringList paths = parser.positionalArguments();
-
-            if (paths.isEmpty()) {
-                paths.append(QDir::currentPath());
-            }
-
-            iface.call("openFiles", paths);
+            iface.call("openFiles", formatUriList(parser.positionalArguments()));
         }
     }
 
