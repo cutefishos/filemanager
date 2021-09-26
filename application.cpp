@@ -18,6 +18,7 @@
  */
 
 #include "application.h"
+#include "dbusinterface.h"
 #include "window.h"
 #include "desktop/desktop.h"
 #include "thumbnailer/thumbnailprovider.h"
@@ -42,6 +43,7 @@ Application::Application(int& argc, char** argv)
         setWindowIcon(QIcon::fromTheme("file-manager"));
 
         new FileManagerAdaptor(this);
+        new DBusInterface;
         QDBusConnection::sessionBus().registerObject("/FileManager", this);
 
         // Translations

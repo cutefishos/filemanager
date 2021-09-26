@@ -26,6 +26,8 @@ add_executable(cutefish-filemanager
   main.cpp
   application.cpp
   window.cpp
+  dbusinterface.cpp
+
   model/foldermodel.cpp
   model/placesmodel.cpp
   model/placesitem.cpp
