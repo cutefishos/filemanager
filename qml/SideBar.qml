@@ -56,7 +56,7 @@ ListView {
     highlightResizeDuration : 0
 
     highlight: Rectangle {
-        radius: FishUI.Theme.smallRadius
+        radius: FishUI.Theme.mediumRadius
         color: FishUI.Theme.highlightColor
     }
 

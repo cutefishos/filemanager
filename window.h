@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     Reion Wong <reionwong@gmail.com>
+ * Author:     Reion Wong <reion@cutefishos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "thumbnailprovider.h"
-#include "thumbnailcache.h"
+#ifndef WINDOW_H
+#define WINDOW_H
 
-#include <QFile>
-#include <QImage>
-#include <QDebug>
+#include <QQmlApplicationEngine>
 
-QImage ThumbnailProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+class Window : public QQmlApplicationEngine
 {
-    if (!requestedSize.isValid()) {
-        return QImage();
-    }
+    Q_OBJECT
 
-    if (size)
-        *size = requestedSize;
+public:
+    explicit Window(QObject *parent = nullptr);
 
-    QString f = id;
-    QString thumbnail = ThumbnailCache::self()->requestThumbnail(id, requestedSize);
+    void load(const QUrl &url);
 
-    if (!thumbnail.isEmpty()) {
-        return QImage(thumbnail);
-    }
+protected:
+    bool eventFilter(QObject *o, QEvent *e);
+};
 
-    return QImage();
-}
+#endif // WINDOW_H

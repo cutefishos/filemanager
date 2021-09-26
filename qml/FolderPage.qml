@@ -109,15 +109,15 @@ Item {
         id: _background
         anchors.fill: parent
         anchors.rightMargin: 1
-        radius: FishUI.Theme.smallRadius
+        radius: FishUI.Theme.mediumRadius
         color: FishUI.Theme.secondBackgroundColor
 
         Rectangle {
             id: _topRightRect
             anchors.right: parent.right
             anchors.top: parent.top
-            height: FishUI.Theme.smallRadius
-            width: FishUI.Theme.smallRadius
+            height: FishUI.Theme.mediumRadius
+            width: FishUI.Theme.mediumRadius
             color: FishUI.Theme.secondBackgroundColor
         }
 
@@ -125,8 +125,8 @@ Item {
             id: _bottomLeftRect
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            height: FishUI.Theme.smallRadius
-            width: FishUI.Theme.smallRadius
+            height: FishUI.Theme.mediumRadius
+            width: FishUI.Theme.mediumRadius
             color: FishUI.Theme.secondBackgroundColor
         }
     }

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     Reion Wong <reionwong@gmail.com>
+ * Author:     Reion Wong <reion@cutefishos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "thumbnailprovider.h"
-#include "thumbnailcache.h"
+#ifndef APPLICATION_H
+#define APPLICATION_H
 
-#include <QFile>
-#include <QImage>
-#include <QDebug>
+#include <QApplication>
 
-QImage ThumbnailProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+class Application : public QApplication
 {
-    if (!requestedSize.isValid()) {
-        return QImage();
-    }
+    Q_OBJECT
 
-    if (size)
-        *size = requestedSize;
+public:
+    explicit Application(int& argc, char** argv);
 
-    QString f = id;
-    QString thumbnail = ThumbnailCache::self()->requestThumbnail(id, requestedSize);
+    int run();
 
-    if (!thumbnail.isEmpty()) {
-        return QImage(thumbnail);
-    }
+    // DBus
+    void openFiles(const QStringList &paths);
+    void emptyTrash();
 
-    return QImage();
-}
+private:
+    void openWindow(const QString &path);
+
+private:
+    bool parseCommandLineArgs();
+
+private:
+    bool m_instance;
+};
+
+#endif // APPLICATION_H

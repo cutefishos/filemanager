@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     Reion Wong <reionwong@gmail.com>
+ * Author:     Reion Wong <reion@cutefishos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "thumbnailprovider.h"
-#include "thumbnailcache.h"
-
-#include <QFile>
-#include <QImage>
+#include "window.h"
+#include <QEvent>
 #include <QDebug>
+#include <QQuickWindow>
 
-QImage ThumbnailProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+Window::Window(QObject *parent)
+    : QQmlApplicationEngine(parent)
 {
-    if (!requestedSize.isValid()) {
-        return QImage();
+}
+
+void Window::load(const QUrl &url)
+{
+    QQmlApplicationEngine::load(url);
+
+    QQuickWindow *w = qobject_cast<QQuickWindow *>(rootObjects().first());
+
+    if (w)
+        w->installEventFilter(this);
+}
+
+bool Window::eventFilter(QObject *obj, QEvent *e)
+{
+    if (e->type() == QEvent::Close) {
+        clearComponentCache();
+        deleteLater();
+        e->accept();
     }
 
-    if (size)
-        *size = requestedSize;
-
-    QString f = id;
-    QString thumbnail = ThumbnailCache::self()->requestThumbnail(id, requestedSize);
-
-    if (!thumbnail.isEmpty()) {
-        return QImage(thumbnail);
-    }
-
-    return QImage();
+    return QObject::eventFilter(obj, e);
 }
