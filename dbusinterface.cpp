@@ -20,8 +20,6 @@ void DBusInterface::ShowFolders(const QStringList &uriList, const QString &start
 {
     Q_UNUSED(startUpId);
 
-    qDebug() << uriList;
-
     QProcess::startDetached("cutefish-filemanager", uriList);
 }
 

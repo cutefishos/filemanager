@@ -293,11 +293,17 @@ void FolderModel::setUrl(const QString &url)
     if (url.isEmpty())
         return;
 
-    const QUrl &resolvedNewUrl = resolve(url);
+    QUrl resolvedNewUrl = resolve(url);
+    QFileInfo info(resolvedNewUrl.toLocalFile());
 
     if (!QFile::exists(resolvedNewUrl.toLocalFile()) && !url.startsWith("trash:/")) {
         emit notification(tr("The file or folder %1 does not exist.").arg(url));
         return;
+    }
+
+    // TODO: selected ?
+    if (info.isFile()) {
+        resolvedNewUrl = QUrl::fromLocalFile(info.dir().path());
     }
 
     // Refresh this directory.
@@ -309,7 +315,7 @@ void FolderModel::setUrl(const QString &url)
     m_pathHistory.append(resolvedNewUrl);
 
     beginResetModel();
-    m_url = url;
+    m_url = resolvedNewUrl.toLocalFile();
     m_dirModel->dirLister()->openUrl(resolvedNewUrl);
     clearDragImages();
     m_dragIndexes.clear();
