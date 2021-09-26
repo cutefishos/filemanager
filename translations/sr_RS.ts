@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="sk">
+<TS version="2.1" language="sr">
 <context>
     <name>CreateFolderDialog</name>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="28"/>
         <source>New folder name</source>
-        <translation>Názov nového priečinku</translation>
+        <translation>Naziv nove fascikle</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
         <source>New folder</source>
-        <translation>Nový priečinok</translation>
+        <translation>Nova fascikla</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="79"/>
         <source>Cancel</source>
-        <translation>Zrušiť</translation>
+        <translation>Otkaži</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="85"/>
@@ -29,37 +29,37 @@
     <message>
         <location filename="../helper/datehelper.cpp" line="15"/>
         <source>Now</source>
-        <translation>Teraz</translation>
+        <translation>Sad</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="17"/>
         <source>1 minute ago</source>
-        <translation>Pred minútou</translation>
+        <translation>Pre 1 minut</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="19"/>
         <source>%1 minutes ago</source>
-        <translation>Pred %1 minútami</translation>
+        <translation>Pre %1 minuta</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="23"/>
         <source>1 hour ago</source>
-        <translation>Pred hodinou</translation>
+        <translation>Pre 1 sat</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="25"/>
         <source>%1 hours ago</source>
-        <translation>Pred %1 hodinami</translation>
+        <translation>Pre %1 sati</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="29"/>
         <source>1 day ago</source>
-        <translation>Pred 1 dňom</translation>
+        <translation>Pre 1 dan</translation>
     </message>
     <message>
         <location filename="../helper/datehelper.cpp" line="31"/>
         <source>%1 days ago</source>
-        <translation>Pred %1 dňami</translation>
+        <translation>Pre %1 dana</translation>
     </message>
 </context>
 <context>
@@ -67,17 +67,17 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation>Chcete to nenávratne vymazať?</translation>
+        <translation>Da li želite trajno ovo da obrišete?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
         <source>Cancel</source>
-        <translation>Zrušiť</translation>
+        <translation>Otkaži</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation>Vymazať</translation>
+        <translation>Obriši</translation>
     </message>
 </context>
 <context>
@@ -85,7 +85,7 @@
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
         <source>Desktop</source>
-        <translation>Pracovná plocha</translation>
+        <translation>Radna površina</translation>
     </message>
 </context>
 <context>
@@ -93,227 +93,232 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="30"/>
         <source>File Manager</source>
-        <translation>Správca súborov</translation>
+        <translation>Upravljač datoteka</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="60"/>
         <source>Do you want to permanently delete all files from the Trash?</source>
-        <translation>Chcete nenávratne vymazať všetky súbory v Koši?</translation>
+        <translation>Želite li trajno obrisati sve fajlove iz Smeća?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="69"/>
         <source>Cancel</source>
-        <translation>Zrušiť</translation>
+        <translation>Otkaži</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="75"/>
         <source>Empty Trash</source>
-        <translation>Vyprázdniť kôš</translation>
+        <translation>Isprazni smeće</translation>
     </message>
 </context>
 <context>
     <name>FilePropertiesDialog</name>
     <message>
-        <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="185"/>
         <source>Properties</source>
-        <translation>Vlastnosti</translation>
+        <translation>Svojstva</translation>
     </message>
     <message>
-        <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="233"/>
         <source>%1 files</source>
-        <translation>%1 súborov</translation>
+        <translation>%1 datoteka</translation>
     </message>
 </context>
 <context>
     <name>FolderModel</name>
     <message>
-        <location filename="../model/foldermodel.cpp" line="184"/>
+        <location filename="../model/foldermodel.cpp" line="202"/>
         <source>%1 item</source>
-        <translation>%1 položka</translation>
+        <translation>%1 stavka</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="184"/>
+        <location filename="../model/foldermodel.cpp" line="202"/>
         <source>%1 items</source>
-        <translation>%1 položiek</translation>
+        <translation>%1 stavki</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="249"/>
+        <location filename="../model/foldermodel.cpp" line="267"/>
         <source>The file or folder %1 does not exist.</source>
-        <translation>Súbor alebo priečinok %1 neexistuje.</translation>
+        <translation>Datoteka ili fascikla %1 ne postoji.</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="981"/>
+        <location filename="../model/foldermodel.cpp" line="999"/>
         <source>Select All</source>
-        <translation>Vybrať všetky</translation>
+        <translation>Izaberi sve</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1088"/>
+        <location filename="../model/foldermodel.cpp" line="1108"/>
         <source>File Manager</source>
-        <translation>Správca súborov</translation>
+        <translation>Upravljač datotekama</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1281"/>
+        <location filename="../model/foldermodel.cpp" line="1359"/>
         <source>Open</source>
-        <translation>Otvoriť</translation>
+        <translation>Otvori</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1284"/>
+        <location filename="../model/foldermodel.cpp" line="1362"/>
         <source>Open with</source>
-        <translation>Otvoriť v</translation>
+        <translation>Otvori pomoću</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1287"/>
+        <location filename="../model/foldermodel.cpp" line="1365"/>
         <source>Cut</source>
-        <translation>Vystrihnúť</translation>
+        <translation>Iseci</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1290"/>
+        <location filename="../model/foldermodel.cpp" line="1368"/>
         <source>Copy</source>
-        <translation>Kopírovať</translation>
+        <translation>Kopiraj</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1293"/>
+        <location filename="../model/foldermodel.cpp" line="1371"/>
         <source>Paste</source>
-        <translation>Prilepiť</translation>
+        <translation>Zalepi</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1296"/>
+        <location filename="../model/foldermodel.cpp" line="1374"/>
         <source>New Folder</source>
-        <translation>Nový priečinok</translation>
+        <translation>Nova fascikla</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1299"/>
+        <location filename="../model/foldermodel.cpp" line="1377"/>
         <source>Move To Trash</source>
-        <translation>Presunúť do Koša</translation>
+        <translation>Premesti u smeće</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1302"/>
+        <location filename="../model/foldermodel.cpp" line="1380"/>
         <source>Empty Trash</source>
-        <translation>Vyprázdniť Kôš</translation>
+        <translation>Isprazni smeće</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1305"/>
+        <location filename="../model/foldermodel.cpp" line="1383"/>
         <source>Delete</source>
-        <translation>Odstrániť</translation>
+        <translation>Obriši</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1308"/>
+        <location filename="../model/foldermodel.cpp" line="1386"/>
         <source>Rename</source>
-        <translation>Premenovať</translation>
+        <translation>Preimenuj</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1311"/>
+        <location filename="../model/foldermodel.cpp" line="1389"/>
         <source>Open in Terminal</source>
-        <translation>Otvoriť v Termináli</translation>
+        <translation>Otvori u terminalu</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1314"/>
+        <location filename="../model/foldermodel.cpp" line="1392"/>
         <source>Set as Wallpaper</source>
-        <translation>Nastaviť ako Pozadie pracovnej plochy</translation>
+        <translation>Postavi kao pozadinu</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1317"/>
+        <location filename="../model/foldermodel.cpp" line="1395"/>
         <source>Properties</source>
-        <translation>Vlastnosti</translation>
+        <translation>Svojstva</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1320"/>
+        <location filename="../model/foldermodel.cpp" line="1398"/>
         <source>Change background</source>
-        <translation>Zmeniť pozadie</translation>
+        <translation>Promeni pozadinu</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1323"/>
+        <location filename="../model/foldermodel.cpp" line="1401"/>
         <source>Restore</source>
-        <translation>Obnoviť</translation>
+        <translation type="unfinished">Obnovi</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1404"/>
+        <source>Show hidden files</source>
+        <translation>Prikaži skrivene datoteke</translation>
     </message>
 </context>
 <context>
     <name>FolderPage</name>
     <message>
-        <location filename="../qml/FolderPage.qml" line="134"/>
+        <location filename="../qml/FolderPage.qml" line="136"/>
         <source>Empty folder</source>
-        <translation>Vyprázdniť priečinok</translation>
+        <translation>Prazna fascikla</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="174"/>
+        <location filename="../qml/FolderPage.qml" line="177"/>
         <source>Open</source>
-        <translation>Otvoriť</translation>
+        <translation>Otvori</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="60"/>
-        <location filename="../qml/FolderPage.qml" line="179"/>
+        <location filename="../qml/FolderPage.qml" line="61"/>
+        <location filename="../qml/FolderPage.qml" line="182"/>
         <source>Properties</source>
-        <translation>Vlastnosti</translation>
+        <translation>Svojstva</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="50"/>
+        <location filename="../qml/FolderPage.qml" line="51"/>
         <source>File</source>
-        <translation>Súbor</translation>
+        <translation>Datoteka</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="53"/>
+        <location filename="../qml/FolderPage.qml" line="54"/>
         <source>New Folder</source>
-        <translation>Nový priečinok</translation>
+        <translation>Nova fascikla</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="67"/>
+        <location filename="../qml/FolderPage.qml" line="68"/>
         <source>Quit</source>
-        <translation>Skončiť</translation>
+        <translation>Odustani</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="73"/>
+        <location filename="../qml/FolderPage.qml" line="74"/>
         <source>Edit</source>
-        <translation>Upraviť</translation>
+        <translation>Uredi</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="76"/>
+        <location filename="../qml/FolderPage.qml" line="77"/>
         <source>Select All</source>
-        <translation>Vybrať všetko</translation>
+        <translation>Izaberi sve</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="83"/>
+        <location filename="../qml/FolderPage.qml" line="84"/>
         <source>Cut</source>
-        <translation>Vystrihnúť</translation>
+        <translation>Iseci</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="88"/>
+        <location filename="../qml/FolderPage.qml" line="89"/>
         <source>Copy</source>
-        <translation>Kopírovať</translation>
+        <translation>Kopiraj</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="93"/>
+        <location filename="../qml/FolderPage.qml" line="94"/>
         <source>Paste</source>
-        <translation>Prilepiť</translation>
+        <translation>Zalepi</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="99"/>
+        <location filename="../qml/FolderPage.qml" line="100"/>
         <source>Help</source>
-        <translation>Pomocník</translation>
+        <translation>Pomoć</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="102"/>
+        <location filename="../qml/FolderPage.qml" line="103"/>
         <source>About</source>
-        <translation>O aplikácii</translation>
+        <translation>O Aplikaciji</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="241"/>
+        <location filename="../qml/FolderPage.qml" line="244"/>
         <source>%1 item</source>
-        <translation>%1 položka</translation>
+        <translation>%1 stavka</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="242"/>
+        <location filename="../qml/FolderPage.qml" line="245"/>
         <source>%1 items</source>
-        <translation>%1 položiek</translation>
+        <translation>%1 stavki</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="248"/>
+        <location filename="../qml/FolderPage.qml" line="251"/>
         <source>%1 selected</source>
-        <translation>%1 vybrané</translation>
+        <translation>%1 odabrano</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="259"/>
+        <location filename="../qml/FolderPage.qml" line="266"/>
         <source>Empty Trash</source>
-        <translation>Vyprázdniť kôš</translation>
+        <translation>Isprazni smeće</translation>
     </message>
 </context>
 <context>
@@ -321,27 +326,27 @@
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="78"/>
         <source>No applications</source>
-        <translation>Žiadne aplikácie</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="142"/>
         <source>Set as default</source>
-        <translation>Nastaviť ako predvolené</translation>
+        <translation>Postavi kao podrazumevano</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
         <source>Cancel</source>
-        <translation>Zrušiť</translation>
+        <translation>Otkaži</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="160"/>
         <source>Open</source>
-        <translation>Otvoriť</translation>
+        <translation>Otvori</translation>
     </message>
     <message>
         <location filename="../dialogs/openwithdialog.cpp" line="32"/>
         <source>Open With</source>
-        <translation>Otvoriť v</translation>
+        <translation>Otvori pomoću</translation>
     </message>
 </context>
 <context>
@@ -349,32 +354,32 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="47"/>
         <source>Icons</source>
-        <translation>Ikony</translation>
+        <translation>Ikone</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="85"/>
         <source>List</source>
-        <translation>Zoznam</translation>
+        <translation>Spisak</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="127"/>
         <source>Name</source>
-        <translation>Názov</translation>
+        <translation>Ime</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="165"/>
         <source>Date</source>
-        <translation>Dátum</translation>
+        <translation>Datum</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="189"/>
         <source>Type</source>
-        <translation>Typ</translation>
+        <translation type="unfinished">Tip</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="227"/>
         <source>Size</source>
-        <translation>Veľkosť</translation>
+        <translation>Veličina</translation>
     </message>
 </context>
 <context>
@@ -382,104 +387,96 @@
     <message>
         <location filename="../model/placesmodel.cpp" line="39"/>
         <source>Home</source>
-        <translation>Domov</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="47"/>
         <source>Desktop</source>
-        <translation>Pracovná plocha</translation>
+        <translation>Radna površina</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="55"/>
         <source>Documents</source>
-        <translation>Dokumenty</translation>
+        <translation>Dokumenti</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="63"/>
         <source>Downloads</source>
-        <translation>Prevzaté súbory</translation>
+        <translation>Preuzimanja</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="71"/>
         <source>Music</source>
-        <translation>Hudba</translation>
+        <translation>Muzika</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="79"/>
         <source>Pictures</source>
-        <translation>Obrázky</translation>
+        <translation>Slike</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="87"/>
         <source>Videos</source>
-        <translation>Videá</translation>
+        <translation>Videozapisi</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="93"/>
         <source>Trash</source>
-        <translation>Kôš</translation>
+        <translation>Smeće</translation>
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="117"/>
         <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
-        <translation>Disky</translation>
+        <translation>Diskovi</translation>
     </message>
 </context>
 <context>
     <name>PropertiesDialog</name>
     <message>
-        <source>Properties</source>
-        <translation type="vanished">Vlastnosti</translation>
-    </message>
-    <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="94"/>
         <source>Type:</source>
-        <translation>Typ súboru:</translation>
+        <translation>Vrsta:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="107"/>
         <source>Location:</source>
-        <translation>Umiestnenie:</translation>
+        <translation>Lokacija:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="118"/>
         <source>Size:</source>
-        <translation>Veľkosť:</translation>
+        <translation>Veličina:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="125"/>
         <source>Calculating...</source>
-        <translation>Počítanie...</translation>
+        <translation>Računanje...</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="129"/>
         <source>Created:</source>
-        <translation>Vytvorený:</translation>
+        <translation>Napravljeno:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="142"/>
         <source>Modified:</source>
-        <translation>Upravený:</translation>
+        <translation>Izmenjeno:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="155"/>
         <source>Accessed:</source>
-        <translation>Otvorený:</translation>
+        <translation>Pristupljeno:</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="177"/>
         <source>Cancel</source>
-        <translation>Zrušiť</translation>
+        <translation>Otkaži</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="183"/>
         <source>OK</source>
-        <translation>OK</translation>
-    </message>
-    <message>
-        <source>%1 files</source>
-        <translation type="vanished">%1 súbory</translation>
+        <translation>U redu</translation>
     </message>
 </context>
 <context>
@@ -487,7 +484,7 @@
     <message>
         <location filename="../qml/main.qml" line="35"/>
         <source>File Manager</source>
-        <translation>Správca súborov</translation>
+        <translation>Upravljač datotekama</translation>
     </message>
 </context>
 </TS>

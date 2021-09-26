@@ -72,12 +72,12 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">Anuluj</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation type="unfinished">Usuń</translation>
+        <translation>Usuń</translation>
     </message>
 </context>
 <context>
@@ -116,12 +116,12 @@
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
         <source>Properties</source>
-        <translation type="unfinished">Właściwości</translation>
+        <translation>Właściwości</translation>
     </message>
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
         <source>%1 files</source>
-        <translation type="unfinished">%1 plików</translation>
+        <translation>%1 plików</translation>
     </message>
 </context>
 <context>
@@ -159,7 +159,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1284"/>
         <source>Open with</source>
-        <translation type="unfinished"></translation>
+        <translation>Otwórz za pomocą</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1287"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Przywróć</translation>
     </message>
 </context>
 <context>
@@ -253,7 +253,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="53"/>
         <source>New Folder</source>
-        <translation type="unfinished">Nowy folder</translation>
+        <translation>Nowy folder</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="67"/>
@@ -268,22 +268,22 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="76"/>
         <source>Select All</source>
-        <translation type="unfinished">Zaznacz wszystko</translation>
+        <translation>Zaznacz wszystko</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="83"/>
         <source>Cut</source>
-        <translation type="unfinished">Wytnij</translation>
+        <translation>Wytnij</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="88"/>
         <source>Copy</source>
-        <translation type="unfinished">Kopiuj</translation>
+        <translation>Kopiuj</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="93"/>
         <source>Paste</source>
-        <translation type="unfinished">Wklej</translation>
+        <translation>Wklej</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="99"/>
@@ -321,17 +321,17 @@
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="78"/>
         <source>No applications</source>
-        <translation type="unfinished"></translation>
+        <translation>Brak aplikacji</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="142"/>
         <source>Set as default</source>
-        <translation type="unfinished">Ustaw jako domyślne</translation>
+        <translation>Ustaw jako domyślne</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
         <source>Cancel</source>
-        <translation type="unfinished">Anuluj</translation>
+        <translation>Anuluj</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="160"/>
@@ -341,7 +341,7 @@
     <message>
         <location filename="../dialogs/openwithdialog.cpp" line="32"/>
         <source>Open With</source>
-        <translation type="unfinished"></translation>
+        <translation>Otwórz za pomocą</translation>
     </message>
 </context>
 <context>
@@ -423,7 +423,7 @@
         <location filename="../model/placesmodel.cpp" line="117"/>
         <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
-        <translation type="unfinished"></translation>
+        <translation>Dyski</translation>
     </message>
 </context>
 <context>

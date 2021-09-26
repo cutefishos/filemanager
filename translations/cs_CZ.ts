@@ -16,12 +16,12 @@
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="79"/>
         <source>Cancel</source>
-        <translation>Zrušit</translation>
+        <translation>Storno</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="85"/>
         <source>OK</source>
-        <translation>V pořádku</translation>
+        <translation>OK</translation>
     </message>
 </context>
 <context>
@@ -67,17 +67,17 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation>Chcete ho nevratně smazat?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">Zrušit</translation>
+        <translation>Storno</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation type="unfinished">Smazat</translation>
+        <translation>Smazat</translation>
     </message>
 </context>
 <context>
@@ -103,7 +103,7 @@
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="69"/>
         <source>Cancel</source>
-        <translation>Zrušit</translation>
+        <translation>Storno</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="75"/>
@@ -116,12 +116,12 @@
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
         <source>Properties</source>
-        <translation type="unfinished">Vlastnosti</translation>
+        <translation>Vlastnosti</translation>
     </message>
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
         <source>%1 files</source>
-        <translation type="unfinished">%1 složek</translation>
+        <translation>%1 souborů</translation>
     </message>
 </context>
 <context>
@@ -139,7 +139,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="249"/>
         <source>The file or folder %1 does not exist.</source>
-        <translation type="unfinished"></translation>
+        <translation>Soubor nebo složka %1 neexistuje.</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="981"/>
@@ -149,7 +149,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1088"/>
         <source>File Manager</source>
-        <translation type="unfinished">Správce souborů</translation>
+        <translation>Správce souborů</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1281"/>
@@ -159,7 +159,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1284"/>
         <source>Open with</source>
-        <translation type="unfinished"></translation>
+        <translation>Otevřít s</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1287"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Obnovit</translation>
     </message>
 </context>
 <context>
@@ -232,7 +232,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="134"/>
         <source>Empty folder</source>
-        <translation>Vyprázdnit složku</translation>
+        <translation>Prázdná složka</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="174"/>
@@ -248,52 +248,52 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="50"/>
         <source>File</source>
-        <translation type="unfinished"></translation>
+        <translation>Soubor</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="53"/>
         <source>New Folder</source>
-        <translation type="unfinished">Nová složka</translation>
+        <translation>Nová složka</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="67"/>
         <source>Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>Ukončit</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="73"/>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Upravit</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="76"/>
         <source>Select All</source>
-        <translation type="unfinished">Vybrat vše</translation>
+        <translation>Vybrat vše</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="83"/>
         <source>Cut</source>
-        <translation type="unfinished">Vyjmout</translation>
+        <translation>Vyjmout</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="88"/>
         <source>Copy</source>
-        <translation type="unfinished">Zkopírovat</translation>
+        <translation>Zkopírovat</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="93"/>
         <source>Paste</source>
-        <translation type="unfinished">Vložit</translation>
+        <translation>Vložit</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="99"/>
         <source>Help</source>
-        <translation type="unfinished"></translation>
+        <translation>Nápověda</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="102"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>O aplikaci</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="241"/>
@@ -321,27 +321,27 @@
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="78"/>
         <source>No applications</source>
-        <translation type="unfinished"></translation>
+        <translation>Žádné aplikace</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="142"/>
         <source>Set as default</source>
-        <translation type="unfinished"></translation>
+        <translation>Nastavit jako výchozí</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
         <source>Cancel</source>
-        <translation type="unfinished">Zrušit</translation>
+        <translation>Storno</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="160"/>
         <source>Open</source>
-        <translation type="unfinished">Otevřít</translation>
+        <translation>Otevřít</translation>
     </message>
     <message>
         <location filename="../dialogs/openwithdialog.cpp" line="32"/>
         <source>Open With</source>
-        <translation type="unfinished"></translation>
+        <translation>Otevřít s</translation>
     </message>
 </context>
 <context>
@@ -369,7 +369,7 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="189"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Typ</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="227"/>
@@ -423,7 +423,7 @@
         <location filename="../model/placesmodel.cpp" line="117"/>
         <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
-        <translation type="unfinished"></translation>
+        <translation>Ovladače</translation>
     </message>
 </context>
 <context>
@@ -450,7 +450,7 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="125"/>
         <source>Calculating...</source>
-        <translation>Vypočítávám...</translation>
+        <translation>Počítání…</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="129"/>
@@ -470,12 +470,12 @@
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="177"/>
         <source>Cancel</source>
-        <translation>Zrušit</translation>
+        <translation>Storno</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/PropertiesDialog.qml" line="183"/>
         <source>OK</source>
-        <translation>V pořádku</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <source>%1 files</source>
