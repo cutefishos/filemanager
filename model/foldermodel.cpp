@@ -302,7 +302,7 @@ void FolderModel::setUrl(const QString &url)
     }
 
     // TODO: selected ?
-    if (info.isFile()) {
+    if (info.isFile() && !url.startsWith("trash:///")) {
         resolvedNewUrl = QUrl::fromLocalFile(info.dir().path());
     }
 
@@ -315,7 +315,7 @@ void FolderModel::setUrl(const QString &url)
     m_pathHistory.append(resolvedNewUrl);
 
     beginResetModel();
-    m_url = resolvedNewUrl.toLocalFile();
+    m_url = resolvedNewUrl.toString();
     m_dirModel->dirLister()->openUrl(resolvedNewUrl);
     clearDragImages();
     m_dragIndexes.clear();
