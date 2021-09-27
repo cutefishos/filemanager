@@ -1198,6 +1198,15 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
         }
     }
 
+    updateActions();
+
+    emit selectionCountChanged();
+
+    // The desktop does not need to calculate the selected file size.
+    if (m_isDesktop)
+        return;
+
+    // Start calculating file size.
     if (m_sizeJob == nullptr) {
         m_sizeJob = new CFileSizeJob;
 
@@ -1223,13 +1232,22 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
         m_selectedItemSize = "";
         emit selectedItemSizeChanged();
     } else {
-        m_sizeJob->blockSignals(false);
-        m_sizeJob->start(selectedUrls());
+        bool fileExists = false;
+
+        for (const QModelIndex &index : m_selectionModel->selectedIndexes()) {
+            if (itemForIndex(index).isFile()) {
+                fileExists = true;
+                break;
+            }
+        }
+
+        // Reion: The size label at the bottom needs to be updated
+        // only if you select the include file.
+        if (fileExists) {
+            m_sizeJob->blockSignals(false);
+            m_sizeJob->start(selectedUrls());
+        }
     }
-
-    updateActions();
-
-    emit selectionCountChanged();
 }
 
 void FolderModel::dragSelectedInternal(int x, int y)
