@@ -316,7 +316,7 @@ void FolderModel::setUrl(const QString &url)
     m_pathHistory.append(resolvedNewUrl);
 
     beginResetModel();
-    m_url = resolvedNewUrl.toString();
+    m_url = resolvedNewUrl.toString(QUrl::PreferLocalFile);
     m_dirModel->dirLister()->openUrl(resolvedNewUrl);
     clearDragImages();
     m_dragIndexes.clear();
