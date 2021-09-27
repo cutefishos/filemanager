@@ -47,6 +47,7 @@ add_executable(cutefish-filemanager
   desktop/desktop.cpp
   desktop/desktopview.cpp
   desktop/desktopsettings.cpp
+  desktop/dockdbusinterface.cpp
 
   helper/datehelper.cpp
   helper/pathhistory.cpp
