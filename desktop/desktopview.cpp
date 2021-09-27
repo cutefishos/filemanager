@@ -18,6 +18,7 @@
  */
 
 #include "desktopview.h"
+#include "dockdbusinterface.h"
 #include "thumbnailer/thumbnailprovider.h"
 
 #include <QQmlEngine>
@@ -39,6 +40,7 @@ DesktopView::DesktopView(QScreen *screen, QQuickView *parent)
     KWindowSystem::setState(winId(), NET::KeepBelow);
 
     engine()->rootContext()->setContextProperty("desktopView", this);
+    engine()->rootContext()->setContextProperty("Dock", DockDBusInterface::self());
     engine()->addImageProvider("thumbnailer", new ThumbnailProvider());
 
     setTitle(tr("Desktop"));

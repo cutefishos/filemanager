@@ -79,9 +79,9 @@ Item {
         topMargin: 28
 
         // From dock
-        leftMargin: Desktop.leftMargin
-        rightMargin: Desktop.rightMargin
-        bottomMargin: Desktop.bottomMargin
+        leftMargin: Dock.leftMargin
+        rightMargin: Dock.rightMargin
+        bottomMargin: Dock.bottomMargin
 
         flow: GridView.FlowTopToBottom
 

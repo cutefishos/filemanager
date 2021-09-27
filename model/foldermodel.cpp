@@ -293,16 +293,17 @@ void FolderModel::setUrl(const QString &url)
     if (url.isEmpty())
         return;
 
+    bool isTrash = url.startsWith("trash:/");
     QUrl resolvedNewUrl = resolve(url);
     QFileInfo info(resolvedNewUrl.toLocalFile());
 
-    if (!QFile::exists(resolvedNewUrl.toLocalFile()) && !url.startsWith("trash:/")) {
+    if (!QFile::exists(resolvedNewUrl.toLocalFile()) && !isTrash) {
         emit notification(tr("The file or folder %1 does not exist.").arg(url));
         return;
     }
 
     // TODO: selected ?
-    if (info.isFile() && !url.startsWith("trash:///")) {
+    if (info.isFile() && !isTrash) {
         resolvedNewUrl = QUrl::fromLocalFile(info.dir().path());
     }
 

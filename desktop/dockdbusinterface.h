@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     Reion Wong <reionwong@gmail.com>
+ * Author:     Reion Wong <reion@cutefishos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DESKTOP_H
-#define DESKTOP_H
+#ifndef DOCKDBUSINTERFACE_H
+#define DOCKDBUSINTERFACE_H
 
 #include <QObject>
-#include <QScreen>
 #include <QDBusInterface>
 
-#include "desktopview.h"
-
-class Desktop : public QObject
+class DockDBusInterface : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int leftMargin READ leftMargin NOTIFY marginsChanged)
+    Q_PROPERTY(int rightMargin READ rightMargin NOTIFY marginsChanged)
+    Q_PROPERTY(int bottomMargin READ bottomMargin NOTIFY marginsChanged)
 
 public:
-    explicit Desktop(QObject *parent = nullptr);
+    static DockDBusInterface *self();
+    explicit DockDBusInterface(QObject *parent = nullptr);
+
+    int leftMargin() const;
+    int rightMargin() const;
+    int bottomMargin() const;
+
+signals:
+    void marginsChanged();
 
 private slots:
-    void screenAdded(QScreen *qscreen);
-    void screenRemoved(QScreen *qscreen);
+    void updateMargins();
 
 private:
-    QMap<QScreen *, DesktopView *> m_list;
+    QDBusInterface m_dockInterface;
+
+    int m_leftMargin;
+    int m_rightMargin;
+    int m_bottomMargin;
 };
 
-#endif // DESKTOP_H
+#endif // DOCKDBUSINTERFACE_H
