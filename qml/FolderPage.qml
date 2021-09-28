@@ -394,6 +394,9 @@ Item {
         onRefresh: {
             dirModel.refresh()
         }
+        onKeyPressed: {
+            dirModel.keyboardSearch(text)
+        }
     }
 
     function openUrl(url) {

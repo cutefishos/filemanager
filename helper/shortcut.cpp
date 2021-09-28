@@ -70,7 +70,8 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             emit refresh();
         } else if (keyEvent->key() >= Qt::Key_A && keyEvent->key() <= Qt::Key_Z) {
             // Handle select
-            KeyboardSearchManager::self()->addKeys(keyEvent->text());
+            // KeyboardSearchManager::self()->addKeys(keyEvent->text());
+            emit keyPressed(keyEvent->text());
             keyEvent->ignore();
         }
     }

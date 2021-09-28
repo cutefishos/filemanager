@@ -90,7 +90,6 @@ FolderModel::FolderModel(QObject *parent)
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
-    , m_keyboardSearchManager(KeyboardSearchManager::self())
 {
     QSettings settings("cutefishos", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
@@ -120,9 +119,6 @@ FolderModel::FolderModel(QObject *parent)
     connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)), SIGNAL(countChanged()));
     connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)), SIGNAL(countChanged()));
     connect(this, SIGNAL(modelReset()), SIGNAL(countChanged()));
-
-    connect(m_keyboardSearchManager, &KeyboardSearchManager::searchTextChanged,
-            this, &FolderModel::keyboardSearchChanged);
 }
 
 FolderModel::~FolderModel()
@@ -1164,6 +1160,29 @@ void FolderModel::updateSelectedItemsSize()
 {
 }
 
+void FolderModel::keyboardSearch(const QString &text)
+{
+    if (rowCount() == 0)
+        return;
+
+    int index;
+    int currentIndex = -1;
+
+    if (m_selectionModel->hasSelection()) {
+        currentIndex = m_selectionModel->selectedIndexes().first().row();
+    }
+
+    index = indexForKeyboardSearch(text, (currentIndex + 1) % rowCount());
+
+    if (index < 0 || currentIndex == index)
+        return;
+
+    if (index >= 0) {
+        clearSelection();
+        setSelected(index);
+    }
+}
+
 void FolderModel::restoreFromTrash()
 {
     if (!m_selectionModel->hasSelection())
@@ -1295,37 +1314,6 @@ void FolderModel::dragSelectedInternal(int x, int y)
         m_dragIndexes.clear();
         // TODO: Optimize to emit contiguous groups.
         emit dataChanged(first, last, QVector<int>() << BlankRole);
-    }
-}
-
-void FolderModel::keyboardSearchChanged(const QString &text, bool searchFromNextItem)
-{
-    Q_UNUSED(searchFromNextItem);
-
-    if (rowCount() == 0)
-        return;
-
-    int index;
-    int currentIndex = -1;
-
-    if (m_selectionModel->hasSelection()) {
-        currentIndex = m_selectionModel->selectedIndexes().first().row();
-    }
-
-//    if (searchFromNextItem) {
-//        index = indexForKeyboardSearch(text, (currentIndex + 1) % rowCount());
-//    } else {
-//        index = indexForKeyboardSearch(text, 0);
-//    }
-
-    index = indexForKeyboardSearch(text, (currentIndex + 1) % rowCount());
-
-    if (index < 0 || currentIndex == index)
-        return;
-
-    if (index >= 0) {
-        clearSelection();
-        setSelected(index);
     }
 }
 

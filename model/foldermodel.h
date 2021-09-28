@@ -26,7 +26,6 @@
 #define FOLDERMODEL_H
 
 #include "../widgets/itemviewadapter.h"
-#include "../helper/keyboardsearchmanager.h"
 #include "../helper/pathhistory.h"
 #include "../mimetype/mimeappmanager.h"
 
@@ -207,6 +206,7 @@ public:
     Q_INVOKABLE void openDeleteDialog();
 
     Q_INVOKABLE void updateSelectedItemsSize();
+    Q_INVOKABLE void keyboardSearch(const QString &text);
 
     void restoreFromTrash();
 
@@ -242,7 +242,6 @@ signals:
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void dragSelectedInternal(int x, int y);
-    void keyboardSearchChanged(const QString &text, bool searchFromNextItem);
 
 private:
     void invalidateIfComplete();
@@ -299,8 +298,6 @@ private:
     MimeAppManager *m_mimeAppManager;
 
     CFileSizeJob *m_sizeJob;
-
-    KeyboardSearchManager *m_keyboardSearchManager;
 };
 
 #endif // FOLDERMODEL_H

@@ -44,6 +44,7 @@ signals:
     void selectAll();
     void backspace();
     void deleteFile();
+    void keyPressed(const QString &text);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *e) override;
