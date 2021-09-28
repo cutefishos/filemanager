@@ -134,6 +134,9 @@ Item {
         onDeleteFile: {
             dirModel.keyDeletePress()
         }
+        onKeyPressed: {
+            dirModel.keyboardSearch(text)
+        }
     }
 
     Component {
