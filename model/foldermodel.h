@@ -204,6 +204,7 @@ public:
     Q_INVOKABLE void openInTerminal();
     Q_INVOKABLE void openChangeWallpaperDialog();
     Q_INVOKABLE void openDeleteDialog();
+    Q_INVOKABLE void openInNewWindow();
 
     Q_INVOKABLE void updateSelectedItemsSize();
     Q_INVOKABLE void keyboardSearch(const QString &text);
