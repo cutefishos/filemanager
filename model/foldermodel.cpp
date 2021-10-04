@@ -1060,7 +1060,10 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         menu->addAction(m_actionCollection.action("restore"));
 
         menu->addAction(m_actionCollection.action("open"));
+        menu->addAction(m_actionCollection.action("openInNewWindow"));
+
         menu->addAction(m_actionCollection.action("openWith"));
+        menu->addSeparator();
         menu->addAction(m_actionCollection.action("cut"));
         menu->addAction(m_actionCollection.action("copy"));
         menu->addAction(m_actionCollection.action("trash"));
@@ -1154,6 +1157,19 @@ void FolderModel::openDeleteDialog()
     });
 
     view->show();
+}
+
+void FolderModel::openInNewWindow()
+{
+    if (!m_selectionModel->hasSelection())
+        return;
+
+    for (const QModelIndex &index : m_selectionModel->selectedIndexes()) {
+        KFileItem item = itemForIndex(index);
+        if (item.isDir()) {
+            QProcess::startDetached("cutefish-filemanager", QStringList() << item.url().toLocalFile());
+        }
+    }
 }
 
 void FolderModel::updateSelectedItemsSize()
@@ -1483,6 +1499,9 @@ void FolderModel::createActions()
         setShowHiddenFiles(!m_showHiddenFiles);
     });
 
+    QAction *openInNewWindow = new QAction(tr("Open in new window"), this);
+    QObject::connect(openInNewWindow, &QAction::triggered, this, &FolderModel::openInNewWindow);
+
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
@@ -1499,6 +1518,7 @@ void FolderModel::createActions()
     m_actionCollection.addAction(QStringLiteral("changeBackground"), changeBackground);
     m_actionCollection.addAction(QStringLiteral("restore"), restore);
     m_actionCollection.addAction(QStringLiteral("showHidden"), showHidden);
+    m_actionCollection.addAction(QStringLiteral("openInNewWindow"), openInNewWindow);
 }
 
 void FolderModel::updateActions()
@@ -1509,6 +1529,7 @@ void FolderModel::updateActions()
     QList<QUrl> urls;
     bool hasRemoteFiles = false;
     bool isTrashLink = false;
+    bool hasDir = false;
     const bool isTrash = (resolvedUrl().scheme() == QLatin1String("trash"));
 
     if (indexes.isEmpty()) {
@@ -1523,6 +1544,9 @@ void FolderModel::updateActions()
                 items.append(item);
                 urls.append(item.url());
             }
+
+            if (item.isDir())
+                hasDir = true;
         }
     }
 
@@ -1608,6 +1632,10 @@ void FolderModel::updateActions()
     if (QAction *showHidden = m_actionCollection.action("showHidden")) {
         showHidden->setCheckable(true);
         showHidden->setChecked(m_showHiddenFiles);
+    }
+
+    if (QAction *openInNewWindow = m_actionCollection.action("openInNewWindow")) {
+        openInNewWindow->setVisible(hasDir);
     }
 }
 
