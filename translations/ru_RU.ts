@@ -116,7 +116,7 @@
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
         <source>Properties</source>
-        <translation type="unfinished">Свойства</translation>
+        <translation>Свойства</translation>
     </message>
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
@@ -149,7 +149,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1088"/>
         <source>File Manager</source>
-        <translation type="unfinished">Файловый менеджер</translation>
+        <translation>Файловый менеджер</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1281"/>
