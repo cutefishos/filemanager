@@ -67,17 +67,17 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Você deseja excluí-lo permanentemente?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">Cancelar</translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation type="unfinished">Excluir</translation>
+        <translation>Excluir</translation>
     </message>
 </context>
 <context>
@@ -121,7 +121,7 @@
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
         <source>%1 files</source>
-        <translation type="unfinished">%1 arquivos</translation>
+        <translation>1% de arquivos</translation>
     </message>
 </context>
 <context>
@@ -139,7 +139,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="249"/>
         <source>The file or folder %1 does not exist.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">O arquivo ou pasta não existe.</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="981"/>
@@ -159,7 +159,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1284"/>
         <source>Open with</source>
-        <translation type="unfinished"></translation>
+        <translation>Abrir com</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1287"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Restaurar</translation>
     </message>
 </context>
 <context>
@@ -248,22 +248,22 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="50"/>
         <source>File</source>
-        <translation type="unfinished"></translation>
+        <translation>Arquivos</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="53"/>
         <source>New Folder</source>
-        <translation type="unfinished">Nova pasta</translation>
+        <translation>Nova pasta</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="67"/>
         <source>Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>Sair</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="73"/>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Editar</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="76"/>
@@ -288,12 +288,12 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="99"/>
         <source>Help</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajuda</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="102"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>Sobre</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="241"/>
@@ -321,12 +321,12 @@
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="78"/>
         <source>No applications</source>
-        <translation type="unfinished"></translation>
+        <translation>Sem aplicativos</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="142"/>
         <source>Set as default</source>
-        <translation type="unfinished"></translation>
+        <translation>Definir como padrão</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
@@ -341,7 +341,7 @@
     <message>
         <location filename="../dialogs/openwithdialog.cpp" line="32"/>
         <source>Open With</source>
-        <translation type="unfinished"></translation>
+        <translation>Abrir com</translation>
     </message>
 </context>
 <context>
@@ -369,7 +369,7 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="189"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Tipo</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="227"/>
@@ -423,7 +423,7 @@
         <location filename="../model/placesmodel.cpp" line="117"/>
         <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
-        <translation type="unfinished"></translation>
+        <translation>Drives</translation>
     </message>
 </context>
 <context>

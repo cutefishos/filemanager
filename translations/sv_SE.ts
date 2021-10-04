@@ -67,7 +67,7 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation>Vill du ta bort den permanent?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
