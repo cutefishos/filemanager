@@ -67,7 +67,7 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation>是否要永久刪除此文件</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
@@ -139,7 +139,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="249"/>
         <source>The file or folder %1 does not exist.</source>
-        <translation type="unfinished"></translation>
+        <translation>這個文件或文件夾%1不存在。</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="981"/>
@@ -159,7 +159,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1284"/>
         <source>Open with</source>
-        <translation type="unfinished"></translation>
+        <translation>用什麼打開</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1287"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>還原</translation>
     </message>
 </context>
 <context>
@@ -248,7 +248,7 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="50"/>
         <source>File</source>
-        <translation type="unfinished"></translation>
+        <translation>文件</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="53"/>

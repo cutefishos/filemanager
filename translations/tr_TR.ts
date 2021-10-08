@@ -67,17 +67,17 @@
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
         <source>Do you want to delete it permanently?</source>
-        <translation type="unfinished"></translation>
+        <translation>Kalıcı olarak silmek istediğinizden emin misiniz?</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">İptal</translation>
+        <translation>İptal</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
         <source>Delete</source>
-        <translation type="unfinished">Sil</translation>
+        <translation>Sil</translation>
     </message>
 </context>
 <context>
@@ -116,12 +116,12 @@
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
         <source>Properties</source>
-        <translation type="unfinished">Özellikler</translation>
+        <translation>Özellikler</translation>
     </message>
     <message>
         <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
         <source>%1 files</source>
-        <translation type="unfinished">%1 dosyalar</translation>
+        <translation>%1 dosyalar</translation>
     </message>
 </context>
 <context>
@@ -139,7 +139,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="249"/>
         <source>The file or folder %1 does not exist.</source>
-        <translation type="unfinished"></translation>
+        <translation>Dosyanın veya dizinin %1 yok.</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="981"/>
@@ -149,7 +149,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1088"/>
         <source>File Manager</source>
-        <translation type="unfinished">Dosya Yöneticisi</translation>
+        <translation>Dosya Yöneticisi</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1281"/>
@@ -159,7 +159,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1284"/>
         <source>Open with</source>
-        <translation type="unfinished"></translation>
+        <translation>Birlikte aç</translation>
     </message>
     <message>
         <location filename="../model/foldermodel.cpp" line="1287"/>
@@ -224,7 +224,7 @@
     <message>
         <location filename="../model/foldermodel.cpp" line="1323"/>
         <source>Restore</source>
-        <translation type="unfinished"></translation>
+        <translation>Onar</translation>
     </message>
 </context>
 <context>
@@ -248,52 +248,52 @@
     <message>
         <location filename="../qml/FolderPage.qml" line="50"/>
         <source>File</source>
-        <translation type="unfinished"></translation>
+        <translation>Dosya</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="53"/>
         <source>New Folder</source>
-        <translation type="unfinished">Yeni Klasör</translation>
+        <translation>Yeni Klasör</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="67"/>
         <source>Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>Çıkış</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="73"/>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Düzenle</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="76"/>
         <source>Select All</source>
-        <translation type="unfinished">Hepsini seç</translation>
+        <translation>Hepsini seç</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="83"/>
         <source>Cut</source>
-        <translation type="unfinished">Kes</translation>
+        <translation>Kes</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="88"/>
         <source>Copy</source>
-        <translation type="unfinished">Kopyala</translation>
+        <translation>Kopyala</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="93"/>
         <source>Paste</source>
-        <translation type="unfinished">Yapıştır</translation>
+        <translation>Yapıştır</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="99"/>
         <source>Help</source>
-        <translation type="unfinished"></translation>
+        <translation>Yardım</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="102"/>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>Hakkında</translation>
     </message>
     <message>
         <location filename="../qml/FolderPage.qml" line="241"/>
@@ -321,27 +321,27 @@
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="78"/>
         <source>No applications</source>
-        <translation type="unfinished"></translation>
+        <translation>Uygulama yok</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="142"/>
         <source>Set as default</source>
-        <translation type="unfinished"></translation>
+        <translation>Varsayılan olarak ayarla</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
         <source>Cancel</source>
-        <translation type="unfinished">İptal</translation>
+        <translation>İptal</translation>
     </message>
     <message>
         <location filename="../qml/Dialogs/OpenWithDialog.qml" line="160"/>
         <source>Open</source>
-        <translation type="unfinished">Aç</translation>
+        <translation>Aç</translation>
     </message>
     <message>
         <location filename="../dialogs/openwithdialog.cpp" line="32"/>
         <source>Open With</source>
-        <translation type="unfinished"></translation>
+        <translation>Birlikte aç</translation>
     </message>
 </context>
 <context>
@@ -369,7 +369,7 @@
     <message>
         <location filename="../qml/OptionsMenu.qml" line="189"/>
         <source>Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Tür</translation>
     </message>
     <message>
         <location filename="../qml/OptionsMenu.qml" line="227"/>
@@ -423,7 +423,7 @@
         <location filename="../model/placesmodel.cpp" line="117"/>
         <location filename="../model/placesmodel.cpp" line="265"/>
         <source>Drives</source>
-        <translation type="unfinished"></translation>
+        <translation>Sürücüler</translation>
     </message>
 </context>
 <context>
