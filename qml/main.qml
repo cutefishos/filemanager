@@ -35,17 +35,10 @@ FishUI.Window {
     title: qsTr("File Manager")
 
     header.height: 36 + FishUI.Units.largeSpacing
-    background.opacity: root.compositing ? 0.9 : 1.0
+    background.opacity: 1.0
 
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
-
-    FishUI.WindowBlur {
-        view: root
-        geometry: Qt.rect(root.x, root.y, root.width, root.height)
-        windowRadius: root.background.radius
-        enabled: true
-    }
 
     property QtObject settings: GlobalSettings { }
 
