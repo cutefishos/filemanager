@@ -41,6 +41,9 @@ Item {
             clip: true
             cache: false
 
+            // Clear cache
+            onSourceChanged: dirModel.clearPixmapCache()
+
             ColorOverlay {
                 id: dimsWallpaper
                 anchors.fill: parent

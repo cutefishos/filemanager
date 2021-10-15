@@ -209,6 +209,8 @@ public:
     Q_INVOKABLE void updateSelectedItemsSize();
     Q_INVOKABLE void keyboardSearch(const QString &text);
 
+    Q_INVOKABLE void clearPixmapCache();
+
     void restoreFromTrash();
 
     bool isDesktop() const;
