@@ -53,6 +53,7 @@
 #include <QProcess>
 #include <QSettings>
 #include <QDesktopServices>
+#include <QPixmapCache>
 
 // Qt Quick
 #include <QQuickItem>
@@ -1197,6 +1198,11 @@ void FolderModel::keyboardSearch(const QString &text)
         clearSelection();
         setSelected(index);
     }
+}
+
+void FolderModel::clearPixmapCache()
+{
+    QPixmapCache::clear();
 }
 
 void FolderModel::restoreFromTrash()

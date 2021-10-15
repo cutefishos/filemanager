@@ -21,6 +21,7 @@
 #include <QEvent>
 #include <QDebug>
 #include <QQuickWindow>
+#include <QPixmapCache>
 
 Window::Window(QObject *parent)
     : QQmlApplicationEngine(parent)
@@ -40,6 +41,7 @@ void Window::load(const QUrl &url)
 bool Window::eventFilter(QObject *obj, QEvent *e)
 {
     if (e->type() == QEvent::Close) {
+        QPixmapCache::clear();
         clearComponentCache();
         deleteLater();
         e->accept();
