@@ -67,6 +67,7 @@ public:
         SelectedRole,
         IsDirRole,
         IsHiddenRole,
+        IsLinkRole,
         UrlRole,
         DisplayNameRole,
         FileNameRole,

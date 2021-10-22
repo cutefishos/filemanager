@@ -116,6 +116,16 @@ Item {
                     }
                 }
             }
+
+            Image {
+                anchors.right: _icon.visible ? _icon.right : _image.right
+                anchors.bottom: _icon.visible ? _icon.bottom : _image.bottom
+                source: "image://icontheme/emblem-symbolic-link"
+                width: 16
+                height: 16
+                visible: model.isLink
+                sourceSize: Qt.size(width, height)
+            }
         }
 
         ColumnLayout {
