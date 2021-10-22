@@ -152,6 +152,7 @@ QHash<int, QByteArray> FolderModel::staticRoleNames()
     roleNames[SelectedRole] = "selected";
     roleNames[IsDirRole] = "isDir";
     roleNames[IsHiddenRole] = "isHidden";
+    roleNames[IsLinkRole] = "isLink";
     roleNames[UrlRole] = "url";
     roleNames[DisplayNameRole] = "displayName";
     roleNames[FileNameRole] = "fileName";
@@ -194,6 +195,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     }
     case IsHiddenRole: {
         return item.isHidden();
+    }
+    case IsLinkRole: {
+        return item.isLink();
     }
     case FileSizeRole: {
         if (item.isDir()) {
