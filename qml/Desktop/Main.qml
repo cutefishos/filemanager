@@ -137,6 +137,9 @@ Item {
         onKeyPressed: {
             dirModel.keyboardSearch(text)
         }
+        onShowHidden: {
+            dirModel.showHiddenFiles = !dirModel.showHiddenFiles
+        }
     }
 
     Component {
