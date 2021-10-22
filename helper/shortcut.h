@@ -44,6 +44,7 @@ signals:
     void selectAll();
     void backspace();
     void deleteFile();
+    void showHidden();
     void keyPressed(const QString &text);
 
 protected:
