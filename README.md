@@ -2,6 +2,8 @@
 
 Cutefish File Manager, simple to use, beautiful, and retain the classic PC interactive design. 
 
+![screenshot](screenshots/Screenshot_20211025_151224.png)
+
 ## Dependencies
 
 ### Debian/Ubuntu
