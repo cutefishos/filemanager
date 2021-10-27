@@ -75,6 +75,8 @@ Window {
         }
 
         RowLayout {
+            spacing: FishUI.Units.largeSpacing
+
             Button {
                 text: qsTr("Cancel")
                 Layout.fillWidth: true

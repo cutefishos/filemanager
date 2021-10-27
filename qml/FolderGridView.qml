@@ -70,6 +70,10 @@ GridView {
         positioner.reset()
     }
 
+    onCountChanged: {
+        positioner.reset()
+    }
+
     function effectiveNavDirection(flow, layoutDirection, direction) {
         if (direction === Qt.LeftArrow) {
             if (flow === GridView.FlowLeftToRight) {
