@@ -101,8 +101,16 @@ Item {
 
             MenuItem {
                 text: qsTr("About")
+                onTriggered: _aboutDialog.show()
             }
         }
+    }
+
+    FishUI.AboutDialog {
+        id: _aboutDialog
+        name: qsTr("File Manager")
+        description: qsTr("A file manager designed for CutefishOS.")
+        iconSource: "image://icontheme/file-system-manager"
     }
 
     Rectangle {
