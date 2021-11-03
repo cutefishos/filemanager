@@ -28,6 +28,10 @@ add_executable(cutefish-filemanager
   window.cpp
   dbusinterface.cpp
 
+  draganddrop/declarativedroparea.cpp
+  draganddrop/declarativedragdropevent.cpp
+  draganddrop/declarativemimedata.cpp
+
   model/foldermodel.cpp
   model/placesmodel.cpp
   model/placesitem.cpp

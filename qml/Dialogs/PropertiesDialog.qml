@@ -26,8 +26,8 @@ import FishUI 1.0 as FishUI
 Item {
     id: control
 
-    property int widthValue: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 4
-    property int heightValue: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+    property int widthValue: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 3
+    property int heightValue: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 3
 
     width: widthValue
     height: heightValue
@@ -62,8 +62,8 @@ Item {
     ColumnLayout {
         id: _mainLayout
         anchors.fill: parent
-        anchors.leftMargin: FishUI.Units.largeSpacing * 2
-        anchors.rightMargin: FishUI.Units.largeSpacing * 2
+        anchors.leftMargin: FishUI.Units.largeSpacing * 1.5
+        anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
         anchors.topMargin: FishUI.Units.smallSpacing
         anchors.bottomMargin: FishUI.Units.largeSpacing * 1.5
         spacing: FishUI.Units.largeSpacing
