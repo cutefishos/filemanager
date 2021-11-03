@@ -197,6 +197,7 @@ public:
     Q_INVOKABLE void addItemDragImage(int row, int x, int y, int width, int height, const QVariant &image);
     Q_INVOKABLE void clearDragImages();
     Q_INVOKABLE void dragSelected(int x, int y);
+    Q_INVOKABLE void drop(QQuickItem *target, QObject *dropEvent, int row);
 
     Q_INVOKABLE void setWallpaperSelected();
 

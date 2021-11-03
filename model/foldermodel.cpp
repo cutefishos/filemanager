@@ -46,6 +46,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QMimeDatabase>
+#include <QMimeData>
 #include <QClipboard>
 #include <QPainter>
 #include <QDrag>
@@ -1006,6 +1007,57 @@ void FolderModel::dragSelected(int x, int y)
     emit draggingChanged();
 
     QMetaObject::invokeMethod(this, "dragSelectedInternal", Qt::QueuedConnection, Q_ARG(int, x), Q_ARG(int, y));
+}
+
+void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
+{
+    QMimeData *mimeData = qobject_cast<QMimeData *>(dropEvent->property("mimeData").value<QObject *>());
+
+    if (!mimeData) {
+        return;
+    }
+
+    QModelIndex idx;
+    KFileItem item;
+
+    if (row > -1 && row < rowCount()) {
+        idx = index(row, 0);
+        item = itemForIndex(idx);
+    }
+
+    QUrl dropTargetUrl;
+
+    // So we get to run mostLocalUrl() over the current URL.
+    if (item.isNull()) {
+        item = rootItem();
+    }
+
+    if (item.isNull()) {
+        dropTargetUrl = m_dirModel->dirLister()->url();
+    } else {
+        dropTargetUrl = item.mostLocalUrl();
+    }
+
+    if (idx.isValid() && !(flags(idx) & Qt::ItemIsDropEnabled)) {
+        return;
+    }
+
+    // 处理url
+    QList<QUrl> sourceUrls;
+    for (const QUrl &url : mimeData->urls()) {
+        QFileInfo info(url.toLocalFile());
+        QUrl newUrl = QUrl::fromLocalFile(info.dir().path());
+
+        // 相同的目录下不加入
+        if (newUrl != dropTargetUrl) {
+            sourceUrls.append(url);
+        }
+    }
+
+    if (!sourceUrls.isEmpty()) {
+        KIO::Job *job = KIO::move(sourceUrls, dropTargetUrl, KIO::HideProgressInfo);
+        job->start();
+    }
 }
 
 void FolderModel::setWallpaperSelected()

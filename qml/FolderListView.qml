@@ -21,6 +21,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
+import Cutefish.DragDrop 1.0 as DragDrop
 
 ListView {
     id: control
@@ -89,6 +90,39 @@ ListView {
         hoveredItem = null
         pressedItem = null
         cPress = null
+    }
+
+
+    function drop(target, event, pos) {
+        var dropPos = mapToItem(control.contentItem, pos.x, pos.y)
+        var dropIndex = control.indexAt(dropPos.x, dropPos.y)
+        var dragPos = mapToItem(control.contentItem, control.dragX, control.dragY)
+        var dragIndex = control.indexAt(dragPos.x, dragPos.y)
+
+        if (control.dragX === -1 || dragIndex !== dropIndex) {
+            dirModel.drop(control, event, dropItemAt(dropPos))
+        }
+    }
+
+    function dropItemAt(pos) {
+        var item = control.itemAt(pos.x, pos.y)
+
+        if (item) {
+            if (item.blank) {
+                return -1
+            }
+
+            var hOffset = Math.abs(Math.min(control.contentX, control.originX))
+            var hPos = mapToItem(item, pos.x + hOffset, pos.y)
+
+            if ((hPos.x < 0 || hPos.y < 0 || hPos.x > item.width || hPos.y > item.height)) {
+                return -1
+            } else {
+                return item.index
+            }
+        }
+
+        return -1
     }
 
     highlightMoveDuration: 0
@@ -172,6 +206,14 @@ ListView {
 
     onPressYChanged: {
         cPress = mapToItem(control.contentItem, pressX, pressY)
+    }
+
+    DragDrop.DropArea {
+        anchors.fill: parent
+
+        onDrop: {
+            control.drop(control, event, mapToItem(control, event.x, event.y))
+        }
     }
 
     MouseArea {
