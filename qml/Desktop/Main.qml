@@ -45,6 +45,7 @@ Item {
         id: dirModel
         url: desktopPath()
         isDesktop: true
+        sortMode: -1
         viewAdapter: viewAdapter
     }
 
