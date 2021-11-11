@@ -61,17 +61,19 @@ Item {
     ColumnLayout {
         id: _mainLayout
         anchors.fill: parent
-        anchors.margins: FishUI.Units.largeSpacing
-        spacing: FishUI.Units.largeSpacing * 2
+        spacing: 0
 
         ListView {
             id: listView
             Layout.fillWidth: true
-            Layout.preferredHeight: 200
+            Layout.preferredHeight: 250
             model: ListModel {}
             spacing: FishUI.Units.smallSpacing * 1.5
             ScrollBar.vertical: ScrollBar {}
             clip: true
+
+            leftMargin: FishUI.Units.largeSpacing
+            rightMargin: FishUI.Units.largeSpacing
 
             Label {
                 anchors.centerIn: parent
@@ -81,7 +83,7 @@ Item {
 
             delegate: Item {
                 id: item
-                width: ListView.view.width
+                width: ListView.view.width - listView.leftMargin - listView.rightMargin
                 height: 30 + FishUI.Units.largeSpacing
                 scale: mouseArea.pressed ? 0.95 : 1.0
 
@@ -142,10 +144,16 @@ Item {
             text: qsTr("Set as default")
             enabled: listView.count >= 1
             padding: 0
+
+            Layout.leftMargin: FishUI.Units.largeSpacing
+            Layout.bottomMargin: FishUI.Units.largeSpacing
         }
 
         RowLayout {
             spacing: FishUI.Units.largeSpacing
+            Layout.leftMargin: FishUI.Units.largeSpacing
+            Layout.rightMargin: FishUI.Units.largeSpacing
+            Layout.bottomMargin: FishUI.Units.largeSpacing
 
             Button {
                 text: qsTr("Cancel")
