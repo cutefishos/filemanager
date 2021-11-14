@@ -144,7 +144,8 @@ Item {
         text: qsTr("Empty folder")
         font.pointSize: 15
         anchors.centerIn: parent
-        visible: false
+        visible: dirModel.status === FM.FolderModel.Ready
+                 && _viewLoader.item.count === 0
     }
 
     FM.FolderModel {
@@ -258,6 +259,15 @@ Item {
                 font.pointSize: 10
                 text: qsTr("%1 selected").arg(dirModel.selectionCount)
                 visible: dirModel.selectionCount >= 1
+            }
+
+            FishUI.BusyIndicator {
+                id: _busyIndicator
+                Layout.alignment: Qt.AlignLeft
+                Layout.fillHeight: true
+                width: height
+                running: visible
+                visible: dirModel.status === FM.FolderModel.Listing
             }
 
             Label {

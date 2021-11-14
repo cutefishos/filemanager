@@ -48,6 +48,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString url READ url WRITE setUrl NOTIFY urlChanged)
     Q_PROPERTY(QUrl resolvedUrl READ resolvedUrl NOTIFY resolvedUrlChanged)
+    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(int sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
     Q_PROPERTY(bool sortDirsFirst READ sortDirsFirst WRITE setSortDirsFirst NOTIFY sortDirsFirstChanged)
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
@@ -225,6 +226,8 @@ public:
 
 signals:
     void urlChanged();
+    void listingCompleted() const;
+    void listingCanceled() const;
     void resolvedUrlChanged();
     void statusChanged();
     void sortModeChanged();
@@ -243,6 +246,7 @@ signals:
     void showHiddenFilesChanged();
 
     void notification(const QString &message);
+    void move(int x, int y, QList<QUrl> urls);
 
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -295,6 +299,9 @@ private:
     QModelIndexList m_dragIndexes;
     QPoint m_dragHotSpotScrollOffset;
     bool m_dragInProgress;
+
+    QHash<QString, QPoint> m_dropTargetPositions;
+    QTimer *m_dropTargetPositionsCleanup;
 
     QPointer<ItemViewAdapter> m_viewAdapter;
 
