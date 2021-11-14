@@ -75,6 +75,17 @@
 #include <KFileItemListProperties>
 #include <KDesktopFile>
 
+static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folderUrl)
+{
+    for (const auto &url : urls) {
+        if (folderUrl.adjusted(QUrl::StripTrailingSlash) != url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
     , m_dirWatch(nullptr)
@@ -89,6 +100,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_selectedItemSize("")
     , m_actionCollection(this)
     , m_dragInProgress(false)
+    , m_dropTargetPositionsCleanup(new QTimer(this))
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
@@ -102,10 +114,64 @@ FolderModel::FolderModel(QObject *parent)
     m_dirLister->setShowingDotFiles(m_showHiddenFiles);
     // connect(dirLister, &DirLister::error, this, &FolderModel::notification);
 
+    connect(m_dirLister, &KCoreDirLister::started, this, std::bind(&FolderModel::setStatus, this, Status::Listing));
+
+    void (KCoreDirLister::*myCompletedSignal)() = &KCoreDirLister::completed;
+    QObject::connect(m_dirLister, myCompletedSignal, this, [this] {
+        setStatus(Status::Ready);
+        emit listingCompleted();
+    });
+
+    void (KCoreDirLister::*myCanceledSignal)() = &KCoreDirLister::canceled;
+    QObject::connect(m_dirLister, myCanceledSignal, this, [this] {
+        setStatus(Status::Canceled);
+        emit listingCanceled();
+    });
+
     m_dirModel = new KDirModel(this);
     m_dirModel->setDirLister(m_dirLister);
     m_dirModel->setDropsAllowed(KDirModel::DropOnDirectory | KDirModel::DropOnLocalExecutable);
     m_dirModel->moveToThread(qApp->thread());
+
+    // If we have dropped items queued for moving, go unsorted now.
+    connect(this, &QAbstractItemModel::rowsAboutToBeInserted, this, [this]() {
+        if (!m_dropTargetPositions.isEmpty()) {
+            setSortMode(-1);
+        }
+    });
+
+    // Position dropped items at the desired target position.
+    connect(this, &QAbstractItemModel::rowsInserted, this, [this](const QModelIndex &parent, int first, int last) {
+        for (int i = first; i <= last; ++i) {
+            const auto idx = index(i, 0, parent);
+            const auto url = itemForIndex(idx).url();
+            auto it = m_dropTargetPositions.find(url.fileName());
+            if (it != m_dropTargetPositions.end()) {
+                const auto pos = it.value();
+                m_dropTargetPositions.erase(it);
+                Q_EMIT move(pos.x(), pos.y(), {url});
+            }
+        }
+    });
+
+    /*
+     * Dropped files may not actually show up as new files, e.g. when we overwrite
+     * an existing file. Or files that fail to be listed by the dirLister, or...
+     * To ensure we don't grow the map indefinitely, clean it up periodically.
+     * The cleanup timer is (re)started whenever we modify the map. We use a quite
+     * high interval of 10s. This should ensure, that we don't accidentally wipe
+     * the mapping when we actually still want to use it. Since the time between
+     * adding an entry in the map and it showing up in the model should be
+     * small, this should rarely, if ever happen.
+     */
+    m_dropTargetPositionsCleanup->setInterval(10000);
+    m_dropTargetPositionsCleanup->setSingleShot(true);
+    connect(m_dropTargetPositionsCleanup, &QTimer::timeout, this, [this]() {
+        if (!m_dropTargetPositions.isEmpty()) {
+            qDebug() << "clearing drop target positions after timeout:" << m_dropTargetPositions;
+            m_dropTargetPositions.clear();
+        }
+    });
 
     m_selectionModel = new QItemSelectionModel(this, this);
     connect(m_selectionModel, &QItemSelectionModel::selectionChanged, this, &FolderModel::selectionChanged);
@@ -1038,24 +1104,38 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
         dropTargetUrl = item.mostLocalUrl();
     }
 
+    auto dropTargetFolderUrl = dropTargetUrl;
+    if (dropTargetFolderUrl.fileName() == QLatin1Char('.')) {
+        // the target URL for desktop:/ is e.g. 'file://home/user/Desktop/.'
+        dropTargetFolderUrl = dropTargetFolderUrl.adjusted(QUrl::RemoveFilename);
+    }
+
+    const int x = dropEvent->property("x").toInt();
+    const int y = dropEvent->property("y").toInt();
+    const QPoint dropPos = {x, y};
+
+    if (m_dragInProgress && row == -1) {
+        if (mimeData->urls().isEmpty())
+            return;
+
+        setSortMode(-1);
+
+        for (const auto &url : mimeData->urls()) {
+            m_dropTargetPositions.insert(url.fileName(), dropPos);
+        }
+
+        emit move(x, y, mimeData->urls());
+
+        return;
+    }
+
+
     if (idx.isValid() && !(flags(idx) & Qt::ItemIsDropEnabled)) {
         return;
     }
 
-    // 处理url
-    QList<QUrl> sourceUrls;
-    for (const QUrl &url : mimeData->urls()) {
-        QFileInfo info(url.toLocalFile());
-        QUrl newUrl = QUrl::fromLocalFile(info.dir().path());
-
-        // 相同的目录下不加入
-        if (newUrl != dropTargetUrl) {
-            sourceUrls.append(url);
-        }
-    }
-
-    if (!sourceUrls.isEmpty()) {
-        KIO::Job *job = KIO::move(sourceUrls, dropTargetUrl, KIO::HideProgressInfo);
+    if (!isDropBetweenSharedViews(mimeData->urls(), dropTargetFolderUrl)) {
+        KIO::Job *job = KIO::move(mimeData->urls(), dropTargetUrl, KIO::HideProgressInfo);
         job->start();
     }
 }
