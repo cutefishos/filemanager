@@ -19,6 +19,8 @@
 
 #include "filelauncher.h"
 
+#include <QDBusInterface>
+#include <QDBusPendingCall>
 #include <QSettings>
 #include <QProcess>
 #include <QFile>
@@ -69,10 +71,38 @@ bool FileLauncher::launchApp(const QString &desktopFile, const QString &fileName
 
     qDebug() << "launchApp()" << exec << args;
 
-    return QProcess::startDetached(exec, args);
+    return startDetached(exec, args);
 }
 
 bool FileLauncher::launchExecutable(const QString &fileName)
 {
-    return QProcess::startDetached(fileName, QStringList());
+    return startDetached(fileName);
+}
+
+bool FileLauncher::startDetached(const QString &exec, QStringList args)
+{
+    QDBusInterface iface("com.cutefish.Session",
+                         "/Session",
+                         "com.cutefish.Session", QDBusConnection::sessionBus());
+
+    if (iface.isValid()) {
+        iface.asyncCall("launch", exec, args).waitForFinished();
+    } else {
+        QProcess::startDetached(exec, args);
+    }
+
+    return true;
+}
+
+bool FileLauncher::startDetached(const QString &exec, const QString &workingDir, QStringList args)
+{
+    QDBusInterface iface("com.cutefish.Session",
+                         "/Session",
+                         "com.cutefish.Session", QDBusConnection::sessionBus());
+
+    if (iface.isValid()) {
+        iface.asyncCall("launch", exec, workingDir, args).waitForFinished();
+    }
+
+    return true;
 }

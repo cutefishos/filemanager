@@ -18,6 +18,7 @@
  */
 
 #include "mimeappmanager.h"
+#include "helper/filelauncher.h"
 
 #include <QStandardPaths>
 #include <QDirIterator>
@@ -26,7 +27,6 @@
 
 #include <QMimeDatabase>
 #include <QMimeType>
-#include <QProcess>
 #include <QSettings>
 #include <QDateTime>
 #include <QThread>
@@ -434,11 +434,7 @@ void MimeAppManager::launchTerminal(const QString &path)
         return;
 
     QString command = m_terminalApps.first().value("Exec").toString();
-    QProcess process;
-    process.setProgram(command);
-    // Launch terminal with working directory set.
-    process.setWorkingDirectory(path);
-    process.startDetached();
+    FileLauncher::startDetached(command, path, QStringList());
 }
 
 void MimeAppManager::onFileChanged(const QString &path)
