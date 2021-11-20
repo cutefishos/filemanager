@@ -32,6 +32,9 @@ public:
 
     Q_INVOKABLE bool launchApp(const QString &desktopFile, const QString &fileName);
     Q_INVOKABLE bool launchExecutable(const QString &fileName);
+
+    static bool startDetached(const QString &exec, QStringList args = QStringList());
+    static bool startDetached(const QString &exec, const QString &workingDir, QStringList args = QStringList());
 };
 
 #endif // FILELAUNCHER_H
