@@ -97,9 +97,8 @@ ListView {
                 if (mouse.button === Qt.LeftButton) {
                     if (model.isDevice && model.setupNeeded)
                         placesModel.requestSetup(index)
-
-                    // sideBar.currentIndex = index
-                    sideBar.clicked(model.path ? model.path : model.url)
+                    else
+                        sideBar.clicked(model.path ? model.path : model.url)
                 } else if (mouse.button === Qt.RightButton) {
                     _menu.popup()
                 }
@@ -115,8 +114,8 @@ ListView {
                 onTriggered: {
                     if (model.isDevice && model.setupNeeded)
                         placesModel.requestSetup(index)
-
-                    sideBar.clicked(model.path ? model.path : model.url)
+                    else
+                        sideBar.clicked(model.path ? model.path : model.url)
                 }
             }
 
