@@ -441,7 +441,7 @@
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="117"/>
-        <location filename="../model/placesmodel.cpp" line="265"/>
+        <location filename="../model/placesmodel.cpp" line="288"/>
         <source>Drives</source>
         <translation>Drives</translation>
     </message>
@@ -502,8 +502,18 @@
         <translation type="unfinished">Open</translation>
     </message>
     <message>
-        <location filename="../qml/SideBar.qml" line="121"/>
+        <location filename="../qml/SideBar.qml" line="124"/>
         <source>Open in new window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/SideBar.qml" line="138"/>
+        <source>Eject</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/SideBar.qml" line="150"/>
+        <source>Unmount</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

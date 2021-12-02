@@ -117,6 +117,11 @@ PlacesModel::PlacesModel(QObject *parent)
         deviceItem->setCategory(tr("Drives"));
         m_items.append(deviceItem);
     }
+
+    // Init Signals
+    for (PlacesItem *item : m_items) {
+        connect(item, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
+    }
 }
 
 PlacesModel::~PlacesModel()
@@ -132,6 +137,7 @@ QHash<int, QByteArray> PlacesModel::roleNames() const
     roleNames[PlacesModel::UrlRole] = "url";
     roleNames[PlacesModel::PathRole] = "path";
     roleNames[PlacesModel::IsDeviceRole] = "isDevice";
+    roleNames[PlacesModel::IsOpticalDisc] = "isOpticalDisc";
     roleNames[PlacesModel::setupNeededRole] = "setupNeeded";
     roleNames[PlacesModel::CategoryRole] = "category";
     return roleNames;
@@ -176,6 +182,9 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
         break;
     case PlacesModel::IsDeviceRole:
         return item->isDevice();
+        break;
+    case PlacesModel::IsOpticalDisc:
+        return item->isOpticalDisc();
         break;
     case PlacesModel::setupNeededRole:
         return item->setupNeeded();
@@ -256,6 +265,20 @@ void PlacesModel::requestEject(const int &index)
     }
 }
 
+void PlacesModel::requestTeardown(const int &index)
+{
+    PlacesItem *item = m_items.at(index);
+
+    if (!item->udi().isEmpty()) {
+        Solid::Device device = Solid::Device(item->udi());
+        Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
+
+        if (access != nullptr) {
+            access->teardown();
+        }
+    }
+}
+
 void PlacesModel::onDeviceAdded(const QString &udi)
 {
     if (m_predicate.matches(Solid::Device(udi))) {
@@ -265,6 +288,8 @@ void PlacesModel::onDeviceAdded(const QString &udi)
         deviceItem->setCategory(tr("Drives"));
         m_items.append(deviceItem);
         endInsertRows();
+
+        connect(deviceItem, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
     }
 }
 
@@ -276,6 +301,20 @@ void PlacesModel::onDeviceRemoved(const QString &udi)
             PlacesItem *item = m_items.at(i);
             m_items.removeOne(item);
             endRemoveRows();
+
+            disconnect(item);
         }
     }
+}
+
+void PlacesModel::onItemChanged(PlacesItem *item)
+{
+    // 更新 item 数据
+    int index = m_items.indexOf(item);
+
+    if (index < 0 || index > m_items.size())
+        return;
+
+    QModelIndex idx = this->index(index, 0);
+    emit dataChanged(idx, idx);
 }

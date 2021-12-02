@@ -20,6 +20,7 @@
 #include "placesitem.h"
 #include <QDebug>
 
+#include <Solid/OpticalDisc>
 #include <solid_version.h>
 
 PlacesItem::PlacesItem(const QString &displayName,
@@ -29,6 +30,7 @@ PlacesItem::PlacesItem(const QString &displayName,
     , m_displayName(displayName)
     , m_url(url)
     , m_category("")
+    , m_isOpticalDisc(false)
     , m_isAccessible(false)
 {
 }
@@ -124,6 +126,11 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
         m_displayName = m_device.description();
 #endif
 
+        if (m_device.is<Solid::OpticalDisc>()) {
+            m_isOpticalDisc = true;
+            emit itemChanged(this);
+        }
+
         if (m_access) {
             m_url = QUrl::fromLocalFile(m_access->filePath());
             connect(m_access.data(), &Solid::StorageAccess::accessibilityChanged, this, &PlacesItem::onAccessibilityChanged);
@@ -149,4 +156,9 @@ QString PlacesItem::category() const
 void PlacesItem::setCategory(const QString &category)
 {
     m_category = category;
+}
+
+bool PlacesItem::isOpticalDisc() const
+{
+    return m_isOpticalDisc;
 }
