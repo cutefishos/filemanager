@@ -127,6 +127,35 @@ ListView {
                     sideBar.openInNewWindow(model.path ? model.path : model.url)
                 }
             }
+
+            MenuSeparator {
+                Layout.fillWidth: true
+                visible: _ejectMenuItem.visible || _umountMenuItem.visible
+            }
+
+            MenuItem {
+                id: _ejectMenuItem
+                text: qsTr("Eject")
+                visible: model.isDevice &&
+                         !model.setupNeeded &&
+                         model.isOpticalDisc
+
+                onTriggered: {
+                    placesModel.requestEject(index)
+                }
+            }
+
+            MenuItem {
+                id: _umountMenuItem
+                text: qsTr("Unmount")
+                visible: model.isDevice &&
+                         !model.setupNeeded &&
+                         !model.isOpticalDisc
+
+                onTriggered: {
+                    placesModel.requestTeardown(index)
+                }
+            }
         }
 
         Rectangle {

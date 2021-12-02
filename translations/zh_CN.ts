@@ -441,7 +441,7 @@
     </message>
     <message>
         <location filename="../model/placesmodel.cpp" line="117"/>
-        <location filename="../model/placesmodel.cpp" line="265"/>
+        <location filename="../model/placesmodel.cpp" line="288"/>
         <source>Drives</source>
         <translation>设备</translation>
     </message>
@@ -510,9 +510,19 @@
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="../qml/SideBar.qml" line="121"/>
+        <location filename="../qml/SideBar.qml" line="124"/>
         <source>Open in new window</source>
         <translation>在新窗口中打开</translation>
+    </message>
+    <message>
+        <location filename="../qml/SideBar.qml" line="138"/>
+        <source>Eject</source>
+        <translation>弹出</translation>
+    </message>
+    <message>
+        <location filename="../qml/SideBar.qml" line="150"/>
+        <source>Unmount</source>
+        <translation>卸载</translation>
     </message>
 </context>
 <context>
