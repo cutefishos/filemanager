@@ -29,6 +29,7 @@ ListView {
     id: sideBar
 
     signal clicked(string path)
+    signal openInNewWindow(string path)
 
     FishUI.WheelHandler {
         target: sideBar
@@ -91,13 +92,40 @@ ListView {
             id: _mouseArea
             anchors.fill: parent
             hoverEnabled: true
-            acceptedButtons: Qt.LeftButton
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             onClicked: {
-                if (model.isDevice && model.setupNeeded)
-                    placesModel.requestSetup(index)
+                if (mouse.button === Qt.LeftButton) {
+                    if (model.isDevice && model.setupNeeded)
+                        placesModel.requestSetup(index)
 
-                // sideBar.currentIndex = index
-                sideBar.clicked(model.path ? model.path : model.url)
+                    // sideBar.currentIndex = index
+                    sideBar.clicked(model.path ? model.path : model.url)
+                } else if (mouse.button === Qt.RightButton) {
+                    _menu.popup()
+                }
+            }
+        }
+
+        FishUI.DesktopMenu {
+            id: _menu
+
+            MenuItem {
+                text: qsTr("Open")
+
+                onTriggered: {
+                    if (model.isDevice && model.setupNeeded)
+                        placesModel.requestSetup(index)
+
+                    sideBar.clicked(model.path ? model.path : model.url)
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Open in new window")
+
+                onTriggered: {
+                    sideBar.openInNewWindow(model.path ? model.path : model.url)
+                }
             }
         }
 

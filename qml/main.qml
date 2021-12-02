@@ -112,6 +112,7 @@ FishUI.Window {
             Layout.fillHeight: true
             width: 180 + FishUI.Units.largeSpacing
             onClicked: _folderPage.openUrl(path)
+            onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
         }
 
         FolderPage {

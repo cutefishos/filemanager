@@ -1296,8 +1296,14 @@ void FolderModel::openDeleteDialog()
     view->show();
 }
 
-void FolderModel::openInNewWindow()
+void FolderModel::openInNewWindow(const QString &url)
 {
+    if (!url.isEmpty()) {
+        QProcess::startDetached("cutefish-filemanager", QStringList() << url);
+        return;
+    }
+
+    // url 为空则打开已选择的 items.
     if (!m_selectionModel->hasSelection())
         return;
 
@@ -1642,7 +1648,7 @@ void FolderModel::createActions()
     });
 
     QAction *openInNewWindow = new QAction(tr("Open in new window"), this);
-    QObject::connect(openInNewWindow, &QAction::triggered, this, &FolderModel::openInNewWindow);
+    QObject::connect(openInNewWindow, &QAction::triggered, this, [=] { this->openInNewWindow(); });
 
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
