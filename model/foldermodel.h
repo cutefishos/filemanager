@@ -244,6 +244,7 @@ signals:
     void filterMimeTypesChanged();
     void selectedItemSizeChanged();
     void showHiddenFilesChanged();
+    void scrollToItem(int index);
 
     void notification(const QString &message);
     void move(int x, int y, QList<QUrl> urls);

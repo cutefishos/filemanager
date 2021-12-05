@@ -168,6 +168,11 @@ Item {
         function onNotification(text) {
             root.showPassiveNotification(text, 3000)
         }
+
+        // Scroll to item.
+        function onScrollToItem(index) {
+            _viewLoader.item.currentIndex = index
+        }
     }
 
     FM.ItemViewAdapter {
