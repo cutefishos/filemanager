@@ -1339,6 +1339,8 @@ void FolderModel::keyboardSearch(const QString &text)
     if (index >= 0) {
         clearSelection();
         setSelected(index);
+
+        emit scrollToItem(index);
     }
 }
 
