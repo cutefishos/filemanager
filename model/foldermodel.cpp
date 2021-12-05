@@ -246,8 +246,10 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case UrlRole:
         return item.url();
     case DisplayNameRole: {
-        if (item.isDesktopFile())
-            return "";
+        if (item.isDesktopFile()) {
+            KDesktopFile dfile(item.localPath());
+            return dfile.readName();
+        }
 
         return item.url().fileName();
     }
@@ -937,6 +939,12 @@ void FolderModel::openSelected()
     for (const QUrl &url : urls) {
         KFileItem item(url);
         QString mimeType = item.mimetype();
+
+        // Desktop file.
+        if (mimeType == "application/x-desktop") {
+            FileLauncher::self()->launchApp(url.toLocalFile(), "");
+            continue;
+        }
 
         // runnable
         if (mimeType == "application/x-executable" ||

@@ -39,7 +39,7 @@ Item {
     property bool hovered: GridView.view.hoveredItem === control
     property bool selected: model.selected
     property bool blank: model.blank
-    property var fileName: model.fileName
+    property var fileName: model.displayName
 
     // For desktop
     visible: GridView.view.isDesktopView ? !blank : true
@@ -207,7 +207,7 @@ Item {
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
-        text: model.fileName
+        text: control.fileName
         color: control.GridView.view.isDesktopView ? "white"
                                                    : selected ? FishUI.Theme.highlightedTextColor
                                                               : FishUI.Theme.textColor
