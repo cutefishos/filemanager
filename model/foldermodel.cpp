@@ -248,7 +248,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case DisplayNameRole: {
         if (item.isDesktopFile()) {
             KDesktopFile dfile(item.localPath());
-            return dfile.readName();
+
+            if (!dfile.readName().isEmpty())
+                return dfile.readName();
         }
 
         return item.url().fileName();
