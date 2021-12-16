@@ -58,7 +58,10 @@ ListView {
 
     highlight: Rectangle {
         radius: FishUI.Theme.mediumRadius
-        color: FishUI.Theme.highlightColor
+        color: Qt.rgba(FishUI.Theme.textColor.r,
+                       FishUI.Theme.textColor.g,
+                       FishUI.Theme.textColor.b, 0.1)
+        smooth: true
     }
 
     section.property: "category"
@@ -182,7 +185,7 @@ ListView {
                 width: height
                 sourceSize: Qt.size(22, 22)
                 // source: "image://icontheme/" + model.iconName
-                source: "qrc:/images/" + (FishUI.Theme.darkMode || _item.checked ? "dark/" : "light/") + model.iconPath
+                source: "qrc:/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
                 smooth: false
                 antialiasing: true
@@ -191,7 +194,7 @@ ListView {
             Label {
                 id: _label
                 text: model.name
-                color: checked ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                color: FishUI.Theme.textColor
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
