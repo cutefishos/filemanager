@@ -67,10 +67,10 @@ Item {
         }
 
         highlight: Rectangle {
-            radius: FishUI.Theme.mediumRadius
-            color: Qt.rgba(FishUI.Theme.textColor.r,
-                           FishUI.Theme.textColor.g,
-                           FishUI.Theme.textColor.b, 0.1)
+            radius: FishUI.Theme.smallRadius
+            color: Qt.rgba(FishUI.Theme.highlightColor.r,
+                           FishUI.Theme.highlightColor.g,
+                           FishUI.Theme.highlightColor.b, FishUI.Theme.darkMode ? 0.3 : 0.1)
             smooth: true
         }
 
@@ -87,7 +87,7 @@ Item {
 
             Rectangle {
                 anchors.fill: parent
-                radius: FishUI.Theme.mediumRadius
+                radius: FishUI.Theme.smallRadius
                 color: _item.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                    FishUI.Theme.textColor.g,
                                                    FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
@@ -102,8 +102,8 @@ Item {
             Label {
                 id: _name
                 text: model.name
-                color: FishUI.Theme.textColor
                 anchors.centerIn: parent
+                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
             }
         }
     }

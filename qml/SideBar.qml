@@ -21,6 +21,7 @@ import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
+import QtGraphicalEffects 1.0
 
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
@@ -58,10 +59,16 @@ ListView {
 
     highlight: Rectangle {
         radius: FishUI.Theme.mediumRadius
-        color: Qt.rgba(FishUI.Theme.textColor.r,
-                       FishUI.Theme.textColor.g,
-                       FishUI.Theme.textColor.b, 0.1)
+        color: FishUI.Theme.secondBackgroundColor
         smooth: true
+
+        Rectangle {
+            anchors.fill: parent
+            radius: FishUI.Theme.mediumRadius
+            color: Qt.rgba(FishUI.Theme.highlightColor.r,
+                           FishUI.Theme.highlightColor.g,
+                           FishUI.Theme.highlightColor.b, FishUI.Theme.darkMode ? 0.3 : 0.2)
+        }
     }
 
     section.property: "category"
@@ -166,7 +173,7 @@ ListView {
             color: _mouseArea.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                FishUI.Theme.textColor.g,
                                                FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
-                   _mouseArea.containsMouse || checked ? Qt.rgba(FishUI.Theme.textColor.r,
+                   _mouseArea.containsMouse && !checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                                                   FishUI.Theme.textColor.g,
                                                                   FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
                                                           "transparent"
@@ -184,17 +191,24 @@ ListView {
                 height: 22
                 width: height
                 sourceSize: Qt.size(22, 22)
-                // source: "image://icontheme/" + model.iconName
-                source: "qrc:/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + model.iconPath
+                // source: "qrc:/images/dark/" + model.iconPath
+//                source: "qrc:/images/" + (FishUI.Theme.darkMode || checked ? "dark/" : "light/") + model.iconPath
+                source: "qrc:/images/" + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
                 smooth: false
                 antialiasing: true
+
+                ColorOverlay {
+                    anchors.fill: parent
+                    source: parent
+                    color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                }
             }
 
             Label {
                 id: _label
                 text: model.name
-                color: FishUI.Theme.textColor
+                color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
