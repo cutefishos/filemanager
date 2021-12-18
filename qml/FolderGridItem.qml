@@ -209,7 +209,7 @@ Item {
         wrapMode: Text.Wrap
         text: control.fileName
         color: control.GridView.view.isDesktopView ? "white"
-                                                   : selected ? FishUI.Theme.highlightedTextColor
+                                                   : selected ? FishUI.Theme.highlightColor
                                                               : FishUI.Theme.textColor
         opacity: model.isHidden ? 0.8 : 1.0
     }
@@ -222,7 +222,8 @@ Item {
         height: _label.paintedHeight
         radius: 4
         color: FishUI.Theme.highlightColor
-        opacity: control.selected ? 1.0 : 0
+
+        opacity: control.selected ? control.GridView.view.isDesktopView ? 1: 0.2 : 0
     }
 
     DropShadow {

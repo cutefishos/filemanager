@@ -62,6 +62,7 @@ Item {
         radius: FishUI.Theme.smallRadius
         color: selected ? FishUI.Theme.highlightColor : hovered ? hoveredColor : "transparent"
         visible: selected || hovered
+        opacity: selected ? 0.1 : 2
     }
 
     RowLayout {
@@ -135,7 +136,7 @@ Item {
                 id: _label
                 text: model.fileName
                 Layout.fillWidth: true
-                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 textFormat: Text.PlainText
                 elide: Qt.ElideMiddle
                 opacity: model.isHidden ? 0.8 : 1.0
@@ -144,7 +145,7 @@ Item {
             Label {
                 id: _label2
                 text: model.fileSize
-                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
+                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.disabledTextColor
                 textFormat: Text.PlainText
                 Layout.fillWidth: true
                 opacity: model.isHidden ? 0.8 : 1.0
@@ -154,7 +155,7 @@ Item {
         Label {
             text: model.modified
             textFormat: Text.PlainText
-            color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
+            color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.disabledTextColor
             opacity: model.isHidden ? 0.8 : 1.0
         }
     }
