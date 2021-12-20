@@ -269,7 +269,7 @@ Item {
             FishUI.BusyIndicator {
                 id: _busyIndicator
                 Layout.alignment: Qt.AlignLeft
-                Layout.fillHeight: true
+                height: statusBarHeight
                 width: height
                 running: visible
                 visible: dirModel.status === FM.FolderModel.Listing
@@ -277,6 +277,7 @@ Item {
 
             Label {
                 text: dirModel.selectedItemSize
+                visible: dirModel.url !== "trash:///"
             }
 
             Item {
@@ -284,8 +285,8 @@ Item {
             }
 
             Button {
-                Layout.fillHeight: true
-                Layout.alignment: Qt.AlignRight
+                id: _emptyTrashBtn
+                implicitHeight: statusBarHeight
                 text: qsTr("Empty Trash")
                 font.pointSize: 10
                 onClicked: dirModel.emptyTrash()
