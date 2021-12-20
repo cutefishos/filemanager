@@ -423,6 +423,9 @@ Item {
         onShowHidden: {
             dirModel.showHiddenFiles = !dirModel.showHiddenFiles
         }
+        onClose: {
+            root.close()
+        }
     }
 
     function openUrl(url) {
