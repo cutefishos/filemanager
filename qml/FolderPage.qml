@@ -39,6 +39,9 @@ Item {
     signal requestPathEditor()
 
     onCurrentUrlChanged: {
+        if (!_viewLoader.item)
+            return
+
         _viewLoader.item.reset()
         _viewLoader.item.forceActiveFocus()
     }
@@ -207,6 +210,7 @@ Item {
             id: _viewLoader
             Layout.fillWidth: true
             Layout.fillHeight: true
+            asynchronous: true
             sourceComponent: switch (settings.viewMethod) {
                              case 0: return _listViewComponent
                              case 1: return _gridViewComponent
