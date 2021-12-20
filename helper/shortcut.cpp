@@ -54,6 +54,8 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             emit copy();
         } else if (keyEvent->key() == Qt::Key_X && keyEvent->modifiers() & Qt::ControlModifier) {
             emit cut();
+        } else if (keyEvent->key() == Qt::Key_W && keyEvent->modifiers() & Qt::ControlModifier) {
+            emit close();
         } else if (keyEvent->key() == Qt::Key_V && keyEvent->modifiers() & Qt::ControlModifier) {
             emit paste();
         } else if (keyEvent->key() == Qt::Key_F2) {
