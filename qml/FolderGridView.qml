@@ -27,6 +27,8 @@ import FishUI 1.0 as FishUI
 GridView {
     id: control
 
+    objectName: "FolderGridView"
+
     property bool isDesktopView: false
 
     property Item rubberBand: null

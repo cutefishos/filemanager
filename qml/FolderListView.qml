@@ -26,6 +26,8 @@ import Cutefish.DragDrop 1.0 as DragDrop
 ListView {
     id: control
 
+    objectName: "FolderListView"
+
     property Item rubberBand: null
     property Item hoveredItem: null
     property Item pressedItem: null
