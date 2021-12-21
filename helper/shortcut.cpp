@@ -32,13 +32,14 @@ ShortCut::ShortCut(QObject *parent)
 
 void ShortCut::install(QObject *target)
 {
-    if (m_object) {
-        m_object->removeEventFilter(this);
-    }
+    // No need to remove, because memory space is automatically freed in qml.
+    // if (m_object) {
+    //     m_object->removeEventFilter(this);
+    // }
 
     if (target) {
         target->installEventFilter(this);
-        m_object = target;
+        // m_object = target;
     }
 }
 
