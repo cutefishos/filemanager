@@ -98,22 +98,6 @@ Item {
             visible: !_image.visible
             smooth: true
             antialiasing: true
-
-            ColorOverlay {
-                anchors.fill: _icon
-                source: _icon
-                color: FishUI.Theme.highlightColor
-                opacity: 0.5
-                visible: control.selected
-            }
-
-            ColorOverlay {
-                anchors.fill: _icon
-                source: _icon
-                color: "white"
-                opacity: 0.3
-                visible: control.hovered && !control.selected
-            }
         }
 
         Image {
@@ -132,23 +116,6 @@ Item {
             cache: false
             smooth: true
             antialiasing: true
-
-            // Because of the effect of OpacityMask.
-            ColorOverlay {
-                anchors.fill: _image
-                source: _image
-                color: FishUI.Theme.highlightColor
-                opacity: 0.5
-                visible: control.selected
-            }
-
-            ColorOverlay {
-                anchors.fill: _image
-                source: _image
-                color: "white"
-                opacity: FishUI.Theme.darkMode ? 0.3 : 0.4
-                visible: control.hovered && !control.selected
-            }
 
             layer.enabled: _image.visible
             layer.effect: OpacityMask {
@@ -176,23 +143,23 @@ Item {
             sourceSize: Qt.size(width, height)
         }
 
-//        ColorOverlay {
-//            id: _selectedColorOverlay
-//            anchors.fill: _image.visible ? _image : _icon
-//            source: _image.visible ? _image : _icon
-//            color: FishUI.Theme.highlightColor
-//            opacity: 0.5
-//            visible: control.selected
-//        }
+        ColorOverlay {
+            id: _selectedColorOverlay
+            anchors.fill: _iconItem
+            source: _iconItem
+            color: FishUI.Theme.highlightColor
+            opacity: 0.5
+            visible: control.selected
+        }
 
-//        ColorOverlay {
-//            id: _hoveredColorOverlay
-//            anchors.fill: _image.visible ? _image : _icon
-//            source: _image.visible ? _image : _icon
-//            color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
-//            opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
-//            visible: control.hovered && !control.selected
-//        }
+        ColorOverlay {
+            id: _hoveredColorOverlay
+            anchors.fill: _iconItem
+            source: _iconItem
+            color: "white"
+            opacity: 0.3
+            visible: control.hovered && !control.selected
+        }
     }
 
     Label {
@@ -223,7 +190,19 @@ Item {
         radius: 4
         color: FishUI.Theme.highlightColor
 
-        opacity: control.selected ? control.GridView.view.isDesktopView ? 1: 0.2 : 0
+        opacity: {
+            if (control.selected && control.GridView.view.isDesktopView)
+                return 1
+
+            if (control.selected)
+                return 0.2
+
+            if (control.hovered)
+                return 0.05
+
+            return 0
+
+        }
     }
 
     DropShadow {
