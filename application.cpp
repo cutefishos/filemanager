@@ -94,9 +94,13 @@ void Application::openWindow(const QString &path)
 
 QStringList Application::formatUriList(const QStringList &list)
 {
-    QStringList val = list;
+    QStringList val;
 
-    if (list.isEmpty()) {
+    for (const QString &path : list) {
+        val.append(path == "." ? QDir::currentPath() : path);
+    }
+
+    if (val.isEmpty()) {
         val.append(QDir::currentPath());
     }
 
