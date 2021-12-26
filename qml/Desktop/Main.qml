@@ -141,6 +141,9 @@ Item {
         onShowHidden: {
             dirModel.showHiddenFiles = !dirModel.showHiddenFiles
         }
+        onUndo: {
+            dirModel.undo()
+        }
     }
 
     Component {

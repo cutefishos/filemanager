@@ -431,6 +431,9 @@ Item {
         onClose: {
             root.close()
         }
+        onUndo: {
+            dirModel.undo()
+        }
     }
 
     function openUrl(url) {

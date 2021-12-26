@@ -73,6 +73,8 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             emit refresh();
         } else if (keyEvent->key() == Qt::Key_H && keyEvent->modifiers() & Qt::ControlModifier) {
             emit showHidden();
+        } else if (keyEvent->key() == Qt::Key_Z && keyEvent->modifiers() & Qt::ControlModifier) {
+            emit undo();
         } else if (keyEvent->key() >= Qt::Key_A && keyEvent->key() <= Qt::Key_Z) {
             // Handle select
             // KeyboardSearchManager::self()->addKeys(keyEvent->text());

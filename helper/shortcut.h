@@ -47,6 +47,7 @@ signals:
     void showHidden();
     void keyPressed(const QString &text);
     void close();
+    void undo();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *e) override;
