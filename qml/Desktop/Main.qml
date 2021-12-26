@@ -47,6 +47,10 @@ Item {
         isDesktop: true
         sortMode: -1
         viewAdapter: viewAdapter
+
+        onCurrentIndexChanged: {
+            _folderView.currentIndex = dirModel.currentIndex
+        }
     }
 
     FM.ItemViewAdapter {

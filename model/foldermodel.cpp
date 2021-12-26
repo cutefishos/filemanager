@@ -105,6 +105,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
+    , m_currentIndex(-1)
 {
     QSettings settings("cutefishos", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
@@ -144,6 +145,8 @@ FolderModel::FolderModel(QObject *parent)
 
     // Position dropped items at the desired target position.
     connect(this, &QAbstractItemModel::rowsInserted, this, [this](const QModelIndex &parent, int first, int last) {
+        QModelIndex changeIdx;
+
         for (int i = first; i <= last; ++i) {
             const auto idx = index(i, 0, parent);
             const auto url = itemForIndex(idx).url();
@@ -153,7 +156,19 @@ FolderModel::FolderModel(QObject *parent)
                 m_dropTargetPositions.erase(it);
                 Q_EMIT move(pos.x(), pos.y(), {url});
             }
+
+            if (url == m_newDocumentUrl) {
+                changeIdx = idx;
+                m_newDocumentUrl.clear();
+            }
         }
+
+        QTimer::singleShot(0, this, [=] {
+            if (changeIdx.isValid()) {
+                setSelected(changeIdx.row());
+                emit requestRename();
+            }
+        });
     });
 
     /*
@@ -334,6 +349,11 @@ KFileItem FolderModel::itemForIndex(const QModelIndex &index) const
     return m_dirModel->itemForIndex(mapToSource(index));
 }
 
+QModelIndex FolderModel::indexForUrl(const QUrl &url) const
+{
+    return m_dirModel->indexForUrl(url);
+}
+
 KFileItem FolderModel::fileItem(int index) const
 {
     if (index >= 0 && index < count()) {
@@ -355,6 +375,11 @@ QList<QUrl> FolderModel::selectedUrls() const
     }
 
     return urls;
+}
+
+int FolderModel::currentIndex() const
+{
+    return m_currentIndex;
 }
 
 QString FolderModel::url() const
@@ -797,6 +822,9 @@ void FolderModel::setSelected(int row)
         return;
 
     m_selectionModel->select(index(row, 0), QItemSelectionModel::Select);
+    m_currentIndex = row;
+
+    emit currentIndexChanged();
 }
 
 void FolderModel::selectAll()
@@ -866,9 +894,24 @@ void FolderModel::unpinSelection()
 
 void FolderModel::newFolder()
 {
-    CreateFolderDialog *dlg = new CreateFolderDialog;
-    dlg->setPath(rootItem().url().toString());
-    dlg->show();
+    QString rootPath = rootItem().url().toString();
+    QString baseName = tr("New Folder");
+    QString newName = baseName;
+
+    int i = 0;
+    while (true) {
+        if (QFile::exists(rootItem().url().toLocalFile() + "/" + newName)) {
+            ++i;
+            newName = QString("%1%2").arg(baseName).arg(QString::number(i));
+        } else {
+            break;
+        }
+    }
+
+    m_newDocumentUrl = QUrl(rootItem().url().toString() + "/" + newName);
+
+    auto job = KIO::mkdir(QUrl(rootItem().url().toString() + "/" + newName));
+    job->start();
 }
 
 void FolderModel::rename(int row, const QString &name)

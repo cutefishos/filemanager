@@ -53,7 +53,6 @@ ListView {
 
     signal keyPress(var event)
 
-    currentIndex: -1
     clip: true
     cacheBuffer: width
 

@@ -164,6 +164,11 @@ Item {
             else
                 dirModel.url = dirModel.homePath()
         }
+
+        // For new folder rename.
+        onCurrentIndexChanged: {
+            _viewLoader.item.currentIndex = dirModel.currentIndex
+        }
     }
 
     Connections {
