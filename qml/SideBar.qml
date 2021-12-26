@@ -36,6 +36,10 @@ ListView {
         target: sideBar
     }
 
+    Fm {
+        id: _fm
+    }
+
     PlacesModel {
         id: placesModel
         onDeviceSetupDone: sideBar.clicked(filePath)    // 设备挂载上后，模拟点击了该设备以打开该页面
@@ -148,7 +152,7 @@ ListView {
                 visible: model.isDevice &&
                          !model.setupNeeded &&
                          model.isOpticalDisc &&
-                         !model.url.toString() === "/"
+                         !model.url.toString() === _fm.rootPath()
 
                 onTriggered: {
                     placesModel.requestEject(index)
@@ -161,7 +165,7 @@ ListView {
                 visible: model.isDevice &&
                          !model.setupNeeded &&
                          !model.isOpticalDisc &&
-                         !model.url.toString() === "/"
+                         !model.url.toString() === _fm.rootPath()
 
                 onTriggered: {
                     placesModel.requestTeardown(index)

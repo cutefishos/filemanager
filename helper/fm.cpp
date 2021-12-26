@@ -18,11 +18,17 @@
  */
 
 #include "fm.h"
+#include <QDir>
 #include <KIO/EmptyTrashJob>
 
 Fm::Fm(QObject *parent) : QObject(parent)
 {
 
+}
+
+QString Fm::rootPath()
+{
+    return QDir::rootPath();
 }
 
 void Fm::emptyTrash()
