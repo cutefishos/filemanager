@@ -932,13 +932,13 @@ void FolderModel::newTextFile()
 
     m_newDocumentUrl = QUrl(rootItem().url().toString() + "/" + newName);
 
-    QFile srcFile(":/templates/TextFile.txt");
-
-    if (!srcFile.open(QIODevice::ReadOnly)) {
-        return;
+    QFile file(m_newDocumentUrl.toLocalFile());
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream stream(&file);
+        stream << "\n";
+        ::chmod(m_newDocumentUrl.toLocalFile().toStdString().c_str(), 0700);
+        file.close();
     }
-
-    srcFile.copy(m_newDocumentUrl.toLocalFile());
 }
 
 void FolderModel::rename(int row, const QString &name)
