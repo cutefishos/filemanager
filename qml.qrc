@@ -72,5 +72,6 @@
         <file>images/drive-harddisk.svg</file>
         <file>images/drive-optical.svg</file>
         <file>images/drive-removable-media-usb.svg</file>
+        <file>templates/TextFile.txt</file>
     </qresource>
 </RCC>

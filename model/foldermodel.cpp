@@ -914,6 +914,33 @@ void FolderModel::newFolder()
     job->start();
 }
 
+void FolderModel::newTextFile()
+{
+    QString rootPath = rootItem().url().toString();
+    QString baseName = tr("New Text");
+    QString newName = baseName;
+
+    int i = 0;
+    while (true) {
+        if (QFile::exists(rootItem().url().toLocalFile() + "/" + newName)) {
+            ++i;
+            newName = QString("%1%2").arg(baseName).arg(QString::number(i));
+        } else {
+            break;
+        }
+    }
+
+    m_newDocumentUrl = QUrl(rootItem().url().toString() + "/" + newName);
+
+    QFile srcFile(":/templates/TextFile.txt");
+
+    if (!srcFile.open(QIODevice::ReadOnly)) {
+        return;
+    }
+
+    srcFile.copy(m_newDocumentUrl.toLocalFile());
+}
+
 void FolderModel::rename(int row, const QString &name)
 {
     if (row < 0)
@@ -1229,7 +1256,11 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         QAction *selectAll = new QAction(tr("Select All"), this);
         connect(selectAll, &QAction::triggered, this, &FolderModel::selectAll);
 
+        QMenu *newMenu = new QMenu(tr("New Documents"));
+        newMenu->addAction(m_actionCollection.action("newTextFile"));
+
         menu->addAction(m_actionCollection.action("newFolder"));
+        menu->addMenu(newMenu);
         menu->addSeparator();
         menu->addAction(m_actionCollection.action("paste"));
         menu->addAction(selectAll);
@@ -1675,6 +1706,11 @@ void FolderModel::createActions()
     QAction *newFolder = new QAction(tr("New Folder"), this);
     connect(newFolder, &QAction::triggered, this, &FolderModel::newFolder);
 
+    QMenu *newDocuments = new QMenu(tr("New Documents"));
+    QAction *newTextFile = new QAction(tr("New Text"), this);
+    connect(newTextFile, &QAction::triggered, this, &FolderModel::newTextFile);
+    newDocuments->addAction(newTextFile);
+
     QAction *trash = new QAction(tr("Move To Trash"), this);
     connect(trash, &QAction::triggered, this, &FolderModel::moveSelectedToTrash);
 
@@ -1716,6 +1752,7 @@ void FolderModel::createActions()
     m_actionCollection.addAction(QStringLiteral("copy"), copy);
     m_actionCollection.addAction(QStringLiteral("paste"), paste);
     m_actionCollection.addAction(QStringLiteral("newFolder"), newFolder);
+    m_actionCollection.addAction(QStringLiteral("newTextFile"), newTextFile);
     m_actionCollection.addAction(QStringLiteral("trash"), trash);
     m_actionCollection.addAction(QStringLiteral("emptyTrash"), emptyTrash);
     m_actionCollection.addAction(QStringLiteral("del"), del);
@@ -1790,6 +1827,11 @@ void FolderModel::updateActions()
     if (QAction *newFolder = m_actionCollection.action(QStringLiteral("newFolder"))) {
         newFolder->setVisible(!isTrash);
         newFolder->setEnabled(rootItem().isWritable());
+    }
+
+    if (QAction *newTextFile = m_actionCollection.action(QStringLiteral("newTextFile"))) {
+        newTextFile->setVisible(!isTrash);
+        newTextFile->setEnabled(rootItem().isWritable());
     }
 
     if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {

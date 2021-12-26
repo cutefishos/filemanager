@@ -188,6 +188,7 @@ public:
     Q_INVOKABLE void unpinSelection();
 
     Q_INVOKABLE void newFolder();
+    Q_INVOKABLE void newTextFile();
     Q_INVOKABLE void rename(int row, const QString &name);
     Q_INVOKABLE void copy();
     Q_INVOKABLE void paste();
