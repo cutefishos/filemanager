@@ -35,6 +35,18 @@
 #include <QIcon>
 #include <QDir>
 
+// KIO
+#include <KIO/CopyJob>
+#include <KIO/Job>
+#include <KIO/PreviewJob>
+#include <KIO/DeleteJob>
+#include <KIO/DropJob>
+#include <KIO/FileUndoManager>
+#include <KIO/JobUiDelegate>
+#include <KIO/Paste>
+#include <KIO/PasteJob>
+#include <KIO/RestoreJob>
+
 Application::Application(int& argc, char** argv)
     : QApplication(argc, argv)
     , m_instance(false)
@@ -76,6 +88,22 @@ void Application::openFiles(const QStringList &paths)
     for (const QString &path : paths) {
         openWindow(path);
     }
+}
+
+void Application::moveToTrash(const QStringList &paths)
+{
+    if (paths.isEmpty())
+        return;
+
+    QList<QUrl> urls;
+
+    for (const QString &path : paths) {
+        urls.append(QUrl::fromLocalFile(path));
+    }
+
+    KIO::Job *job = KIO::trash(urls);
+    job->uiDelegate()->setAutoErrorHandlingEnabled(true);
+    KIO::FileUndoManager::self()->recordJob(KIO::FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
 }
 
 void Application::emptyTrash()
@@ -121,6 +149,9 @@ bool Application::parseCommandLineArgs()
     QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
     parser.addOption(emptyTrashOption);
 
+    QCommandLineOption moveToTrashOption(QStringList() << "mtr" << "move-to-trash" << "Move To Trash");
+    parser.addOption(moveToTrashOption);
+
     parser.process(arguments());
 
     if (m_instance) {
@@ -140,6 +171,8 @@ bool Application::parseCommandLineArgs()
         if (parser.isSet(emptyTrashOption)) {
             // Empty Dialog
             iface.call("emptyTrash");
+        } else if (parser.isSet(moveToTrashOption)) {
+            iface.call("moveToTrash", parser.positionalArguments());
         } else {
             iface.call("openFiles", formatUriList(parser.positionalArguments()));
         }
