@@ -147,7 +147,8 @@ ListView {
                 text: qsTr("Eject")
                 visible: model.isDevice &&
                          !model.setupNeeded &&
-                         model.isOpticalDisc
+                         model.isOpticalDisc &&
+                         !model.url.toString() === "/"
 
                 onTriggered: {
                     placesModel.requestEject(index)
@@ -159,7 +160,8 @@ ListView {
                 text: qsTr("Unmount")
                 visible: model.isDevice &&
                          !model.setupNeeded &&
-                         !model.isOpticalDisc
+                         !model.isOpticalDisc &&
+                         !model.url.toString() === "/"
 
                 onTriggered: {
                     placesModel.requestTeardown(index)
