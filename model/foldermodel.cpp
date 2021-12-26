@@ -89,6 +89,7 @@ static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folder
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
     , m_dirWatch(nullptr)
+    , m_status(None)
     , m_sortMode(0)
     , m_sortDesc(false)
     , m_sortDirsFirst(true)
@@ -111,6 +112,7 @@ FolderModel::FolderModel(QObject *parent)
     m_dirLister = new DirLister(this);
     m_dirLister->setDelayedMimeTypes(true);
     m_dirLister->setAutoErrorHandlingEnabled(false, nullptr);
+    m_dirLister->setAutoUpdate(true);
     m_dirLister->setShowingDotFiles(m_showHiddenFiles);
     // connect(dirLister, &DirLister::error, this, &FolderModel::notification);
 
@@ -381,31 +383,27 @@ void FolderModel::setUrl(const QString &url)
 
     // Refresh this directory.
     if (url == m_url) {
-        m_dirModel->dirLister()->updateDirectory(resolvedNewUrl);
+        refresh();
         return;
     }
+
+    setStatus(Status::Listing);
 
     m_pathHistory.append(resolvedNewUrl);
 
     beginResetModel();
     m_url = resolvedNewUrl.toString(QUrl::PreferLocalFile);
-    m_dirModel->dirLister()->openUrl(resolvedNewUrl);
+    m_dirModel->dirLister()->openUrl(isTrash ? QUrl(QStringLiteral("trash:/")) : resolvedNewUrl);
     clearDragImages();
     m_dragIndexes.clear();
     endResetModel();
 
+    if (isTrash) {
+        refresh();
+    }
+
     emit urlChanged();
     emit resolvedUrlChanged();
-
-//    if (m_dirWatch) {
-//        delete m_dirWatch;
-//        m_dirWatch = nullptr;
-//    }
-
-//    if (resolvedNewUrl.isValid()) {
-//        m_dirWatch = new KDirWatch(this);
-//        m_dirWatch->addFile(resolvedNewUrl.toLocalFile() + QLatin1String("/.directory"));
-//    }
 }
 
 QUrl FolderModel::resolvedUrl() const

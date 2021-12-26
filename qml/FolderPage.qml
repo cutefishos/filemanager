@@ -148,6 +148,7 @@ Item {
         font.pointSize: 15
         anchors.centerIn: parent
         visible: dirModel.status === FM.FolderModel.Ready
+                 && _viewLoader.status === Loader.Ready
                  && _viewLoader.item.count === 0
     }
 
