@@ -4,6 +4,9 @@
     <method name="openFiles">
       <arg type="as" direction="in"/>
     </method>
+    <method name="moveToTrash">
+      <arg type="as" direction="in"/>
+    </method>
     <method name="emptyTrash"></method>
   </interface>
 </node>

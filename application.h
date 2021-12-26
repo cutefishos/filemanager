@@ -33,6 +33,7 @@ public:
 
     // DBus
     void openFiles(const QStringList &paths);
+    void moveToTrash(const QStringList &paths);
     void emptyTrash();
 
 private:
