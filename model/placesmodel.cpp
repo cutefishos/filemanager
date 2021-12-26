@@ -166,7 +166,7 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
 
     switch (role) {
     case PlacesModel::NameRole:
-        return item->displayName();
+        return item->url().toLocalFile() == QDir::rootPath() ? tr("Computer") : item->displayName();
         break;
     case PlacesModel::IconNameRole:
         return item->iconName();
