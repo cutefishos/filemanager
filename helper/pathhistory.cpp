@@ -31,6 +31,31 @@ void PathHistory::append(const QUrl &path)
     m_prevHistory.append(path);
 }
 
+QUrl PathHistory::first()
+{
+    return m_prevHistory.first();
+}
+
+QUrl PathHistory::last()
+{
+    return m_prevHistory.last();
+}
+
+QUrl PathHistory::at(int i)
+{
+    return m_prevHistory.at(i);
+}
+
+int PathHistory::count()
+{
+    return m_prevHistory.count();
+}
+
+bool PathHistory::isEmpty()
+{
+    return m_prevHistory.isEmpty();
+}
+
 QUrl PathHistory::posteriorPath()
 {
     if (m_postHistory.isEmpty())
