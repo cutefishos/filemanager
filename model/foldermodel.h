@@ -61,6 +61,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY filterMimeTypesChanged)
     Q_PROPERTY(QString selectedItemSize READ selectedItemSize NOTIFY selectedItemSizeChanged)
     Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
+    Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged)
 
 public:
     enum DataRole {
@@ -113,10 +114,13 @@ public:
 
     int indexForKeyboardSearch(const QString &text, int startFromIndex = 0) const;
     KFileItem itemForIndex(const QModelIndex &index) const;
+    QModelIndex indexForUrl(const QUrl &url) const;
 
     KFileItem fileItem(int index) const;
 
     QList<QUrl> selectedUrls() const;
+
+    int currentIndex() const;
 
     QString url() const;
     void setUrl(const QString &url);
@@ -250,6 +254,8 @@ signals:
     void notification(const QString &message);
     void move(int x, int y, QList<QUrl> urls);
 
+    void currentIndexChanged();
+
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void dragSelectedInternal(int x, int y);
@@ -276,6 +282,7 @@ private:
     QItemSelectionModel *m_selectionModel;
     QItemSelection m_pinnedSelection;
     QString m_url;
+    QUrl m_newDocumentUrl;
 
     Status m_status;
     int m_sortMode;
@@ -312,6 +319,8 @@ private:
     MimeAppManager *m_mimeAppManager;
 
     CFileSizeJob *m_sizeJob;
+
+    int m_currentIndex;
 };
 
 #endif // FOLDERMODEL_H
