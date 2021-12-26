@@ -1787,7 +1787,9 @@ void FolderModel::updateActions()
     }
 
     if (QAction *terminal = m_actionCollection.action("wallpaper")) {
-        terminal->setVisible(items.size() == 1 && supportSetAsWallpaper(items.first().mimetype()));
+        terminal->setVisible(items.size() == 1 &&
+                             !isTrash &&
+                             supportSetAsWallpaper(items.first().mimetype()));
     }
 
     if (QAction *properties = m_actionCollection.action("properties")) {
@@ -1795,6 +1797,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *showHidden = m_actionCollection.action("showHidden")) {
+        showHidden->setVisible(!isTrash);
         showHidden->setCheckable(true);
         showHidden->setChecked(m_showHiddenFiles);
     }
