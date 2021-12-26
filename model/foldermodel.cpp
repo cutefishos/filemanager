@@ -729,6 +729,13 @@ void FolderModel::refresh()
     m_dirModel->dirLister()->updateDirectory(m_dirModel->dirLister()->url());
 }
 
+void FolderModel::undo()
+{
+    if (KIO::FileUndoManager::self()->undoAvailable()) {
+        KIO::FileUndoManager::self()->undo();
+    }
+}
+
 bool FolderModel::supportSetAsWallpaper(const QString &mimeType)
 {
     if (mimeType == "image/jpeg" || mimeType == "image/png")
