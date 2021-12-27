@@ -1249,6 +1249,7 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
     updateActions();
 
     const QModelIndexList indexes = m_selectionModel->selectedIndexes();
+    const bool isTrash = (resolvedUrl().scheme() == QLatin1String("trash"));
     QMenu *menu = new QMenu;
 
     // Open folder menu.
@@ -1256,11 +1257,14 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         QAction *selectAll = new QAction(tr("Select All"), this);
         connect(selectAll, &QAction::triggered, this, &FolderModel::selectAll);
 
-        QMenu *newMenu = new QMenu(tr("New Documents"));
-        newMenu->addAction(m_actionCollection.action("newTextFile"));
-
         menu->addAction(m_actionCollection.action("newFolder"));
-        menu->addMenu(newMenu);
+
+        if (!isTrash) {
+            QMenu *newMenu = new QMenu(tr("New Documents"));
+            newMenu->addAction(m_actionCollection.action("newTextFile"));
+            menu->addMenu(newMenu);
+        }
+
         menu->addSeparator();
         menu->addAction(m_actionCollection.action("paste"));
         menu->addAction(selectAll);
