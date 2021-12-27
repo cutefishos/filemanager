@@ -73,5 +73,8 @@
         <file>images/drive-optical.svg</file>
         <file>images/drive-removable-media-usb.svg</file>
         <file>templates/TextFile.txt</file>
+        <file>images/media-optical-data.svg</file>
+        <file>images/media-optical-mixed-cd.svg</file>
+        <file>images/media-optical.svg</file>
     </qresource>
 </RCC>
