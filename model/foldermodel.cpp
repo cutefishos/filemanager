@@ -1867,6 +1867,7 @@ void FolderModel::updateActions()
         }
 
         paste->setEnabled(enable);
+        paste->setVisible(!isTrash);
     }
 
     if (QAction *rename = m_actionCollection.action(QStringLiteral("rename"))) {
