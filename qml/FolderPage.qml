@@ -301,6 +301,8 @@ Item {
                 font.pointSize: 10
                 onClicked: dirModel.emptyTrash()
                 visible: dirModel.url === "trash:///"
+                         && _viewLoader.item
+                         && _viewLoader.item.count > 0
                 focusPolicy: Qt.NoFocus
             }
         }
