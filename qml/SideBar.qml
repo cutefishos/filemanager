@@ -204,9 +204,8 @@ ListView {
                 smooth: false
                 antialiasing: true
 
-                ColorOverlay {
-                    anchors.fill: parent
-                    source: parent
+                layer.enabled: true
+                layer.effect: ColorOverlay {
                     color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 }
             }
