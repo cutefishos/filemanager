@@ -987,13 +987,13 @@ void FolderModel::paste()
         QMimeData *data = new QMimeData;
         for (QString mimetype : mimeData->formats()) {
             data->setData(mimetype, mimeData->data(mimetype));
-        }
+         }
 
         KIO::Job *job = KIO::paste(data, m_dirModel->dirLister()->url());
         job->start();
 
         // Clear system clipboard.
-        if (mimeData->hasFormat("application/x-kde-cutselection")) {
+        if (mimeData->hasFormat("application/x-cutefish-cutselection")) {
             QApplication::clipboard()->clear();
         }
     }
@@ -1009,7 +1009,10 @@ void FolderModel::cut()
             return;
 
     QMimeData *mimeData = QSortFilterProxyModel::mimeData(m_selectionModel->selectedIndexes());
-    KIO::setClipboardDataCut(mimeData, true);
+
+    mimeData->setData("application/x-kde-cutselection", QByteArray("1"));
+    mimeData->setData("application/x-cutefish-cutselection", QByteArray("1"));
+
     QApplication::clipboard()->setMimeData(mimeData);
 }
 
