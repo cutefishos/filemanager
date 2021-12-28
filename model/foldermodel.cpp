@@ -1864,7 +1864,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *emptyTrash = m_actionCollection.action("emptyTrash")) {
-        emptyTrash->setVisible(isTrash);
+        emptyTrash->setVisible(isTrash && rowCount() > 0);
     }
 
     if (QAction *del = m_actionCollection.action(QStringLiteral("del"))) {
