@@ -983,7 +983,19 @@ void FolderModel::paste()
     }
 
     if (enable) {
-        KIO::paste(mimeData, m_dirModel->dirLister()->url());
+        // Copy a new MimeData.
+        QMimeData *data = new QMimeData;
+        for (QString mimetype : mimeData->formats()) {
+            data->setData(mimetype, mimeData->data(mimetype));
+        }
+
+        KIO::Job *job = KIO::paste(data, m_dirModel->dirLister()->url());
+        job->start();
+
+        // Clear system clipboard.
+        if (mimeData->hasFormat("application/x-kde-cutselection")) {
+            QApplication::clipboard()->clear();
+        }
     }
 }
 
