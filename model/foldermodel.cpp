@@ -414,7 +414,8 @@ void FolderModel::setUrl(const QString &url)
 
     setStatus(Status::Listing);
 
-    m_pathHistory.append(resolvedNewUrl);
+    if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl)
+        m_pathHistory.append(resolvedNewUrl);
 
     beginResetModel();
     m_url = resolvedNewUrl.toString(QUrl::PreferLocalFile);
