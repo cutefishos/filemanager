@@ -260,6 +260,9 @@ signals:
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void dragSelectedInternal(int x, int y);
+    void onRowsInserted(const QModelIndex &parent, int first, int last);
+    void delayUpdateNeedSelectUrls();
+    void updateNeedSelectUrls();
 
 private:
     void invalidateIfComplete();
@@ -284,6 +287,7 @@ private:
     QItemSelection m_pinnedSelection;
     QString m_url;
     QUrl m_newDocumentUrl;
+    QList<QUrl> m_needSelectUrls;
 
     Status m_status;
     int m_sortMode;

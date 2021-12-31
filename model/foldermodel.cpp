@@ -144,32 +144,7 @@ FolderModel::FolderModel(QObject *parent)
     });
 
     // Position dropped items at the desired target position.
-    connect(this, &QAbstractItemModel::rowsInserted, this, [this](const QModelIndex &parent, int first, int last) {
-        QModelIndex changeIdx;
-
-        for (int i = first; i <= last; ++i) {
-            const auto idx = index(i, 0, parent);
-            const auto url = itemForIndex(idx).url();
-            auto it = m_dropTargetPositions.find(url.fileName());
-            if (it != m_dropTargetPositions.end()) {
-                const auto pos = it.value();
-                m_dropTargetPositions.erase(it);
-                Q_EMIT move(pos.x(), pos.y(), {url});
-            }
-
-            if (url == m_newDocumentUrl) {
-                changeIdx = idx;
-                m_newDocumentUrl.clear();
-            }
-        }
-
-        QTimer::singleShot(0, this, [=] {
-            if (changeIdx.isValid()) {
-                setSelected(changeIdx.row());
-                emit requestRename();
-            }
-        });
-    });
+    connect(this, &QAbstractItemModel::rowsInserted, this, &FolderModel::onRowsInserted);
 
     /*
      * Dropped files may not actually show up as new files, e.g. when we overwrite
@@ -972,10 +947,18 @@ void FolderModel::paste()
     // Update paste action
     if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
         QList<QUrl> urls = KUrlMimeData::urlsFromMimeData(mimeData);
+        const QString &currentUrl = rootItem().url().toLocalFile();
 
         if (!urls.isEmpty()) {
             if (!rootItem().isNull()) {
                 enable = rootItem().isWritable();
+            }
+        }
+
+        if (enable && !urls.isEmpty()) {
+            for (QUrl url : urls) {
+                m_needSelectUrls.append(QUrl::fromLocalFile(QString("%1/%2").arg(currentUrl)
+                                                                            .arg(url.fileName())));
             }
         }
 
@@ -990,6 +973,7 @@ void FolderModel::paste()
          }
 
         KIO::Job *job = KIO::paste(data, m_dirModel->dirLister()->url());
+        connect(job, &KIO::Job::finished, this, &FolderModel::delayUpdateNeedSelectUrls);
         job->start();
 
         // Clear system clipboard.
@@ -1589,6 +1573,59 @@ void FolderModel::dragSelectedInternal(int x, int y)
         m_dragIndexes.clear();
         // TODO: Optimize to emit contiguous groups.
         emit dataChanged(first, last, QVector<int>() << BlankRole);
+    }
+}
+
+void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
+{
+    QModelIndex changeIdx;
+
+    for (int i = first; i <= last; ++i) {
+        const auto idx = index(i, 0, parent);
+        const auto url = itemForIndex(idx).url();
+        auto it = m_dropTargetPositions.find(url.fileName());
+        if (it != m_dropTargetPositions.end()) {
+            const auto pos = it.value();
+            m_dropTargetPositions.erase(it);
+            Q_EMIT move(pos.x(), pos.y(), {url});
+        }
+
+        if (url == m_newDocumentUrl) {
+            changeIdx = idx;
+            m_newDocumentUrl.clear();
+        }
+    }
+
+    QTimer::singleShot(0, this, [=] {
+        if (changeIdx.isValid()) {
+            setSelected(changeIdx.row());
+            emit requestRename();
+        }
+    });
+}
+
+void FolderModel::delayUpdateNeedSelectUrls()
+{
+    QTimer::singleShot(100, this, &FolderModel::updateNeedSelectUrls);
+}
+
+void FolderModel::updateNeedSelectUrls()
+{
+    QModelIndexList needSelectList;
+
+    for (const QUrl &url : m_needSelectUrls) {
+        const QModelIndex &idx = indexForUrl(url);
+
+        if (!idx.isValid())
+            continue;
+
+        needSelectList.append(idx);
+    }
+
+    m_needSelectUrls.clear();
+
+    for (const QModelIndex &idx : needSelectList) {
+        setSelected(idx.row());
     }
 }
 
