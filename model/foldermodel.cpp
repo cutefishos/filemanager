@@ -1011,6 +1011,9 @@ void FolderModel::openSelected()
     if (!m_selectionModel->hasSelection())
         return;
 
+    if (resolvedUrl().scheme() == QLatin1String("trash"))
+        return;
+
     const QList<QUrl> urls = selectedUrls();
     if (!m_isDesktop) {
         if (urls.size() == 1 && KFileItem(urls.first()).isDir()) {
@@ -1875,6 +1878,7 @@ void FolderModel::updateActions()
 
     if (QAction *cutAction = m_actionCollection.action(QStringLiteral("cut"))) {
         cutAction->setVisible(!isTrash);
+        cutAction->setEnabled(rootItem().isWritable());
     }
 
     if (QAction *restoreAction = m_actionCollection.action(QStringLiteral("restore"))) {
