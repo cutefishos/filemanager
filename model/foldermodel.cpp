@@ -1950,7 +1950,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *openInNewWindow = m_actionCollection.action("openInNewWindow")) {
-        openInNewWindow->setVisible(hasDir);
+        openInNewWindow->setVisible(hasDir && !isTrash);
     }
 }
 
