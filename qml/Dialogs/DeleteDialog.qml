@@ -24,16 +24,25 @@ import QtQuick.Layouts 1.12
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
 
-Item {
+FishUI.Window {
     id: control
 
-    width: 300 + FishUI.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+    flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    minimizeButtonVisible: false
+    visible: true
 
-    Rectangle {
-        anchors.fill: parent
-        color: FishUI.Theme.secondBackgroundColor
-    }
+    width: contentWidth
+    height: contentHeight
+
+    minimumWidth: contentWidth
+    minimumHeight: contentHeight
+    maximumWidth: contentWidth
+    maximumHeight: contentHeight
+
+    property var contentWidth: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 2
+    property var contentHeight: _mainLayout.implicitHeight + control.header.height + FishUI.Units.largeSpacing * 2
+
+    background.color: FishUI.Theme.secondBackgroundColor
 
     ColumnLayout {
         id: _mainLayout
@@ -55,7 +64,7 @@ Item {
             Button {
                 text: qsTr("Cancel")
                 Layout.fillWidth: true
-                onClicked: view.close()
+                onClicked: control.close()
             }
 
             Button {
@@ -63,7 +72,7 @@ Item {
                 focus: true
                 Layout.fillWidth: true
                 onClicked: {
-                    view.close()
+                    control.close()
                     model.deleteSelected()
                 }
                 flat: true
