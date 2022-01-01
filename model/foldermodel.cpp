@@ -25,6 +25,7 @@
 
 #include "foldermodel.h"
 #include "dirlister.h"
+#include "window.h"
 
 #include "../dialogs/filepropertiesdialog.h"
 #include "../dialogs/createfolderdialog.h"
@@ -106,9 +107,14 @@ FolderModel::FolderModel(QObject *parent)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
     , m_currentIndex(-1)
+    , m_updateNeedSelectTimer(new QTimer(this))
 {
     QSettings settings("cutefishos", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
+
+    m_updateNeedSelectTimer->setSingleShot(true);
+    m_updateNeedSelectTimer->setInterval(500);
+    connect(m_updateNeedSelectTimer, &QTimer::timeout, this, &FolderModel::updateNeedSelectUrls);
 
     m_dirLister = new DirLister(this);
     m_dirLister->setDelayedMimeTypes(true);
@@ -973,7 +979,7 @@ void FolderModel::paste()
          }
 
         KIO::Job *job = KIO::paste(data, m_dirModel->dirLister()->url());
-        connect(job, &KIO::Job::finished, this, &FolderModel::delayUpdateNeedSelectUrls);
+        // connect(job, &KIO::Job::finished, this, &FolderModel::delayUpdateNeedSelectUrls);
         job->start();
 
         // Clear system clipboard.
@@ -1371,22 +1377,9 @@ void FolderModel::openChangeWallpaperDialog()
 
 void FolderModel::openDeleteDialog()
 {
-    QQuickView *view = new QQuickView;
-    view->setModality(Qt::ApplicationModal);
-    view->setFlags(Qt::Dialog);
-    view->setTitle(tr("File Manager"));
-    view->setResizeMode(QQuickView::SizeRootObjectToView);
-    view->setSource(QUrl("qrc:/qml/Dialogs/DeleteDialog.qml"));
-    view->rootContext()->setContextProperty("model", this);
-    view->rootContext()->setContextProperty("view", view);
-
-    connect(view, &QQuickView::visibleChanged, this, [=] {
-        if (!view->isVisible()) {
-            view->deleteLater();
-        }
-    });
-
-    view->show();
+    Window *w = new Window;
+    w->load(QUrl("qrc:/qml/Dialogs/DeleteDialog.qml"));
+    w->rootContext()->setContextProperty("model", this);
 }
 
 void FolderModel::openInNewWindow(const QString &url)
@@ -1578,6 +1571,10 @@ void FolderModel::dragSelectedInternal(int x, int y)
 
 void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
 {
+    if (m_updateNeedSelectTimer->isActive()) {
+        m_updateNeedSelectTimer->stop();
+    }
+
     QModelIndex changeIdx;
 
     for (int i = first; i <= last; ++i) {
@@ -1602,6 +1599,8 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
             emit requestRename();
         }
     });
+
+    m_updateNeedSelectTimer->start();
 }
 
 void FolderModel::delayUpdateNeedSelectUrls()
@@ -1623,6 +1622,11 @@ void FolderModel::updateNeedSelectUrls()
     }
 
     m_needSelectUrls.clear();
+
+    // If the selected item already exists, clear it immediately.
+    if (!needSelectList.isEmpty()) {
+        clearSelection();
+    }
 
     for (const QModelIndex &idx : needSelectList) {
         setSelected(idx.row());

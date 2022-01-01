@@ -326,6 +326,8 @@ private:
     CFileSizeJob *m_sizeJob;
 
     int m_currentIndex;
+
+    QTimer *m_updateNeedSelectTimer;
 };
 
 #endif // FOLDERMODEL_H
