@@ -34,6 +34,7 @@ FishUI.Window {
     visible: true
     title: qsTr("File Manager")
 
+    background.opacity: 1
     header.height: 36 + FishUI.Units.largeSpacing
 
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft

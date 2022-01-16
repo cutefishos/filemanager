@@ -38,8 +38,8 @@ FishUI.Window {
     width: contentWidth
     height: contentHeight
 
-    x: Screen.virtualX + (Screen.width - contentWidth) / 2
-    y: Screen.virtualY + (Screen.height - contentHeight) / 2
+//    x: Screen.virtualX + (Screen.width - contentWidth) / 2
+//    y: Screen.virtualY + (Screen.height - contentHeight) / 2
 
     minimumWidth: contentWidth
     minimumHeight: contentHeight
