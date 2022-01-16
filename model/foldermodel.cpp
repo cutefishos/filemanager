@@ -33,6 +33,7 @@
 
 #include "../helper/datehelper.h"
 #include "../helper/filelauncher.h"
+#include "../helper/fm.h"
 
 #include "../cio/cfilesizejob.h"
 
@@ -85,7 +86,6 @@ static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folder
     }
     return true;
 }
-
 
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
@@ -1231,6 +1231,12 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
     if (!isDropBetweenSharedViews(mimeData->urls(), dropTargetFolderUrl)) {
         KIO::Job *job = KIO::move(mimeData->urls(), dropTargetUrl, KIO::HideProgressInfo);
         job->start();
+
+        // Add select
+        for (QUrl url : mimeData->urls()) {
+            m_needSelectUrls.append(QUrl::fromLocalFile(QString("%1/%2").arg(rootItem().url().toLocalFile())
+                                                                        .arg(url.fileName())));
+        }
     }
 }
 
@@ -1920,7 +1926,7 @@ void FolderModel::updateActions()
 
     if (QAction *rename = m_actionCollection.action(QStringLiteral("rename"))) {
         rename->setEnabled(itemProperties.supportsMoving());
-        rename->setVisible(!isTrash);
+        rename->setVisible(!isTrash && !Fm::isFixedFolder(items.first().url()));
     }
 
     if (QAction *trash = m_actionCollection.action("trash")) {

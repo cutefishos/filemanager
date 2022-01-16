@@ -19,6 +19,7 @@
 
 #include "filepropertiesdialog.h"
 #include "../desktopiconprovider.h"
+#include "../helper/fm.h"
 
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -97,7 +98,7 @@ void FilePropertiesDialog::accept(const QString &text)
         if (fileName() != newFileName) {
             QUrl newUrl;
 
-            if (!location().isEmpty()) {
+            if (!location().isEmpty() && !Fm::isFixedFolder(m_items.first().url())) {
                 newUrl = location();
                 newUrl.setPath(concatPaths(newUrl.path(), newFileName));
                 newUrl.setScheme(item.url().scheme());
