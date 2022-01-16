@@ -113,7 +113,7 @@ FolderModel::FolderModel(QObject *parent)
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
 
     m_updateNeedSelectTimer->setSingleShot(true);
-    m_updateNeedSelectTimer->setInterval(500);
+    m_updateNeedSelectTimer->setInterval(50);
     connect(m_updateNeedSelectTimer, &QTimer::timeout, this, &FolderModel::updateNeedSelectUrls);
 
     m_dirLister = new DirLister(this);
@@ -1596,7 +1596,8 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
         }
     }
 
-    QTimer::singleShot(0, this, [=] {
+    // 新建文件夹需要先选择后再发送请求
+    QTimer::singleShot(m_updateNeedSelectTimer->interval() + 10, this, [=] {
         if (changeIdx.isValid()) {
             setSelected(changeIdx.row());
             emit requestRename();
@@ -1621,7 +1622,9 @@ void FolderModel::updateNeedSelectUrls()
         if (!idx.isValid())
             continue;
 
-        needSelectList.append(idx);
+        const QModelIndex &sourceIdx = mapFromSource(idx);
+
+        needSelectList.append(sourceIdx);
     }
 
     m_needSelectUrls.clear();
