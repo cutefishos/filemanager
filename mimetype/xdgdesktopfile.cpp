@@ -21,6 +21,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <QLocale>
+#include <QDebug>
 
 XdgDesktopFile::XdgDesktopFile(const QString &fileName)
     : m_isValid(false)
@@ -111,11 +112,10 @@ QString XdgDesktopFile::localeName() const
 {
     QString localeKey = QString("Name[%1]").arg(QLocale::system().name());
 
-    if (m_items.contains(localeKey)) {
-        return XdgDesktopFile::value("Name").toString();
-    }
+    if (XdgDesktopFile::value(localeKey).toString().isEmpty())
+        return XdgDesktopFile::value("Name").toString();;
 
-    return XdgDesktopFile::value("Name").toString();
+    return XdgDesktopFile::value(localeKey).toString();
 }
 
 QString XdgDesktopFile::prefix() const
