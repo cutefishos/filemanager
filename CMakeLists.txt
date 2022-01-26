@@ -17,6 +17,7 @@ find_package(Qt5 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
 find_package(KF5KIO)
 find_package(KF5Solid)
 find_package(KF5WindowSystem)
+find_package(KF5Config)
 
 qt5_add_dbus_adaptor(DBUS_SOURCES
                      com.cutefish.FileManager.xml
@@ -84,6 +85,7 @@ target_link_libraries(cutefish-filemanager
   KF5::KIOWidgets
   KF5::Solid
   KF5::WindowSystem
+  KF5::ConfigCore
 
   # FishUI
 )

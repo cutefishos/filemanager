@@ -33,6 +33,10 @@
 #include <QDebug>
 #include <QSet>
 
+#include <KConfig>
+#include <KConfigGroup>
+#include <KSharedConfig>
+
 static MimeAppManager *SELF = nullptr;
 
 MimeAppManager *MimeAppManager::self()
@@ -292,17 +296,23 @@ bool MimeAppManager::setDefaultAppForType(const QString &mimeType, const QString
     if (QFile::exists(desktop)) {
         QFileInfo info(desktop);
         desktop = info.completeBaseName();
+    } else {
+        return false;
     }
 
-//    QSettings settings(mimeappsFile, QSettings::IniFormat);
-//    settings.setIniCodec("UTF-8");
+    KSharedConfig::Ptr profile = KSharedConfig::openConfig(QStringLiteral("mimeapps.list"),
+                                                           KConfig::NoGlobals,
+                                                           QStandardPaths::GenericConfigLocation);
+    KConfigGroup defaultApp(profile, "Default Applications");
+    defaultApp.writeXdgListEntry(mimeType, {desktop});
 
-//    if (!settings.isWritable())
-//        return false;
+    KConfigGroup addedApps(profile, "Added Associations");
+    QStringList apps = addedApps.readXdgListEntry(mimeType);
+    apps.removeAll(desktop);
+    apps.prepend(desktop); // make it the preferred app
+    addedApps.writeXdgListEntry(mimeType, apps);
 
-//    settings.beginGroup("Default Applications");
-//    settings.setValue(mimeType, desktop);
-//    settings.sync();
+    profile->sync();
 
     return true;
 }
@@ -311,7 +321,6 @@ bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString
 {
     // ref: https://specifications.freedesktop.org/mime-apps-spec/1.0.1/ar01s03.html
 
-    QString mimeappsFile = mimeAppsListFilePath();
     QMimeType mimeType;
     QString value = desktop;
 
@@ -323,17 +332,23 @@ bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString
     if (QFile::exists(value)) {
         QFileInfo info(value);
         value = info.fileName();
+    } else {
+        return false;
     }
 
-    QSettings settings(mimeappsFile, QSettings::IniFormat);
-    settings.setIniCodec("UTF-8");
+    KSharedConfig::Ptr profile = KSharedConfig::openConfig(QStringLiteral("mimeapps.list"),
+                                                           KConfig::NoGlobals,
+                                                           QStandardPaths::GenericConfigLocation);
+    KConfigGroup defaultApp(profile, "Default Applications");
+    defaultApp.writeXdgListEntry(mimeType.name(), {desktop});
 
-    if (!settings.isWritable())
-        return false;
+    KConfigGroup addedApps(profile, "Added Associations");
+    QStringList apps = addedApps.readXdgListEntry(mimeType.name());
+    apps.removeAll(desktop);
+    apps.prepend(desktop); // make it the preferred app
+    addedApps.writeXdgListEntry(mimeType.name(), apps);
 
-    settings.beginGroup(QStringLiteral("Default Applications")); // Added Associations
-    settings.setValue(mimeType.name(), value);
-    settings.sync();
+    profile->sync();
 
     return true;
 }
