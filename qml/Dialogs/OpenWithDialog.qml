@@ -28,7 +28,7 @@ Item {
 
     property string url: main.url
 
-    width: 320 + FishUI.Units.largeSpacing * 2
+    width: 400 + FishUI.Units.largeSpacing * 2
     height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
 
     Rectangle {
@@ -63,17 +63,26 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        ListView {
+        GridView {
             id: listView
             Layout.fillWidth: true
             Layout.preferredHeight: 250
             model: ListModel {}
-            spacing: FishUI.Units.smallSpacing * 1.5
-            ScrollBar.vertical: ScrollBar {}
             clip: true
+            ScrollBar.vertical: ScrollBar {}
 
-            leftMargin: FishUI.Units.largeSpacing
-            rightMargin: FishUI.Units.largeSpacing
+            leftMargin: FishUI.Units.smallSpacing
+            rightMargin: FishUI.Units.smallSpacing
+
+            cellHeight: {
+                var extraHeight = calcExtraSpacing(80, listView.Layout.preferredHeight - topMargin - bottomMargin)
+                return 80 + extraHeight
+            }
+
+            cellWidth: {
+                var extraWidth = calcExtraSpacing(120, listView.width - leftMargin - rightMargin)
+                return 120 + extraWidth
+            }
 
             Label {
                 anchors.centerIn: parent
@@ -83,8 +92,8 @@ Item {
 
             delegate: Item {
                 id: item
-                width: ListView.view.width - listView.leftMargin - listView.rightMargin
-                height: 30 + FishUI.Units.largeSpacing
+                width: GridView.view.cellWidth
+                height: GridView.view.cellHeight
                 scale: mouseArea.pressed ? 0.95 : 1.0
 
                 Behavior on scale {
@@ -106,7 +115,8 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: FishUI.Theme.bigRadius
+                    anchors.margins: FishUI.Units.smallSpacing
+                    radius: FishUI.Theme.mediumRadius
                     color: isSelected ? FishUI.Theme.highlightColor
                                       : mouseArea.containsMouse ? Qt.rgba(FishUI.Theme.textColor.r,
                                                                           FishUI.Theme.textColor.g,
@@ -115,23 +125,25 @@ Item {
                     smooth: true
                 }
 
-                RowLayout {
+                ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: FishUI.Units.smallSpacing
                     spacing: FishUI.Units.smallSpacing
 
                     FishUI.IconItem {
                         id: icon
-                        Layout.fillHeight: true
+                        Layout.preferredHeight: 36
                         Layout.preferredWidth: height
                         source: model.icon
-                        Layout.alignment: Qt.AlignLeft
+                        Layout.alignment: Qt.AlignHCenter
                     }
 
                     Label {
                         text: model.name
                         Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignLeft
+                        elide: Text.ElideMiddle
+                        Layout.alignment: Qt.AlignHCenter
+                        horizontalAlignment: Qt.AlignHCenter
                         color: isSelected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                     }
                 }
@@ -172,5 +184,16 @@ Item {
             }
 
         }
+    }
+
+    function calcExtraSpacing(cellSize, containerSize) {
+        var availableColumns = Math.floor(containerSize / cellSize)
+        var extraSpacing = 0
+        if (availableColumns > 0) {
+            var allColumnSize = availableColumns * cellSize
+            var extraSpace = Math.max(containerSize - allColumnSize, 0)
+            extraSpacing = extraSpace / availableColumns
+        }
+        return Math.floor(extraSpacing)
     }
 }
