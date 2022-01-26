@@ -340,12 +340,12 @@ bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString
                                                            KConfig::NoGlobals,
                                                            QStandardPaths::GenericConfigLocation);
     KConfigGroup defaultApp(profile, "Default Applications");
-    defaultApp.writeXdgListEntry(mimeType.name(), {desktop});
+    defaultApp.writeXdgListEntry(mimeType.name(), {value});
 
     KConfigGroup addedApps(profile, "Added Associations");
     QStringList apps = addedApps.readXdgListEntry(mimeType.name());
-    apps.removeAll(desktop);
-    apps.prepend(desktop); // make it the preferred app
+    apps.removeAll(value);
+    apps.prepend(value); // make it the preferred app
     addedApps.writeXdgListEntry(mimeType.name(), apps);
 
     profile->sync();
