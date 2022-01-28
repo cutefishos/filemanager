@@ -448,7 +448,23 @@ void MimeAppManager::launchTerminal(const QString &path)
     if (m_terminalApps.isEmpty())
         return;
 
-    QString command = m_terminalApps.first().value("Exec").toString();
+    QSettings settings("cutefishos", "defaultApps");
+    QString defaultTerminal = settings.value("terminal").toString();
+    QString command;
+
+    if (!defaultTerminal.isEmpty()) {
+        for (const XdgDesktopFile &f : m_terminalApps) {
+            if (f.fileName().contains(defaultTerminal)) {
+                command = f.value("Exec").toString();
+                break;
+            }
+        }
+    }
+
+    if (command.isEmpty()) {
+        command = m_terminalApps.first().value("Exec").toString();
+    }
+
     FileLauncher::startDetached(command, path, QStringList());
 }
 

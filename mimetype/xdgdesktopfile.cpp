@@ -123,6 +123,11 @@ QString XdgDesktopFile::prefix() const
     return QLatin1String("Desktop Entry");
 }
 
+QString XdgDesktopFile::fileName() const
+{
+    return m_fileName;
+}
+
 bool XdgDesktopFile::read(const QString &prefix)
 {
     QFile file(m_fileName);

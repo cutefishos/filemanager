@@ -42,6 +42,8 @@ public:
     QString localeName() const;
     QString prefix() const;
 
+    QString fileName() const;
+
 private:
     bool read(const QString &prefix);
 
