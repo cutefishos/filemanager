@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Layouts 1.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 import Cutefish.FileManager 1.0
 import Cutefish.DragDrop 1.0 as DragDrop
@@ -67,6 +67,7 @@ GridView {
     signal keyPress(var event)
 
     cacheBuffer: Math.max(0, control.height * 1.5)
+    reuseItems: true
 
     onIconSizeChanged: {
         // 图标大小改变时需要重置状态，否则选中定位不准确
