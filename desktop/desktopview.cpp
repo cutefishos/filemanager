@@ -66,6 +66,8 @@ void DesktopView::onPrimaryScreenChanged(QScreen *screen)
 {
     bool isPrimaryScreen = m_screen->name() == screen->name();
 
+    onGeometryChanged();
+
     setSource(isPrimaryScreen ? QStringLiteral("qrc:/qml/Desktop/Main.qml")
                               : QStringLiteral("qrc:/qml/Desktop/Wallpaper.qml"));
 }
