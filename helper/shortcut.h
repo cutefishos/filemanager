@@ -19,8 +19,7 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA .        *
  ***************************************************************************/
 
-#ifndef SHORTCUT_H
-#define SHORTCUT_H
+#pragma once
 
 #include <QObject>
 
@@ -28,32 +27,58 @@ class ShortCut : public QObject
 {
     Q_OBJECT
 
-public:
-    explicit ShortCut(QObject *parent = nullptr);
+    public:
+        explicit ShortCut(QObject *parent = nullptr);
 
-    Q_INVOKABLE void install(QObject *target = nullptr);
+        Q_INVOKABLE void install(QObject *target = nullptr);
 
-signals:
-    void open();
-    void copy();
-    void cut();
-    void paste();
-    void rename();
-    void refresh();
-    void openPathEditor();
-    void selectAll();
-    void backspace();
-    void deleteFile();
-    void showHidden();
-    void keyPressed(const QString &text);
-    void close();
-    void undo();
+    signals:
+        void open();
+        void copy();
+        void cut();
+        void paste();
+        void rename();
+        void refresh();
+        void openPathEditor();
+        void selectAll();
+        void backspace();
+        void deleteFile();
+        void showHidden();
+        void keyPressed(const QString &text);
+        void close();
+        void undo();
 
-protected:
-    bool eventFilter(QObject *obj, QEvent *e) override;
+    protected:
+        bool eventFilter(QObject *obj, QEvent *e) override;
 
-private:
-    QObject *m_object;
+    private:
+        QObject *m_object;
+
+        // This is a structure composed of :
+        // - a key (the shortcut)
+        // - an action (the function pointer)
+        typedef struct {
+            Qt::Key key;
+            std::function<void(void)> action;
+        } fun_shortcut;
+
+        // This array contains structures where keys are associated
+        // with an action. You only have to loop on this array, compare
+        // its key with the one you received, and execute its action
+        const fun_shortcut Normal_Shortcuts[14] = {
+            { Qt::Key_Y, [&]() { return copy(); } },
+            { Qt::Key_P, [&]() { return paste(); } },
+            { Qt::Key_R, [&]() { return rename(); } },
+            { Qt::Key_Return, [&]() { return open(); } },
+            { Qt::Key_Enter, [&]() { return open(); } },
+            { Qt::Key_Percent, [&]() { return showHidden(); } },
+            { Qt::Key_U, [&]() { return undo(); } },
+            { Qt::Key_D, [&]() { return cut(); } },
+            { Qt::Key_X, [&]() { return deleteFile(); } },
+            { Qt::Key_Q, [&]() { return close(); } },
+            { Qt::Key_A, [&]() { return refresh(); } },
+            { Qt::Key_Colon, [&]() { return openPathEditor(); } },
+            { Qt::Key_V, [&]() { return selectAll(); } },
+            { Qt::Key_Backspace, [&]() { return backspace(); } }
+        };
 };
-
-#endif // SHORTCUT_H

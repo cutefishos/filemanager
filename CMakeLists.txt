@@ -20,8 +20,8 @@ find_package(KF5WindowSystem)
 find_package(KF5Config)
 
 qt5_add_dbus_adaptor(DBUS_SOURCES
-                     com.cutefish.FileManager.xml
-                     application.h Application)
+                    com.cutefish.FileManager.xml
+                    application.h Application)
 
 add_executable(cutefish-filemanager
   main.cpp
