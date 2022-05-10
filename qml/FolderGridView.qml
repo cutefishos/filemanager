@@ -186,7 +186,36 @@ GridView {
     highlightMoveDuration: 0
     keyNavigationEnabled : true
     keyNavigationWraps : true
+
     Keys.onPressed: {
+        // vim h,j,k,l keybindings
+        if (event.key === Qt.Key_J ||
+            event.key == Qt.Key_H ||
+            event.key == Qt.Key_K ||
+            event.key == Qt.Key_L
+        ) {                             // if a vim H,J,K,L keybinding is pressed
+            var arrow = Qt.UpArrow;     // sample arrow key
+            switch (event.key) {        // setting up the arrow key
+                case (Qt.Key_J): a = Qt.DownArrow; break;
+                case (Qt.Key_H): a = Qt.LeftArrow; break;
+                case (Qt.Key_L): a = Qt.RightArrow; break;
+                case (Qt.Key_K): a = Qt.UpArrow; break;
+            }
+
+            // setting the selected file to the new one thanks to the arrow
+            if (!editor || !editor.targetItem) {
+                var newIndex = positioner.nearestItem(
+                    currentIndex,
+                    effectiveNavDirection(control.flow, control.effectiveLayoutDirection, arrow)
+                )
+                if (newIndex !== -1) {
+                    currentIndex = newIndex
+                    updateSelection(event.modifiers)
+                }
+            }
+        }
+
+        // focus on control/shift event
         control.keyPress(event)
 
         if (event.key === Qt.Key_Control) {
@@ -218,8 +247,11 @@ GridView {
     }
     Keys.onUpPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.UpArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.UpArrow
+                )
+            )
             if (newIndex !== -1) {
                 currentIndex = newIndex
                 updateSelection(event.modifiers)
@@ -228,8 +260,11 @@ GridView {
     }
     Keys.onDownPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.DownArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.DownArrow
+                )
+            )
             if (newIndex !== -1) {
                 currentIndex = newIndex
                 updateSelection(event.modifiers)
@@ -238,8 +273,11 @@ GridView {
     }
     Keys.onLeftPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.LeftArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.LeftArrow
+                )
+            )
             if (newIndex !== -1) {
                 currentIndex = newIndex
                 updateSelection(event.modifiers)
@@ -248,8 +286,11 @@ GridView {
     }
     Keys.onRightPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.RightArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.RightArrow
+                )
+            )
             if (newIndex !== -1) {
                 currentIndex = newIndex
                 updateSelection(event.modifiers)
