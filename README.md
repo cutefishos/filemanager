@@ -44,6 +44,26 @@ make
 sudo make install
 ```
 
+## Keybindings
+
+Most of those keybindings are coming from Vim, but not all of them. Here is a list of them :  
+- h,j,k,l : directions,  
+- y : (yank) copy,  
+- p : paste here,  
+- r : rename,  
+- Return/Enter : open/launch,  
+- % : display hidden files,  
+- u : undo last change,  
+- d : cut,  
+- x : delete,  
+- q : close the window,  
+- a : refresh,  
+- colon (:) : focus path input,  
+- v : select all files,  
+- backspace : go back  
+
+> Developper info : all of these shortcuts are noted in `helper/shortcut.h`
+
 ## License
 
 This project has been licensed by GPLv3.
