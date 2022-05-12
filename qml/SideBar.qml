@@ -20,6 +20,8 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
+import QtQuick.Window 2.12
+import QtGraphicalEffects 1.0
 
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
@@ -28,6 +30,15 @@ ListView {
     id: sideBar
 
     signal clicked(string path)
+    signal openInNewWindow(string path)
+
+    FishUI.WheelHandler {
+        target: sideBar
+    }
+
+    Fm {
+        id: _fm
+    }
 
     PlacesModel {
         id: placesModel
@@ -51,8 +62,36 @@ ListView {
     highlightResizeDuration : 0
 
     highlight: Rectangle {
-        radius: FishUI.Theme.smallRadius
-        color: FishUI.Theme.highlightColor
+        radius: FishUI.Theme.mediumRadius
+        color: FishUI.Theme.secondBackgroundColor
+        smooth: true
+
+        Rectangle {
+            anchors.fill: parent
+            radius: FishUI.Theme.mediumRadius
+            color: Qt.rgba(FishUI.Theme.highlightColor.r,
+                           FishUI.Theme.highlightColor.g,
+                           FishUI.Theme.highlightColor.b, FishUI.Theme.darkMode ? 0.3 : 0.2)
+        }
+    }
+
+    section.property: "category"
+    section.delegate: Item {
+        width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
+        height: FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
+
+        Text {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.leftMargin: Qt.application.layoutDirection === Qt.RightToLeft ? 0 : FishUI.Units.smallSpacing
+            anchors.rightMargin: FishUI.Units.smallSpacing
+            anchors.topMargin: FishUI.Units.largeSpacing
+            anchors.bottomMargin: FishUI.Units.smallSpacing
+            color: FishUI.Theme.textColor
+            font.pointSize: 9
+            font.bold: true
+            text: section
+        }
     }
 
     delegate: Item {
@@ -67,13 +106,70 @@ ListView {
             id: _mouseArea
             anchors.fill: parent
             hoverEnabled: true
-            acceptedButtons: Qt.LeftButton
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             onClicked: {
-                if (model.isDevice && model.setupNeeded)
-                    placesModel.requestSetup(index)
+                if (mouse.button === Qt.LeftButton) {
+                    if (model.isDevice && model.setupNeeded)
+                        placesModel.requestSetup(index)
+                    else
+                        sideBar.clicked(model.path ? model.path : model.url)
+                } else if (mouse.button === Qt.RightButton) {
+                    _menu.popup()
+                }
+            }
+        }
 
-                // sideBar.currentIndex = index
-                sideBar.clicked(model.path ? model.path : model.url)
+        FishUI.DesktopMenu {
+            id: _menu
+
+            MenuItem {
+                text: qsTr("Open")
+
+                onTriggered: {
+                    if (model.isDevice && model.setupNeeded)
+                        placesModel.requestSetup(index)
+                    else
+                        sideBar.clicked(model.path ? model.path : model.url)
+                }
+            }
+
+            MenuItem {
+                text: qsTr("Open in new window")
+
+                onTriggered: {
+                    sideBar.openInNewWindow(model.path ? model.path : model.url)
+                }
+            }
+
+            MenuSeparator {
+                Layout.fillWidth: true
+                visible: _ejectMenuItem.visible || _umountMenuItem.visible
+            }
+
+            MenuItem {
+                id: _ejectMenuItem
+                text: qsTr("Eject")
+                visible: model.isDevice &&
+                         !model.setupNeeded &&
+                         model.isOpticalDisc &&
+                         !model.url.toString() === _fm.rootPath()
+
+                onTriggered: {
+                    placesModel.requestEject(index)
+                }
+            }
+
+            MenuItem {
+                id: _umountMenuItem
+                text: qsTr("Unmount")
+                visible: model.isDevice &&
+                         !model.setupNeeded &&
+                         !model.isOpticalDisc &&
+                         !model.url.toString() === _fm.rootPath()
+
+                onTriggered: {
+                    placesModel.requestTeardown(index)
+                }
             }
         }
 
@@ -83,7 +179,7 @@ ListView {
             color: _mouseArea.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                FishUI.Theme.textColor.g,
                                                FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
-                   _mouseArea.containsMouse || checked ? Qt.rgba(FishUI.Theme.textColor.r,
+                   _mouseArea.containsMouse && !checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                                                   FishUI.Theme.textColor.g,
                                                                   FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
                                                           "transparent"
@@ -100,17 +196,25 @@ ListView {
             Image {
                 height: 22
                 width: height
-                sourceSize: Qt.size(width, height)
-                // source: model.iconPath ? model.iconPath : "image://icontheme/" + model.iconName
-                source: "qrc:/images/" + (FishUI.Theme.darkMode || _item.checked ? "dark/" : "light/") + model.iconPath
+                sourceSize: Qt.size(22, 22)
+                // source: "qrc:/images/dark/" + model.iconPath
+//                source: "qrc:/images/" + (FishUI.Theme.darkMode || checked ? "dark/" : "light/") + model.iconPath
+                source: "qrc:/images/" + model.iconPath
                 Layout.alignment: Qt.AlignVCenter
-                smooth: true
+                smooth: false
+                antialiasing: true
+
+                layer.enabled: true
+                layer.effect: ColorOverlay {
+                    color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                }
             }
 
             Label {
                 id: _label
                 text: model.name
-                color: checked ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                elide: Text.ElideRight
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignVCenter
             }

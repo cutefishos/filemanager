@@ -21,6 +21,7 @@
 #define PATHHISTORY_H
 
 #include <QObject>
+#include <QVector>
 
 class PathHistory : public QObject
 {
@@ -30,6 +31,14 @@ public:
     explicit PathHistory(QObject *parent = nullptr);
 
     void append(const QUrl &path);
+
+    QUrl first();
+    QUrl last();
+
+    QUrl at(int i);
+    int count();
+
+    bool isEmpty();
 
     QUrl posteriorPath();
     QUrl previousPath();

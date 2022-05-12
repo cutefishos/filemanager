@@ -34,15 +34,11 @@ FishUI.Window {
     visible: true
     title: qsTr("File Manager")
 
+    background.opacity: 1
     header.height: 36 + FishUI.Units.largeSpacing
-    background.opacity: 0.95
 
-    FishUI.WindowBlur {
-        view: root
-        geometry: Qt.rect(root.x, root.y, root.width, root.height)
-        windowRadius: root.background.radius
-        enabled: true
-    }
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
 
     property QtObject settings: GlobalSettings { }
 
@@ -117,6 +113,7 @@ FishUI.Window {
             Layout.fillHeight: true
             width: 180 + FishUI.Units.largeSpacing
             onClicked: _folderPage.openUrl(path)
+            onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
         }
 
         FolderPage {

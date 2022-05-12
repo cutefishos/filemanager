@@ -57,5 +57,24 @@
         <file>images/dark/user-trash.svg</file>
         <file>images/dark/drive-optical.svg</file>
         <file>images/light/drive-optical.svg</file>
+        <file>qml/Dialogs/OpenWithDialog.qml</file>
+        <file>qml/Dialogs/DeleteDialog.qml</file>
+        <file>qml/Desktop/Wallpaper.qml</file>
+        <file>images/folder-document.svg</file>
+        <file>images/folder-desktop.svg</file>
+        <file>images/folder-download.svg</file>
+        <file>images/folder-home.svg</file>
+        <file>images/folder-music.svg</file>
+        <file>images/folder-picture.svg</file>
+        <file>images/folder-video.svg</file>
+        <file>images/user-trash.svg</file>
+        <file>images/drive-harddisk-root.svg</file>
+        <file>images/drive-harddisk.svg</file>
+        <file>images/drive-optical.svg</file>
+        <file>images/drive-removable-media-usb.svg</file>
+        <file>templates/TextFile.txt</file>
+        <file>images/media-optical-data.svg</file>
+        <file>images/media-optical-mixed-cd.svg</file>
+        <file>images/media-optical.svg</file>
     </qresource>
 </RCC>

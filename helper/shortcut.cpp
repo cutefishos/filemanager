@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2021 Reion Wong <aj@cutefishos.com>                         *
+ *   Copyright 2021 Reion Wong <reion@cutefishos.com>                      *
  *   Copyright Ken <https://stackoverflow.com/users/1568857/ken>           *
  *   Copyright 2016 Leslie Zhai <xiangzhai83@gmail.com>                    *
  *                                                                         *
@@ -20,6 +20,7 @@
  ***************************************************************************/
 
 #include "shortcut.h"
+#include "keyboardsearchmanager.h"
 
 #include <QKeyEvent>
 
@@ -31,40 +32,29 @@ ShortCut::ShortCut(QObject *parent)
 
 void ShortCut::install(QObject *target)
 {
-    if (m_object) {
-        m_object->removeEventFilter(this);
-    }
+    // No need to remove, because memory space is automatically freed in qml.
+    // if (m_object) {
+    //     m_object->removeEventFilter(this);
+    // }
 
     if (target) {
         target->installEventFilter(this);
-        m_object = target;
+        // m_object = target;
     }
 }
 
 bool ShortCut::eventFilter(QObject *obj, QEvent *e)
 {
-    if (e->type() == QEvent::KeyPress) {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
-        // int keyInt = keyEvent->modifiers() + keyEvent->key();
+    if (e->type() != QEvent::KeyPress) {
+        return QObject::eventFilter(obj, e);
+    }
 
-        if (keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
-            emit open();
-        } else if (keyEvent->key() == Qt::Key_C && keyEvent->modifiers() & Qt::ControlModifier) {
-            emit copy();
-        } else if (keyEvent->key() == Qt::Key_X && keyEvent->modifiers() & Qt::ControlModifier) {
-            emit cut();
-        } else if (keyEvent->key() == Qt::Key_V && keyEvent->modifiers() & Qt::ControlModifier) {
-            emit paste();
-        } else if (keyEvent->key() == Qt::Key_F2) {
-            emit rename();
-        } else if (keyEvent->key() == Qt::Key_L && keyEvent->modifiers() & Qt::ControlModifier) {
-            emit openPathEditor();
-        } else if (keyEvent->key() == Qt::Key_A && keyEvent->modifiers() & Qt::ControlModifier) {
-            emit selectAll();
-        } else if (keyEvent->key() == Qt::Key_Backspace) {
-            emit backspace();
-        } else if (keyEvent->key() == Qt::Key_Delete) {
-            emit deleteFile();
+    QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
+    int key = keyEvent->key();
+
+    for (const fun_shortcut &shortcut: Normal_Shortcuts) {
+        if (key == shortcut.key) {
+            shortcut.action();
         }
     }
 

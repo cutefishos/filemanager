@@ -16,14 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Layouts 1.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
+import Cutefish.DragDrop 1.0 as DragDrop
 
 ListView {
     id: control
+
+    objectName: "FolderListView"
 
     property Item rubberBand: null
     property Item hoveredItem: null
@@ -40,7 +43,6 @@ ListView {
     property bool ctrlPressed: false
     property bool shiftPressed: false
 
-    property int previouslySelectedItemIndex: -1
     property variant cPress: null
     property Item editor: null
     property int anchorIndex: 0
@@ -51,8 +53,9 @@ ListView {
 
     signal keyPress(var event)
 
-    currentIndex: -1
     clip: true
+    cacheBuffer: width
+    reuseItems: true
 
     ScrollBar.vertical: ScrollBar { }
     boundsBehavior: Flickable.StopAtBounds
@@ -85,11 +88,43 @@ ListView {
     function reset() {
         currentIndex = -1
         anchorIndex = 0
-        previouslySelectedItemIndex = -1
         cancelRename()
         hoveredItem = null
         pressedItem = null
         cPress = null
+    }
+
+
+    function drop(target, event, pos) {
+        var dropPos = mapToItem(control.contentItem, pos.x, pos.y)
+        var dropIndex = control.indexAt(dropPos.x, dropPos.y)
+        var dragPos = mapToItem(control.contentItem, control.dragX, control.dragY)
+        var dragIndex = control.indexAt(dragPos.x, dragPos.y)
+
+        if (control.dragX === -1 || dragIndex !== dropIndex) {
+            dirModel.drop(control, event, dropItemAt(dropPos))
+        }
+    }
+
+    function dropItemAt(pos) {
+        var item = control.itemAt(pos.x, pos.y)
+
+        if (item) {
+            if (item.blank) {
+                return -1
+            }
+
+            var hOffset = Math.abs(Math.min(control.contentX, control.originX))
+            var hPos = mapToItem(item, pos.x + hOffset, pos.y)
+
+            if ((hPos.x < 0 || hPos.y < 0 || hPos.x > item.width || hPos.y > item.height)) {
+                return -1
+            } else {
+                return item.index
+            }
+        }
+
+        return -1
     }
 
     highlightMoveDuration: 0
@@ -118,7 +153,6 @@ ListView {
 
     Keys.onEscapePressed: {
         if (!editor || !editor.targetItem) {
-            previouslySelectedItemIndex = -1
             dirModel.clearSelection()
             event.accepted = false
         }
@@ -176,6 +210,14 @@ ListView {
         cPress = mapToItem(control.contentItem, pressX, pressY)
     }
 
+    DragDrop.DropArea {
+        anchors.fill: parent
+
+        onDrop: {
+            control.drop(control, event, mapToItem(control, event.x, event.y))
+        }
+    }
+
     MouseArea {
         id: _mouseArea
         anchors.fill: parent
@@ -214,7 +256,6 @@ ListView {
             if (!hoveredItem || hoveredItem.blank) {
                 if (!control.ctrlPressed) {
                     control.currentIndex = -1
-                    control.previouslySelectedItemIndex = -1
                     dirModel.clearSelection()
                 }
 
@@ -230,7 +271,6 @@ ListView {
                     dirModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
                     if (!control.ctrlPressed && !dirModel.isSelected(hoveredItem.index)) {
-                        previouslySelectedItemIndex = -1
                         dirModel.clearSelection()
                     }
 
@@ -394,9 +434,6 @@ ListView {
         } else {
             dirModel.clearSelection()
             dirModel.setSelected(currentIndex)
-            if (currentIndex == -1)
-                previouslySelectedItemIndex = -1
-            previouslySelectedItemIndex = currentIndex
         }
     }
 
@@ -409,6 +446,16 @@ ListView {
             wrapMode: Text.NoWrap
             verticalAlignment: TextEdit.AlignVCenter
             z: 999
+
+            background: Item {
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.topMargin: FishUI.Units.smallSpacing
+                    anchors.bottomMargin: FishUI.Units.smallSpacing
+                    radius: FishUI.Theme.smallRadius
+                    color: FishUI.Theme.backgroundColor
+                }
+            }
 
             property Item targetItem: null
 

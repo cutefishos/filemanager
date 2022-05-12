@@ -30,62 +30,27 @@ import "../"
 Item {
     id: rootItem
 
-    FM.DesktopSettings {
-        id: settings
-    }
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
+    LayoutMirroring.childrenInherit: true
 
     GlobalSettings {
         id: globalSettings
     }
 
-    Loader {
-        id: backgroundLoader
+    Wallpaper {
         anchors.fill: parent
-        sourceComponent: settings.backgroundType === 0 ? wallpaper : background
-    }
-
-    Component {
-        id: background
-
-        Rectangle {
-            anchors.fill: parent
-            color: settings.backgroundColor
-        }
-    }
-
-    Component {
-        id: wallpaper
-
-        Image {
-            source: "file://" + settings.wallpaper
-            sourceSize: Qt.size(width * Screen.devicePixelRatio,
-                                height * Screen.devicePixelRatio)
-            fillMode: Image.PreserveAspectCrop
-            clip: true
-            cache: false
-
-            ColorOverlay {
-                id: dimsWallpaper
-                anchors.fill: parent
-                source: parent
-                color: "#000000"
-                opacity: FishUI.Theme.darkMode && settings.dimsWallpaper ? 0.4 : 0.0
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 200
-                    }
-                }
-
-            }
-        }
     }
 
     FM.FolderModel {
         id: dirModel
         url: desktopPath()
         isDesktop: true
+        sortMode: -1
         viewAdapter: viewAdapter
+
+        onCurrentIndexChanged: {
+            _folderView.currentIndex = dirModel.currentIndex
+        }
     }
 
     FM.ItemViewAdapter {
@@ -109,19 +74,19 @@ Item {
         isDesktopView: true
         iconSize: globalSettings.desktopIconSize
         maximumIconSize: globalSettings.maximumIconSize
-        minimumIconSize: globalSettings.minimumIconSize
+        minimumIconSize: 22
         focus: true
         model: dirModel
 
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
         // Handle for topbar
-        anchors.topMargin: desktopView.screenAvailableRect.y
+        topMargin: 28
 
-        leftMargin: desktopView.screenAvailableRect.x
-        topMargin: 0
-        rightMargin: desktopView.screenRect.width - (desktopView.screenAvailableRect.x + desktopView.screenAvailableRect.width)
-        bottomMargin: desktopView.screenRect.height - (desktopView.screenAvailableRect.y + desktopView.screenAvailableRect.height)
+        // From dock
+        leftMargin: Dock.leftMargin
+        rightMargin: Dock.rightMargin
+        bottomMargin: Dock.bottomMargin
 
         flow: GridView.FlowTopToBottom
 
@@ -173,6 +138,15 @@ Item {
         }
         onDeleteFile: {
             dirModel.keyDeletePress()
+        }
+        onKeyPressed: {
+            dirModel.keyboardSearch(text)
+        }
+        onShowHidden: {
+            dirModel.showHiddenFiles = !dirModel.showHiddenFiles
+        }
+        onUndo: {
+            dirModel.undo()
         }
     }
 

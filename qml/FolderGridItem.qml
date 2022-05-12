@@ -39,7 +39,26 @@ Item {
     property bool hovered: GridView.view.hoveredItem === control
     property bool selected: model.selected
     property bool blank: model.blank
-    property var fileName: model.fileName
+    property var fileName: model.displayName
+
+    // For desktop
+    visible: GridView.view.isDesktopView ? !blank : true
+
+    onSelectedChanged: {
+        if (!GridView.view.isDesktopView)
+            return
+
+        if (selected && !blank) {
+            control.grabToImage(function(result) {
+                dirModel.addItemDragImage(control.index,
+                                          control.x,
+                                          control.y,
+                                          control.width,
+                                          control.height,
+                                          result.image)
+            })
+        }
+    }
 
     Rectangle {
         id: _background
@@ -60,12 +79,14 @@ Item {
         id: _iconItem
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: FishUI.Units.largeSpacing
-        anchors.bottomMargin: FishUI.Units.largeSpacing
+        anchors.topMargin: FishUI.Units.smallSpacing
+        anchors.bottomMargin: FishUI.Units.smallSpacing
         z: 2
 
         width: parent.width - FishUI.Units.largeSpacing * 2
         height: control.GridView.view.iconSize
+
+        opacity: model.isHidden ? 0.5 : 1.0
 
         Image {
             id: _icon
@@ -75,22 +96,8 @@ Item {
             sourceSize: Qt.size(width, height)
             source: "image://icontheme/" + model.iconName
             visible: !_image.visible
-
-            ColorOverlay {
-                anchors.fill: _icon
-                source: _icon
-                color: FishUI.Theme.highlightColor
-                opacity: 0.5
-                visible: control.selected
-            }
-
-            ColorOverlay {
-                anchors.fill: _icon
-                source: _icon
-                color: "white"
-                opacity: FishUI.Theme.darkMode ? 0.3 : 0.4
-                visible: control.hovered && !control.selected
-            }
+            smooth: true
+            antialiasing: true
         }
 
         Image {
@@ -103,28 +110,12 @@ Item {
             visible: status === Image.Ready
             horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
-            sourceSize.width: width
-            sourceSize.height: height
+            sourceSize: Qt.size(width, height)
             source: model.thumbnail ? model.thumbnail : ""
             asynchronous: true
-            cache: true
-
-            // Because of the effect of OpacityMask.
-            ColorOverlay {
-                anchors.fill: _image
-                source: _image
-                color: FishUI.Theme.highlightColor
-                opacity: 0.5
-                visible: control.selected
-            }
-
-            ColorOverlay {
-                anchors.fill: _image
-                source: _image
-                color: "white"
-                opacity: FishUI.Theme.darkMode ? 0.3 : 0.4
-                visible: control.hovered && !control.selected
-            }
+            cache: false
+            smooth: true
+            antialiasing: true
 
             layer.enabled: _image.visible
             layer.effect: OpacityMask {
@@ -142,23 +133,33 @@ Item {
             }
         }
 
-//        ColorOverlay {
-//            id: _selectedColorOverlay
-//            anchors.fill: _image.visible ? _image : _icon
-//            source: _image.visible ? _image : _icon
-//            color: FishUI.Theme.highlightColor
-//            opacity: 0.5
-//            visible: control.selected
-//        }
+        Image {
+            anchors.right: _icon.visible ? _icon.right : _image.right
+            anchors.bottom: _icon.visible ? _icon.bottom : _image.bottom
+            source: "image://icontheme/emblem-symbolic-link"
+            width: 16
+            height: 16
+            visible: model.isLink
+            sourceSize: Qt.size(width, height)
+        }
 
-//        ColorOverlay {
-//            id: _hoveredColorOverlay
-//            anchors.fill: _image.visible ? _image : _icon
-//            source: _image.visible ? _image : _icon
-//            color: Qt.lighter(FishUI.Theme.highlightColor, 1.6)
-//            opacity: FishUI.Theme.darkMode ? 0.4 : 0.6
-//            visible: control.hovered && !control.selected
-//        }
+        ColorOverlay {
+            id: _selectedColorOverlay
+            anchors.fill: _iconItem
+            source: _iconItem
+            color: FishUI.Theme.highlightColor
+            opacity: 0.5
+            visible: control.selected
+        }
+
+        ColorOverlay {
+            id: _hoveredColorOverlay
+            anchors.fill: _iconItem
+            source: _iconItem
+            color: "white"
+            opacity: 0.3
+            visible: control.hovered && !control.selected
+        }
     }
 
     Label {
@@ -167,26 +168,41 @@ Item {
         anchors.top: _iconItem.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: FishUI.Units.smallSpacing
-        maximumLineCount: 2
+        maximumLineCount: control.selected ? 3 : 2
         horizontalAlignment: Text.AlignHCenter
         width: parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
-        text: model.fileName
+        text: control.fileName
         color: control.GridView.view.isDesktopView ? "white"
-                                                   : selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                                                   : selected ? FishUI.Theme.highlightColor
+                                                              : FishUI.Theme.textColor
+        opacity: model.isHidden ? 0.8 : 1.0
     }
 
     Rectangle {
         z: 1
-        x: _label.x
+        x: _label.x + (_label.width - _label.paintedWidth) / 2 - (FishUI.Units.smallSpacing / 2)
         y: _label.y
-        width: _label.width
-        height: _label.height
+        width: _label.paintedWidth + FishUI.Units.smallSpacing
+        height: _label.paintedHeight
         radius: 4
         color: FishUI.Theme.highlightColor
-        opacity: control.selected ? 1.0 : 0
+
+        opacity: {
+            if (control.selected && control.GridView.view.isDesktopView)
+                return 1
+
+            if (control.selected)
+                return 0.2
+
+            if (control.hovered)
+                return 0.05
+
+            return 0
+
+        }
     }
 
     DropShadow {

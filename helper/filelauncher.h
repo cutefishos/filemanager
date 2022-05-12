@@ -17,43 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef THUMBNAILERJOB_H
-#define THUMBNAILERJOB_H
+#ifndef FILELAUNCHER_H
+#define FILELAUNCHER_H
 
 #include <QObject>
-#include <QThread>
-#include <QSize>
-#include <QUrl>
 
-class ThumbnailerJob : public QThread
+class FileLauncher : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ThumbnailerJob(const QString &fileName, const QSize &size, QObject *parent = nullptr);
-    ~ThumbnailerJob();
+    static FileLauncher *self();
+    explicit FileLauncher(QObject *parent = nullptr);
 
-    void run() override;
+    Q_INVOKABLE bool launchApp(const QString &desktopFile, const QString &fileName);
+    Q_INVOKABLE bool launchExecutable(const QString &fileName);
 
-signals:
-    void gotPreview(const QPixmap &pixmap);
-    void failed();
-
-private:
-    void emitPreview(const QImage &image);
-
-private:
-    QUrl m_url;
-    QSize m_size;
-
-    // thumbnail cache folder
-    QString m_thumbnailsDir;
-    QString m_thumbnailsPath;
-    QString m_thumbnailsName;
-
-    uchar *shmaddr;
-    size_t shmsize;
-    int shmid;
+    static bool startDetached(const QString &exec, QStringList args = QStringList());
+    static bool startDetached(const QString &exec, const QString &workingDir, QStringList args = QStringList());
 };
 
-#endif // THUMBNAILERJOB_H
+#endif // FILELAUNCHER_H

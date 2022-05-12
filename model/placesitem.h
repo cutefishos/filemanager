@@ -56,6 +56,11 @@ public:
     bool isDevice();
     bool setupNeeded();
 
+    QString category() const;
+    void setCategory(const QString &category);
+
+    bool isOpticalDisc() const;
+
 signals:
     void itemChanged(PlacesItem *);
 
@@ -69,7 +74,9 @@ private:
     QString m_iconPath;
     QString m_udi;
     QUrl m_url;
+    QString m_category;
 
+    bool m_isOpticalDisc;
     bool m_isAccessible;
 
     Solid::Device m_device;

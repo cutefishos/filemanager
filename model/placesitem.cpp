@@ -20,12 +20,17 @@
 #include "placesitem.h"
 #include <QDebug>
 
+#include <Solid/OpticalDisc>
+#include <solid_version.h>
+
 PlacesItem::PlacesItem(const QString &displayName,
                        QUrl url,
                        QObject *parent)
     : QObject(parent)
     , m_displayName(displayName)
     , m_url(url)
+    , m_category("")
+    , m_isOpticalDisc(false)
     , m_isAccessible(false)
 {
 }
@@ -114,7 +119,17 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
         m_access = m_device.as<Solid::StorageAccess>();
         m_iconName = m_device.icon();
         m_iconPath = QString("%1.svg").arg(m_iconName);
+
+#if SOLID_VERSION_MAJOR >= 5 && SOLID_VERSION_MINOR >= 71
         m_displayName = m_device.displayName();
+#else
+        m_displayName = m_device.description();
+#endif
+
+        if (m_device.is<Solid::OpticalDisc>()) {
+            m_isOpticalDisc = true;
+            emit itemChanged(this);
+        }
 
         if (m_access) {
             m_url = QUrl::fromLocalFile(m_access->filePath());
@@ -131,4 +146,19 @@ void PlacesItem::onAccessibilityChanged(bool isAccessible)
     m_isAccessible = isAccessible;
 
     emit itemChanged(this);
+}
+
+QString PlacesItem::category() const
+{
+    return m_category;
+}
+
+void PlacesItem::setCategory(const QString &category)
+{
+    m_category = category;
+}
+
+bool PlacesItem::isOpticalDisc() const
+{
+    return m_isOpticalDisc;
 }

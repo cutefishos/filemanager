@@ -62,6 +62,7 @@ Item {
         radius: FishUI.Theme.smallRadius
         color: selected ? FishUI.Theme.highlightColor : hovered ? hoveredColor : "transparent"
         visible: selected || hovered
+        opacity: selected ? 0.1 : 2
     }
 
     RowLayout {
@@ -75,6 +76,7 @@ Item {
             id: iconItem
             Layout.fillHeight: true
             width: parent.height * 0.8
+            opacity: model.isHidden ? 0.5 : 1.0
 
             Image {
                 id: _icon
@@ -98,7 +100,7 @@ Item {
                 visible: _image.status === Image.Ready
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
-                smooth: false
+                cache: false
 
                 layer.enabled: true
                 layer.effect: OpacityMask {
@@ -115,6 +117,16 @@ Item {
                     }
                 }
             }
+
+            Image {
+                anchors.right: _icon.visible ? _icon.right : _image.right
+                anchors.bottom: _icon.visible ? _icon.bottom : _image.bottom
+                source: "image://icontheme/emblem-symbolic-link"
+                width: 16
+                height: 16
+                visible: model.isLink
+                sourceSize: Qt.size(width, height)
+            }
         }
 
         ColumnLayout {
@@ -124,21 +136,27 @@ Item {
                 id: _label
                 text: model.fileName
                 Layout.fillWidth: true
-                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
+                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                textFormat: Text.PlainText
                 elide: Qt.ElideMiddle
+                opacity: model.isHidden ? 0.8 : 1.0
             }
 
             Label {
                 id: _label2
                 text: model.fileSize
-                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
+                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.disabledTextColor
+                textFormat: Text.PlainText
                 Layout.fillWidth: true
+                opacity: model.isHidden ? 0.8 : 1.0
             }
         }
 
         Label {
             text: model.modified
-            color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.disabledTextColor
+            textFormat: Text.PlainText
+            color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.disabledTextColor
+            opacity: model.isHidden ? 0.8 : 1.0
         }
     }
 }

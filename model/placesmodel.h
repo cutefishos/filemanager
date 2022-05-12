@@ -36,7 +36,9 @@ public:
         UrlRole,
         PathRole,
         IsDeviceRole,
-        setupNeededRole
+        IsOpticalDisc,
+        setupNeededRole,
+        CategoryRole
     };
     Q_ENUMS(DataRole);
 
@@ -55,6 +57,7 @@ public:
     Q_INVOKABLE QVariantMap get(const int &index) const;
     Q_INVOKABLE void requestSetup(const int &index);
     Q_INVOKABLE void requestEject(const int &index);
+    Q_INVOKABLE void requestTeardown(const int &index);
 
 signals:
     void deviceSetupDone(const QString &filePath);
@@ -62,6 +65,7 @@ signals:
 private slots:
     void onDeviceAdded(const QString &udi);
     void onDeviceRemoved(const QString &udi);
+    void onItemChanged(PlacesItem *);
 
 private:
     QList<PlacesItem *> m_items;

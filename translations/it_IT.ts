@@ -14,12 +14,12 @@
         <translation>Nuova cartella</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="70"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="79"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="76"/>
+        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="85"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
@@ -63,6 +63,24 @@
     </message>
 </context>
 <context>
+    <name>DeleteDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
+        <source>Do you want to delete it permanently?</source>
+        <translation>Vuoi rimuoverlo in modo permanente?</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
+        <source>Delete</source>
+        <translation>Elimina</translation>
+    </message>
+</context>
+<context>
     <name>DesktopView</name>
     <message>
         <location filename="../desktop/desktopview.cpp" line="44"/>
@@ -94,150 +112,267 @@
     </message>
 </context>
 <context>
-    <name>FolderModel</name>
+    <name>FilePropertiesDialog</name>
     <message>
-        <location filename="../model/foldermodel.cpp" line="166"/>
-        <source>%1 item</source>
-        <translation>%1 elemento</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="166"/>
-        <source>%1 items</source>
-        <translation>%1 elementi</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="830"/>
-        <source>Select All</source>
-        <translation>Seleziona tutti</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1042"/>
-        <source>Open</source>
-        <translation>Apri</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1045"/>
-        <source>Cut</source>
-        <translation>Taglia</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1048"/>
-        <source>Copy</source>
-        <translation>Copia</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1051"/>
-        <source>Paste</source>
-        <translation>Incolla</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1054"/>
-        <source>New Folder</source>
-        <translation>Nuova cartella</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1057"/>
-        <source>Move To Trash</source>
-        <translation>Sposta nel Cestino</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1060"/>
-        <source>Empty Trash</source>
-        <translation>Svuota il Cestino</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1063"/>
-        <source>Delete</source>
-        <translation>Elimina</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1066"/>
-        <source>Rename</source>
-        <translation>Rinomina</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1069"/>
-        <source>Open in Terminal</source>
-        <translation>Apri nel Terminale</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1072"/>
-        <source>Set as Wallpaper</source>
-        <translation>Imposta come sfondo</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1075"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="179"/>
         <source>Properties</source>
         <translation>Proprietà</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1078"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="227"/>
+        <source>%1 files</source>
+        <translation>%1 file</translation>
+    </message>
+</context>
+<context>
+    <name>FolderModel</name>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="184"/>
+        <source>%1 item</source>
+        <translation>%1 elemento</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="184"/>
+        <source>%1 items</source>
+        <translation>%1 elementi</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="249"/>
+        <source>The file or folder %1 does not exist.</source>
+        <translation>Il file o la cartella %1 non esiste.</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="981"/>
+        <source>Select All</source>
+        <translation>Seleziona tutti</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1088"/>
+        <source>File Manager</source>
+        <translation>Gestore di file</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1281"/>
+        <source>Open</source>
+        <translation>Apri</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1284"/>
+        <source>Open with</source>
+        <translation>Apri con</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1287"/>
+        <source>Cut</source>
+        <translation>Taglia</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1290"/>
+        <source>Copy</source>
+        <translation>Copia</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1293"/>
+        <source>Paste</source>
+        <translation>Incolla</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1296"/>
+        <source>New Folder</source>
+        <translation>Nuova cartella</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1299"/>
+        <source>Move To Trash</source>
+        <translation>Sposta nel Cestino</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1302"/>
+        <source>Empty Trash</source>
+        <translation>Svuota il Cestino</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1305"/>
+        <source>Delete</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1308"/>
+        <source>Rename</source>
+        <translation>Rinomina</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1311"/>
+        <source>Open in Terminal</source>
+        <translation>Apri nel Terminale</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1314"/>
+        <source>Set as Wallpaper</source>
+        <translation>Imposta come sfondo</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1317"/>
+        <source>Properties</source>
+        <translation>Proprietà</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1320"/>
         <source>Change background</source>
         <translation>Cambia lo sfondo</translation>
+    </message>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="1323"/>
+        <source>Restore</source>
+        <translation>Ripristina</translation>
     </message>
 </context>
 <context>
     <name>FolderPage</name>
     <message>
-        <location filename="../qml/FolderPage.qml" line="54"/>
+        <location filename="../qml/FolderPage.qml" line="134"/>
         <source>Empty folder</source>
         <translation>Cartella vuota</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="85"/>
+        <location filename="../qml/FolderPage.qml" line="174"/>
         <source>Open</source>
         <translation>Apri</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="90"/>
+        <location filename="../qml/FolderPage.qml" line="60"/>
+        <location filename="../qml/FolderPage.qml" line="179"/>
         <source>Properties</source>
         <translation>Proprietà</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="146"/>
+        <location filename="../qml/FolderPage.qml" line="50"/>
+        <source>File</source>
+        <translation>File</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="53"/>
+        <source>New Folder</source>
+        <translation>Nuova cartella</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="67"/>
+        <source>Quit</source>
+        <translation>Esci</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="73"/>
+        <source>Edit</source>
+        <translation>Modifica</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="76"/>
+        <source>Select All</source>
+        <translation>Seleziona tutti</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="83"/>
+        <source>Cut</source>
+        <translation>Taglia</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="88"/>
+        <source>Copy</source>
+        <translation>Copia</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="93"/>
+        <source>Paste</source>
+        <translation>Incolla</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="99"/>
+        <source>Help</source>
+        <translation>Aiuto</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="102"/>
+        <source>About</source>
+        <translation>Informazioni</translation>
+    </message>
+    <message>
+        <location filename="../qml/FolderPage.qml" line="241"/>
         <source>%1 item</source>
         <translation>%1 elemento</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="147"/>
+        <location filename="../qml/FolderPage.qml" line="242"/>
         <source>%1 items</source>
         <translation>%1 elementi</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="153"/>
+        <location filename="../qml/FolderPage.qml" line="248"/>
         <source>%1 selected</source>
         <translation>%1 selezionati</translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="164"/>
+        <location filename="../qml/FolderPage.qml" line="259"/>
         <source>Empty Trash</source>
         <translation>Svuota il Cestino</translation>
     </message>
 </context>
 <context>
+    <name>OpenWithDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="78"/>
+        <source>No applications</source>
+        <translation>Nessuna applicazione</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="142"/>
+        <source>Set as default</source>
+        <translation>Imposta come predefinito</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="151"/>
+        <source>Cancel</source>
+        <translation>Annulla</translation>
+    </message>
+    <message>
+        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="160"/>
+        <source>Open</source>
+        <translation>Apri</translation>
+    </message>
+    <message>
+        <location filename="../dialogs/openwithdialog.cpp" line="32"/>
+        <source>Open With</source>
+        <translation>Apri con</translation>
+    </message>
+</context>
+<context>
     <name>OptionsMenu</name>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="45"/>
+        <location filename="../qml/OptionsMenu.qml" line="47"/>
         <source>Icons</source>
         <translation>Icone</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="79"/>
+        <location filename="../qml/OptionsMenu.qml" line="85"/>
         <source>List</source>
         <translation>Lista</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="115"/>
+        <location filename="../qml/OptionsMenu.qml" line="127"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="149"/>
+        <location filename="../qml/OptionsMenu.qml" line="165"/>
         <source>Date</source>
         <translation>Data</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="183"/>
+        <location filename="../qml/OptionsMenu.qml" line="189"/>
+        <source>Type</source>
+        <translation>Tipo</translation>
+    </message>
+    <message>
+        <location filename="../qml/OptionsMenu.qml" line="227"/>
         <source>Size</source>
         <translation>Dimensione</translation>
     </message>
@@ -250,97 +385,101 @@
         <translation>Pagina principale</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="46"/>
+        <location filename="../model/placesmodel.cpp" line="47"/>
         <source>Desktop</source>
         <translation>Desktop</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="53"/>
+        <location filename="../model/placesmodel.cpp" line="55"/>
         <source>Documents</source>
         <translation>Documenti</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="60"/>
+        <location filename="../model/placesmodel.cpp" line="63"/>
         <source>Downloads</source>
         <translation>Scaricamenti</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="67"/>
+        <location filename="../model/placesmodel.cpp" line="71"/>
         <source>Music</source>
         <translation>Musica</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="74"/>
+        <location filename="../model/placesmodel.cpp" line="79"/>
         <source>Pictures</source>
         <translation>Immagini</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="81"/>
+        <location filename="../model/placesmodel.cpp" line="87"/>
         <source>Videos</source>
         <translation>Video</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="86"/>
+        <location filename="../model/placesmodel.cpp" line="93"/>
         <source>Trash</source>
         <translation>Cestino</translation>
+    </message>
+    <message>
+        <location filename="../model/placesmodel.cpp" line="117"/>
+        <location filename="../model/placesmodel.cpp" line="265"/>
+        <source>Drives</source>
+        <translation>Unità</translation>
     </message>
 </context>
 <context>
     <name>PropertiesDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="28"/>
         <source>Properties</source>
-        <translation>Proprietà</translation>
+        <translation type="vanished">Proprietà</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="103"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="94"/>
         <source>Type:</source>
         <translation>Tipo:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="116"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="107"/>
         <source>Location:</source>
         <translation>Posizione:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="127"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="118"/>
         <source>Size:</source>
         <translation>Dimensione:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="135"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="125"/>
         <source>Calculating...</source>
         <translation>Calcolo in corso…</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="140"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="129"/>
         <source>Created:</source>
         <translation>Creato:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="153"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="142"/>
         <source>Modified:</source>
         <translation>Modificato:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="166"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="155"/>
         <source>Accessed:</source>
         <translation>Accesso:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="188"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="177"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="197"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="183"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../dialogs/propertiesdialog.cpp" line="209"/>
         <source>%1 files</source>
-        <translation>%1 file</translation>
+        <translation type="vanished">%1 file</translation>
     </message>
 </context>
 <context>

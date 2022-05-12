@@ -16,15 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.12
-import QtQuick.Controls 2.12
-import QtQuick.Layouts 1.12
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 import Cutefish.FileManager 1.0
+import Cutefish.DragDrop 1.0 as DragDrop
 import FishUI 1.0 as FishUI
 
 GridView {
     id: control
+
+    objectName: "FolderGridView"
 
     property bool isDesktopView: false
 
@@ -46,14 +49,13 @@ GridView {
     property bool ctrlPressed: false
     property bool shiftPressed: false
 
-    property int previouslySelectedItemIndex: -1
     property variant cPress: null
     property Item editor: null
     property int anchorIndex: 0
 
     property var iconSize: settings.gridIconSize
     property var maximumIconSize: settings.maximumIconSize
-    property var minimumIconSize: settings.minimumIconSize
+    property var minimumIconSize: 22 //settings.minimumIconSize
 
     property variant cachedRectangleSelection: null
 
@@ -64,10 +66,15 @@ GridView {
 
     signal keyPress(var event)
 
-    cacheBuffer: Math.max(0, contentHeight)
+    cacheBuffer: Math.max(0, control.height * 1.5)
+    reuseItems: true
 
     onIconSizeChanged: {
         // 图标大小改变时需要重置状态，否则选中定位不准确
+        positioner.reset()
+    }
+
+    onCountChanged: {
         positioner.reset()
     }
 
@@ -138,17 +145,77 @@ GridView {
     function reset() {
         currentIndex = -1
         anchorIndex = 0
-        previouslySelectedItemIndex = -1
         cancelRename()
         hoveredItem = null
         pressedItem = null
         cPress = null
     }
 
+    function drop(target, event, pos) {
+        var dropPos = mapToItem(control.contentItem, pos.x, pos.y)
+        var dropIndex = control.indexAt(dropPos.x, dropPos.y)
+        var dragPos = mapToItem(control.contentItem, control.dragX, control.dragY)
+        var dragIndex = control.indexAt(dragPos.x, dragPos.y)
+
+        if (control.dragX === -1 || dragIndex !== dropIndex) {
+            dirModel.drop(control, event, dropItemAt(dropPos))
+        }
+    }
+
+    function dropItemAt(pos) {
+        var item = control.itemAt(pos.x, pos.y)
+
+        if (item) {
+            if (item.blank) {
+                return -1
+            }
+
+            var hOffset = Math.abs(Math.min(control.contentX, control.originX))
+            var hPos = mapToItem(item, pos.x + hOffset, pos.y)
+
+            if ((hPos.x < 0 || hPos.y < 0 || hPos.x > item.width || hPos.y > item.height)) {
+                return -1
+            } else {
+                return positioner.map(item.index)
+            }
+        }
+
+        return -1
+    }
+
     highlightMoveDuration: 0
     keyNavigationEnabled : true
     keyNavigationWraps : true
+
     Keys.onPressed: {
+        // vim h,j,k,l keybindings
+        if (event.key === Qt.Key_J ||
+            event.key == Qt.Key_H ||
+            event.key == Qt.Key_K ||
+            event.key == Qt.Key_L
+        ) {                             // if a vim H,J,K,L keybinding is pressed
+            var arrow = Qt.NoArrow;     // sample arrow key
+            switch (event.key) {        // setting up the arrow key
+                case (Qt.Key_J): arrow = Qt.DownArrow; break;
+                case (Qt.Key_H): arrow = Qt.LeftArrow; break;
+                case (Qt.Key_L): arrow = Qt.RightArrow; break;
+                case (Qt.Key_K): arrow = Qt.UpArrow; break;
+            }
+
+            // setting the selected file to the new one thanks to the arrow
+            if (!editor || !editor.targetItem) {
+                var newIndex = positioner.nearestItem(
+                    currentIndex,
+                    effectiveNavDirection(control.flow, control.effectiveLayoutDirection, arrow)
+                )
+                if (newIndex !== -1) {
+                    currentIndex = newIndex
+                    updateSelection(event.modifiers)
+                }
+            }
+        }
+
+        // focus on control/shift event
         control.keyPress(event)
 
         if (event.key === Qt.Key_Control) {
@@ -174,15 +241,17 @@ GridView {
     }
     Keys.onEscapePressed: {
         if (!editor || !editor.targetItem) {
-            previouslySelectedItemIndex = -1
             dirModel.clearSelection()
             event.accepted = false
         }
     }
     Keys.onUpPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.UpArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.UpArrow
+                )
+            )
             if (newIndex !== -1) {
                 currentIndex = newIndex
                 updateSelection(event.modifiers)
@@ -191,8 +260,11 @@ GridView {
     }
     Keys.onDownPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.DownArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.DownArrow
+                )
+            )
             if (newIndex !== -1) {
                 currentIndex = newIndex
                 updateSelection(event.modifiers)
@@ -201,20 +273,26 @@ GridView {
     }
     Keys.onLeftPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.LeftArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.LeftArrow
+                )
+            )
             if (newIndex !== -1) {
-                currentIndex = newIndex;
+                currentIndex = newIndex
                 updateSelection(event.modifiers)
             }
         }
     }
     Keys.onRightPressed: {
         if (!editor || !editor.targetItem) {
-            var newIndex = positioner.nearestItem(currentIndex,
-                                                  effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.RightArrow))
+            var newIndex = positioner.nearestItem(
+                currentIndex, effectiveNavDirection(
+                    control.flow, control.effectiveLayoutDirection, Qt.RightArrow
+                )
+            )
             if (newIndex !== -1) {
-                currentIndex = newIndex;
+                currentIndex = newIndex
                 updateSelection(event.modifiers)
             }
         }
@@ -275,22 +353,14 @@ GridView {
         folderModel: dirModel
         perStripe: Math.floor(((control.flow == GridView.FlowLeftToRight)
             ? control.width : control.height) / ((control.flow == GridView.FlowLeftToRight)
-            ? control.cellWidth : control.cellHeight));
+            ? control.cellWidth : control.cellHeight))
     }
 
-    DropArea {
-        id: _dropArea
+    DragDrop.DropArea {
         anchors.fill: parent
 
-        onDropped: {
-            var dropPos = mapToItem(control.contentItem, drop.x, drop.y)
-            var dropIndex = control.indexAt(drop.x, drop.y)
-            var dragPos = mapToItem(control.contentItem, control.dragX, control.dragY)
-            var dragIndex = control.indexAt(dragPos.x, dragPos.y)
-
-            if (control.dragX == -1 || dragIndex !== dropIndex) {
-
-            }
+        onDrop: {
+            control.drop(control, event, mapToItem(control, event.x, event.y))
         }
     }
 
@@ -428,7 +498,7 @@ GridView {
                     clearPressState()
                 } else {
                     if (control.editor && control.editor.targetItem)
-                        return;
+                        return
 
                     dirModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
@@ -460,6 +530,8 @@ GridView {
                 dirModel.clearSelection()
                 dirModel.setSelected(pressedItem.index)
             }
+
+            dirModel.updateSelectedItemsSize()
 
             pressCanceled()
         }
@@ -600,9 +672,6 @@ GridView {
         } else {
             dirModel.clearSelection()
             dirModel.setSelected(currentIndex)
-            if (currentIndex == -1)
-                previouslySelectedItemIndex = -1
-            previouslySelectedItemIndex = currentIndex
         }
     }
 
@@ -626,7 +695,7 @@ GridView {
                     width = targetItem.width - FishUI.Units.smallSpacing
                     height = targetItem.labelArea.paintedHeight + FishUI.Units.largeSpacing * 2
                     x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
-                    y = pos.y - FishUI.Units.largeSpacing
+                    y = pos.y - FishUI.Units.smallSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
                     _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))

@@ -45,9 +45,11 @@ Item {
     Image {
         id: _image
         anchors.centerIn: parent
-        width: control.height * 0.64
+        width: 18
         height: width
         sourceSize: Qt.size(width, height)
+        smooth: false
+        antialiasing: true
     }
 
     MouseArea {

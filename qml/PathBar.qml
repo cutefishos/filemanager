@@ -32,9 +32,19 @@ Item {
     signal itemClicked(string path)
     signal editorAccepted(string path)
 
+    Rectangle {
+        anchors.fill: parent
+        color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
+                                     : FishUI.Theme.secondBackgroundColor
+        radius: FishUI.Theme.smallRadius
+        z: -1
+    }
+
     ListView {
         id: _pathView
         anchors.fill: parent
+        anchors.topMargin: 2
+        anchors.bottomMargin: 2
         model: _pathBarModel
         orientation: Qt.Horizontal
         layoutDirection: Qt.LeftToRight
@@ -49,14 +59,6 @@ Item {
             _pathView.positionViewAtEnd()
         }
 
-        Rectangle {
-            anchors.fill: parent
-            color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
-                                         : FishUI.Theme.secondBackgroundColor
-            radius: FishUI.Theme.smallRadius
-            z: -1
-        }
-
         MouseArea {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton
@@ -64,10 +66,19 @@ Item {
             z: -1
         }
 
+        highlight: Rectangle {
+            radius: FishUI.Theme.smallRadius
+            color: Qt.rgba(FishUI.Theme.highlightColor.r,
+                           FishUI.Theme.highlightColor.g,
+                           FishUI.Theme.highlightColor.b, FishUI.Theme.darkMode ? 0.3 : 0.1)
+            smooth: true
+        }
+
         delegate: MouseArea {
             id: _item
-            height: ListView.view.height
+            height: ListView.view.height - ListView.view.topMargin - ListView.view.bottomMargin
             width: _name.width + FishUI.Units.largeSpacing
+            hoverEnabled: true
             z: -1
 
             property bool selected: index === _pathView.count - 1
@@ -76,18 +87,23 @@ Item {
 
             Rectangle {
                 anchors.fill: parent
-                anchors.topMargin: 2
-                anchors.bottomMargin: 2
-                color: FishUI.Theme.highlightColor
                 radius: FishUI.Theme.smallRadius
-                visible: selected
+                color: _item.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
+                                                   FishUI.Theme.textColor.g,
+                                                   FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
+                       _item.containsMouse ? Qt.rgba(FishUI.Theme.textColor.r,
+                                                     FishUI.Theme.textColor.g,
+                                                     FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
+                                                              "transparent"
+
+                smooth: true
             }
 
             Label {
                 id: _name
                 text: model.name
-                color: selected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                 anchors.centerIn: parent
+                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
             }
         }
     }

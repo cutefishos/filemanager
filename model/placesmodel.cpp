@@ -37,6 +37,7 @@ PlacesModel::PlacesModel(QObject *parent)
 
     if (QDir(homePath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Home"), QUrl::fromLocalFile(homePath));
+        item->setIconName("folder-home");
         item->setIconPath("folder-home.svg");
         m_items.append(item);
     }
@@ -44,6 +45,7 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     if (QDir(desktopPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Desktop"), QUrl::fromLocalFile(desktopPath));
+        item->setIconName("folder-desktop");
         item->setIconPath("folder-desktop.svg");
         m_items.append(item);
     }
@@ -51,6 +53,7 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     if (QDir(documentsPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Documents"), QUrl::fromLocalFile(documentsPath));
+        item->setIconName("folder-document");
         item->setIconPath("folder-document.svg");
         m_items.append(item);
     }
@@ -58,6 +61,7 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString downloadPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
     if (QDir(downloadPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Downloads"), QUrl::fromLocalFile(downloadPath));
+        item->setIconName("folder-download");
         item->setIconPath("folder-download.svg");
         m_items.append(item);
     }
@@ -65,6 +69,7 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     if (QDir(musicPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Music"), QUrl::fromLocalFile(musicPath));
+        item->setIconName("folder-music");
         item->setIconPath("folder-music.svg");
         m_items.append(item);
     }
@@ -72,6 +77,7 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString picturePath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (QDir(picturePath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Pictures"), QUrl::fromLocalFile(picturePath));
+        item->setIconName("folder-picture");
         item->setIconPath("folder-picture.svg");
         m_items.append(item);
     }
@@ -79,11 +85,13 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString videoPath = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     if (QDir(videoPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Videos"), QUrl::fromLocalFile(videoPath));
+        item->setIconName("folder-video");
         item->setIconPath("folder-video.svg");
         m_items.append(item);
     }
 
     PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:///")));
+    trashItem->setIconName("folder-trash");
     trashItem->setIconPath("user-trash.svg");
     m_items.append(trashItem);
 
@@ -106,7 +114,13 @@ PlacesModel::PlacesModel(QObject *parent)
     for (const Solid::Device &device : deviceList) {
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(device.udi());
+        deviceItem->setCategory(tr("Drives"));
         m_items.append(deviceItem);
+    }
+
+    // Init Signals
+    for (PlacesItem *item : m_items) {
+        connect(item, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
     }
 }
 
@@ -118,12 +132,14 @@ QHash<int, QByteArray> PlacesModel::roleNames() const
 {
     QHash<int, QByteArray> roleNames;
     roleNames[PlacesModel::NameRole] = "name";
-    roleNames[PlacesModel::IconNameRole] = "icon";
+    roleNames[PlacesModel::IconNameRole] = "iconName";
     roleNames[PlacesModel::IconPathRole] = "iconPath";
     roleNames[PlacesModel::UrlRole] = "url";
     roleNames[PlacesModel::PathRole] = "path";
     roleNames[PlacesModel::IsDeviceRole] = "isDevice";
+    roleNames[PlacesModel::IsOpticalDisc] = "isOpticalDisc";
     roleNames[PlacesModel::setupNeededRole] = "setupNeeded";
+    roleNames[PlacesModel::CategoryRole] = "category";
     return roleNames;
 }
 
@@ -150,7 +166,7 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
 
     switch (role) {
     case PlacesModel::NameRole:
-        return item->displayName();
+        return item->url().toLocalFile() == QDir::rootPath() ? tr("Computer") : item->displayName();
         break;
     case PlacesModel::IconNameRole:
         return item->iconName();
@@ -167,8 +183,14 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
     case PlacesModel::IsDeviceRole:
         return item->isDevice();
         break;
+    case PlacesModel::IsOpticalDisc:
+        return item->isOpticalDisc();
+        break;
     case PlacesModel::setupNeededRole:
         return item->setupNeeded();
+        break;
+    case PlacesModel::CategoryRole:
+        return item->category();
         break;
     default:
         break;
@@ -243,14 +265,31 @@ void PlacesModel::requestEject(const int &index)
     }
 }
 
+void PlacesModel::requestTeardown(const int &index)
+{
+    PlacesItem *item = m_items.at(index);
+
+    if (!item->udi().isEmpty()) {
+        Solid::Device device = Solid::Device(item->udi());
+        Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
+
+        if (access != nullptr) {
+            access->teardown();
+        }
+    }
+}
+
 void PlacesModel::onDeviceAdded(const QString &udi)
 {
     if (m_predicate.matches(Solid::Device(udi))) {
         beginInsertRows(QModelIndex(), rowCount(), rowCount());
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(udi);
+        deviceItem->setCategory(tr("Drives"));
         m_items.append(deviceItem);
         endInsertRows();
+
+        connect(deviceItem, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
     }
 }
 
@@ -262,6 +301,20 @@ void PlacesModel::onDeviceRemoved(const QString &udi)
             PlacesItem *item = m_items.at(i);
             m_items.removeOne(item);
             endRemoveRows();
+
+            disconnect(item);
         }
     }
+}
+
+void PlacesModel::onItemChanged(PlacesItem *item)
+{
+    // 更新 item 数据
+    int index = m_items.indexOf(item);
+
+    if (index < 0 || index > m_items.size())
+        return;
+
+    QModelIndex idx = this->index(index, 0);
+    emit dataChanged(idx, idx);
 }

@@ -32,12 +32,16 @@ Item {
     id: folderPage
 
     property alias currentUrl: dirModel.url
+    property alias model: dirModel
     property Item currentView: _viewLoader.item
     property int statusBarHeight: 22
 
     signal requestPathEditor()
 
     onCurrentUrlChanged: {
+        if (!_viewLoader.item)
+            return
+
         _viewLoader.item.reset()
         _viewLoader.item.forceActiveFocus()
     }
@@ -65,7 +69,7 @@ Item {
 
             MenuItem {
                 text: qsTr("Quit")
-                onTriggered: Qt.quit()
+                onTriggered: root.close()
             }
         }
 
@@ -76,6 +80,23 @@ Item {
                 text: qsTr("Select All")
                 onTriggered: dirModel.selectAll()
             }
+
+            MenuSeparator {}
+
+            MenuItem {
+                text: qsTr("Cut")
+                onTriggered: dirModel.cut()
+            }
+
+            MenuItem {
+                text: qsTr("Copy")
+                onTriggered: dirModel.copy()
+            }
+
+            MenuItem {
+                text: qsTr("Paste")
+                onTriggered: dirModel.paste()
+            }
         }
 
         Menu {
@@ -83,22 +104,31 @@ Item {
 
             MenuItem {
                 text: qsTr("About")
+                onTriggered: _aboutDialog.show()
             }
         }
+    }
+
+    FishUI.AboutDialog {
+        id: _aboutDialog
+        name: qsTr("File Manager")
+        description: qsTr("A file manager designed for CutefishOS.")
+        iconSource: "image://icontheme/file-system-manager"
     }
 
     Rectangle {
         id: _background
         anchors.fill: parent
-        radius: FishUI.Theme.smallRadius
+        anchors.rightMargin: 1
+        radius: FishUI.Theme.mediumRadius
         color: FishUI.Theme.secondBackgroundColor
 
         Rectangle {
             id: _topRightRect
             anchors.right: parent.right
             anchors.top: parent.top
-            height: FishUI.Theme.smallRadius
-            width: FishUI.Theme.smallRadius
+            height: FishUI.Theme.mediumRadius
+            width: FishUI.Theme.mediumRadius
             color: FishUI.Theme.secondBackgroundColor
         }
 
@@ -106,8 +136,8 @@ Item {
             id: _bottomLeftRect
             anchors.left: parent.left
             anchors.bottom: parent.bottom
-            height: FishUI.Theme.smallRadius
-            width: FishUI.Theme.smallRadius
+            height: FishUI.Theme.mediumRadius
+            width: FishUI.Theme.mediumRadius
             color: FishUI.Theme.secondBackgroundColor
         }
     }
@@ -117,18 +147,40 @@ Item {
         text: qsTr("Empty folder")
         font.pointSize: 15
         anchors.centerIn: parent
-        visible: false
+        visible: dirModel.status === FM.FolderModel.Ready
+                 && _viewLoader.status === Loader.Ready
+                 && _viewLoader.item.count === 0
     }
 
     FM.FolderModel {
         id: dirModel
         viewAdapter: viewAdapter
+        sortMode: settings.sortMode
+        // showHiddenFiles: settings.showHiddenFiles
 
         Component.onCompleted: {
             if (arg)
                 dirModel.url = arg
             else
                 dirModel.url = dirModel.homePath()
+        }
+
+        // For new folder rename.
+        onCurrentIndexChanged: {
+            _viewLoader.item.currentIndex = dirModel.currentIndex
+        }
+    }
+
+    Connections {
+        target: dirModel
+
+        function onNotification(text) {
+            root.showPassiveNotification(text, 3000)
+        }
+
+        // Scroll to item.
+        function onScrollToItem(index) {
+            _viewLoader.item.currentIndex = index
         }
     }
 
@@ -164,6 +216,7 @@ Item {
             id: _viewLoader
             Layout.fillWidth: true
             Layout.fillHeight: true
+            asynchronous: true
             sourceComponent: switch (settings.viewMethod) {
                              case 0: return _listViewComponent
                              case 1: return _gridViewComponent
@@ -179,7 +232,7 @@ Item {
         }
 
         Item {
-            visible: settings.viewMethod === 0
+            visible: true
             height: statusBarHeight
         }
     }
@@ -192,11 +245,11 @@ Item {
         height: statusBarHeight
         z: 999
 
-        Rectangle {
-            anchors.fill: parent
-            color: FishUI.Theme.backgroundColor
-            opacity: 0.7
-        }
+//        Rectangle {
+//            anchors.fill: parent
+//            color: FishUI.Theme.backgroundColor
+//            opacity: 0.7
+//        }
 
         MouseArea {
             anchors.fill: parent
@@ -223,17 +276,33 @@ Item {
                 visible: dirModel.selectionCount >= 1
             }
 
+            FishUI.BusyIndicator {
+                id: _busyIndicator
+                Layout.alignment: Qt.AlignLeft
+                height: statusBarHeight
+                width: height
+                running: visible
+                visible: dirModel.status === FM.FolderModel.Listing
+            }
+
+            Label {
+                text: dirModel.selectedItemSize
+                visible: dirModel.url !== "trash:///"
+            }
+
             Item {
                 Layout.fillWidth: true
             }
 
             Button {
-                Layout.fillHeight: true
-                Layout.alignment: Qt.AlignRight
+                id: _emptyTrashBtn
+                implicitHeight: statusBarHeight
                 text: qsTr("Empty Trash")
                 font.pointSize: 10
                 onClicked: dirModel.emptyTrash()
                 visible: dirModel.url === "trash:///"
+                         && _viewLoader.item
+                         && _viewLoader.item.count > 0
                 focusPolicy: Qt.NoFocus
             }
         }
@@ -281,7 +350,7 @@ Item {
             topMargin: FishUI.Units.smallSpacing
             leftMargin: FishUI.Units.largeSpacing
             rightMargin: FishUI.Units.largeSpacing
-            bottomMargin: FishUI.Units.largeSpacing
+            bottomMargin: FishUI.Units.smallSpacing
             spacing: FishUI.Units.largeSpacing
 
             onCountChanged: {
@@ -357,6 +426,21 @@ Item {
         }
         onDeleteFile: {
             dirModel.keyDeletePress()
+        }
+        onRefresh: {
+            dirModel.refresh()
+        }
+        onKeyPressed: {
+            dirModel.keyboardSearch(text)
+        }
+        onShowHidden: {
+            dirModel.showHiddenFiles = !dirModel.showHiddenFiles
+        }
+        onClose: {
+            root.close()
+        }
+        onUndo: {
+            dirModel.undo()
         }
     }
 

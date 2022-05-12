@@ -24,20 +24,36 @@ import QtQuick.Layouts 1.12
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
 
-Window {
+FishUI.Window {
     id: control
 
     title: qsTr("File Manager")
-    flags: Qt.Dialog
+    flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    minimizeButtonVisible: false
     visible: true
 
-    width: 300 + FishUI.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+    property int contentWidth: 300 + FishUI.Units.largeSpacing * 2
+    property int contentHeight: _mainLayout.implicitHeight + control.header.height + FishUI.Units.largeSpacing
 
-    minimumWidth: width
-    minimumHeight: height
-    maximumWidth: width
-    maximumHeight: height
+    width: contentWidth
+    height: contentHeight
+
+//    x: Screen.virtualX + (Screen.width - contentWidth) / 2
+//    y: Screen.virtualY + (Screen.height - contentHeight) / 2
+
+    minimumWidth: contentWidth
+    minimumHeight: contentHeight
+    maximumWidth: contentWidth
+    maximumHeight: contentHeight
+
+    headerBackground.color: FishUI.Theme.secondBackgroundColor
+
+    DragHandler {
+        target: null
+        acceptedDevices: PointerDevice.GenericPointer
+        grabPermissions: PointerHandler.CanTakeOverFromItems | PointerHandler.CanTakeOverFromHandlersOfDifferentType | PointerHandler.ApprovesTakeOverByAnything
+        onActiveChanged: if (active) { control.helper.startSystemMove(control) }
+    }
 
     Fm {
         id: fm
@@ -51,9 +67,10 @@ Window {
     ColumnLayout {
         id: _mainLayout
         anchors.fill: parent
+        anchors.topMargin: 0
         anchors.leftMargin: FishUI.Units.largeSpacing
         anchors.rightMargin: FishUI.Units.largeSpacing
-        anchors.bottomMargin: FishUI.Units.smallSpacing
+        anchors.bottomMargin: FishUI.Units.largeSpacing
         spacing: FishUI.Units.largeSpacing
 
         Label {

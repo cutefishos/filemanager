@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     revenmartin <revenmartin@gmail.com>
+ * Author:     Reion Wong <reion@cutefishos.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef THUMBNAILER_H
-#define THUMBNAILER_H
+#include "window.h"
+#include <QEvent>
+#include <QDebug>
+#include <QQuickWindow>
+#include <QPixmapCache>
 
-#include <QObject>
-#include <QQuickImageProvider>
-
-class AsyncImageResponse : public QQuickImageResponse
+Window::Window(QObject *parent)
+    : QQmlApplicationEngine(parent)
 {
-public:
-    AsyncImageResponse(const QString &id, const QSize &requestedSize);
-    QQuickTextureFactory *textureFactory() const override;
+}
 
-private:
-    QString m_id;
-    QSize m_requestedSize;
-    QImage m_image;
-};
-
-class Thumbnailer : public QQuickAsyncImageProvider
+void Window::load(const QUrl &url)
 {
-public:
-    QQuickImageResponse *requestImageResponse(const QString &id, const QSize &requestedSize) override;
-};
+    QQmlApplicationEngine::load(url);
 
-#endif // THUMBNAILER_H
+    QQuickWindow *w = qobject_cast<QQuickWindow *>(rootObjects().first());
+
+    if (w)
+        w->installEventFilter(this);
+}
+
+bool Window::eventFilter(QObject *obj, QEvent *e)
+{
+    if (e->type() == QEvent::Close) {
+        QPixmapCache::clear();
+        clearComponentCache();
+        deleteLater();
+        e->accept();
+    }
+
+    return QObject::eventFilter(obj, e);
+}
