@@ -194,12 +194,12 @@ GridView {
             event.key == Qt.Key_K ||
             event.key == Qt.Key_L
         ) {                             // if a vim H,J,K,L keybinding is pressed
-            var arrow = Qt.UpArrow;     // sample arrow key
+            var arrow = Qt.NoArrow;     // sample arrow key
             switch (event.key) {        // setting up the arrow key
-                case (Qt.Key_J): a = Qt.DownArrow; break;
-                case (Qt.Key_H): a = Qt.LeftArrow; break;
-                case (Qt.Key_L): a = Qt.RightArrow; break;
-                case (Qt.Key_K): a = Qt.UpArrow; break;
+                case (Qt.Key_J): arrow = Qt.DownArrow; break;
+                case (Qt.Key_H): arrow = Qt.LeftArrow; break;
+                case (Qt.Key_L): arrow = Qt.RightArrow; break;
+                case (Qt.Key_K): arrow = Qt.UpArrow; break;
             }
 
             // setting the selected file to the new one thanks to the arrow
