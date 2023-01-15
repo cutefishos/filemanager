@@ -41,6 +41,11 @@ QString DesktopSettings::wallpaper() const
     return m_wallpaper;
 }
 
+bool DesktopSettings::backgroundVisible() const
+{
+    return m_interface.property("backgroundVisible").toBool();
+}
+
 bool DesktopSettings::dimsWallpaper() const
 {
     return m_interface.property("darkModeDimsWallpaer").toBool();
@@ -71,7 +76,7 @@ void DesktopSettings::init()
         connect(&m_interface, SIGNAL(darkModeDimsWallpaerChanged()), this, SIGNAL(dimsWallpaperChanged()));
         connect(&m_interface, SIGNAL(backgroundTypeChanged()), this, SIGNAL(backgroundTypeChanged()));
         connect(&m_interface, SIGNAL(backgroundColorChanged()), this, SIGNAL(backgroundColorChanged()));
-
+        connect(&m_interface, SIGNAL(backgroundVisibleChanged()), this, SIGNAL(backgroundVisibleChanged()));
         m_wallpaper = m_interface.property("wallpaper").toString();
         emit wallpaperChanged();
     }
