@@ -26,6 +26,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
+            visible: settings.backgroundVisible
             color: settings.backgroundColor
         }
     }
@@ -39,6 +40,7 @@ Item {
                                 height * Screen.devicePixelRatio)
             fillMode: Image.PreserveAspectCrop
             clip: true
+            visible: settings.backgroundVisible
             cache: false
 
             // Clear cache
