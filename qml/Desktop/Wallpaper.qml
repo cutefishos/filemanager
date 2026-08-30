@@ -35,6 +35,7 @@ Item {
         id: wallpaper
 
         Image {
+            anchors.fill: parent
             source: "file://" + settings.wallpaper
             sourceSize: Qt.size(width * Screen.devicePixelRatio,
                                 height * Screen.devicePixelRatio)

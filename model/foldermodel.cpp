@@ -1341,7 +1341,6 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
 
     menu->installEventFilter(this);
     menu->setAttribute(Qt::WA_TranslucentBackground);
-    menu->winId();
 
     m_contextMenu = menu;
     menu->popup(position);

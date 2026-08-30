@@ -19,6 +19,7 @@
 
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import QtQuick.Window 2.12
 import Qt5Compat.GraphicalEffects
 
 import Cutefish.FileManager 1.0
@@ -31,6 +32,17 @@ Item {
 
     signal itemClicked(string path)
     signal editorAccepted(string path)
+
+    // The path bar is part of the title bar.  Start the Wayland move on the
+    // initial press, while retaining the single-click path editor behavior.
+    property bool _dragged: false
+    property real _pressX: 0
+    property real _pressY: 0
+
+    function startWindowMove() {
+        if (Window.window && Window.window.helper)
+            Window.window.helper.startSystemMove(Window.window)
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -45,7 +57,34 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
-        onClicked: openEditor()
+        onPressed: {
+            _dragged = false
+            _pressX = mouse.x
+            _pressY = mouse.y
+            control.startWindowMove()
+        }
+        onPositionChanged: {
+            if (Math.abs(mouse.x - _pressX) > 4 || Math.abs(mouse.y - _pressY) > 4)
+                _dragged = true
+        }
+        onCanceled: _dragged = true
+        onClicked: {
+            if (!_dragged)
+                openEditor()
+        }
+    }
+
+    // Keep the original title-bar behavior: once the pointer crosses the
+    // drag threshold, take over from a breadcrumb MouseArea and cancel its
+    // click.  The immediate move request above is still needed by Wayland;
+    // the handler provides the same click-vs-drag semantics as X11.
+    DragHandler {
+        target: null
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        grabPermissions: PointerHandler.CanTakeOverFromItems
+                         | PointerHandler.CanTakeOverFromHandlersOfDifferentType
+                         | PointerHandler.ApprovesTakeOverByAnything
+        onActiveChanged: if (active) _dragged = true
     }
 
     ListView {
@@ -85,7 +124,25 @@ Item {
 
             property bool selected: index === _pathView.count - 1
 
-            onClicked: control.itemClicked(model.path)
+            property bool dragged: false
+            property real pressX: 0
+            property real pressY: 0
+
+            onPressed: {
+                dragged = false
+                pressX = mouse.x
+                pressY = mouse.y
+                control.startWindowMove()
+            }
+            onPositionChanged: {
+                if (Math.abs(mouse.x - pressX) > 4 || Math.abs(mouse.y - pressY) > 4)
+                    dragged = true
+            }
+            onCanceled: dragged = true
+            onClicked: {
+                if (!dragged)
+                    control.itemClicked(model.path)
+            }
 
             Rectangle {
                 anchors.fill: parent

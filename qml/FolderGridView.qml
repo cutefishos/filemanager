@@ -470,10 +470,6 @@ GridView {
 
         onClicked: {
             clearPressState()
-
-            if (mouse.buttons & Qt.RightButton) {
-                dirModel.openContextMenu(null, mouse.modifiers)
-            }
         }
 
         onDoubleClicked: {
