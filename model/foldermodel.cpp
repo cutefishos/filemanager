@@ -46,7 +46,6 @@
 #include <QDBusInterface>
 #include <QStandardPaths>
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QMimeDatabase>
 #include <QMimeData>
 #include <QClipboard>
@@ -65,11 +64,13 @@
 // KIO
 #include <KIO/CopyJob>
 #include <KIO/Job>
+#include <KIO/MkdirJob>
 #include <KIO/PreviewJob>
 #include <KIO/DeleteJob>
 #include <KIO/DropJob>
 #include <KIO/FileUndoManager>
 #include <KIO/JobUiDelegate>
+#include <KIO/JobUiDelegateFactory>
 #include <KIO/Paste>
 #include <KIO/PasteJob>
 #include <KIO/RestoreJob>
@@ -118,9 +119,9 @@ FolderModel::FolderModel(QObject *parent)
 
     m_dirLister = new DirLister(this);
     m_dirLister->setDelayedMimeTypes(true);
-    m_dirLister->setAutoErrorHandlingEnabled(false, nullptr);
+    m_dirLister->setAutoErrorHandlingEnabled(false);
     m_dirLister->setAutoUpdate(true);
-    m_dirLister->setShowingDotFiles(m_showHiddenFiles);
+    m_dirLister->setShowHiddenFiles(m_showHiddenFiles);
     // connect(dirLister, &DirLister::error, this, &FolderModel::notification);
 
     connect(m_dirLister, &KCoreDirLister::started, this, std::bind(&FolderModel::setStatus, this, Status::Listing));
@@ -542,10 +543,7 @@ void FolderModel::setFilterPattern(const QString &pattern)
     m_regExps.reserve(patterns.count());
 
     foreach (const QString &pattern, patterns) {
-        QRegExp rx(pattern);
-        rx.setPatternSyntax(QRegExp::Wildcard);
-        rx.setCaseSensitivity(Qt::CaseInsensitive);
-        m_regExps.append(rx);
+        m_regExps.append(QRegularExpression::fromWildcard(pattern, Qt::CaseInsensitive));
     }
 
     invalidateFilterIfComplete();
@@ -736,7 +734,7 @@ void FolderModel::refresh()
 
 void FolderModel::undo()
 {
-    if (KIO::FileUndoManager::self()->undoAvailable()) {
+    if (KIO::FileUndoManager::self()->isUndoAvailable()) {
         KIO::FileUndoManager::self()->undo();
     }
 }
@@ -1108,13 +1106,15 @@ void FolderModel::moveSelectedToTrash()
     }
 
     const QList<QUrl> urls = selectedUrls();
-    KIO::JobUiDelegate uiDelegate;
+    KJobUiDelegate *baseUiDelegate = KIO::createDefaultJobUiDelegate(KJobUiDelegate::AutoHandlingDisabled, nullptr);
+    auto *uiDelegate = dynamic_cast<KIO::JobUiDelegate *>(baseUiDelegate);
 
-    if (uiDelegate.askDeleteConfirmation(urls, KIO::JobUiDelegate::Trash, KIO::JobUiDelegate::DefaultConfirmation)) {
+    if (uiDelegate && uiDelegate->askDeleteConfirmation(urls, KIO::JobUiDelegate::Trash, KIO::JobUiDelegate::DefaultConfirmation)) {
         KIO::Job *job = KIO::trash(urls);
         job->uiDelegate()->setAutoErrorHandlingEnabled(true);
         KIO::FileUndoManager::self()->recordJob(KIO::FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
     }
+    delete baseUiDelegate;
 }
 
 void FolderModel::emptyTrash()
@@ -1694,9 +1694,9 @@ bool FolderModel::matchPattern(const KFileItem &item) const
     }
 
     const QString name = item.name();
-    QListIterator<QRegExp> i(m_regExps);
+    QListIterator<QRegularExpression> i(m_regExps);
     while (i.hasNext()) {
-        if (i.next().exactMatch(name)) {
+        if (i.next().match(name).hasMatch()) {
             return true;
         }
     }
@@ -1714,7 +1714,7 @@ void FolderModel::setShowHiddenFiles(bool showHiddenFiles)
     if (m_showHiddenFiles != showHiddenFiles) {
         m_showHiddenFiles = showHiddenFiles;
 
-        m_dirLister->setShowingDotFiles(m_showHiddenFiles);
+        m_dirLister->setShowHiddenFiles(m_showHiddenFiles);
         m_dirLister->emitChanges();
 
         QSettings settings("cutefishos", qApp->applicationName());

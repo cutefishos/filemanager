@@ -1,4 +1,5 @@
 #include "datehelper.h"
+#include <QLocale>
 #include <QDateTime>
 
 DateHelper::DateHelper(QObject *parent) : QObject(parent)
@@ -30,5 +31,5 @@ QString DateHelper::friendlyTime(const QDateTime &time)
     else if (days <= 10)
         return tr("%1 days ago").arg(days);
 
-    return time.toString(Qt::DefaultLocaleShortDate);
+    return QLocale().toString(time, QLocale::ShortFormat);
 }

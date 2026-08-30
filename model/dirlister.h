@@ -34,8 +34,6 @@ public:
 Q_SIGNALS:
     void error(const QString &string);
 
-protected:
-    void handleError(KIO::Job *job) override;
 };
 
 #endif // DIRLISTER_H
