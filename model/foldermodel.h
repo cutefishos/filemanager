@@ -41,6 +41,8 @@
 #include <KDirWatch>
 #include <KActionCollection>
 
+class QMenu;
+
 class QDrag;
 class CFileSizeJob;
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
@@ -308,6 +310,12 @@ private:
     bool m_suffixVisible;
 
     QString m_selectedItemSize;
+
+    // The context menu is a window of its own, so opening it takes the focus
+    // away from the view. The desktop reacts to losing focus by clearing the
+    // selection, which would leave every menu entry acting on nothing, so the
+    // selection is held for as long as this menu is up.
+    QPointer<QMenu> m_contextMenu;
 
     KActionCollection m_actionCollection;
     QHash<int, DragImage *> m_dragImages;

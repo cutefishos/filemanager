@@ -858,6 +858,13 @@ void FolderModel::updateSelection(const QVariantList &rows, bool toggle)
 
 void FolderModel::clearSelection()
 {
+    // Keep the selection while our own context menu is open: the menu is a
+    // separate window, so showing it makes the view lose focus, and the desktop
+    // clears the selection on focus loss. Without this the menu would be built
+    // from the selection and then act on an empty one.
+    if (m_contextMenu)
+        return;
+
     if (m_selectionModel->hasSelection())
         m_selectionModel->clear();
 }
@@ -1335,7 +1342,10 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
     menu->installEventFilter(this);
     menu->setAttribute(Qt::WA_TranslucentBackground);
     menu->winId();
+
+    m_contextMenu = menu;
     menu->popup(position);
+
     connect(menu, &QMenu::aboutToHide, [menu]() {
         menu->deleteLater();
     });
