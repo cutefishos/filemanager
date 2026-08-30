@@ -91,7 +91,7 @@ target_link_libraries(cutefish-filemanager
 )
 
 file(GLOB TS_FILES translations/*.ts)
-qt5_create_translation(QM_FILES ${TS_FILES})
+qt5_add_translation(QM_FILES ${TS_FILES})
 add_custom_target(translations DEPENDS ${QM_FILES} SOURCES ${TS_FILES})
 add_dependencies(cutefish-filemanager translations)
 
