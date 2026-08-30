@@ -43,8 +43,12 @@ Item {
             visible: settings.backgroundVisible
             cache: false
 
-            // Clear cache
-            onSourceChanged: dirModel.clearPixmapCache()
+            // Clear cache. On secondary screens the wallpaper is the whole
+            // desktop, so there is no folder model to clear.
+            onSourceChanged: {
+                if (typeof dirModel !== "undefined")
+                    dirModel.clearPixmapCache()
+            }
 
             ColorOverlay {
                 id: dimsWallpaper

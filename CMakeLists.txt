@@ -11,8 +11,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(GNUInstallDirs)
+
 find_package(Qt6 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
-# find_package(FishUI REQUIRED)
 
 find_package(KF6KIO)
 find_package(KF6Solid)
@@ -20,15 +21,30 @@ find_package(KF6WindowSystem)
 find_package(KF6Config)
 find_package(KF6XmlGui REQUIRED)
 
-qt6_add_dbus_adaptor(DBUS_SOURCES
-                     com.cutefish.FileManager.xml
-                     application.h Application)
+# Where QML modules go, so the desktop plugin lands next to FishUI.
+find_program(QT_PATHS_EXECUTABLE NAMES qtpaths6 REQUIRED)
+execute_process(COMMAND ${QT_PATHS_EXECUTABLE} -query QT_INSTALL_QML
+    OUTPUT_VARIABLE INSTALL_QMLDIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if (NOT INSTALL_QMLDIR)
+    message(FATAL_ERROR "qml directory cannot be detected.")
+endif ()
 
-add_executable(cutefish-filemanager
-  main.cpp
-  application.cpp
+# ---------------------------------------------------------------------------
+# cutefish-filemanager-core
+#
+# Everything the file manager knows about files: models, jobs, thumbnails,
+# dialogs, drag and drop, and the shared QML. Both the file manager window and
+# the desktop QML plugin are built on top of it, so the desktop and the browser
+# behave the same and there is only one place to fix a bug.
+# ---------------------------------------------------------------------------
+add_library(cutefish-filemanager-core STATIC
+  qmltypes.cpp
+
+  # FolderModel opens its delete dialog through Window, so the shared code
+  # cannot live in the executable alone -- the desktop plugin needs it too.
   window.cpp
-  dbusinterface.cpp
 
   draganddrop/declarativedroparea.cpp
   draganddrop/declarativedragdropevent.cpp
@@ -47,11 +63,10 @@ add_executable(cutefish-filemanager
   dialogs/createfolderdialog.cpp
   dialogs/filepropertiesdialog.cpp
   dialogs/openwithdialog.cpp
+
   widgets/rubberband.cpp
   widgets/itemviewadapter.cpp
 
-  desktop/desktop.cpp
-  desktop/desktopview.cpp
   desktop/desktopsettings.cpp
   desktop/dockdbusinterface.cpp
 
@@ -71,12 +86,18 @@ add_executable(cutefish-filemanager
   desktopiconprovider.cpp
 
   qml.qrc
-
-  ${DBUS_SOURCES}
 )
 
-target_link_libraries(cutefish-filemanager
-  PRIVATE
+# The core is linked into a shared plugin, so it has to be position independent.
+set_target_properties(cutefish-filemanager-core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(cutefish-filemanager-core PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(cutefish-filemanager-core
+  PUBLIC
   Qt6::Core
   Qt6::DBus
   Qt6::Quick
@@ -88,9 +109,29 @@ target_link_libraries(cutefish-filemanager
   KF6::WindowSystem
   KF6::ConfigCore
   KF6::XmlGui
-
-  # FishUI
 )
+
+# ---------------------------------------------------------------------------
+# cutefish-filemanager -- the file browser window
+# ---------------------------------------------------------------------------
+qt6_add_dbus_adaptor(DBUS_SOURCES
+                     com.cutefish.FileManager.xml
+                     application.h Application)
+
+add_executable(cutefish-filemanager
+  main.cpp
+  application.cpp
+  dbusinterface.cpp
+
+  ${DBUS_SOURCES}
+)
+
+target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
+
+# ---------------------------------------------------------------------------
+# The desktop, as a QML module for cutefish-shell
+# ---------------------------------------------------------------------------
+add_subdirectory(desktopplugin)
 
 file(GLOB TS_FILES translations/*.ts)
 qt6_add_translation(QM_FILES ${TS_FILES})

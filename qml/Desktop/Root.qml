@@ -1,8 +1,6 @@
 /*
  * Copyright (C) 2021 CutefishOS Team.
  *
- * Author:     revenmartin <revenmartin@gmail.com>
- *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,33 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DESKTOPVIEW_H
-#define DESKTOPVIEW_H
+import QtQuick 2.12
 
-#include <QQuickView>
-#include <QScreen>
+// Entry point of the desktop, loaded by the DesktopView item. The primary
+// screen gets the full desktop (wallpaper + icons); the others get the
+// wallpaper on its own.
+Loader {
+    id: root
 
-class Desktop;
-class DesktopView : public QQuickView
-{
-    Q_OBJECT
-    Q_PROPERTY(QRect screenRect READ screenRect NOTIFY screenRectChanged)
+    asynchronous: false
+    source: desktopView.primary ? "Main.qml" : "Wallpaper.qml"
 
-public:
-    explicit DesktopView(QScreen *screen = nullptr, QQuickView *parent = nullptr);
-
-    QRect screenRect();
-
-signals:
-    void screenRectChanged();
-
-private slots:
-    void onPrimaryScreenChanged(QScreen *screen);
-    void onGeometryChanged();
-
-private:
-    QScreen *m_screen;
-    QRect m_screenRect;
-};
-
-#endif // DESKTOPVIEW_H
+    onLoaded: {
+        item.width = Qt.binding(function() { return root.width })
+        item.height = Qt.binding(function() { return root.height })
+    }
+}

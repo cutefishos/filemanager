@@ -18,7 +18,7 @@
  */
 
 #include "window.h"
-#include "desktopiconprovider.h"
+#include "qmltypes.h"
 #include <QEvent>
 #include <QDebug>
 #include <QQuickWindow>
@@ -30,7 +30,7 @@ Window::Window(QObject *parent)
     // Qt6 only calls QQmlExtensionPlugin::initializeEngine() for the first engine
     // that imports a module, so FishUI's "icontheme" provider is missing in every
     // engine created afterwards. Register our own copy for each window.
-    addImageProvider("icontheme", new DesktopIconProvider());
+    CutefishFM::registerImageProviders(this);
 }
 
 void Window::load(const QUrl &url)

@@ -18,9 +18,17 @@
  */
 
 import QtQuick 2.12
-import Qt.labs.settings 1.0
+import QtCore
 
 Settings {
+    // Pinned to one file on purpose. This QML is loaded both by the file
+    // manager window and, through the desktop plugin, by cutefish-shell; the
+    // default location follows the host application's name, which would give
+    // the two hosts different preferences and silently reset the desktop's
+    // icon size the first time the shell started.
+    location: StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)
+              + "/cutefishos/cutefish-filemanager.conf"
+
     property int viewMethod: 1          // controls display mode: list or grid
 
     // Port to C++
