@@ -59,6 +59,9 @@ ListView {
 
     ScrollBar.vertical: ScrollBar { }
     boundsBehavior: Flickable.StopAtBounds
+    // Dragging the view must rubber band select, not flick the content around
+    // like a touch interface. WheelHandler and the scroll bar do the scrolling.
+    interactive: false
 
     FishUI.WheelHandler {
         target: control
@@ -367,7 +370,6 @@ ListView {
 
                     dirModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
-                    control.interactive = false
                 }
             }
         }
@@ -403,7 +405,6 @@ ListView {
             control.rubberBand.close()
             control.rubberBand = null
 
-            control.interactive = true
             control.cachedRectangleSelection = null
             dirModel.unpinSelection()
         }
@@ -471,12 +472,10 @@ ListView {
                     targetItem.labelArea2.visible = false
                     _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
                     visible = true
-                    control.interactive = false
                 } else {
                     x: 0
                     y: 0
                     visible = false
-                    control.interactive = true
                 }
             }
 

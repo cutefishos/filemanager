@@ -273,10 +273,9 @@ GridView {
     }
 
     clip: true
-    // The desktop uses a GridView for layout, but dragging its surface must
-    // select icons instead of flicking the desktop like a touch interface.
-    // WheelHandler remains responsible for wheel and touchpad scrolling.
-    interactive: !isDesktopView
+    // Dragging the view must rubber band select, not flick the content around
+    // like a touch interface. WheelHandler and the scroll bar do the scrolling.
+    interactive: false
     currentIndex: -1
     ScrollBar.vertical: ScrollBar { }
 
@@ -465,7 +464,6 @@ GridView {
 
                     dirModel.pinSelection()
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
-                    control.interactive = false
                 }
             }
         }
@@ -524,7 +522,6 @@ GridView {
             control.rubberBand.close()
             control.rubberBand = null
 
-            control.interactive = !control.isDesktopView
             control.cachedRectangleSelection = null
             dirModel.unpinSelection()
         }
@@ -663,14 +660,12 @@ GridView {
                     targetItem.labelArea.visible = false
                     _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
                     visible = true
-                    control.interactive = false
                 } else {
                     x = 0
                     y = 0
                     width = 0
                     height = 0
                     visible = false
-                    control.interactive = !control.isDesktopView
                 }
             }
 

@@ -40,9 +40,18 @@ Item {
         z: -1
     }
 
+    // Clicking anywhere that is not a breadcrumb opens the path editor. The
+    // view above is not interactive, so its empty area lets the press through.
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.LeftButton
+        onClicked: openEditor()
+    }
+
     ListView {
         id: _pathView
         anchors.fill: parent
+        interactive: false
         anchors.topMargin: 2
         anchors.bottomMargin: 2
         model: _pathBarModel
@@ -57,13 +66,6 @@ Item {
         onCountChanged: {
             _pathView.currentIndex = _pathView.count - 1
             _pathView.positionViewAtEnd()
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            onClicked: openEditor()
-            z: -1
         }
 
         highlight: Rectangle {
