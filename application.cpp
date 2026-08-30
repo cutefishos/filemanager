@@ -20,8 +20,6 @@
 #include "application.h"
 #include "dbusinterface.h"
 #include "window.h"
-#include "desktop/desktop.h"
-#include "thumbnailer/thumbnailprovider.h"
 #include "filemanageradaptor.h"
 
 #include <QCommandLineParser>
@@ -92,8 +90,13 @@ void Application::openFiles(const QStringList &paths)
 
 void Application::moveToTrash(const QStringList &paths)
 {
+    startTrashJob(paths);
+}
+
+KIO::Job *Application::startTrashJob(const QStringList &paths)
+{
     if (paths.isEmpty())
-        return;
+        return nullptr;
 
     QList<QUrl> urls;
 
@@ -104,6 +107,7 @@ void Application::moveToTrash(const QStringList &paths)
     KIO::Job *job = KIO::trash(urls);
     job->uiDelegate()->setAutoErrorHandlingEnabled(true);
     KIO::FileUndoManager::self()->recordJob(KIO::FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
+    return job;
 }
 
 void Application::emptyTrash()
@@ -116,7 +120,6 @@ void Application::openWindow(const QString &path)
 {
     Window *w = new Window;
     w->rootContext()->setContextProperty("arg", path);
-    w->addImageProvider("thumbnailer", new ThumbnailProvider());
     w->load(QUrl("qrc:/qml/main.qml"));
 }
 
@@ -143,9 +146,6 @@ bool Application::parseCommandLineArgs()
 
     parser.addPositionalArgument("files", "Files", "[FILE1, FILE2,...]");
 
-    QCommandLineOption desktopOption(QStringList() << "d" << "desktop" << "Desktop Mode");
-    parser.addOption(desktopOption);
-
     QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
     parser.addOption(emptyTrashOption);
 
@@ -154,11 +154,25 @@ bool Application::parseCommandLineArgs()
 
     parser.process(arguments());
 
+    // Pick the action first, then decide who performs it. The trash options used
+    // to be handled only when another instance was already running, which was
+    // always true while the desktop was a file manager process of its own. It no
+    // longer is -- the desktop moved into cutefish-shell -- so these options
+    // have to work in the first instance too.
     if (m_instance) {
         QPixmapCache::setCacheLimit(2048);
 
-        if (parser.isSet(desktopOption)) {
-            Desktop desktop;
+        if (parser.isSet(emptyTrashOption)) {
+            emptyTrash();
+        } else if (parser.isSet(moveToTrashOption)) {
+            KIO::Job *job = startTrashJob(parser.positionalArguments());
+
+            if (!job)
+                return false;
+
+            // No window to show, so the event loop only has to live long enough
+            // for the job to finish.
+            connect(job, &KJob::result, this, [] { QCoreApplication::quit(); });
         } else {
             openFiles(formatUriList(parser.positionalArguments()));
         }
