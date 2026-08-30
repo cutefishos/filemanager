@@ -273,6 +273,10 @@ GridView {
     }
 
     clip: true
+    // The desktop uses a GridView for layout, but dragging its surface must
+    // select icons instead of flicking the desktop like a touch interface.
+    // WheelHandler remains responsible for wheel and touchpad scrolling.
+    interactive: !isDesktopView
     currentIndex: -1
     ScrollBar.vertical: ScrollBar { }
 
@@ -520,7 +524,7 @@ GridView {
             control.rubberBand.close()
             control.rubberBand = null
 
-            control.interactive = true
+            control.interactive = !control.isDesktopView
             control.cachedRectangleSelection = null
             dirModel.unpinSelection()
         }
@@ -666,7 +670,7 @@ GridView {
                     width = 0
                     height = 0
                     visible = false
-                    control.interactive = true
+                    control.interactive = !control.isDesktopView
                 }
             }
 
