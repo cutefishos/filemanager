@@ -33,8 +33,8 @@ Item {
     signal itemClicked(string path)
     signal editorAccepted(string path)
 
-    // The path bar is part of the title bar.  Start the Wayland move on the
-    // initial press, while retaining the single-click path editor behavior.
+    // The path bar is part of the title bar.  Start the Wayland move only
+    // after a drag begins, so a single click can open the path editor.
     property bool _dragged: false
     property real _pressX: 0
     property real _pressY: 0
@@ -61,7 +61,6 @@ Item {
             _dragged = false
             _pressX = mouse.x
             _pressY = mouse.y
-            control.startWindowMove()
         }
         onPositionChanged: {
             if (Math.abs(mouse.x - _pressX) > 4 || Math.abs(mouse.y - _pressY) > 4)
@@ -74,17 +73,20 @@ Item {
         }
     }
 
-    // Keep the original title-bar behavior: once the pointer crosses the
-    // drag threshold, take over from a breadcrumb MouseArea and cancel its
-    // click.  The immediate move request above is still needed by Wayland;
-    // the handler provides the same click-vs-drag semantics as X11.
+    // Once the pointer crosses the drag threshold, take over from a
+    // breadcrumb MouseArea and cancel its click before moving the window.
     DragHandler {
         target: null
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
         grabPermissions: PointerHandler.CanTakeOverFromItems
                          | PointerHandler.CanTakeOverFromHandlersOfDifferentType
                          | PointerHandler.ApprovesTakeOverByAnything
-        onActiveChanged: if (active) _dragged = true
+        onActiveChanged: {
+            if (active) {
+                _dragged = true
+                control.startWindowMove()
+            }
+        }
     }
 
     ListView {
@@ -132,7 +134,6 @@ Item {
                 dragged = false
                 pressX = mouse.x
                 pressY = mouse.y
-                control.startWindowMove()
             }
             onPositionChanged: {
                 if (Math.abs(mouse.x - pressX) > 4 || Math.abs(mouse.y - pressY) > 4)
