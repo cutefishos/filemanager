@@ -1295,8 +1295,6 @@ void FolderModel::archiveJobFinished(bool success,
         m_needSelectUrls.append(QUrl::fromLocalFile(outputPath));
         refresh();
         delayUpdateNeedSelectUrls();
-        message = tr("%1 completed: %2").arg(operation, QFileInfo(outputPath).fileName());
-        emit notification(message);
     } else if (canceled) {
         message = tr("%1 canceled.").arg(operation);
         emit notification(message);
