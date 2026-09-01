@@ -67,7 +67,6 @@ add_library(cutefish-filemanager-core STATIC
   cio/cfilesizejob.cpp
   cio/archivejob.cpp
 
-  dialogs/createfolderdialog.cpp
   dialogs/filepropertiesdialog.cpp
   dialogs/openwithdialog.cpp
 

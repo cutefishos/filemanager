@@ -28,7 +28,6 @@
 #include "window.h"
 
 #include "../dialogs/filepropertiesdialog.h"
-#include "../dialogs/createfolderdialog.h"
 #include "../dialogs/openwithdialog.h"
 
 #include "../helper/datehelper.h"
@@ -1635,8 +1634,8 @@ void FolderModel::openChangeWallpaperDialog()
 void FolderModel::openDeleteDialog()
 {
     Window *w = new Window;
-    w->load(QUrl("qrc:/qml/Dialogs/DeleteDialog.qml"));
     w->rootContext()->setContextProperty("model", this);
+    w->load(QUrl("qrc:/qml/Dialogs/DeleteDialog.qml"));
 }
 
 void FolderModel::openInNewWindow(const QString &url)

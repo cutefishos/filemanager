@@ -23,41 +23,28 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import FishUI 1.0 as FishUI
 
-Item {
+FishUI.Window {
     id: control
 
     property int widthValue: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 3
-    property int heightValue: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 3
+    property int heightValue: _mainLayout.implicitHeight + control.header.height + FishUI.Units.largeSpacing * 2
+
+    title: qsTr("Properties")
+    flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    minimizeButtonVisible: false
+    visible: false
 
     width: widthValue
     height: heightValue
+    minimumWidth: widthValue
+    minimumHeight: heightValue
+    maximumWidth: widthValue
+    maximumHeight: heightValue
 
-    onWidthValueChanged: main.updateSize(widthValue, heightValue)
-    onHeightValueChanged: main.updateSize(widthValue, heightValue)
-
-    focus: true
     Keys.enabled: true
-    Keys.onEscapePressed: main.reject()
+    Keys.onEscapePressed: control.close()
 
-    Rectangle {
-        anchors.fill: parent
-        color: FishUI.Theme.secondBackgroundColor
-    }
-
-    onVisibleChanged: {
-        if (visible) updateWindowSize()
-    }
-
-    function close() {
-        main.close()
-    }
-
-    function updateWindowSize() {
-        if (visible) {
-            if (_textField.enabled)
-                _textField.forceActiveFocus()
-        }
-    }
+    background.color: FishUI.Theme.secondBackgroundColor
 
     ColumnLayout {
         id: _mainLayout
@@ -72,29 +59,26 @@ Item {
             spacing: FishUI.Units.largeSpacing * 2
 
             FishUI.IconItem {
-                width: 64
-                height: 64
+                width: 48
+                height: 48
+                Layout.preferredWidth: 48
+                Layout.preferredHeight: 48
                 source: main.iconName
             }
 
-            TextField {
-                id: _textField
+            Label {
                 text: main.fileName
-                focus: true
                 Layout.fillWidth: true
-                Keys.onEscapePressed: main.reject()
-                enabled: main.isWritable
+                elide: Text.ElideMiddle
             }
         }
 
         GridLayout {
             columns: 2
+            Layout.fillWidth: true
             columnSpacing: FishUI.Units.largeSpacing
             rowSpacing: FishUI.Units.largeSpacing
             Layout.alignment: Qt.AlignTop
-
-            onHeightChanged: updateWindowSize()
-            onImplicitHeightChanged: updateWindowSize()
 
             Label {
                 text: qsTr("Type:")
@@ -118,6 +102,8 @@ Item {
             Label {
                 id: location
                 text: main.location
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
             }
 
             Label {
@@ -171,28 +157,5 @@ Item {
             }
         }
 
-        Item {
-            height: FishUI.Units.smallSpacing
-        }
-
-        RowLayout {
-            Layout.alignment: Qt.AlignRight
-            spacing: FishUI.Units.largeSpacing
-
-            Button {
-                text: qsTr("Cancel")
-                Layout.fillWidth: true
-                onClicked: main.reject()
-            }
-
-            Button {
-                text: qsTr("OK")
-                Layout.fillWidth: true
-                onClicked: {
-                    main.accept(_textField.text)
-                }
-                flat: true
-            }
-        }
     }
 }

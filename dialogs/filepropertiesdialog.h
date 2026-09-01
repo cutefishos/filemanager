@@ -20,7 +20,7 @@
 #ifndef FILEPROPERTIESDIALOG_H
 #define FILEPROPERTIESDIALOG_H
 
-#include <QQuickView>
+#include "../window.h"
 #include <QTimer>
 #include <QUrl>
 #include <QSharedPointer>
@@ -30,7 +30,7 @@
 
 #include "cio/cfilesizejob.h"
 
-class FilePropertiesDialog : public QQuickView
+class FilePropertiesDialog : public Window
 {
     Q_OBJECT
     Q_PROPERTY(QString location READ location NOTIFY locationChanged)
@@ -42,21 +42,14 @@ class FilePropertiesDialog : public QQuickView
     Q_PROPERTY(QString modifiedTime READ modifiedTime NOTIFY modifiedTimeChanged)
     Q_PROPERTY(QString accessedTime READ accessedTime NOTIFY accessedTimeChanged)
     Q_PROPERTY(bool multiple READ multiple CONSTANT)
-    Q_PROPERTY(bool isWritable READ isWritable NOTIFY isWritableChanged)
 
 public:
-    explicit FilePropertiesDialog(const KFileItem &item, QQuickView *parent = nullptr);
-    explicit FilePropertiesDialog(const KFileItemList &items, QQuickView *parent = nullptr);
-    explicit FilePropertiesDialog(const QUrl &url, QQuickView *parent = nullptr);
+    explicit FilePropertiesDialog(const KFileItem &item, QObject *parent = nullptr);
+    explicit FilePropertiesDialog(const KFileItemList &items, QObject *parent = nullptr);
+    explicit FilePropertiesDialog(const QUrl &url, QObject *parent = nullptr);
     ~FilePropertiesDialog();
 
-    Q_INVOKABLE void updateSize(int width, int height);
-
-    Q_INVOKABLE void accept(const QString &text);
-    Q_INVOKABLE void reject();
-
     bool multiple() const;
-    bool isWritable() const;
 
     QString location() const;
     QString fileName() const;
@@ -78,10 +71,6 @@ signals:
     void creationTimeChanged();
     void modifiedTimeChanged();
     void accessedTimeChanged();
-    void isWritableChanged();
-
-protected:
-    bool event(QEvent *e) override;
 
 private:
     void init();
@@ -103,7 +92,6 @@ private:
     std::shared_ptr<CFileSizeJob> m_sizeJob;
 
     bool m_multiple;
-    bool m_isWritable;
 };
 
 #endif // FILEPROPERTIESDIALOG_H

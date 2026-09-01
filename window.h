@@ -22,6 +22,8 @@
 
 #include <QQmlApplicationEngine>
 
+class QQuickWindow;
+
 class Window : public QQmlApplicationEngine
 {
     Q_OBJECT
@@ -30,6 +32,9 @@ public:
     explicit Window(QObject *parent = nullptr);
 
     void load(const QUrl &url);
+    void show();
+
+    QQuickWindow *quickWindow() const;
 
 protected:
     bool eventFilter(QObject *o, QEvent *e);

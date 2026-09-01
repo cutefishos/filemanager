@@ -2,29 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_Hant">
 <context>
-    <name>CreateFolderDialog</name>
-    <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="28"/>
-        <source>New folder name</source>
-        <translation>新建資料夾名稱</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="55"/>
-        <source>New folder</source>
-        <translation>新建資料夾</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="79"/>
-        <source>Cancel</source>
-        <translation>取消</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/CreateFolderDialog.qml" line="85"/>
-        <source>OK</source>
-        <translation>好</translation>
-    </message>
-</context>
-<context>
     <name>DateHelper</name>
     <message>
         <location filename="../helper/datehelper.cpp" line="15"/>

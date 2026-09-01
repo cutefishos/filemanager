@@ -20,15 +20,15 @@
 #ifndef OPENWITHDIALOG_H
 #define OPENWITHDIALOG_H
 
-#include <QQuickView>
+#include "../window.h"
 
-class OpenWithDialog : public QQuickView
+class OpenWithDialog : public Window
 {
     Q_OBJECT
     Q_PROPERTY(QString url READ url CONSTANT)
 
 public:
-    explicit OpenWithDialog(const QUrl &url, QQuickView *parent = nullptr);
+    explicit OpenWithDialog(const QUrl &url, QObject *parent = nullptr);
 
     QString url() const;
 

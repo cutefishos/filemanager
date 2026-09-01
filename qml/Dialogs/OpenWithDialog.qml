@@ -19,22 +19,31 @@
 
 import QtQuick 2.12
 import QtQuick.Controls 2.4
+import QtQuick.Window 2.12
 import QtQuick.Layouts 1.3
 import Qt5Compat.GraphicalEffects
 import FishUI 1.0 as FishUI
 
-Item {
+FishUI.Window {
     id: control
 
     property string url: main.url
+    property int contentWidth: 400 + FishUI.Units.largeSpacing * 2
+    property int contentHeight: _mainLayout.implicitHeight + control.header.height + FishUI.Units.largeSpacing * 2
 
-    width: 400 + FishUI.Units.largeSpacing * 2
-    height: _mainLayout.implicitHeight + FishUI.Units.largeSpacing * 2
+    title: qsTr("Open With")
+    flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    minimizeButtonVisible: false
+    visible: false
 
-    Rectangle {
-        anchors.fill: parent
-        color: FishUI.Theme.secondBackgroundColor
-    }
+    width: contentWidth
+    height: contentHeight
+    minimumWidth: contentWidth
+    minimumHeight: contentHeight
+    maximumWidth: contentWidth
+    maximumHeight: contentHeight
+
+    background.color: FishUI.Theme.secondBackgroundColor
 
     Component.onCompleted: {
         var items = mimeAppManager.recommendedApps(control.url)
@@ -52,11 +61,11 @@ Item {
             mimeAppManager.setDefaultAppForFile(control.url, listView.model.get(listView.currentIndex).desktopFile)
 
         launcher.launchApp(listView.model.get(listView.currentIndex).desktopFile, control.url)
-        main.close()
+        control.close()
     }
 
     Keys.enabled: true
-    Keys.onEscapePressed: main.close()
+    Keys.onEscapePressed: control.close()
 
     ColumnLayout {
         id: _mainLayout
@@ -170,7 +179,7 @@ Item {
             Button {
                 text: qsTr("Cancel")
                 Layout.fillWidth: true
-                onClicked: main.close()
+                onClicked: control.close()
             }
 
             Button {

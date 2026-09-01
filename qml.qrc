@@ -22,7 +22,6 @@
         <file>qml/FolderGridView.qml</file>
         <file>qml/GlobalSettings.qml</file>
         <file>qml/FolderGridItem.qml</file>
-        <file>qml/Dialogs/CreateFolderDialog.qml</file>
         <file>images/light/checked.svg</file>
         <file>images/dark/checked.svg</file>
         <file>images/light/order_by_name.svg</file>

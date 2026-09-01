@@ -24,28 +24,15 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 
-OpenWithDialog::OpenWithDialog(const QUrl &url, QQuickView *parent)
-    : QQuickView(parent)
+OpenWithDialog::OpenWithDialog(const QUrl &url, QObject *parent)
+    : Window(parent)
     , m_url(url.toLocalFile())
 {
-    setFlag(Qt::Dialog);
-    setTitle(tr("Open With"));
-    setResizeMode(QQuickView::SizeViewToRootObject);
+    rootContext()->setContextProperty("main", this);
+    rootContext()->setContextProperty("mimeAppManager", MimeAppManager::self());
+    rootContext()->setContextProperty("launcher", FileLauncher::self());
 
-    engine()->rootContext()->setContextProperty("main", this);
-    engine()->rootContext()->setContextProperty("mimeAppManager", MimeAppManager::self());
-    engine()->rootContext()->setContextProperty("launcher", FileLauncher::self());
-
-    setSource(QUrl("qrc:/qml/Dialogs/OpenWithDialog.qml"));
-
-    QRect rect = geometry();
-    setMinimumSize(rect.size());
-    setMaximumSize(rect.size());
-
-    connect(this, &QQuickView::visibleChanged, this, [=] {
-        if (!this->isVisible())
-            this->deleteLater();
-    });
+    load(QUrl("qrc:/qml/Dialogs/OpenWithDialog.qml"));
 }
 
 QString OpenWithDialog::url() const

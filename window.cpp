@@ -37,10 +37,32 @@ void Window::load(const QUrl &url)
 {
     QQmlApplicationEngine::load(url);
 
-    QQuickWindow *w = qobject_cast<QQuickWindow *>(rootObjects().first());
+    QQuickWindow *w = quickWindow();
 
     if (w)
         w->installEventFilter(this);
+    else
+        deleteLater();
+}
+
+void Window::show()
+{
+    if (QQuickWindow *w = quickWindow()) {
+        w->show();
+        w->raise();
+        w->requestActivate();
+    }
+}
+
+QQuickWindow *Window::quickWindow() const
+{
+    const QList<QObject *> objects = rootObjects();
+    for (QObject *object : objects) {
+        if (QQuickWindow *w = qobject_cast<QQuickWindow *>(object))
+            return w;
+    }
+
+    return nullptr;
 }
 
 bool Window::eventFilter(QObject *obj, QEvent *e)
