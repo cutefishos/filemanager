@@ -64,6 +64,11 @@ FishUI.Window {
                 Layout.preferredWidth: 48
                 Layout.preferredHeight: 48
                 source: main.iconName
+
+                // The source is available while the item is being created.
+                // Refresh after completion so IconItem can load it once its
+                // component lifecycle is ready.
+                Component.onCompleted: updateIcon()
             }
 
             Label {

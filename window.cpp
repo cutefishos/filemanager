@@ -21,8 +21,10 @@
 #include "qmltypes.h"
 #include <QEvent>
 #include <QDebug>
+#include <QPointer>
 #include <QQuickWindow>
 #include <QPixmapCache>
+#include <QTimer>
 
 Window::Window(QObject *parent)
     : QQmlApplicationEngine(parent)
@@ -48,9 +50,19 @@ void Window::load(const QUrl &url)
 void Window::show()
 {
     if (QQuickWindow *w = quickWindow()) {
-        w->show();
-        w->raise();
-        w->requestActivate();
+        QPointer<QQuickWindow> window(w);
+
+        // Let QML finish its initial layout pass before the native window is
+        // exposed. Showing it in the same call stack can expose the initial
+        // size for one frame and then resize it, which appears as a flash.
+        QTimer::singleShot(0, w, [window] {
+            if (!window)
+                return;
+
+            window->show();
+            window->raise();
+            window->requestActivate();
+        });
     }
 }
 

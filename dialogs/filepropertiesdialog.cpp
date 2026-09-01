@@ -100,22 +100,12 @@ QString FilePropertiesDialog::accessedTime() const
 
 void FilePropertiesDialog::init()
 {
-    rootContext()->setContextProperty("main", this);
-
-    load(QUrl("qrc:/qml/Dialogs/PropertiesDialog.qml"));
-
     m_multiple = m_items.count() > 1;
 
     QList<QUrl> list;
     for (KFileItem item : m_items) {
         list.append(item.url());
     }
-
-    m_sizeJob = std::shared_ptr<CFileSizeJob>(new CFileSizeJob);
-    m_sizeJob->start(list);
-
-    connect(m_sizeJob.get(), &CFileSizeJob::sizeChanged, this, &FilePropertiesDialog::updateTotalSize);
-    connect(m_sizeJob.get(), &CFileSizeJob::result, this, &FilePropertiesDialog::updateTotalSize);
 
     if (!m_multiple) {
         KFileItem item = m_items.first();
@@ -154,6 +144,17 @@ void FilePropertiesDialog::init()
         emit locationChanged();
         emit iconNameChanged();
     }
+
+    // Populate the properties before loading the QML window. Its size is
+    // derived from the content, so changing these values after load can
+    // resize the window during its first expose.
+    rootContext()->setContextProperty("main", this);
+    load(QUrl("qrc:/qml/Dialogs/PropertiesDialog.qml"));
+
+    m_sizeJob = std::shared_ptr<CFileSizeJob>(new CFileSizeJob);
+    connect(m_sizeJob.get(), &CFileSizeJob::sizeChanged, this, &FilePropertiesDialog::updateTotalSize);
+    connect(m_sizeJob.get(), &CFileSizeJob::result, this, &FilePropertiesDialog::updateTotalSize);
+    m_sizeJob->start(list);
 }
 
 void FilePropertiesDialog::updateTotalSize()

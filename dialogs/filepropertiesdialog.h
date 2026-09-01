@@ -91,7 +91,7 @@ private:
 
     std::shared_ptr<CFileSizeJob> m_sizeJob;
 
-    bool m_multiple;
+    bool m_multiple = false;
 };
 
 #endif // FILEPROPERTIESDIALOG_H
