@@ -63,16 +63,10 @@ ListView {
 
     highlight: Rectangle {
         radius: FishUI.Theme.mediumRadius
-        color: FishUI.Theme.secondBackgroundColor
+        color: Qt.rgba(FishUI.Theme.textColor.r,
+                       FishUI.Theme.textColor.g,
+                       FishUI.Theme.textColor.b, 0.05)
         smooth: true
-
-        Rectangle {
-            anchors.fill: parent
-            radius: FishUI.Theme.mediumRadius
-            color: Qt.rgba(FishUI.Theme.highlightColor.r,
-                           FishUI.Theme.highlightColor.g,
-                           FishUI.Theme.highlightColor.b, FishUI.Theme.darkMode ? 0.3 : 0.2)
-        }
     }
 
     section.property: "category"
