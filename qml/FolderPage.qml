@@ -149,7 +149,7 @@ Item {
         anchors.centerIn: parent
         visible: dirModel.status === FM.FolderModel.Ready
                  && _viewLoader.status === Loader.Ready
-                 && _viewLoader.item.count === 0
+                 && dirModel.count === 0
     }
 
     FM.FolderModel {
@@ -328,9 +328,6 @@ Item {
                 settings.gridIconSize = _gridView.iconSize
             }
 
-            onCountChanged: {
-                _fileTips.visible = count === 0
-            }
         }
     }
 
@@ -349,10 +346,6 @@ Item {
             rightMargin: FishUI.Units.largeSpacing
             bottomMargin: FishUI.Units.smallSpacing
             spacing: FishUI.Units.largeSpacing
-
-            onCountChanged: {
-                _fileTips.visible = count === 0
-            }
 
             delegate: FolderListItem {}
         }
