@@ -62,6 +62,11 @@ Item {
                                     _folderView.contentWidth, _folderView.contentHeight)
     }
 
+    FolderContextMenu {
+        id: desktopMenu
+        folderModel: dirModel
+    }
+
     ArchiveProgressDialog {
         id: archiveProgressDialog
         archiveModel: dirModel
@@ -97,6 +102,9 @@ Item {
         flow: GridView.FlowTopToBottom
 
         delegate: FolderGridItem {}
+        useCustomContextMenu: true
+
+        onContextMenuRequested: desktopMenu.popup()
 
         onIconSizeChanged: {
             globalSettings.desktopIconSize = _folderView.iconSize

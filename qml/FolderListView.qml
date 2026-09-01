@@ -46,12 +46,14 @@ ListView {
     property variant cPress: null
     property Item editor: null
     property int anchorIndex: 0
+    property bool useCustomContextMenu: false
 
     property var itemHeight: FishUI.Units.fontMetrics.height * 2 + FishUI.Units.smallSpacing
 
     property variant cachedRectangleSelection: null
 
     signal keyPress(var event)
+    signal contextMenuRequested()
 
     clip: true
     cacheBuffer: width
@@ -85,6 +87,15 @@ ListView {
             control.editor.cancel()
             control.editor.destroy()
             control.editor = null
+        }
+    }
+
+    function openContextMenu(modifiers) {
+        if (control.useCustomContextMenu) {
+            dirModel.prepareContextMenu()
+            control.contextMenuRequested()
+        } else {
+            dirModel.openContextMenu(null, modifiers)
         }
     }
 
@@ -264,7 +275,7 @@ ListView {
 
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    dirModel.openContextMenu(null, mouse.modifiers)
+                    control.openContextMenu(mouse.modifiers)
                     mouse.accepted = true
                 }
             } else {
@@ -288,7 +299,7 @@ ListView {
 
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    dirModel.openContextMenu(null, mouse.modifiers)
+                    control.openContextMenu(mouse.modifiers)
                     mouse.accepted = true
                 }
             }

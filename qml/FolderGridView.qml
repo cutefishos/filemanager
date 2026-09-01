@@ -30,6 +30,7 @@ GridView {
     objectName: "FolderGridView"
 
     property bool isDesktopView: false
+    property bool useCustomContextMenu: false
 
     property Item rubberBand: null
     property Item hoveredItem: null
@@ -65,6 +66,7 @@ GridView {
     property bool scrollDown: false
 
     signal keyPress(var event)
+    signal contextMenuRequested()
 
     cacheBuffer: Math.max(0, control.height * 1.5)
     reuseItems: true
@@ -139,6 +141,15 @@ GridView {
         if (editor) {
             editor.cancel()
             editor.targetItem = null;
+        }
+    }
+
+    function openContextMenu(modifiers) {
+        if (control.useCustomContextMenu) {
+            dirModel.prepareContextMenu()
+            control.contextMenuRequested()
+        } else {
+            dirModel.openContextMenu(null, modifiers)
         }
     }
 
@@ -373,7 +384,7 @@ GridView {
                 // 弹出 Item 菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    dirModel.openContextMenu(null, mouse.modifiers)
+                    control.openContextMenu(mouse.modifiers)
                     mouse.accepted = true
                 }
             } else {
@@ -386,7 +397,7 @@ GridView {
                 // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    dirModel.openContextMenu(null, mouse.modifiers)
+                    control.openContextMenu(mouse.modifiers)
                     mouse.accepted = true
                 }
             }

@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>qml/main.qml</file>
         <file>qml/FolderPage.qml</file>
+        <file>qml/FolderContextMenu.qml</file>
         <file>qml/ArchiveProgressDialog.qml</file>
         <file>qml/SideBar.qml</file>
         <file>qml/FolderListItem.qml</file>

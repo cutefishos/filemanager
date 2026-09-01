@@ -217,6 +217,7 @@ public:
 
     Q_INVOKABLE void setWallpaperSelected();
 
+    Q_INVOKABLE void prepareContextMenu();
     Q_INVOKABLE void openContextMenu(QQuickItem *visualParent = nullptr, Qt::KeyboardModifiers modifiers = Qt::NoModifier);
     Q_INVOKABLE void openPropertiesDialog();
     Q_INVOKABLE void openInTerminal();

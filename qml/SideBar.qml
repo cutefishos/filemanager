@@ -116,7 +116,7 @@ ListView {
         FishUI.DesktopMenu {
             id: _menu
 
-            MenuItem {
+            FishUI.MenuItem {
                 text: qsTr("Open")
 
                 onTriggered: {
@@ -127,7 +127,7 @@ ListView {
                 }
             }
 
-            MenuItem {
+            FishUI.MenuItem {
                 text: qsTr("Open in new window")
 
                 onTriggered: {
@@ -135,12 +135,12 @@ ListView {
                 }
             }
 
-            MenuSeparator {
+            FishUI.MenuSeparator {
                 Layout.fillWidth: true
                 visible: _ejectMenuItem.visible || _umountMenuItem.visible
             }
 
-            MenuItem {
+            FishUI.MenuItem {
                 id: _ejectMenuItem
                 text: qsTr("Eject")
                 visible: model.isDevice &&
@@ -153,7 +153,7 @@ ListView {
                 }
             }
 
-            MenuItem {
+            FishUI.MenuItem {
                 id: _umountMenuItem
                 text: qsTr("Unmount")
                 visible: model.isDevice &&

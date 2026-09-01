@@ -1499,6 +1499,11 @@ void FolderModel::setWallpaperSelected()
         iface.call("setWallpaper", url.toLocalFile());
 }
 
+void FolderModel::prepareContextMenu()
+{
+    updateActions();
+}
+
 void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifiers modifiers)
 {
     Q_UNUSED(modifiers);

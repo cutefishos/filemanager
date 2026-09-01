@@ -25,7 +25,7 @@ import FishUI 1.0 as FishUI
 FishUI.DesktopMenu {
     id: control
 
-    MenuItem {
+    FishUI.MenuItem {
         Layout.fillWidth: true
 
         Image {
@@ -63,7 +63,7 @@ FishUI.DesktopMenu {
         onTriggered: settings.viewMethod = 1
     }
 
-    MenuItem {
+    FishUI.MenuItem {
         Layout.fillWidth: true
 
         Image {
@@ -101,11 +101,11 @@ FishUI.DesktopMenu {
         onTriggered: settings.viewMethod = 0
     }
 
-    MenuSeparator {
+    FishUI.MenuSeparator {
         Layout.fillWidth: true
     }
 
-    MenuItem {
+    FishUI.MenuItem {
         Layout.fillWidth: true
 
 //        Image {
@@ -143,7 +143,7 @@ FishUI.DesktopMenu {
         onTriggered: settings.sortMode = 0
     }
 
-    MenuItem {
+    FishUI.MenuItem {
         Layout.fillWidth: true
 
 //        Image {
@@ -181,7 +181,7 @@ FishUI.DesktopMenu {
         onTriggered: settings.sortMode = 2
     }
 
-    MenuItem {
+    FishUI.MenuItem {
         Text {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
@@ -205,7 +205,7 @@ FishUI.DesktopMenu {
         onTriggered: settings.sortMode = 6
     }
 
-    MenuItem {
+    FishUI.MenuItem {
         Layout.fillWidth: true
 
 //        Image {

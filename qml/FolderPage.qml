@@ -193,18 +193,9 @@ Item {
                                     _viewLoader.item.contentWidth, _viewLoader.item.contentHeight)
     }
 
-    FishUI.DesktopMenu {
+    FolderContextMenu {
         id: folderMenu
-
-        MenuItem {
-            text: qsTr("Open")
-            onTriggered: dirModel.openSelected()
-        }
-
-        MenuItem {
-            text: qsTr("Properties")
-            onTriggered: dirModel.openPropertiesDialog()
-        }
+        folderModel: dirModel
     }
 
     ColumnLayout {
@@ -323,6 +314,9 @@ Item {
             id: _gridView
             model: dirModel
             delegate: FolderGridItem {}
+            useCustomContextMenu: true
+
+            onContextMenuRequested: folderMenu.popup()
 
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
@@ -346,6 +340,9 @@ Item {
         FolderListView {
             id: _folderListView
             model: dirModel
+            useCustomContextMenu: true
+
+            onContextMenuRequested: folderMenu.popup()
 
             topMargin: FishUI.Units.smallSpacing
             leftMargin: FishUI.Units.largeSpacing
