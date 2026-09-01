@@ -15,6 +15,12 @@ include(GNUInstallDirs)
 
 find_package(Qt6 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
 
+find_path(LIBZIP_INCLUDE_DIR zip.h)
+find_library(LIBZIP_LIBRARY NAMES zip)
+if (NOT LIBZIP_INCLUDE_DIR OR NOT LIBZIP_LIBRARY)
+    message(FATAL_ERROR "libzip development files are required to build filemanager")
+endif ()
+
 find_package(KF6KIO)
 find_package(KF6Solid)
 find_package(KF6WindowSystem)
@@ -59,6 +65,7 @@ add_library(cutefish-filemanager-core STATIC
 
   cio/cfilejob.cpp
   cio/cfilesizejob.cpp
+  cio/archivejob.cpp
 
   dialogs/createfolderdialog.cpp
   dialogs/filepropertiesdialog.cpp
@@ -109,7 +116,10 @@ target_link_libraries(cutefish-filemanager-core
   KF6::WindowSystem
   KF6::ConfigCore
   KF6::XmlGui
+  ${LIBZIP_LIBRARY}
 )
+
+target_include_directories(cutefish-filemanager-core PRIVATE ${LIBZIP_INCLUDE_DIR})
 
 # ---------------------------------------------------------------------------
 # cutefish-filemanager -- the file browser window

@@ -54,6 +54,12 @@ FishUI.Window {
         id: optionsMenu
     }
 
+    ArchiveProgressDialog {
+        id: archiveProgressDialog
+        archiveModel: _folderPage.model
+        hostWindow: root
+    }
+
     headerItem: Item {
         RowLayout {
             anchors.fill: parent

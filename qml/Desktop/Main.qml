@@ -62,6 +62,12 @@ Item {
                                     _folderView.contentWidth, _folderView.contentHeight)
     }
 
+    ArchiveProgressDialog {
+        id: archiveProgressDialog
+        archiveModel: dirModel
+        hostWindow: rootItem.Window.window
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: _folderView.forceActiveFocus()

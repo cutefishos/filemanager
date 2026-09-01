@@ -45,6 +45,7 @@ class QMenu;
 
 class QDrag;
 class CFileSizeJob;
+class ArchiveJob;
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
 {
     Q_OBJECT
@@ -65,6 +66,11 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(QString selectedItemSize READ selectedItemSize NOTIFY selectedItemSizeChanged)
     Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
     Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged)
+    Q_PROPERTY(bool archiveBusy READ archiveBusy NOTIFY archiveBusyChanged)
+    Q_PROPERTY(bool archiveCancelling READ archiveCancelling NOTIFY archiveCancellingChanged)
+    Q_PROPERTY(int archiveProgress READ archiveProgress NOTIFY archiveProgressChanged)
+    Q_PROPERTY(QString archiveOperation READ archiveOperation NOTIFY archiveOperationChanged)
+    Q_PROPERTY(QString archiveCurrentFile READ archiveCurrentFile NOTIFY archiveCurrentFileChanged)
 
 public:
     enum DataRole {
@@ -217,6 +223,9 @@ public:
     Q_INVOKABLE void openChangeWallpaperDialog();
     Q_INVOKABLE void openDeleteDialog();
     Q_INVOKABLE void openInNewWindow(const QString &url = QString());
+    Q_INVOKABLE void compressSelected();
+    Q_INVOKABLE void extractSelectedArchive();
+    Q_INVOKABLE void cancelArchive();
 
     Q_INVOKABLE void updateSelectedItemsSize();
     Q_INVOKABLE void keyboardSearch(const QString &text);
@@ -229,6 +238,12 @@ public:
     void setIsDesktop(bool isDesktop);
 
     QString selectedItemSize() const;
+
+    bool archiveBusy() const;
+    bool archiveCancelling() const;
+    int archiveProgress() const;
+    QString archiveOperation() const;
+    QString archiveCurrentFile() const;
 
     bool showHiddenFiles() const;
     void setShowHiddenFiles(bool showHiddenFiles);
@@ -259,6 +274,11 @@ signals:
     void move(int x, int y, QList<QUrl> urls);
 
     void currentIndexChanged();
+    void archiveBusyChanged();
+    void archiveCancellingChanged();
+    void archiveProgressChanged();
+    void archiveOperationChanged();
+    void archiveCurrentFileChanged();
 
 private slots:
     void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
@@ -266,6 +286,11 @@ private slots:
     void onRowsInserted(const QModelIndex &parent, int first, int last);
     void delayUpdateNeedSelectUrls();
     void updateNeedSelectUrls();
+    void startArchiveJob(ArchiveJob *job, const QString &operation);
+    void archiveJobFinished(bool success,
+                            bool canceled,
+                            const QString &error,
+                            const QString &outputPath);
 
 private:
     void invalidateIfComplete();
@@ -333,6 +358,13 @@ private:
     MimeAppManager *m_mimeAppManager;
 
     CFileSizeJob *m_sizeJob;
+
+    QPointer<ArchiveJob> m_archiveJob;
+    bool m_archiveBusy;
+    bool m_archiveCancelling;
+    int m_archiveProgress;
+    QString m_archiveOperation;
+    QString m_archiveCurrentFile;
 
     int m_currentIndex;
 

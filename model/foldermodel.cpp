@@ -36,6 +36,7 @@
 #include "../helper/fm.h"
 
 #include "../cio/cfilesizejob.h"
+#include "../cio/archivejob.h"
 
 // Qt
 #include <QSet>
@@ -88,6 +89,64 @@ static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folder
     return true;
 }
 
+static QString uniquePath(const QString &directory, const QString &name, bool directoryPath)
+{
+    QString stem = name;
+    QString suffix;
+
+    if (!directoryPath) {
+        const QFileInfo info(name);
+        if (!info.suffix().isEmpty()) {
+            suffix = QStringLiteral(".") + info.suffix();
+            stem.chop(suffix.size());
+        }
+    }
+
+    QString candidate = QDir(directory).filePath(name);
+    int index = 1;
+    while (QFileInfo::exists(candidate)) {
+        candidate = QDir(directory).filePath(QStringLiteral("%1 %2%3")
+                                                  .arg(stem)
+                                                  .arg(index++)
+                                                  .arg(suffix));
+    }
+
+    return candidate;
+}
+
+static bool isZipFile(const KFileItem &item)
+{
+    if (!item.isLocalFile())
+        return false;
+
+    const QString mimeType = item.mimetype();
+    return mimeType == QLatin1String("application/zip") ||
+           mimeType == QLatin1String("application/x-zip-compressed") ||
+           item.url().path().endsWith(QLatin1String(".zip"), Qt::CaseInsensitive);
+}
+
+static bool sendSystemNotification(const QString &summary, const QString &body)
+{
+    QDBusInterface interface(QStringLiteral("org.freedesktop.Notifications"),
+                             QStringLiteral("/org/freedesktop/Notifications"),
+                             QStringLiteral("org.freedesktop.Notifications"),
+                             QDBusConnection::sessionBus());
+    if (!interface.isValid())
+        return false;
+
+    QList<QVariant> arguments;
+    arguments << QStringLiteral("cutefish-filemanager");
+    arguments << static_cast<uint>(0);
+    arguments << QStringLiteral("system-file-manager");
+    arguments << summary;
+    arguments << body;
+    arguments << QStringList();
+    arguments << QVariantMap();
+    arguments << 5000;
+    interface.asyncCallWithArgumentList(QStringLiteral("Notify"), arguments);
+    return true;
+}
+
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
     , m_dirWatch(nullptr)
@@ -107,6 +166,12 @@ FolderModel::FolderModel(QObject *parent)
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
     , m_sizeJob(nullptr)
+    , m_archiveJob(nullptr)
+    , m_archiveBusy(false)
+    , m_archiveCancelling(false)
+    , m_archiveProgress(-1)
+    , m_archiveOperation()
+    , m_archiveCurrentFile()
     , m_currentIndex(-1)
     , m_updateNeedSelectTimer(new QTimer(this))
 {
@@ -190,7 +255,10 @@ FolderModel::FolderModel(QObject *parent)
 
 FolderModel::~FolderModel()
 {
-
+    if (m_archiveJob) {
+        m_archiveJob->cancel();
+        m_archiveJob->wait();
+    }
 }
 
 void FolderModel::classBegin()
@@ -1027,6 +1095,11 @@ void FolderModel::openSelected()
         }
     }
 
+    if (urls.size() == 1 && isZipFile(KFileItem(urls.first()))) {
+        extractSelectedArchive();
+        return;
+    }
+
     for (const QUrl &url : urls) {
         KFileItem item(url);
         QString mimeType = item.mimetype();
@@ -1070,6 +1143,171 @@ void FolderModel::openSelected()
         }
 
         QDesktopServices::openUrl(url);
+    }
+}
+
+void FolderModel::startArchiveJob(ArchiveJob *job, const QString &operation)
+{
+    if (!job)
+        return;
+
+    m_archiveJob = job;
+
+    m_archiveBusy = true;
+    emit archiveBusyChanged();
+
+    m_archiveCancelling = false;
+    emit archiveCancellingChanged();
+
+    m_archiveProgress = -1;
+    emit archiveProgressChanged();
+
+    m_archiveOperation = operation;
+    emit archiveOperationChanged();
+
+    m_archiveCurrentFile.clear();
+    emit archiveCurrentFileChanged();
+
+    connect(job, &ArchiveJob::progressChanged, this, [this](int progress) {
+        if (m_archiveProgress == progress)
+            return;
+
+        m_archiveProgress = progress;
+        emit archiveProgressChanged();
+    }, Qt::QueuedConnection);
+
+    connect(job, &ArchiveJob::currentFileChanged, this, [this](const QString &fileName) {
+        if (m_archiveCurrentFile == fileName)
+            return;
+
+        m_archiveCurrentFile = fileName;
+        emit archiveCurrentFileChanged();
+    }, Qt::QueuedConnection);
+
+    connect(job, &ArchiveJob::completed, this, &FolderModel::archiveJobFinished,
+            Qt::QueuedConnection);
+
+    // Do not delete the QThread from the completed callback: run() is still
+    // unwinding at that point. Waiting for QThread::finished keeps cleanup
+    // safe even when a very small archive completes immediately.
+    connect(job, &QThread::finished, this, [this, job]() {
+        if (m_archiveJob == job)
+            m_archiveJob = nullptr;
+        job->deleteLater();
+    }, Qt::QueuedConnection);
+
+    job->start();
+}
+
+void FolderModel::compressSelected()
+{
+    if (m_archiveJob || !m_selectionModel->hasSelection())
+        return;
+
+    if (resolvedUrl().scheme() == QLatin1String("trash") || !rootItem().isWritable())
+        return;
+
+    const QList<QUrl> urls = selectedUrls();
+    QStringList paths;
+    paths.reserve(urls.size());
+
+    for (const QUrl &url : urls) {
+        if (!url.isLocalFile() || url.toLocalFile().isEmpty()) {
+            emit notification(tr("Only local files can be compressed."));
+            return;
+        }
+        paths.append(url.toLocalFile());
+    }
+
+    const QString destinationDirectory = resolvedUrl().toLocalFile();
+    if (destinationDirectory.isEmpty())
+        return;
+
+    const QString baseName = urls.size() == 1
+                                 ? QFileInfo(paths.first()).fileName()
+                                 : QStringLiteral("Archive");
+    const QString outputPath = uniquePath(destinationDirectory, baseName + QStringLiteral(".zip"), false);
+
+    startArchiveJob(new ArchiveJob(ArchiveJob::Compress, paths, outputPath, this),
+                    tr("Compressing"));
+}
+
+void FolderModel::extractSelectedArchive()
+{
+    if (m_archiveJob || m_selectionModel->selectedIndexes().size() != 1)
+        return;
+
+    const QUrl archiveUrl = selectedUrls().first();
+    const KFileItem item(archiveUrl);
+    if (!isZipFile(item))
+        return;
+
+    const QString archivePath = archiveUrl.toLocalFile();
+    const QFileInfo archiveInfo(archivePath);
+    if (!archiveInfo.isFile())
+        return;
+
+    QString baseName = archiveInfo.completeBaseName();
+    if (baseName.isEmpty())
+        baseName = QStringLiteral("Extracted");
+
+    const QString outputPath = uniquePath(archiveInfo.absolutePath(), baseName, true);
+    startArchiveJob(new ArchiveJob(ArchiveJob::Extract,
+                                   QStringList() << archivePath,
+                                   outputPath,
+                                   this),
+                    tr("Extracting"));
+}
+
+void FolderModel::cancelArchive()
+{
+    if (!m_archiveJob || !m_archiveBusy || m_archiveCancelling)
+        return;
+
+    m_archiveCancelling = true;
+    emit archiveCancellingChanged();
+    m_archiveJob->cancel();
+}
+
+void FolderModel::archiveJobFinished(bool success,
+                                     bool canceled,
+                                     const QString &error,
+                                     const QString &outputPath)
+{
+    if (!m_archiveBusy)
+        return;
+
+    const QString operation = m_archiveOperation;
+
+    m_archiveBusy = false;
+    emit archiveBusyChanged();
+
+    m_archiveCancelling = false;
+    emit archiveCancellingChanged();
+
+    m_archiveProgress = success ? 100 : -1;
+    emit archiveProgressChanged();
+
+    m_archiveCurrentFile.clear();
+    emit archiveCurrentFileChanged();
+
+    QString message;
+    if (success) {
+        m_needSelectUrls.append(QUrl::fromLocalFile(outputPath));
+        refresh();
+        delayUpdateNeedSelectUrls();
+        message = tr("%1 completed: %2").arg(operation, QFileInfo(outputPath).fileName());
+        emit notification(message);
+    } else if (canceled) {
+        message = tr("%1 canceled.").arg(operation);
+        emit notification(message);
+    } else {
+        message = tr("%1 failed: %2").arg(operation, error);
+        // Errors are important enough to leave the operation surface and go
+        // to the system notification center. Fall back to the existing
+        // in-window toast if no notification service is available.
+        if (!sendSystemNotification(tr("File Manager"), message))
+            emit notification(message);
     }
 }
 
@@ -1315,6 +1553,7 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         menu->addAction(m_actionCollection.action("openInNewWindow"));
 
         menu->addAction(m_actionCollection.action("openWith"));
+        menu->addAction(m_actionCollection.action("compress"));
         menu->addSeparator();
         menu->addAction(m_actionCollection.action("cut"));
         menu->addAction(m_actionCollection.action("copy"));
@@ -1738,6 +1977,31 @@ QString FolderModel::selectedItemSize() const
     return m_selectedItemSize;
 }
 
+bool FolderModel::archiveBusy() const
+{
+    return m_archiveBusy;
+}
+
+bool FolderModel::archiveCancelling() const
+{
+    return m_archiveCancelling;
+}
+
+int FolderModel::archiveProgress() const
+{
+    return m_archiveProgress;
+}
+
+QString FolderModel::archiveOperation() const
+{
+    return m_archiveOperation;
+}
+
+QString FolderModel::archiveCurrentFile() const
+{
+    return m_archiveCurrentFile;
+}
+
 bool FolderModel::isDesktop() const
 {
     return m_isDesktop;
@@ -1775,6 +2039,9 @@ void FolderModel::createActions()
 
     QAction *openWith = new QAction(tr("Open with"), this);
     connect(openWith, &QAction::triggered, this, &FolderModel::showOpenWithDialog);
+
+    QAction *compress = new QAction(tr("Compress"), this);
+    connect(compress, &QAction::triggered, this, &FolderModel::compressSelected);
 
     QAction *cut = new QAction(tr("Cut"), this);
     connect(cut, &QAction::triggered, this, &FolderModel::cut);
@@ -1830,6 +2097,7 @@ void FolderModel::createActions()
 
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
+    m_actionCollection.addAction(QStringLiteral("compress"), compress);
     m_actionCollection.addAction(QStringLiteral("cut"), cut);
     m_actionCollection.addAction(QStringLiteral("copy"), copy);
     m_actionCollection.addAction(QStringLiteral("paste"), paste);
@@ -1905,6 +2173,19 @@ void FolderModel::updateActions()
 
     if (QAction *openWith = m_actionCollection.action(QStringLiteral("openWith"))) {
         openWith->setVisible(items.count() == 1 && !isTrash);
+    }
+
+    if (QAction *compress = m_actionCollection.action(QStringLiteral("compress"))) {
+        const bool canCompress = !indexes.isEmpty() && !isTrash && !hasRemoteFiles &&
+                                 rootItem().isWritable();
+        compress->setVisible(canCompress);
+        compress->setEnabled(canCompress && !m_archiveJob);
+
+        if (indexes.count() == 1 && !items.isEmpty()) {
+            compress->setText(tr("Compress “%1”").arg(items.first().url().fileName()));
+        } else {
+            compress->setText(tr("Compress Items"));
+        }
     }
 
     if (QAction *newFolder = m_actionCollection.action(QStringLiteral("newFolder"))) {
