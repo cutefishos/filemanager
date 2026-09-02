@@ -22,9 +22,6 @@
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
-
     // Same registration the desktop plugin performs, so both hosts of the
     // shared QML see exactly the same types.
     CutefishFM::registerQmlTypes();
