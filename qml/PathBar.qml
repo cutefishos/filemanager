@@ -57,12 +57,12 @@ Item {
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
-        onPressed: {
+        onPressed: function(mouse) {
             _dragged = false
             _pressX = mouse.x
             _pressY = mouse.y
         }
-        onPositionChanged: {
+        onPositionChanged: function(mouse) {
             if (Math.abs(mouse.x - _pressX) > 4 || Math.abs(mouse.y - _pressY) > 4)
                 _dragged = true
         }
@@ -130,12 +130,12 @@ Item {
             property real pressX: 0
             property real pressY: 0
 
-            onPressed: {
+            onPressed: function(mouse) {
                 dragged = false
                 pressX = mouse.x
                 pressY = mouse.y
             }
-            onPositionChanged: {
+            onPositionChanged: function(mouse) {
                 if (Math.abs(mouse.x - pressX) > 4 || Math.abs(mouse.y - pressY) > 4)
                     dragged = true
             }
@@ -191,7 +191,7 @@ Item {
             closeEditor()
         }
 
-        Keys.onPressed: {
+        Keys.onPressed: function(event) {
             if (event.key === Qt.Key_Escape)
                 focus = false
         }

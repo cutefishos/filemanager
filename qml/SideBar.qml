@@ -101,7 +101,7 @@ ListView {
             anchors.fill: parent
             hoverEnabled: true
             acceptedButtons: Qt.LeftButton | Qt.RightButton
-            onClicked: {
+            onClicked: function(mouse) {
                 if (mouse.button === Qt.LeftButton) {
                     if (model.isDevice && model.setupNeeded)
                         placesModel.requestSetup(index)

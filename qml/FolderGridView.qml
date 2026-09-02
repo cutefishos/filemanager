@@ -197,7 +197,7 @@ GridView {
     highlightMoveDuration: 0
     keyNavigationEnabled : true
     keyNavigationWraps : true
-    Keys.onPressed: {
+    Keys.onPressed: function(event) {
         control.keyPress(event)
 
         if (event.key === Qt.Key_Control) {
@@ -213,7 +213,7 @@ GridView {
             control.decreaseIconSize()
         }
     }
-    Keys.onReleased: {
+    Keys.onReleased: function(event) {
         if (event.key === Qt.Key_Control) {
             ctrlPressed = false
         } else if (event.key === Qt.Key_Shift) {
@@ -221,13 +221,13 @@ GridView {
             anchorIndex = 0
         }
     }
-    Keys.onEscapePressed: {
+    Keys.onEscapePressed: function(event) {
         if (!editor || !editor.targetItem) {
             dirModel.clearSelection()
             event.accepted = false
         }
     }
-    Keys.onUpPressed: {
+    Keys.onUpPressed: function(event) {
         if (!editor || !editor.targetItem) {
             var newIndex = positioner.nearestItem(currentIndex,
                                                   effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.UpArrow))
@@ -237,7 +237,7 @@ GridView {
             }
         }
     }
-    Keys.onDownPressed: {
+    Keys.onDownPressed: function(event) {
         if (!editor || !editor.targetItem) {
             var newIndex = positioner.nearestItem(currentIndex,
                                                   effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.DownArrow))
@@ -247,7 +247,7 @@ GridView {
             }
         }
     }
-    Keys.onLeftPressed: {
+    Keys.onLeftPressed: function(event) {
         if (!editor || !editor.targetItem) {
             var newIndex = positioner.nearestItem(currentIndex,
                                                   effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.LeftArrow))
@@ -257,7 +257,7 @@ GridView {
             }
         }
     }
-    Keys.onRightPressed: {
+    Keys.onRightPressed: function(event) {
         if (!editor || !editor.targetItem) {
             var newIndex = positioner.nearestItem(currentIndex,
                                                   effectiveNavDirection(control.flow, control.effectiveLayoutDirection, Qt.RightArrow))
@@ -332,7 +332,7 @@ GridView {
     DragDrop.DropArea {
         anchors.fill: parent
 
-        onDrop: {
+        onDrop: function(event) {
             control.drop(control, event, mapToItem(control, event.x, event.y))
         }
     }
@@ -347,7 +347,7 @@ GridView {
         enabled: true
         z: -1
 
-        onPressed: {
+        onPressed: function(mouse) {
             control.forceActiveFocus()
 
             if (control.editor && childAt(mouse.x, mouse.y) !== control.editor)
@@ -403,7 +403,7 @@ GridView {
             }
         }
 
-        onPositionChanged: {
+        onPositionChanged: function(mouse) {
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
@@ -483,7 +483,7 @@ GridView {
             clearPressState()
         }
 
-        onDoubleClicked: {
+        onDoubleClicked: function(mouse) {
             if (mouse.button === Qt.LeftButton && control.pressedItem)
                 dirModel.openSelected()
         }
@@ -506,7 +506,7 @@ GridView {
 
         onCanceled: pressCanceled()
 
-        onWheel: {
+        onWheel: function(wheel) {
             if (wheel.modifiers & Qt.ControlModifier) {
                 if (wheel.angleDelta.y > 0)
                     control.increaseIconSize()
@@ -676,7 +676,7 @@ GridView {
                 }
             }
 
-            Keys.onPressed: {
+            Keys.onPressed: function(event) {
                 switch (event.key) {
                 case Qt.Key_Return:
                 case Qt.Key_Enter:

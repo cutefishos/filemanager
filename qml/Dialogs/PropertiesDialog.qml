@@ -41,8 +41,10 @@ FishUI.Window {
     maximumWidth: widthValue
     maximumHeight: heightValue
 
-    Keys.enabled: true
-    Keys.onEscapePressed: control.close()
+    Shortcut {
+        sequence: "Escape"
+        onActivated: control.close()
+    }
 
     background.color: FishUI.Theme.secondBackgroundColor
 

@@ -143,7 +143,7 @@ ListView {
 
     highlightMoveDuration: 0
     Keys.enabled: true
-    Keys.onPressed: {
+    Keys.onPressed: function(event) {
         control.keyPress(event)
 
         if (event.key === Qt.Key_Control) {
@@ -156,7 +156,7 @@ ListView {
         }
     }
 
-    Keys.onReleased: {
+    Keys.onReleased: function(event) {
         if (event.key === Qt.Key_Control) {
             ctrlPressed = false
         } else if (event.key === Qt.Key_Shift) {
@@ -165,14 +165,14 @@ ListView {
         }
     }
 
-    Keys.onEscapePressed: {
+    Keys.onEscapePressed: function(event) {
         if (!editor || !editor.targetItem) {
             dirModel.clearSelection()
             event.accepted = false
         }
     }
 
-    Keys.onUpPressed: {
+    Keys.onUpPressed: function(event) {
         if (!editor || !editor.targetItem) {
             var newIndex = currentIndex
             newIndex--;
@@ -185,7 +185,7 @@ ListView {
         }
     }
 
-    Keys.onDownPressed: {
+    Keys.onDownPressed: function(event) {
         if (!editor || !editor.targetItem) {
             var newIndex = currentIndex
             newIndex++
@@ -227,7 +227,7 @@ ListView {
     DragDrop.DropArea {
         anchors.fill: parent
 
-        onDrop: {
+        onDrop: function(event) {
             control.drop(control, event, mapToItem(control, event.x, event.y))
         }
     }
@@ -242,12 +242,12 @@ ListView {
         enabled: true
         z: -1
 
-        onDoubleClicked: {
+        onDoubleClicked: function(mouse) {
             if (mouse.button === Qt.LeftButton && control.pressedItem)
                 dirModel.openSelected()
         }
 
-        onPressed: {
+        onPressed: function(mouse) {
             control.forceActiveFocus()
 
             if (control.editor && childAt(mouse.x, mouse.y) !== control.editor)
@@ -316,7 +316,7 @@ ListView {
             // TODO: rename
         }
 
-        onPositionChanged: {
+        onPositionChanged: function(mouse) {
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
@@ -497,7 +497,7 @@ ListView {
                     control.forceActiveFocus()
             }
 
-            Keys.onPressed: {
+            Keys.onPressed: function(event) {
                 switch (event.key) {
                 case Qt.Key_Return:
                 case Qt.Key_Enter:

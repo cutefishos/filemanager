@@ -64,8 +64,10 @@ FishUI.Window {
         control.close()
     }
 
-    Keys.enabled: true
-    Keys.onEscapePressed: control.close()
+    Shortcut {
+        sequence: "Escape"
+        onActivated: control.close()
+    }
 
     ColumnLayout {
         id: _mainLayout
