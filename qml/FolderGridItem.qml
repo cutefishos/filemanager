@@ -211,7 +211,7 @@ Item {
         z: 1
         horizontalOffset: 1
         verticalOffset: 1
-        radius: Math.round(4 * FishUI.Units.devicePixelRatio)
+        radius: 4
         samples: radius * 2 + 1
         spread: 0.35
         color: Qt.rgba(0, 0, 0, 0.3)
