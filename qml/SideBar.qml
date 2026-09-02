@@ -51,7 +51,7 @@ ListView {
     leftMargin: FishUI.Units.smallSpacing * 1.5
     rightMargin: FishUI.Units.smallSpacing * 1.5
     bottomMargin: FishUI.Units.smallSpacing
-    spacing: FishUI.Units.smallSpacing
+    spacing: FishUI.Units.smallSpacing / 2
 
     ScrollBar.vertical: ScrollBar {
         bottomPadding: FishUI.Units.smallSpacing
