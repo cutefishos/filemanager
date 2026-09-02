@@ -86,7 +86,9 @@ QString ThumbnailCache::requestThumbnail(const QString &filePath, const QSize &r
     };
 
     QString thumbDir;
-    int wants = /*devicePixelRatio **/ cacheSize;
+    // Qt already multiplies an image provider's requested size by the device
+    // pixel ratio, so requestedSize arrives in device pixels.
+    const int wants = cacheSize;
     for (const auto &p : pools) {
         if (p.minSize < wants) {
             continue;
