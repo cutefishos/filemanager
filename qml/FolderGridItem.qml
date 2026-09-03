@@ -44,20 +44,28 @@ Item {
     // For desktop
     visible: GridView.view.isDesktopView ? !blank : true
 
-    onSelectedChanged: {
-        if (!GridView.view.isDesktopView)
+    onSelectedChanged: updateDragImage()
+    // blank and selected do not settle in the same order, so both have to ask.
+    onBlankChanged: updateDragImage()
+
+    // The drag pixmap is built from these snapshots, so one taken at the icon's
+    // old cell would drag the wrong picture at the wrong offset from the cursor.
+    onXChanged: updateDragImage()
+    onYChanged: updateDragImage()
+
+    function updateDragImage() {
+        if (!GridView.view.isDesktopView || !selected || blank)
             return
 
-        if (selected && !blank) {
-            control.grabToImage(function(result) {
-                dirModel.addItemDragImage(control.index,
-                                          control.x,
-                                          control.y,
-                                          control.width,
-                                          control.height,
-                                          result.image)
-            })
-        }
+        var row = GridView.view.positioner.map(control.index)
+        var x = control.x
+        var y = control.y
+        var width = control.width
+        var height = control.height
+
+        control.grabToImage(function(result) {
+            dirModel.addItemDragImage(row, x, y, width, height, result.image)
+        })
     }
 
     Rectangle {

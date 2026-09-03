@@ -39,6 +39,18 @@ GridView {
     property alias positions: positioner.positions
     property alias positioner: positioner
 
+    // The cell grid the view has room for. cellWidth/cellHeight are stretched to
+    // fill exactly this many cells, so this is also what the positioner stores
+    // icon cells against.
+    readonly property int gridColumns: Math.max(1, Math.floor((width - leftMargin - rightMargin) / cellWidth))
+    readonly property int gridRows: Math.max(1, Math.floor((height - topMargin - bottomMargin) / cellHeight))
+    readonly property bool columnFlow: control.flow === GridView.FlowTopToBottom
+
+    // Where inside its cell the icon was grabbed, so a drop lands the icon under
+    // the cursor rather than offset by the grab point.
+    property int dragAnchorIndex: -1
+    property point dragGrabOffset: Qt.point(0, 0)
+
     property int verticalDropHitscanOffset: 0
 
     property int pressX: -1
@@ -73,11 +85,14 @@ GridView {
 
     onIconSizeChanged: {
         // 图标大小改变时需要重置状态，否则选中定位不准确
-        positioner.reset()
+        // 桌面有自己的位置记忆，重置会丢弃用户摆放的位置
+        if (!positioner.enabled)
+            positioner.reset()
     }
 
     onCountChanged: {
-        positioner.reset()
+        if (!positioner.enabled)
+            positioner.reset()
     }
 
     function effectiveNavDirection(flow, layoutDirection, direction) {
@@ -126,7 +141,7 @@ GridView {
 
     function rename() {
         if (control.currentIndex != -1) {
-            var renameAction = control.model.action("rename")
+            var renameAction = dirModel.action("rename")
             if (renameAction && !renameAction.enabled)
                 return
 
@@ -144,7 +159,12 @@ GridView {
         }
     }
 
-    function openContextMenu(modifiers) {
+    // x, y are the click that opened the menu, in view coordinates.
+    function openContextMenu(modifiers, x, y) {
+        // A new folder or file belongs on the cell that was right-clicked.
+        if (positioner.enabled)
+            dirModel.setNewDocumentPosition(x, y)
+
         if (control.useCustomContextMenu) {
             dirModel.prepareContextMenu()
             control.contextMenuRequested()
@@ -317,16 +337,99 @@ GridView {
         if (cachedRectangleSelection.length)
             control.currentIndex[0]
 
-        dirModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
+        dirModel.updateSelection(cachedRectangleSelection.map(function(index) {
+            return positioner.map(index)
+        }), control.ctrlPressed)
     }
 
     Positioner {
         id: positioner
-        enabled: true
+        // Only the desktop keeps icons in fixed cells; in the window the view
+        // stays a plain, always-packed grid.
+        enabled: control.isDesktopView
         folderModel: dirModel
-        perStripe: Math.floor(((control.flow == GridView.FlowLeftToRight)
-            ? control.width : control.height) / ((control.flow == GridView.FlowLeftToRight)
-            ? control.cellWidth : control.cellHeight))
+        perStripe: control.columnFlow ? control.gridRows : control.gridColumns
+        stripes: control.columnFlow ? control.gridColumns : control.gridRows
+    }
+
+    // Cell containing a point in content coordinates.
+    function cellAt(cx, cy) {
+        return clampCell(Math.floor(cx / control.cellWidth), Math.floor(cy / control.cellHeight))
+    }
+
+    // Cell an icon whose top left corner is at cx, cy snaps to: the nearest one,
+    // so half a cell of travel is enough to move it, the way a drag should feel.
+    function cellNear(cx, cy) {
+        return clampCell(Math.round(cx / control.cellWidth), Math.round(cy / control.cellHeight))
+    }
+
+    function clampCell(col, row) {
+        col = Math.max(0, Math.min(control.gridColumns - 1, col))
+        row = Math.max(0, Math.min(control.gridRows - 1, row))
+
+        if (control.effectiveLayoutDirection === Qt.RightToLeft)
+            col = control.gridColumns - 1 - col
+
+        return Qt.point(col, row)
+    }
+
+    function cellIndex(col, row) {
+        return control.columnFlow ? (col * control.gridRows) + row
+                                  : (row * control.gridColumns) + col
+    }
+
+    function cellOfIndex(index) {
+        return control.columnFlow ? Qt.point(Math.floor(index / control.gridRows), index % control.gridRows)
+                                  : Qt.point(index % control.gridColumns, Math.floor(index / control.gridColumns))
+    }
+
+    // A drop inside the view: pin the dropped icons to the cell under the cursor,
+    // keeping the relative arrangement of a multiple selection. anchorIndex is
+    // the cell the drag was started from, or -1 for a drop that comes from
+    // somewhere else -- those land on the cell under the cursor.
+    function moveToCell(x, y, urls, anchorIndex, grabOffset) {
+        if (!positioner.enabled)
+            return
+
+        // A drag that started on one of the icons keeps the selection's shape:
+        // every icon moves by the same number of cells as the grabbed one.
+        var anchor = anchorIndex >= 0 ? cellOfIndex(anchorIndex) : null
+        var grab = anchor ? grabOffset : Qt.point(0, 0)
+        var pos = mapToItem(control.contentItem, x, y)
+        // With an anchor the drag carries the icon itself, so snap the icon; a
+        // drop from elsewhere only has a cursor, which lands on the cell it is over.
+        var target = anchor ? cellNear(pos.x - grab.x, pos.y - grab.y) : cellAt(pos.x, pos.y)
+        var moves = []
+
+        for (var i = 0; i < urls.length; ++i) {
+            var from = positioner.indexForUrl(urls[i])
+
+            if (from === -1)
+                continue
+
+            var cell = cellOfIndex(from)
+            var col = anchor ? target.x + (cell.x - anchor.x) : target.x
+            var row = anchor ? target.y + (cell.y - anchor.y) : target.y
+
+            col = Math.max(0, Math.min(control.gridColumns - 1, col))
+            row = Math.max(0, Math.min(control.gridRows - 1, row))
+
+            moves.push(from)
+            moves.push(cellIndex(col, row))
+        }
+
+        if (moves.length)
+            positioner.move(moves)
+    }
+
+    Connections {
+        target: positioner.enabled ? dirModel : null
+
+        function onMove(x, y, urls) {
+            control.moveToCell(x, y, urls,
+                               dirModel.dragging ? control.dragAnchorIndex : -1,
+                               control.dragGrabOffset)
+        }
     }
 
     DragDrop.DropArea {
@@ -366,25 +469,25 @@ GridView {
 
                 // Shift 处理, 选择区域
                 if (control.shiftPressed && control.currentIndex !== -1) {
-                    dirModel.setRangeSelected(control.anchorIndex, hoveredItem.index)
+                    positioner.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
                     // Ctrl 处理
-                    if (!control.ctrlPressed && !dirModel.isSelected(hoveredItem.index)) {
+                    if (!control.ctrlPressed && !dirModel.isSelected(positioner.map(hoveredItem.index))) {
                         dirModel.clearSelection()
                     }
 
                     // Item 选择
                     if (control.ctrlPressed) {
-                        dirModel.toggleSelected(hoveredItem.index)
+                        dirModel.toggleSelected(positioner.map(hoveredItem.index))
                     } else {
-                        dirModel.setSelected(hoveredItem.index)
+                        dirModel.setSelected(positioner.map(hoveredItem.index))
                     }
                 }
 
                 // 弹出 Item 菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers)
+                    control.openContextMenu(mouse.modifiers, mouse.x, mouse.y)
                     mouse.accepted = true
                 }
             } else {
@@ -397,7 +500,7 @@ GridView {
                 // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers)
+                    control.openContextMenu(mouse.modifiers, mouse.x, mouse.y)
                     mouse.accepted = true
                 }
             }
@@ -461,10 +564,16 @@ GridView {
             }
 
             if (pressX != -1) {
-                if (pressedItem != null && dirModel.isSelected(pressedItem.index)) {
+                if (pressedItem != null && dirModel.isSelected(positioner.map(pressedItem.index))) {
                     control.dragX = mouse.x
                     control.dragY = mouse.y
                     control.verticalDropHitscanOffset = pressedItem.y + (pressedItem.height / 2)
+
+                    var grab = mapToItem(pressedItem, mouse.x, mouse.y)
+                    control.dragAnchorIndex = pressedItem.index
+                    control.dragGrabOffset = Qt.point(grab.x, grab.y)
+
+                    control.refreshDragImages()
                     dirModel.dragSelected(mouse.x, mouse.y)
                     control.dragX = -1
                     control.dragY = -1
@@ -496,7 +605,7 @@ GridView {
                     !control.ctrlPressed &&
                     !dirModel.dragging) {
                 dirModel.clearSelection()
-                dirModel.setSelected(pressedItem.index)
+                dirModel.setSelected(positioner.map(pressedItem.index))
             }
 
             dirModel.updateSelectedItemsSize()
@@ -515,6 +624,25 @@ GridView {
             } else {
                 wheel.accepted = false
             }
+        }
+    }
+
+    // The drag pixmap is assembled from snapshots the delegates take when they
+    // are selected. An icon that has since been moved to another cell still
+    // carries its old geometry, which would drag the picture far off the cursor,
+    // so re-sync every selected icon just before the drag starts.
+    function refreshDragImages() {
+        // The snapshots are in content coordinates, the drag cursor is not.
+        dirModel.setDragHotSpotScrollOffset(control.contentX, control.contentY)
+
+        for (var i = 0; i < control.count; ++i) {
+            var item = control.itemAtIndex(i)
+
+            if (!item || item.blank || !item.selected)
+                continue
+
+            if (!dirModel.updateItemDragRect(positioner.map(i), item.x, item.y, item.width, item.height))
+                item.updateDragImage()
         }
     }
 
@@ -556,7 +684,7 @@ GridView {
                     break
                 }
 
-                if (dirModel.isBlank(index)) {
+                if (positioner.isBlank(index)) {
                     continue
                 }
 
@@ -635,10 +763,10 @@ GridView {
 
     function updateSelection(modifier) {
         if (modifier & Qt.ShiftModifier) {
-            dirModel.setRangeSelected(anchorIndex, currentIndex)
+            positioner.setRangeSelected(anchorIndex, currentIndex)
         } else {
             dirModel.clearSelection()
-            dirModel.setSelected(currentIndex)
+            dirModel.setSelected(positioner.map(currentIndex))
         }
     }
 
@@ -665,7 +793,7 @@ GridView {
                     y = pos.y - FishUI.Units.smallSpacing
                     text = targetItem.labelArea.text
                     targetItem.labelArea.visible = false
-                    _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
+                    _editor.select(0, dirModel.fileExtensionBoundary(positioner.map(targetItem.index)))
                     visible = true
                 } else {
                     x = 0
@@ -700,7 +828,7 @@ GridView {
             function commit() {
                 if (targetItem) {
                     targetItem.labelArea.visible = true
-                    dirModel.rename(targetItem.index, text)
+                    dirModel.rename(positioner.map(targetItem.index), text)
                     control.currentIndex = targetItem.index
                     targetItem = null
 

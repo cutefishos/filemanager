@@ -196,6 +196,7 @@ public:
     Q_INVOKABLE void pinSelection();
     Q_INVOKABLE void unpinSelection();
 
+    Q_INVOKABLE void setNewDocumentPosition(int x, int y);
     Q_INVOKABLE void newFolder();
     Q_INVOKABLE void newTextFile();
     Q_INVOKABLE void rename(int row, const QString &name);
@@ -210,6 +211,7 @@ public:
     Q_INVOKABLE void keyDeletePress();
 
     Q_INVOKABLE void setDragHotSpotScrollOffset(int x, int y);
+    Q_INVOKABLE bool updateItemDragRect(int row, int x, int y, int width, int height);
     Q_INVOKABLE void addItemDragImage(int row, int x, int y, int width, int height, const QVariant &image);
     Q_INVOKABLE void clearDragImages();
     Q_INVOKABLE void dragSelected(int x, int y);
@@ -294,6 +296,7 @@ private slots:
                             const QString &outputPath);
 
 private:
+    void rememberNewDocumentPosition(const QString &name);
     void invalidateIfComplete();
     void invalidateFilterIfComplete();
     void createActions();
@@ -316,6 +319,7 @@ private:
     QItemSelection m_pinnedSelection;
     QString m_url;
     QUrl m_newDocumentUrl;
+    QPoint m_newDocumentPos{-1, -1};
     QList<QUrl> m_needSelectUrls;
 
     Status m_status;

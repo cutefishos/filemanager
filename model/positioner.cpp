@@ -24,12 +24,14 @@
 #include <QTimer>
 
 #include <cstdlib>
+#include <utility>
 
 Positioner::Positioner(QObject *parent)
     : QAbstractItemModel(parent)
     , m_enabled(false)
     , m_folderModel(nullptr)
     , m_perStripe(0)
+    , m_stripes(0)
     , m_ignoreNextTransaction(false)
     , m_deferApplyPositions(false)
     , m_updatePositionsTimer(new QTimer(this))
@@ -117,6 +119,40 @@ void Positioner::setPerStripe(int perStripe)
     }
 }
 
+int Positioner::stripes() const
+{
+    return m_stripes;
+}
+
+void Positioner::setStripes(int stripes)
+{
+    if (m_stripes != stripes) {
+        m_stripes = stripes;
+
+        emit stripesChanged();
+
+        if (m_enabled && m_stripes > 0 && m_perStripe > 0 && !m_proxyToSource.isEmpty()) {
+            applyPositions();
+        }
+    }
+}
+
+// A cell is usable only while it is inside the grid the view currently has
+// room for; anything outside has to be reflowed or it would sit off-screen.
+bool Positioner::fitsGrid(int stripe, int pos) const
+{
+    if (stripe < 0 || pos < 0)
+        return false;
+
+    if (m_perStripe > 0 && pos >= m_perStripe)
+        return false;
+
+    if (m_stripes > 0 && stripe >= m_stripes)
+        return false;
+
+    return true;
+}
+
 QStringList Positioner::positions() const
 {
     return m_positions;
@@ -142,6 +178,15 @@ int Positioner::map(int row) const
 {
     if (m_enabled && m_folderModel) {
         return m_proxyToSource.value(row, -1);
+    }
+
+    return row;
+}
+
+int Positioner::mapFromSource(int row) const
+{
+    if (m_enabled && m_folderModel) {
+        return m_sourceToProxy.value(row, -1);
     }
 
     return row;
@@ -307,8 +352,29 @@ QVariant Positioner::data(const QModelIndex &index, int role) const
         if (m_enabled) {
             if (m_proxyToSource.contains(index.row())) {
                 return m_folderModel->data(m_folderModel->index(m_proxyToSource.value(index.row()), 0), role);
-            } else if (role == FolderModel::BlankRole) {
+            }
+
+            // An empty cell still has to answer with the type the delegate
+            // expects, or every binding on it warns about an undefined value.
+            switch (role) {
+            case FolderModel::BlankRole:
                 return true;
+            case FolderModel::SelectedRole:
+            case FolderModel::IsDirRole:
+            case FolderModel::IsHiddenRole:
+            case FolderModel::IsLinkRole:
+            case FolderModel::IsDesktopFileRole:
+                return false;
+            case FolderModel::UrlRole:
+            case FolderModel::DisplayNameRole:
+            case FolderModel::FileNameRole:
+            case FolderModel::FileSizeRole:
+            case FolderModel::IconNameRole:
+            case FolderModel::ThumbnailRole:
+            case FolderModel::ModifiedRole:
+                return QString();
+            default:
+                break;
             }
         } else {
             return m_folderModel->data(m_folderModel->index(index.row(), 0), role);
@@ -411,8 +477,23 @@ void Positioner::move(const QVariantList &moves)
             /* find the next blank space
              * we won't be happy if we're moving two icons to the same place
              */
+            const int cells = (m_perStripe > 0 && m_stripes > 0) ? (m_perStripe * m_stripes) : 0;
+            int tried = 0;
+
             while ((!isBlank(to) && from != to) || toIndices.contains(to)) {
                 to++;
+
+                // Wrap inside the grid: an occupied cell at the far corner must
+                // not push the icon into a column the desktop cannot show.
+                if (cells > 0 && to >= cells) {
+                    to = 0;
+                }
+
+                if (cells > 0 && ++tried > cells) {
+                    // Every cell is taken; park it after the last one.
+                    to = lastRow() + 1;
+                    break;
+                }
             }
         }
 
@@ -460,22 +541,23 @@ void Positioner::updatePositions()
         positions.append(QString::number((1 + ((rowCount() - 1) / m_perStripe))));
         positions.append(QString::number(m_perStripe));
 
-        QHashIterator<int, int> it(m_proxyToSource);
+        // Sorted by cell so the stored layout is stable: an unchanged desktop
+        // must not produce a different string list every time.
+        QList<int> rows(m_proxyToSource.keys());
+        std::sort(rows.begin(), rows.end());
 
-        while (it.hasNext()) {
-            it.next();
-
-            const QString &name = m_folderModel->data(m_folderModel->index(it.value(), 0), FolderModel::UrlRole).toString();
+        for (int row : std::as_const(rows)) {
+            const QString &name = m_folderModel->data(m_folderModel->index(m_proxyToSource.value(row), 0), FolderModel::UrlRole).toString();
 
             if (name.isEmpty()) {
-                qDebug() << this << it.value() << "Source model doesn't know this index!";
+                qDebug() << this << m_proxyToSource.value(row) << "Source model doesn't know this index!";
 
                 return;
             }
 
             positions.append(name);
-            positions.append(QString::number(qMax(0, it.key() / m_perStripe)));
-            positions.append(QString::number(qMax(0, it.key() % m_perStripe)));
+            positions.append(QString::number(qMax(0, row / m_perStripe)));
+            positions.append(QString::number(qMax(0, row % m_perStripe)));
         }
     }
 
@@ -488,7 +570,7 @@ void Positioner::updatePositions()
 
 void Positioner::sourceStatusChanged()
 {
-    if (m_deferApplyPositions && m_folderModel->status() != FolderModel::Listing) {
+    if (m_folderModel->status() != FolderModel::Listing && (m_deferApplyPositions || m_positions.size() >= 5)) {
         applyPositions();
     }
 
@@ -501,6 +583,12 @@ void Positioner::sourceStatusChanged()
 void Positioner::sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
 {
     if (m_enabled) {
+        // A rename keeps the icon where it is but changes the url the stored
+        // layout knows it by, so the records have to be rewritten.
+        if (roles.isEmpty() || roles.contains(FolderModel::UrlRole)) {
+            m_updatePositionsTimer->start();
+        }
+
         int start = topLeft.row();
         int end = bottomRight.row();
 
@@ -518,16 +606,24 @@ void Positioner::sourceDataChanged(const QModelIndex &topLeft, const QModelIndex
 
 void Positioner::sourceModelAboutToBeReset()
 {
-    emit beginResetModel();
+    beginResetModel();
 }
 
 void Positioner::sourceModelReset()
 {
     if (m_enabled) {
-        initMaps();
+        QHash<int, int> proxyToSource;
+        QHash<int, int> sourceToProxy;
+
+        if (computeMaps(&proxyToSource, &sourceToProxy)) {
+            m_proxyToSource = proxyToSource;
+            m_sourceToProxy = sourceToProxy;
+        } else {
+            initMaps();
+        }
     }
 
-    emit endResetModel();
+    endResetModel();
 }
 
 void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int start, int end)
@@ -588,7 +684,6 @@ void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
             m_ignoreNextTransaction = true;
         }
     } else {
-        emit beginInsertRows(parent, start, end);
         beginInsertRows(parent, start, end);
         m_beginInsertRowsCalled = true;
     }
@@ -643,7 +738,7 @@ void Positioner::sourceRowsAboutToBeRemoved(const QModelIndex &parent, int first
             m_ignoreNextTransaction = true;
         }
     } else {
-        emit beginRemoveRows(parent, first, last);
+        beginRemoveRows(parent, first, last);
     }
 }
 
@@ -710,8 +805,18 @@ void Positioner::sourceLayoutChanged(const QList<QPersistentModelIndex> &parents
 {
     Q_UNUSED(parents)
 
+    // A re-sort or re-filter renumbers the source rows; the icons stay on their
+    // cells, so remap by url instead of repacking the whole desktop.
     if (m_enabled) {
-        initMaps();
+        QHash<int, int> proxyToSource;
+        QHash<int, int> sourceToProxy;
+
+        if (computeMaps(&proxyToSource, &sourceToProxy)) {
+            m_proxyToSource = proxyToSource;
+            m_sourceToProxy = sourceToProxy;
+        } else {
+            initMaps();
+        }
     }
 
     emit layoutChanged(QList<QPersistentModelIndex>(), hint);
@@ -753,6 +858,8 @@ int Positioner::firstRow() const
     return -1;
 }
 
+// -1 when nothing is mapped, so that lastRow() + 1 is the first free cell and
+// the row count of an empty grid, rather than one phantom cell in both.
 int Positioner::lastRow() const
 {
     if (!m_proxyToSource.isEmpty()) {
@@ -761,7 +868,7 @@ int Positioner::lastRow() const
         return keys.last();
     }
 
-    return 0;
+    return -1;
 }
 
 int Positioner::firstFreeRow() const
@@ -789,7 +896,10 @@ void Positioner::applyPositions()
         return;
     }
 
-    if (m_positions.size() < 5) {
+    QHash<int, int> proxyToSource;
+    QHash<int, int> sourceToProxy;
+
+    if (!computeMaps(&proxyToSource, &sourceToProxy)) {
         // We were waiting for listing to complete before proxying source rows,
         // but we don't have positions to apply. Reset to populate.
         if (m_deferApplyPositions) {
@@ -800,16 +910,111 @@ void Positioner::applyPositions()
         return;
     }
 
-    beginResetModel();
+    // Resetting the model tears down every delegate -- and with them the rename
+    // editor -- so only do it when the cells actually move.
+    if (proxyToSource != m_proxyToSource) {
+        beginResetModel();
 
-    m_proxyToSource.clear();
-    m_sourceToProxy.clear();
+        m_proxyToSource = proxyToSource;
+        m_sourceToProxy = sourceToProxy;
 
-    const QStringList &positions = m_positions.mid(2);
+        endResetModel();
+    }
+
+    m_deferApplyPositions = false;
+
+    m_updatePositionsTimer->start();
+}
+
+// Works out which source row belongs in which cell from the stored positions,
+// without touching the live maps: the caller decides how to announce the change.
+bool Positioner::computeMaps(QHash<int, int> *proxyToSource, QHash<int, int> *sourceToProxy) const
+{
+    if (m_positions.size() < 5) {
+        return false;
+    }
+
+    const QStringList positions = m_positions.mid(2);
 
     if (positions.count() % 3 != 0) {
-        return;
+        return false;
     }
+
+    proxyToSource->clear();
+    sourceToProxy->clear();
+
+    auto lastCell = [](const QHash<int, int> &map) {
+        int last = -1;
+        for (auto it = map.cbegin(); it != map.cend(); ++it) {
+            last = qMax(last, it.key());
+        }
+        return last;
+    };
+
+    auto freeCell = [&lastCell](const QHash<int, int> &map) {
+        const int last = lastCell(map);
+        for (int i = 0; i <= last; ++i) {
+            if (!map.contains(i)) {
+                return i;
+            }
+        }
+        return last + 1;
+    };
+
+    // The free cell closest to (stripe, pos), clamped into the grid: an icon that
+    // no longer fits stays near where it was instead of piling up in the corner.
+    auto nearestFree = [&](int stripe, int pos, const QHash<int, int> &map) {
+        if (m_perStripe <= 0 || m_stripes <= 0) {
+            return -1;
+        }
+
+        stripe = qBound(0, stripe, m_stripes - 1);
+        pos = qBound(0, pos, m_perStripe - 1);
+
+        for (int radius = 0; radius < m_stripes + m_perStripe; ++radius) {
+            int best = -1;
+            int bestDistance = 0;
+
+            for (int ds = -radius; ds <= radius; ++ds) {
+                for (int dp = -radius; dp <= radius; ++dp) {
+                    if (qMax(qAbs(ds), qAbs(dp)) != radius) {
+                        continue;
+                    }
+
+                    const int s = stripe + ds;
+                    const int p = pos + dp;
+
+                    if (s < 0 || p < 0 || s >= m_stripes || p >= m_perStripe) {
+                        continue;
+                    }
+
+                    const int cell = (s * m_perStripe) + p;
+
+                    if (map.contains(cell)) {
+                        continue;
+                    }
+
+                    const int distance = (ds * ds) + (dp * dp);
+
+                    if (best == -1 || distance < bestDistance) {
+                        best = cell;
+                        bestDistance = distance;
+                    }
+                }
+            }
+
+            if (best != -1) {
+                return best;
+            }
+        }
+
+        return -1;
+    };
+
+    auto place = [&](int cell, int sourceRow) {
+        proxyToSource->insert(cell, sourceRow);
+        sourceToProxy->insert(sourceRow, cell);
+    };
 
     QHash<QString, int> sourceIndices;
 
@@ -817,93 +1022,82 @@ void Positioner::applyPositions()
         sourceIndices.insert(m_folderModel->data(m_folderModel->index(i, 0), FolderModel::UrlRole).toString(), i);
     }
 
-    QString name;
-    int stripe = -1;
-    int pos = -1;
-    int sourceIndex = -1;
-    int index = -1;
-    bool ok = false;
-    int offset = 0;
+    // Records that no longer fit the current grid, with the cell they asked for.
+    struct Spill {
+        QString name;
+        int stripe;
+        int pos;
+    };
+    QVector<Spill> spilled;
 
-    // Restore positions for items that still fit.
     for (int i = 0; i < positions.count() / 3; ++i) {
-        offset = i * 3;
-        pos = positions.at(offset + 2).toInt(&ok);
+        const int offset = i * 3;
+        const QString name = positions.at(offset);
+
+        bool ok = false;
+        const int stripe = positions.at(offset + 1).toInt(&ok);
         if (!ok) {
-            return;
+            continue;
         }
 
-        if (pos <= m_perStripe) {
-            name = positions.at(offset);
-            stripe = positions.at(offset + 1).toInt(&ok);
-            if (!ok) {
-                return;
-            }
-
-            if (!sourceIndices.contains(name)) {
-                continue;
-            } else {
-                sourceIndex = sourceIndices.value(name);
-            }
-
-            index = (stripe * m_perStripe) + pos;
-
-            if (m_proxyToSource.contains(index)) {
-                continue;
-            }
-
-            updateMaps(index, sourceIndex);
-            sourceIndices.remove(name);
-        }
-    }
-
-    // Find new positions for items that didn't fit.
-    for (int i = 0; i < positions.count() / 3; ++i) {
-        offset = i * 3;
-        pos = positions.at(offset + 2).toInt(&ok);
+        const int pos = positions.at(offset + 2).toInt(&ok);
         if (!ok) {
-            return;
+            continue;
         }
 
-        if (pos > m_perStripe) {
-            name = positions.at(offset);
-
-            if (!sourceIndices.contains(name)) {
-                continue;
-            } else {
-                sourceIndex = sourceIndices.take(name);
-            }
-
-            index = firstFreeRow();
-
-            if (index == -1) {
-                index = lastRow() + 1;
-            }
-
-            updateMaps(index, sourceIndex);
+        if (!sourceIndices.contains(name)) {
+            continue;
         }
+
+        if (!fitsGrid(stripe, pos)) {
+            spilled.append({name, stripe, pos});
+            continue;
+        }
+
+        const int cell = (stripe * m_perStripe) + pos;
+
+        if (proxyToSource->contains(cell)) {
+            spilled.append({name, stripe, pos});
+            continue;
+        }
+
+        place(cell, sourceIndices.take(name));
     }
 
-    QHashIterator<QString, int> it(sourceIndices);
-
-    // Find positions for new source items we don't have records for.
-    while (it.hasNext()) {
-        it.next();
-
-        index = firstFreeRow();
-
-        if (index == -1) {
-            index = lastRow() + 1;
+    // Find new cells for the items that didn't fit, then for source items we
+    // have no record of at all.
+    for (const Spill &spill : std::as_const(spilled)) {
+        if (!sourceIndices.contains(spill.name)) {
+            continue;
         }
 
-        updateMaps(index, it.value());
+        int cell = nearestFree(spill.stripe, spill.pos, *proxyToSource);
+
+        if (cell < 0) {
+            cell = freeCell(*proxyToSource);
+        }
+
+        place(cell, sourceIndices.take(spill.name));
     }
 
-    endResetModel();
+    QStringList newNames = sourceIndices.keys();
+    std::sort(newNames.begin(), newNames.end());
 
-    m_deferApplyPositions = false;
+    for (const QString &name : std::as_const(newNames)) {
+        const int sourceRow = sourceIndices.value(name);
 
-    m_updatePositionsTimer->start();
+        // A renamed file has no record under its new url, but it is already on
+        // a cell and must stay there; only genuinely new items get a free cell.
+        int cell = m_sourceToProxy.value(sourceRow, -1);
+
+        if (cell < 0 || proxyToSource->contains(cell) || (m_perStripe > 0 && !fitsGrid(cell / m_perStripe, cell % m_perStripe))) {
+            cell = freeCell(*proxyToSource);
+        }
+
+        place(cell, sourceRow);
+    }
+
+    return true;
 }
 
 void Positioner::flushPendingChanges()
@@ -926,6 +1120,8 @@ void Positioner::flushPendingChanges()
 void Positioner::connectSignals(FolderModel *model)
 {
     connect(model, &QAbstractItemModel::dataChanged, this, &Positioner::sourceDataChanged, Qt::UniqueConnection);
+    connect(model, &QAbstractItemModel::modelAboutToBeReset, this, &Positioner::sourceModelAboutToBeReset, Qt::UniqueConnection);
+    connect(model, &QAbstractItemModel::modelReset, this, &Positioner::sourceModelReset, Qt::UniqueConnection);
     connect(model, &QAbstractItemModel::rowsAboutToBeInserted, this, &Positioner::sourceRowsAboutToBeInserted, Qt::UniqueConnection);
     connect(model, &QAbstractItemModel::rowsAboutToBeMoved, this, &Positioner::sourceRowsAboutToBeMoved, Qt::UniqueConnection);
     connect(model, &QAbstractItemModel::rowsAboutToBeRemoved, this, &Positioner::sourceRowsAboutToBeRemoved, Qt::UniqueConnection);
@@ -941,6 +1137,8 @@ void Positioner::connectSignals(FolderModel *model)
 void Positioner::disconnectSignals(FolderModel *model)
 {
     disconnect(model, &QAbstractItemModel::dataChanged, this, &Positioner::sourceDataChanged);
+    disconnect(model, &QAbstractItemModel::modelAboutToBeReset, this, &Positioner::sourceModelAboutToBeReset);
+    disconnect(model, &QAbstractItemModel::modelReset, this, &Positioner::sourceModelReset);
     disconnect(model, &QAbstractItemModel::rowsAboutToBeInserted, this, &Positioner::sourceRowsAboutToBeInserted);
     disconnect(model, &QAbstractItemModel::rowsAboutToBeMoved, this, &Positioner::sourceRowsAboutToBeMoved);
     disconnect(model, &QAbstractItemModel::rowsAboutToBeRemoved, this, &Positioner::sourceRowsAboutToBeRemoved);

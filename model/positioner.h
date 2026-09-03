@@ -21,6 +21,7 @@
 #define POSITIONER_H
 
 #include <QAbstractItemModel>
+#include <QHash>
 
 class FolderModel;
 class QTimer;
@@ -30,6 +31,7 @@ class Positioner : public QAbstractItemModel
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
     Q_PROPERTY(FolderModel *folderModel READ folderModel WRITE setFolderModel NOTIFY folderModelChanged)
     Q_PROPERTY(int perStripe READ perStripe WRITE setPerStripe NOTIFY perStripeChanged)
+    Q_PROPERTY(int stripes READ stripes WRITE setStripes NOTIFY stripesChanged)
     Q_PROPERTY(QStringList positions READ positions WRITE setPositions NOTIFY positionsChanged)
 
 public:
@@ -45,10 +47,14 @@ public:
     int perStripe() const;
     void setPerStripe(int perStripe);
 
+    int stripes() const;
+    void setStripes(int stripes);
+
     QStringList positions() const;
     void setPositions(const QStringList &positions);
 
     Q_INVOKABLE int map(int row) const;
+    Q_INVOKABLE int mapFromSource(int row) const;
 
     Q_INVOKABLE int nearestItem(int currentIndex, Qt::ArrowType direction);
 
@@ -75,6 +81,7 @@ signals:
     void enabledChanged() const;
     void folderModelChanged() const;
     void perStripeChanged() const;
+    void stripesChanged() const;
     void positionsChanged() const;
 
 private slots:
@@ -99,6 +106,8 @@ private:
     int lastRow() const;
     int firstFreeRow() const;
     void applyPositions();
+    bool computeMaps(QHash<int, int> *proxyToSource, QHash<int, int> *sourceToProxy) const;
+    bool fitsGrid(int stripe, int pos) const;
     void flushPendingChanges();
     void connectSignals(FolderModel *model);
     void disconnectSignals(FolderModel *model);
@@ -107,6 +116,7 @@ private:
     FolderModel *m_folderModel;
 
     int m_perStripe;
+    int m_stripes;
 
     int m_lastRow;
 

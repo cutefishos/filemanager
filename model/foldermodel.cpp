@@ -946,6 +946,25 @@ void FolderModel::unpinSelection()
     m_pinnedSelection = QItemSelection();
 }
 
+// The cell a new folder or file should land on, in view coordinates. Consumed
+// by the next newFolder()/newTextFile(); (-1, -1) means "wherever it fits".
+void FolderModel::setNewDocumentPosition(int x, int y)
+{
+    m_newDocumentPos = QPoint(x, y);
+}
+
+// Hands the pending cell over to the drop position map, which places the file
+// on it as soon as the lister reports it.
+void FolderModel::rememberNewDocumentPosition(const QString &name)
+{
+    if (m_newDocumentPos.x() < 0 || m_newDocumentPos.y() < 0)
+        return;
+
+    m_dropTargetPositions.insert(name, m_newDocumentPos);
+    m_dropTargetPositionsCleanup->start();
+    m_newDocumentPos = QPoint(-1, -1);
+}
+
 void FolderModel::newFolder()
 {
     QString rootPath = rootItem().url().toString();
@@ -963,6 +982,8 @@ void FolderModel::newFolder()
     }
 
     m_newDocumentUrl = QUrl(rootItem().url().toString() + "/" + newName);
+
+    rememberNewDocumentPosition(newName);
 
     auto job = KIO::mkdir(QUrl(rootItem().url().toString() + "/" + newName));
     job->start();
@@ -985,6 +1006,8 @@ void FolderModel::newTextFile()
     }
 
     m_newDocumentUrl = QUrl(rootItem().url().toString() + "/" + newName);
+
+    rememberNewDocumentPosition(newName);
 
     QFile file(m_newDocumentUrl.toLocalFile());
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1019,12 +1042,13 @@ void FolderModel::copy()
 
 void FolderModel::paste()
 {
+    // The clipboard has no mime data at all when nothing owns it.
     const QMimeData *mimeData = QApplication::clipboard()->mimeData();
     bool enable = false;
 
     // Update paste action
     if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
-        QList<QUrl> urls = KUrlMimeData::urlsFromMimeData(mimeData);
+        QList<QUrl> urls = mimeData ? KUrlMimeData::urlsFromMimeData(mimeData) : QList<QUrl>();
         const QString &currentUrl = rootItem().url().toLocalFile();
 
         if (!urls.isEmpty()) {
@@ -1394,6 +1418,20 @@ void FolderModel::addItemDragImage(int row, int x, int y, int width, int height,
     m_dragImages.insert(row, dragImage);
 }
 
+// Moves an already grabbed snapshot to where the icon sits now. Returns false
+// when there is nothing stored for the row, so the caller can grab one.
+bool FolderModel::updateItemDragRect(int row, int x, int y, int width, int height)
+{
+    DragImage *image = m_dragImages.value(row);
+
+    if (!image)
+        return false;
+
+    image->rect = QRect(x, y, width, height);
+
+    return true;
+}
+
 void FolderModel::clearDragImages()
 {
     qDeleteAll(m_dragImages);
@@ -1448,7 +1486,6 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
 
     const int x = dropEvent->property("x").toInt();
     const int y = dropEvent->property("y").toInt();
-    const QPoint dropPos = {x, y};
 
     if (m_dragInProgress && row == -1) {
         if (mimeData->urls().isEmpty())
@@ -1456,10 +1493,9 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
 
         setSortMode(-1);
 
-        for (const auto &url : mimeData->urls()) {
-            m_dropTargetPositions.insert(url.fileName(), dropPos);
-        }
-
+        // The files are already here -- no rows will be inserted for them, so
+        // recording drop positions would only leave entries behind that move
+        // some later file of the same name to a stale place.
         emit move(x, y, mimeData->urls());
 
         return;
@@ -1843,7 +1879,10 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
         if (it != m_dropTargetPositions.end()) {
             const auto pos = it.value();
             m_dropTargetPositions.erase(it);
-            Q_EMIT move(pos.x(), pos.y(), {url});
+            // Queued: the views are still inside the insertion transaction, and
+            // repositioning the row from within it would reenter their models.
+            QMetaObject::invokeMethod(
+                this, [this, pos, url] { Q_EMIT move(pos.x(), pos.y(), {url}); }, Qt::QueuedConnection);
         }
 
         if (url == m_newDocumentUrl) {
@@ -2204,7 +2243,7 @@ void FolderModel::updateActions()
         bool enable = false;
 
         const QMimeData *mimeData = QApplication::clipboard()->mimeData();
-        QList<QUrl> urls = KUrlMimeData::urlsFromMimeData(mimeData);
+        QList<QUrl> urls = mimeData ? KUrlMimeData::urlsFromMimeData(mimeData) : QList<QUrl>();
 
         if (!urls.isEmpty()) {
             if (!rootItem().isNull()) {
@@ -2265,6 +2304,20 @@ void FolderModel::addDragImage(QDrag *drag, int x, int y)
         return;
 
     QRegion region;
+
+    // A row that is not selected any more has a stale image and stale geometry;
+    // compositing it would drag the wrong picture, or place it far off-cursor.
+    for (auto it = m_dragImages.begin(); it != m_dragImages.end();) {
+        if (!isSelected(it.key())) {
+            delete it.value();
+            it = m_dragImages.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    if (m_dragImages.isEmpty())
+        return;
 
     foreach (DragImage *image, m_dragImages) {
         image->blank = isBlank(image->row);
