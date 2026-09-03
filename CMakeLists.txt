@@ -73,7 +73,6 @@ add_library(cutefish-filemanager-core STATIC
   widgets/rubberband.cpp
   widgets/itemviewadapter.cpp
 
-  desktop/desktopsettings.cpp
   desktop/dockdbusinterface.cpp
 
   helper/datehelper.cpp

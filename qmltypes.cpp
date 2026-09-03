@@ -23,7 +23,6 @@
 #include "model/positioner.h"
 #include "widgets/rubberband.h"
 #include "widgets/itemviewadapter.h"
-#include "desktop/desktopsettings.h"
 #include "helper/datehelper.h"
 #include "helper/fm.h"
 #include "helper/shortcut.h"
@@ -63,7 +62,6 @@ void registerQmlTypes()
     qmlRegisterType<Positioner>(uri, 1, 0, "Positioner");
     qmlRegisterType<RubberBand>(uri, 1, 0, "RubberBand");
     qmlRegisterType<ItemViewAdapter>(uri, 1, 0, "ItemViewAdapter");
-    qmlRegisterType<DesktopSettings>(uri, 1, 0, "DesktopSettings");
     qmlRegisterType<Fm>(uri, 1, 0, "Fm");
     qmlRegisterType<ShortCut>(uri, 1, 0, "ShortCut");
 

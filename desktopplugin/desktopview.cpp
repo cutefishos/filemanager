@@ -26,14 +26,13 @@
 #include <QScreen>
 #include <QDebug>
 
-static const char *kDesktopRootQml = "qrc:/qml/Desktop/Root.qml";
+static const char *kDesktopRootQml = "qrc:/qml/Desktop/Main.qml";
 
 DesktopView::DesktopView(QQuickItem *parent)
     : QQuickItem(parent)
     , m_component(nullptr)
     , m_context(nullptr)
     , m_content(nullptr)
-    , m_primary(false)
 {
     setFlag(ItemHasContents, false);
     CutefishFM::initResources();
@@ -63,20 +62,6 @@ void DesktopView::setScreen(QScreen *screen)
 
     emit screenChanged();
     updateScreenRect();
-}
-
-bool DesktopView::isPrimary() const
-{
-    return m_primary;
-}
-
-void DesktopView::setPrimary(bool primary)
-{
-    if (m_primary == primary)
-        return;
-
-    m_primary = primary;
-    emit primaryChanged();
 }
 
 QString DesktopView::screenName() const

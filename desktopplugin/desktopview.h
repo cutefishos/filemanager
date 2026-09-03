@@ -29,17 +29,17 @@ class QScreen;
 /**
  * The whole Cutefish desktop as a single QML item.
  *
- * Everything the desktop does -- wallpaper, icons, layout, selection, drag and
- * drop, context menus and file operations -- lives behind this item and reuses
- * the file manager core. A host only has to place the item in a window and tell
- * it which screen it is on:
+ * Everything the desktop does -- icons, layout, selection, drag and drop,
+ * context menus and file operations -- lives behind this item and reuses the
+ * file manager core. The background is not part of it: the shell draws that
+ * under the item. A host only has to place the item in a window and tell it
+ * which screen it is on:
  *
  *     import org.cutefish.filemanager.desktop 1.0
  *
  *     DesktopView {
  *         anchors.fill: parent
  *         screen: Qt.application.screens[0]
- *         primary: true
  *     }
  *
  * The item owns no window state (flags, type hints, stacking); that is the
@@ -49,7 +49,6 @@ class DesktopView : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(QScreen *screen READ screen WRITE setScreen NOTIFY screenChanged)
-    Q_PROPERTY(bool primary READ isPrimary WRITE setPrimary NOTIFY primaryChanged)
     Q_PROPERTY(QString screenName READ screenName NOTIFY screenChanged)
     Q_PROPERTY(QRect screenRect READ screenRect NOTIFY screenRectChanged)
 
@@ -60,20 +59,11 @@ public:
     QScreen *screen() const;
     void setScreen(QScreen *screen);
 
-    /**
-     * Only the primary screen shows icons; the others show the wallpaper alone,
-     * which is what the standalone desktop process used to do by swapping its
-     * QML source.
-     */
-    bool isPrimary() const;
-    void setPrimary(bool primary);
-
     QString screenName() const;
     QRect screenRect() const;
 
 signals:
     void screenChanged();
-    void primaryChanged();
     void screenRectChanged();
 
 protected:
@@ -90,7 +80,6 @@ private:
     QQuickItem *m_content;
     QPointer<QScreen> m_screen;
     QRect m_screenRect;
-    bool m_primary;
 };
 
 #endif // CUTEFISH_DESKTOPVIEW_H
