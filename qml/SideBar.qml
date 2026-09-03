@@ -21,7 +21,6 @@ import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
-import Qt5Compat.GraphicalEffects
 
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
@@ -31,6 +30,14 @@ ListView {
 
     signal clicked(string path)
     signal openInNewWindow(string path)
+
+    // Rounding to whole *logical* pixels is not enough at a fractional scale:
+    // at 150% a 37px row pitch is 55.5 device px, so every other row lands on
+    // a half pixel and its icon is resampled.
+    readonly property real dpr: FishUI.Dpi.ratio
+    function snap(v) {
+        return Math.round(v * sideBar.dpr) / sideBar.dpr
+    }
 
     FishUI.WheelHandler {
         target: sideBar
@@ -48,36 +55,28 @@ ListView {
     model: placesModel
     clip: true
 
-    leftMargin: FishUI.Units.smallSpacing * 1.5
-    rightMargin: FishUI.Units.smallSpacing * 1.5
-    bottomMargin: FishUI.Units.smallSpacing
-    spacing: FishUI.Units.smallSpacing / 2
+    // Not leftMargin/rightMargin: Qt rounds the content item's position to a
+    // whole logical pixel, so a snapped fractional margin never takes effect.
+    // The inset is applied inside the rows instead.
+    readonly property real sideInset: sideBar.snap(FishUI.Units.smallSpacing * 1.5)
+
+    bottomMargin: sideBar.snap(FishUI.Units.smallSpacing)
+    spacing: sideBar.snap(FishUI.Units.smallSpacing / 2)
 
     ScrollBar.vertical: ScrollBar {
         bottomPadding: FishUI.Units.smallSpacing
     }
 
-    highlightFollowsCurrentItem: true
-    highlightMoveDuration: 0
-    highlightResizeDuration : 0
-
-    highlight: Rectangle {
-        radius: FishUI.Theme.mediumRadius
-        color: Qt.rgba(FishUI.Theme.textColor.r,
-                       FishUI.Theme.textColor.g,
-                       FishUI.Theme.textColor.b, 0.05)
-        smooth: true
-    }
-
     section.property: "category"
     section.delegate: Item {
-        width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
-        height: FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
+        width: ListView.view.width
+        height: sideBar.snap(FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing + FishUI.Units.smallSpacing)
 
         Text {
             anchors.left: parent.left
             anchors.top: parent.top
-            anchors.leftMargin: Qt.application.layoutDirection === Qt.RightToLeft ? 0 : FishUI.Units.smallSpacing
+            anchors.leftMargin: Qt.application.layoutDirection === Qt.RightToLeft
+                                ? 0 : sideBar.snap(sideBar.sideInset + FishUI.Units.smallSpacing)
             anchors.rightMargin: FishUI.Units.smallSpacing
             anchors.topMargin: FishUI.Units.largeSpacing
             anchors.bottomMargin: FishUI.Units.smallSpacing
@@ -90,8 +89,8 @@ ListView {
 
     delegate: Item {
         id: _item
-        width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
-        height: FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing * 1.5
+        width: ListView.view.width
+        height: sideBar.snap(FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing * 1.5)
 
         property bool checked: sideBar.currentIndex === index
         property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
@@ -168,7 +167,9 @@ ListView {
         }
 
         Rectangle {
-            anchors.fill: parent
+            x: sideBar.sideInset
+            width: _item.width - sideBar.sideInset * 2
+            height: parent.height
             radius: FishUI.Theme.mediumRadius
             color: _mouseArea.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                FishUI.Theme.textColor.g,
@@ -176,42 +177,35 @@ ListView {
                    _mouseArea.containsMouse && !checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                                                   FishUI.Theme.textColor.g,
                                                                   FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
-                                                          "transparent"
+                   checked ? Qt.rgba(FishUI.Theme.textColor.r,
+                                     FishUI.Theme.textColor.g,
+                                     FishUI.Theme.textColor.b, 0.05) : "transparent"
 
             smooth: true
         }
 
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: FishUI.Units.smallSpacing
-            anchors.rightMargin: FishUI.Units.smallSpacing
-            spacing: FishUI.Units.smallSpacing
+        // Positioned by hand rather than with a RowLayout: AlignVCenter computes
+        // (height - 22) / 2, which lands on a half device pixel even when the
+        // row height itself is snapped.
+        FishUI.IconItem {
+            id: _icon
+            x: sideBar.snap(sideBar.sideInset + FishUI.Units.smallSpacing)
+            y: sideBar.snap((_item.height - height) / 2)
+            width: sideBar.snap(22)
+            height: width
 
-            Image {
-                height: 22
-                width: height
-                sourceSize: Qt.size(22, 22)
-                // source: "qrc:/images/dark/" + model.iconPath
-//                source: "qrc:/images/" + (FishUI.Theme.darkMode || checked ? "dark/" : "light/") + model.iconPath
-                source: "qrc:/images/" + model.iconPath
-                Layout.alignment: Qt.AlignVCenter
-                smooth: false
-                antialiasing: true
+            source: "qrc:/images/" + model.iconPath
+            color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+        }
 
-                layer.enabled: true
-                layer.effect: ColorOverlay {
-                    color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
-                }
-            }
-
-            Label {
-                id: _label
-                text: model.name
-                color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
-                elide: Text.ElideRight
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-            }
+        Label {
+            id: _label
+            x: sideBar.snap(_icon.x + _icon.width + FishUI.Units.smallSpacing)
+            y: sideBar.snap((_item.height - height) / 2)
+            width: _item.width - x - sideBar.snap(FishUI.Units.smallSpacing)
+            text: model.name
+            color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+            elide: Text.ElideRight
         }
     }
 
