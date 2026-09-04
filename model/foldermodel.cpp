@@ -458,6 +458,8 @@ void FolderModel::setUrl(const QString &url)
     // Refresh this directory.
     if (url == m_url) {
         refresh();
+        emit canGoBackChanged();
+        emit canGoForwardChanged();
         return;
     }
 
@@ -479,6 +481,8 @@ void FolderModel::setUrl(const QString &url)
 
     emit urlChanged();
     emit resolvedUrlChanged();
+    emit canGoBackChanged();
+    emit canGoForwardChanged();
 }
 
 QUrl FolderModel::resolvedUrl() const
@@ -635,6 +639,16 @@ void FolderModel::setViewAdapter(QObject *adapter)
 bool FolderModel::dragging() const
 {
     return m_dragInProgress;
+}
+
+bool FolderModel::canGoBack() const
+{
+    return m_pathHistory.canGoBack();
+}
+
+bool FolderModel::canGoForward() const
+{
+    return m_pathHistory.canGoForward();
 }
 
 bool FolderModel::isDir(const QModelIndex &index, const KDirModel *dirModel) const

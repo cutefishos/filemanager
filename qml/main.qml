@@ -35,7 +35,8 @@ FishUI.Window {
     title: qsTr("File Manager")
 
     background.opacity: 1
-    header.height: 36 + FishUI.Units.largeSpacing
+    header.height: 40
+    contentTopMargin: 0
 
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
@@ -62,41 +63,57 @@ FishUI.Window {
 
     headerItem: Item {
         RowLayout {
+            id: _headerRow
             anchors.fill: parent
-            anchors.leftMargin: FishUI.Units.smallSpacing * 1.5
-            anchors.rightMargin: FishUI.Units.smallSpacing * 1.5
-            anchors.topMargin: FishUI.Units.smallSpacing * 1.5
-            anchors.bottomMargin: FishUI.Units.smallSpacing * 1.5
-
+            anchors.leftMargin: _sideBar.width + FishUI.Units.smallSpacing * 1.5
+            anchors.rightMargin: FishUI.Units.smallSpacing
             spacing: FishUI.Units.smallSpacing
 
+            readonly property int buttonSize: 31
+
+            FontMetrics {
+                id: _nameMetrics
+                font: _folderName.font
+            }
+
             IconButton {
-                Layout.fillHeight: true
-                implicitWidth: height
+                Layout.alignment: root.windowButtonsAlignment
+                Layout.topMargin: root.windowButtonsTopMargin
+                Layout.preferredWidth: _headerRow.buttonSize
+                Layout.preferredHeight: _headerRow.buttonSize
+                enabled: _folderPage.canGoBack
                 source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
                                               : "qrc:/images/light/go-previous.svg"
                 onClicked: _folderPage.goBack()
             }
 
             IconButton {
-                Layout.fillHeight: true
-                implicitWidth: height
+                Layout.alignment: root.windowButtonsAlignment
+                Layout.topMargin: root.windowButtonsTopMargin
+                Layout.preferredWidth: _headerRow.buttonSize
+                Layout.preferredHeight: _headerRow.buttonSize
+                enabled: _folderPage.canGoForward
                 source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
                                               : "qrc:/images/light/go-next.svg"
                 onClicked: _folderPage.goForward()
             }
 
-            PathBar {
-                id: _pathBar
+            Label {
+                id: _folderName
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onItemClicked: _folderPage.openUrl(path)
-                onEditorAccepted: _folderPage.openUrl(path)
+                leftPadding: root.windowButtonsTopMargin
+                topPadding: root.windowButtonsTopMargin / 2
+                color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
+                font.pointSize: 11
+                text: _pathBar.currentName
             }
 
             IconButton {
-                Layout.fillHeight: true
-                implicitWidth: height
+                Layout.alignment: root.windowButtonsAlignment
+                Layout.topMargin: root.windowButtonsTopMargin
+                Layout.preferredWidth: _headerRow.buttonSize
+                Layout.preferredHeight: _headerRow.buttonSize
 
                 property var gridSource: FishUI.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
                 property var listSource: FishUI.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
@@ -117,7 +134,7 @@ FishUI.Window {
         SideBar {
             id: _sideBar
             Layout.fillHeight: true
-            width: 180 + FishUI.Units.largeSpacing
+            title: root.title
             onClicked: _folderPage.openUrl(path)
             onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
         }
@@ -126,12 +143,50 @@ FishUI.Window {
             id: _folderPage
             Layout.fillWidth: true
             Layout.fillHeight: true
+            headerHeight: root.header.height
+            bottomNavigationHeight: root.header.height
             onCurrentUrlChanged: {
                 _sideBar.updateSelection(currentUrl)
                 _pathBar.updateUrl(currentUrl)
             }
             onRequestPathEditor: {
                 _pathBar.openEditor()
+            }
+        }
+    }
+
+    Item {
+        id: _navigationBar
+        x: _folderPage.x
+        width: _folderPage.width
+        height: root.header.height
+        anchors.bottom: parent.bottom
+        z: 3
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: 1
+            color: Qt.rgba(FishUI.Theme.textColor.r,
+                           FishUI.Theme.textColor.g,
+                           FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.16 : 0.12)
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: FishUI.Units.smallSpacing * 1.5
+            anchors.rightMargin: FishUI.Units.smallSpacing * 1.5
+            anchors.topMargin: FishUI.Units.smallSpacing
+            anchors.bottomMargin: FishUI.Units.smallSpacing
+            spacing: 0
+
+            PathBar {
+                id: _pathBar
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                onItemClicked: _folderPage.openUrl(path)
+                onEditorAccepted: _folderPage.openUrl(path)
             }
         }
     }

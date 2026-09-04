@@ -71,6 +71,8 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(int archiveProgress READ archiveProgress NOTIFY archiveProgressChanged)
     Q_PROPERTY(QString archiveOperation READ archiveOperation NOTIFY archiveOperationChanged)
     Q_PROPERTY(QString archiveCurrentFile READ archiveCurrentFile NOTIFY archiveCurrentFileChanged)
+    Q_PROPERTY(bool canGoBack READ canGoBack NOTIFY canGoBackChanged)
+    Q_PROPERTY(bool canGoForward READ canGoForward NOTIFY canGoForwardChanged)
 
 public:
     enum DataRole {
@@ -159,6 +161,9 @@ public:
     void setViewAdapter(QObject *adapter);
 
     bool dragging() const;
+
+    bool canGoBack() const;
+    bool canGoForward() const;
 
     bool isDir(const QModelIndex &index, const KDirModel *dirModel) const;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
@@ -263,6 +268,8 @@ signals:
     void filterModeChanged();
     void requestRename();
     void draggingChanged();
+    void canGoBackChanged();
+    void canGoForwardChanged();
     void viewAdapterChanged();
     void isDesktopChanged();
     void selectionCountChanged();

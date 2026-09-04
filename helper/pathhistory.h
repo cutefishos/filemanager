@@ -40,6 +40,9 @@ public:
 
     bool isEmpty();
 
+    bool canGoBack() const;
+    bool canGoForward() const;
+
     QUrl posteriorPath();
     QUrl previousPath();
 

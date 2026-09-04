@@ -33,8 +33,11 @@ Item {
 
     property alias currentUrl: dirModel.url
     property alias model: dirModel
+    property alias canGoBack: dirModel.canGoBack
+    property alias canGoForward: dirModel.canGoForward
     property Item currentView: _viewLoader.item
-    property int statusBarHeight: 22
+    property int headerHeight: 0
+    property int bottomNavigationHeight: 0
 
     signal requestPathEditor()
 
@@ -200,7 +203,9 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.bottomMargin: 2
+        // Same breathing room the sidebar leaves between its title and its list.
+        anchors.topMargin: folderPage.headerHeight
+        anchors.bottomMargin: 2 + folderPage.bottomNavigationHeight
         spacing: 0
 
         Loader {
@@ -219,82 +224,6 @@ Item {
 
                 // ShortCut
                 shortCut.install(_viewLoader.item)
-            }
-        }
-
-        Item {
-            visible: true
-            height: statusBarHeight
-        }
-    }
-
-    Item {
-        id: _statusBar
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        height: statusBarHeight
-        z: 999
-
-//        Rectangle {
-//            anchors.fill: parent
-//            color: FishUI.Theme.backgroundColor
-//            opacity: 0.7
-//        }
-
-        MouseArea {
-            anchors.fill: parent
-        }
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: FishUI.Units.smallSpacing
-            anchors.rightMargin: FishUI.Units.smallSpacing
-            // anchors.bottomMargin: 1
-            spacing: FishUI.Units.largeSpacing
-
-            Label {
-                Layout.alignment: Qt.AlignLeft
-                font.pointSize: 10
-                text: dirModel.count === 1 ? qsTr("%1 item").arg(dirModel.count)
-                                           : qsTr("%1 items").arg(dirModel.count)
-            }
-
-            Label {
-                Layout.alignment: Qt.AlignLeft
-                font.pointSize: 10
-                text: qsTr("%1 selected").arg(dirModel.selectionCount)
-                visible: dirModel.selectionCount >= 1
-            }
-
-            FishUI.BusyIndicator {
-                id: _busyIndicator
-                Layout.alignment: Qt.AlignLeft
-                height: statusBarHeight
-                width: height
-                running: visible
-                visible: dirModel.status === FM.FolderModel.Listing
-            }
-
-            Label {
-                text: dirModel.selectedItemSize
-                visible: dirModel.url !== "trash:///"
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            Button {
-                id: _emptyTrashBtn
-                implicitHeight: statusBarHeight
-                text: qsTr("Empty Trash")
-                font.pointSize: 10
-                onClicked: dirModel.emptyTrash()
-                visible: dirModel.url === "trash:///"
-                         && _viewLoader.item
-                         && _viewLoader.item.count > 0
-                focusPolicy: Qt.NoFocus
             }
         }
     }

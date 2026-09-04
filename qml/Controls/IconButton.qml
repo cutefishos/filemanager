@@ -38,8 +38,13 @@ Item {
     Rectangle {
         id: _background
         anchors.fill: parent
-        radius: FishUI.Theme.smallRadius
-        color: _mouseArea.pressed ? pressedColor : _mouseArea.containsMouse ? control.hoveredColor : control.backgroundColor
+        // Same inset as FishUI's window buttons, so both draw the same circle.
+        anchors.margins: Math.round(control.width * 0.1)
+        radius: width / 2
+        color: !control.enabled ? "transparent"
+             : _mouseArea.pressed ? pressedColor
+             : _mouseArea.containsMouse ? control.hoveredColor
+             : control.backgroundColor
     }
 
     Image {
@@ -50,11 +55,13 @@ Item {
         sourceSize: Qt.size(width, height)
         smooth: false
         antialiasing: true
+        opacity: control.enabled ? 1 : 0.35
     }
 
     MouseArea {
         id: _mouseArea
         anchors.fill: parent
+        enabled: control.enabled
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
         onClicked: control.clicked()

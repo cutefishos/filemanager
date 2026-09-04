@@ -56,6 +56,16 @@ bool PathHistory::isEmpty()
     return m_prevHistory.isEmpty();
 }
 
+bool PathHistory::canGoBack() const
+{
+    return m_prevHistory.length() >= 2;
+}
+
+bool PathHistory::canGoForward() const
+{
+    return !m_postHistory.isEmpty();
+}
+
 QUrl PathHistory::posteriorPath()
 {
     if (m_postHistory.isEmpty())

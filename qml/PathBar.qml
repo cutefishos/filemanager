@@ -29,11 +29,30 @@ Item {
     id: control
 
     property string url: ""
+    property string currentName: nameForUrl(url)
 
     signal itemClicked(string path)
     signal editorAccepted(string path)
 
-    // The path bar is part of the title bar.  Start the Wayland move only
+    function nameForUrl(value) {
+        if (!value)
+            return ""
+
+        if (value.indexOf("trash:/") === 0)
+            return qsTr("Trash")
+
+        var path = value.toString()
+        if (path.indexOf("file://") === 0)
+            path = path.substring(7)
+
+        while (path.length > 1 && path.endsWith("/"))
+            path = path.substring(0, path.length - 1)
+
+        var separator = path.lastIndexOf("/")
+        return separator >= 0 ? (path.substring(separator + 1) || "/") : path
+    }
+
+    // The path bar is part of the navigation bar.  Start the Wayland move only
     // after a drag begins, so a single click can open the path editor.
     property bool _dragged: false
     property real _pressX: 0
