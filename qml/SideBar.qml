@@ -18,6 +18,7 @@
  */
 
 import QtQuick 2.12
+import QtQuick 2.12 as Quick
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Window 2.12
@@ -36,6 +37,10 @@ Item {
     property alias currentIndex: listView.currentIndex
     property alias count: listView.count
     property alias model: listView.model
+    property string selectedPath
+    property int dropIndex: -1
+    property real dropY: 0
+    property real pointerY: 0
 
     signal clicked(string path)
     signal openInNewWindow(string path)
@@ -46,6 +51,7 @@ Item {
 
     PlacesModel {
         id: placesModel
+        onFavoritesChanged: sideBar.updateSelection(sideBar.selectedPath)
         onDeviceSetupDone: sideBar.clicked(filePath)    // 设备挂载上后，模拟点击了该设备以打开该页面
     }
 
@@ -71,7 +77,11 @@ Item {
             id: titleLabel
             text: sideBar.title
             color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
+            Layout.fillWidth: true
             Layout.preferredHeight: root.header.height
+            Layout.minimumHeight: root.header.height
+            Layout.maximumHeight: root.header.height
+            elide: Text.ElideRight
             leftPadding: FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
             rightPadding: FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
             topPadding: FishUI.Units.smallSpacing
@@ -86,6 +96,16 @@ Item {
             Layout.topMargin: FishUI.Units.smallSpacing
             clip: true
             model: placesModel
+            header: Label {
+                width: listView.width
+                height: listView.snap(32)
+                leftPadding: listView.sideInset + FishUI.Units.smallSpacing
+                verticalAlignment: Text.AlignVCenter
+                text: qsTr("Favorites")
+                color: FishUI.Theme.disabledTextColor
+                font.pointSize: 9
+                font.bold: true
+            }
 
             // Rounding to whole *logical* pixels is not enough at a fractional scale:
             // at 150% a 37px row pitch is 55.5 device px, so every other row lands on
@@ -105,38 +125,33 @@ Item {
             readonly property real sideInset: listView.snap(FishUI.Units.smallSpacing * 1.5)
 
             bottomMargin: listView.snap(FishUI.Units.smallSpacing)
-            spacing: 2
+            spacing: listView.snap(3)
 
             ScrollBar.vertical: ScrollBar {
                 bottomPadding: FishUI.Units.smallSpacing
             }
 
             section.property: "category"
-            section.delegate: Item {
+            section.delegate: Label {
                 width: ListView.view.width
-                height: listView.snap(FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing + FishUI.Units.smallSpacing)
-
-                Text {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.leftMargin: Qt.application.layoutDirection === Qt.RightToLeft
-                                        ? 0 : listView.snap(listView.sideInset + FishUI.Units.smallSpacing)
-                    anchors.rightMargin: FishUI.Units.smallSpacing
-                    anchors.topMargin: FishUI.Units.largeSpacing
-                    anchors.bottomMargin: FishUI.Units.smallSpacing
-                    color: FishUI.Theme.textColor
-                    font.pointSize: 9
-                    font.bold: true
-                    text: section
-                }
+                height: section === qsTr("Favorites") ? 0 : listView.snap(36)
+                // ListView controls delegate visibility, including zero-height sections.
+                text: section === qsTr("Favorites") ? "" : section
+                leftPadding: listView.snap(listView.sideInset + FishUI.Units.smallSpacing)
+                rightPadding: FishUI.Units.smallSpacing
+                verticalAlignment: Text.AlignVCenter
+                color: FishUI.Theme.disabledTextColor
+                font.pointSize: 9
+                font.bold: true
             }
 
             delegate: Item {
                 id: _item
                 width: ListView.view.width
-                height: listView.snap(FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing * 1.5)
+                height: listView.snap(Math.max(34, FishUI.Units.fontMetrics.height + 12))
 
                 property bool checked: sideBar.currentIndex === index
+                opacity: _mouseArea.drag.active ? 0.45 : 1
                 property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
                                                                  : Qt.darker(FishUI.Theme.backgroundColor, 1.1)
                 MouseArea {
@@ -144,6 +159,28 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    drag.target: index < placesModel.favoriteCount ? dragProxy : null
+                    drag.axis: Drag.YAxis
+                    onPressed: function(mouse) {
+                        if (mouse.button === Qt.LeftButton) {
+                            dragProxy.favoriteRow = index
+                            dragProxy.x = mouse.x
+                            dragProxy.y = _item.mapToItem(sideBar, mouse.x, mouse.y).y
+                        }
+                    }
+                    onReleased: {
+                        if (drag.active)
+                            dragProxy.Drag.drop()
+                        sideBar.dropIndex = -1
+                    }
+                    onCanceled: {
+                        dragProxy.Drag.cancel()
+                        sideBar.dropIndex = -1
+                    }
+                    onPositionChanged: function(mouse) {
+                        if (drag.active)
+                            dragProxy.y = _item.mapToItem(sideBar, mouse.x, mouse.y).y
+                    }
                     onClicked: function(mouse) {
                         if (mouse.button === Qt.LeftButton) {
                             if (model.isDevice && model.setupNeeded)
@@ -153,6 +190,13 @@ Item {
                         } else if (mouse.button === Qt.RightButton) {
                             _menu.popup()
                         }
+                    }
+                }
+
+                Connections {
+                    target: _mouseArea.drag
+                    function onActiveChanged() {
+                        dragProxy.dragging = _mouseArea.drag.active
                     }
                 }
 
@@ -176,6 +220,16 @@ Item {
                         onTriggered: {
                             sideBar.openInNewWindow(model.path ? model.path : model.url)
                         }
+                    }
+
+                    FishUI.MenuSeparator {
+                        visible: index < placesModel.favoriteCount
+                    }
+
+                    FishUI.MenuItem {
+                        text: qsTr("Remove from Favorites")
+                        visible: index < placesModel.favoriteCount
+                        onTriggered: placesModel.removeFavorite(index)
                     }
 
                     FishUI.MenuSeparator {
@@ -228,14 +282,12 @@ Item {
                     smooth: true
                 }
 
-                // Positioned by hand rather than with a RowLayout: AlignVCenter computes
-                // (height - 22) / 2, which lands on a half device pixel even when the
-                // row height itself is snapped.
+                // Snap icon coordinates as well as size for fractional display scales.
                 FishUI.IconItem {
                     id: _icon
                     x: listView.snap(listView.sideInset + FishUI.Units.smallSpacing)
                     y: listView.snap((_item.height - height) / 2)
-                    width: listView.snap(22)
+                    width: listView.snap(20)
                     height: width
 
                     source: model.iconName
@@ -255,7 +307,103 @@ Item {
         }
     }
 
+    Item {
+        id: dragProxy
+        width: 1
+        height: 1
+        property int favoriteRow: -1
+        property bool dragging: false
+        Drag.active: dragging
+        Drag.source: dragProxy
+        Drag.supportedActions: Qt.MoveAction
+    }
+
+    Quick.DropArea {
+        id: favoritesDrop
+        anchors.fill: parent
+        z: 10
+        property bool internalDrag: false
+        onEntered: function(drag) {
+            internalDrag = drag.source === dragProxy
+            drag.accepted = internalDrag || (drag.hasUrls && placesModel.canAddFavorites(drag.urls))
+            if (drag.accepted)
+                sideBar.positionDrop(drag.y)
+        }
+        onPositionChanged: function(drag) {
+            sideBar.positionDrop(drag.y)
+        }
+        onExited: sideBar.dropIndex = -1
+        onDropped: function(drop) {
+            if (sideBar.dropIndex < 0)
+                return
+            var accepted = internalDrag
+                    ? placesModel.moveFavorite(dragProxy.favoriteRow, sideBar.dropIndex)
+                    : placesModel.addFavorites(drop.urls, sideBar.dropIndex)
+            if (accepted)
+                drop.accept(internalDrag ? Qt.MoveAction : Qt.CopyAction)
+            sideBar.dropIndex = -1
+        }
+    }
+
+    Rectangle {
+        z: 11
+        visible: sideBar.dropIndex >= 0
+        x: listView.sideInset + FishUI.Units.smallSpacing
+        y: sideBar.dropY - height / 2
+        width: sideBar.width - x - listView.sideInset
+        height: listView.snap(2)
+        color: FishUI.Theme.highlightColor
+        radius: height / 2
+        Rectangle {
+            x: -3
+            anchors.verticalCenter: parent.verticalCenter
+            width: 6
+            height: 6
+            radius: 3
+            color: FishUI.Theme.highlightColor
+        }
+    }
+
+    Timer {
+        interval: 30
+        repeat: true
+        running: favoritesDrop.containsDrag
+        onTriggered: {
+            var localY = sideBar.pointerY - listView.y
+            var delta = localY < 32 ? -6 : localY > listView.height - 32 ? 6 : 0
+            if (delta !== 0) {
+                var minimum = listView.originY
+                var maximum = Math.max(minimum, listView.contentHeight - listView.height + listView.originY)
+                listView.contentY = Math.max(minimum, Math.min(maximum, listView.contentY + delta))
+                sideBar.positionDrop(sideBar.pointerY)
+            }
+        }
+    }
+
+    function positionDrop(y) {
+        pointerY = y
+        var count = placesModel.favoriteCount
+        var contentY = y - listView.y + listView.contentY
+        var boundary = listView.headerItem.y + listView.headerItem.height
+        dropIndex = count
+        for (var i = 0; i < count; ++i) {
+            var item = listView.itemAtIndex(i)
+            if (!item)
+                continue
+            if (contentY < item.y + item.height / 2) {
+                dropIndex = i
+                boundary = item.y
+                break
+            }
+            boundary = item.y + item.height
+        }
+        dropY = listView.y + boundary - listView.contentY
+        if (contentY > boundary + 24 || dropY < listView.y || dropY > listView.y + listView.height)
+            dropIndex = -1
+    }
+
     function updateSelection(path) {
+        selectedPath = path
         listView.currentIndex = -1
 
         for (var i = 0; i < listView.count; ++i) {

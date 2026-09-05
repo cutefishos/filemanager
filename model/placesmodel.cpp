@@ -22,6 +22,8 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QDebug>
+#include <QFileInfo>
+#include <QSettings>
 
 #include <Solid/Device>
 #include <Solid/DeviceNotifier>
@@ -83,9 +85,33 @@ PlacesModel::PlacesModel(QObject *parent)
         m_items.append(item);
     }
 
-    PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:///")));
-    trashItem->setIconName("user-trash");
-    m_items.append(trashItem);
+    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager-sidebar"));
+    if (settings.contains(QStringLiteral("favorites"))) {
+        const auto defaults = m_items;
+        m_items.clear();
+        const QStringList saved = settings.value(QStringLiteral("favorites")).toStringList();
+        for (const QString &entry : saved) {
+            const QUrl url(entry);
+            if (!url.isLocalFile())
+                continue;
+            PlacesItem *favorite = nullptr;
+            for (PlacesItem *item : defaults) {
+                if (item->url() == url) {
+                    favorite = new PlacesItem(item->displayName(), url);
+                    favorite->setIconName(item->iconName());
+                    break;
+                }
+            }
+            if (!favorite) {
+                favorite = new PlacesItem(QFileInfo(url.toLocalFile()).fileName(), url);
+                favorite->setIconName(QStringLiteral("folder"));
+            }
+            m_items.append(favorite);
+        }
+        qDeleteAll(defaults);
+    }
+    for (PlacesItem *item : m_items)
+        item->setCategory(tr("Favorites"));
 
     QString predicateStr(
         QString::fromLatin1("[[[[ StorageVolume.ignored == false AND [ StorageVolume.usage == 'FileSystem' OR StorageVolume.usage == 'Encrypted' ]]"
@@ -106,9 +132,14 @@ PlacesModel::PlacesModel(QObject *parent)
     for (const Solid::Device &device : deviceList) {
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(device.udi());
-        deviceItem->setCategory(tr("Drives"));
+        deviceItem->setCategory(tr("Locations"));
         m_items.append(deviceItem);
     }
+
+    PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:///")));
+    trashItem->setCategory(tr("Locations"));
+    trashItem->setIconName("user-trash");
+    m_items.append(trashItem);
 
     // Init Signals
     for (PlacesItem *item : m_items) {
@@ -118,6 +149,82 @@ PlacesModel::PlacesModel(QObject *parent)
 
 PlacesModel::~PlacesModel()
 {
+    qDeleteAll(m_items);
+}
+
+int PlacesModel::favoriteCount() const
+{
+    int count = 0;
+    while (count < m_items.size() && m_items.at(count)->category() == tr("Favorites"))
+        ++count;
+    return count;
+}
+
+bool PlacesModel::canAddFavorites(const QList<QUrl> &urls) const
+{
+    if (urls.isEmpty())
+        return false;
+    for (const QUrl &url : urls) {
+        if (!url.isLocalFile() || !QFileInfo(url.toLocalFile()).isDir())
+            return false;
+    }
+    return true;
+}
+
+bool PlacesModel::addFavorites(const QList<QUrl> &urls, int before)
+{
+    if (before < 0 || before > favoriteCount() || !canAddFavorites(urls))
+        return false;
+    for (const QUrl &input : urls) {
+        const QUrl url = QUrl::fromLocalFile(QDir::cleanPath(input.toLocalFile()));
+        bool duplicate = false;
+        for (int row = 0; row < favoriteCount(); ++row)
+            duplicate |= m_items.at(row)->url() == url;
+        if (duplicate)
+            continue;
+        auto *item = new PlacesItem(QFileInfo(url.toLocalFile()).fileName(), url);
+        item->setIconName(QStringLiteral("folder"));
+        item->setCategory(tr("Favorites"));
+        beginInsertRows(QModelIndex(), before, before);
+        m_items.insert(before++, item);
+        endInsertRows();
+    }
+    saveFavorites();
+    return true;
+}
+
+bool PlacesModel::moveFavorite(int from, int before)
+{
+    const int count = favoriteCount();
+    if (from < 0 || from >= count || before < 0 || before > count)
+        return false;
+    if (before == from || before == from + 1)
+        return true;
+    beginMoveRows(QModelIndex(), from, from, QModelIndex(), before);
+    m_items.move(from, before > from ? before - 1 : before);
+    endMoveRows();
+    saveFavorites();
+    return true;
+}
+
+void PlacesModel::removeFavorite(int row)
+{
+    if (row < 0 || row >= favoriteCount())
+        return;
+    beginRemoveRows(QModelIndex(), row, row);
+    delete m_items.takeAt(row);
+    endRemoveRows();
+    saveFavorites();
+}
+
+void PlacesModel::saveFavorites()
+{
+    QStringList urls;
+    for (int row = 0; row < favoriteCount(); ++row)
+        urls.append(m_items.at(row)->url().toString());
+    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager-sidebar"));
+    settings.setValue(QStringLiteral("favorites"), urls);
+    emit favoritesChanged();
 }
 
 QHash<int, QByteArray> PlacesModel::roleNames() const
@@ -273,7 +380,7 @@ void PlacesModel::onDeviceAdded(const QString &udi)
         beginInsertRows(QModelIndex(), rowCount(), rowCount());
         PlacesItem *deviceItem = new PlacesItem;
         deviceItem->setUdi(udi);
-        deviceItem->setCategory(tr("Drives"));
+        deviceItem->setCategory(tr("Locations"));
         m_items.append(deviceItem);
         endInsertRows();
 

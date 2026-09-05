@@ -27,6 +27,7 @@
 class PlacesModel : public QAbstractItemModel
 {
     Q_OBJECT
+    Q_PROPERTY(int favoriteCount READ favoriteCount NOTIFY favoritesChanged)
 
 public:
     enum DataRole {
@@ -54,11 +55,17 @@ public:
     QModelIndex parent(const QModelIndex &child) const override;
 
     Q_INVOKABLE QVariantMap get(const int &index) const;
+    int favoriteCount() const;
+    Q_INVOKABLE bool canAddFavorites(const QList<QUrl> &urls) const;
+    Q_INVOKABLE bool addFavorites(const QList<QUrl> &urls, int before);
+    Q_INVOKABLE bool moveFavorite(int from, int before);
+    Q_INVOKABLE void removeFavorite(int row);
     Q_INVOKABLE void requestSetup(const int &index);
     Q_INVOKABLE void requestEject(const int &index);
     Q_INVOKABLE void requestTeardown(const int &index);
 
 signals:
+    void favoritesChanged();
     void deviceSetupDone(const QString &filePath);
 
 private slots:
@@ -67,6 +74,7 @@ private slots:
     void onItemChanged(PlacesItem *);
 
 private:
+    void saveFavorites();
     QList<PlacesItem *> m_items;
     Solid::Predicate m_predicate;
 };
