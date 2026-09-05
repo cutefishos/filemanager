@@ -194,8 +194,43 @@ int Positioner::mapFromSource(int row) const
 
 int Positioner::nearestItem(int currentIndex, Qt::ArrowType direction)
 {
-    if (!m_enabled || currentIndex >= rowCount()) {
+    const int count = rowCount();
+
+    if (count <= 0 || currentIndex >= count) {
         return -1;
+    }
+
+    // Without stored positions the grid is always packed, so navigation is
+    // plain index arithmetic along and across the stripes.
+    if (!m_enabled) {
+        if (m_perStripe <= 0) {
+            return -1;
+        }
+
+        if (currentIndex < 0) {
+            return 0;
+        }
+
+        int next = currentIndex;
+
+        switch (direction) {
+        case Qt::LeftArrow:
+            next -= 1;
+            break;
+        case Qt::RightArrow:
+            next += 1;
+            break;
+        case Qt::UpArrow:
+            next -= m_perStripe;
+            break;
+        case Qt::DownArrow:
+            next += m_perStripe;
+            break;
+        default:
+            return -1;
+        }
+
+        return (next >= 0 && next < count) ? next : -1;
     }
 
     if (currentIndex < 0) {
@@ -634,10 +669,23 @@ void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
         if (m_deferApplyPositions) {
             return;
         } else if (m_proxyToSource.isEmpty()) {
-            beginInsertRows(parent, start, end);
+            // First icons of an empty desktop. They go on their default cells,
+            // and the untaken cells before them are inserted as blanks so the
+            // announced range matches the row count that follows.
+            QHash<int, int> cells;
+            int lastNew = -1;
+
+            for (int i = start; i <= end; ++i) {
+                cells.insert(i, defaultCell(i - start));
+                lastNew = qMax(lastNew, cells.value(i));
+            }
+
+            beginInsertRows(parent, 0, lastNew);
             m_beginInsertRowsCalled = true;
 
-            initMaps(end + 1);
+            for (int i = start; i <= end; ++i) {
+                updateMaps(cells.value(i), i);
+            }
 
             return;
         }
@@ -671,14 +719,33 @@ void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
         }
 
         if (rest != -1) {
-            int firstNew = lastRow() + 1;
-            int remainder = (end - rest);
+            const int firstNew = lastRow() + 1;
+            const int remainder = (end - rest);
 
-            beginInsertRows(parent, firstNew, firstNew + remainder);
+            // Nothing is free inside the existing rows, so the new icons take
+            // default cells beyond them; every cell up to the last one used is
+            // part of the insertion, blank or not.
+            QHash<int, int> occupied = m_proxyToSource;
+            QList<int> cells;
+            int lastNew = firstNew + remainder;
+
+            for (int i = 0; i <= remainder; ++i) {
+                int cell = nextDefaultCell(occupied);
+
+                if (cell < firstNew) {
+                    cell = firstNew + i;
+                }
+
+                occupied.insert(cell, rest + i);
+                cells.append(cell);
+                lastNew = qMax(lastNew, cell);
+            }
+
+            beginInsertRows(parent, firstNew, lastNew);
             m_beginInsertRowsCalled = true;
 
             for (int i = 0; i <= remainder; ++i) {
-                updateMaps(firstNew + i, rest + i);
+                updateMaps(cells.at(i), rest + i);
             }
         } else {
             m_ignoreNextTransaction = true;
@@ -822,22 +889,56 @@ void Positioner::sourceLayoutChanged(const QList<QPersistentModelIndex> &parents
     emit layoutChanged(QList<QPersistentModelIndex>(), hint);
 }
 
-void Positioner::initMaps(int size)
+void Positioner::initMaps()
 {
     m_proxyToSource.clear();
     m_sourceToProxy.clear();
 
-    if (size == -1) {
-        size = m_folderModel->rowCount();
-    }
-
-    if (!size) {
-        return;
-    }
+    const int size = m_folderModel->rowCount();
 
     for (int i = 0; i < size; ++i) {
-        updateMaps(i, i);
+        updateMaps(defaultCell(i), i);
     }
+}
+
+// Cell of the nth default slot: the rightmost stripe first, filled from its
+// start, then the stripe next to it -- where macOS puts new desktop icons.
+// Falls back to plain packing while the grid size is still unknown.
+int Positioner::defaultCell(int ordinal) const
+{
+    if (m_perStripe <= 0 || m_stripes <= 0) {
+        return ordinal;
+    }
+
+    // More icons than the grid has room for: the extra ones spill past it,
+    // where they were piling up before there was a default order.
+    if (ordinal >= m_perStripe * m_stripes) {
+        return ordinal;
+    }
+
+    const int stripe = m_stripes - 1 - (ordinal / m_perStripe);
+
+    return (stripe * m_perStripe) + (ordinal % m_perStripe);
+}
+
+// The first default slot no icon sits on.
+int Positioner::nextDefaultCell(const QHash<int, int> &occupied) const
+{
+    if (m_perStripe <= 0 || m_stripes <= 0) {
+        return -1;
+    }
+
+    const int cellCount = m_perStripe * m_stripes;
+
+    for (int ordinal = 0; ordinal < cellCount; ++ordinal) {
+        const int cell = defaultCell(ordinal);
+
+        if (!occupied.contains(cell)) {
+            return cell;
+        }
+    }
+
+    return -1;
 }
 
 void Positioner::updateMaps(int proxyIndex, int sourceIndex)
@@ -873,9 +974,21 @@ int Positioner::lastRow() const
 
 int Positioner::firstFreeRow() const
 {
-    if (!m_proxyToSource.isEmpty()) {
-        int last = lastRow();
+    if (m_proxyToSource.isEmpty()) {
+        return -1;
+    }
 
+    const int last = lastRow();
+    const int cell = nextDefaultCell(m_proxyToSource);
+
+    // Past the rows the model already has: the caller has to announce an
+    // insertion for it, so leave it to the append path.
+    if (cell != -1) {
+        return cell <= last ? cell : -1;
+    }
+
+    // No grid to go by: fall back to the first gap.
+    if (m_perStripe <= 0 || m_stripes <= 0) {
         for (int i = 0; i <= last; ++i) {
             if (!m_proxyToSource.contains(i)) {
                 return i;
@@ -951,7 +1064,13 @@ bool Positioner::computeMaps(QHash<int, int> *proxyToSource, QHash<int, int> *so
         return last;
     };
 
-    auto freeCell = [&lastCell](const QHash<int, int> &map) {
+    auto freeCell = [&lastCell, this](const QHash<int, int> &map) {
+        const int cell = nextDefaultCell(map);
+
+        if (cell != -1) {
+            return cell;
+        }
+
         const int last = lastCell(map);
         for (int i = 0; i <= last; ++i) {
             if (!map.contains(i)) {

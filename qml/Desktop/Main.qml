@@ -63,7 +63,31 @@ Item {
 
     onLayoutKeyChanged: loadLayout()
 
-    Component.onCompleted: loadLayout()
+    Component.onCompleted: {
+        loadLayout()
+        takeFocus()
+    }
+
+    // The desktop is built by DesktopView and only then parented into the
+    // window, so `focus: true` on the view never reaches the focus chain:
+    // claim it explicitly, and again whenever the window is activated.
+    function takeFocus() {
+        // Not while a name is being edited: the editor is a child of the view,
+        // and taking the focus back would close it.
+        if (_folderView.editor && _folderView.editor.targetItem)
+            return
+
+        _folderView.forceActiveFocus()
+    }
+
+    Connections {
+        target: rootItem.Window.window
+
+        function onActiveChanged() {
+            if (rootItem.Window.window.active)
+                rootItem.takeFocus()
+        }
+    }
 
     function loadLayout() {
         if (!layoutKey)
@@ -143,11 +167,6 @@ Item {
         id: archiveProgressDialog
         archiveModel: dirModel
         hostWindow: rootItem.Window.window
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: _folderView.forceActiveFocus()
     }
 
     FolderGridView {

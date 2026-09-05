@@ -88,11 +88,9 @@ FishUI.DesktopMenu {
     FishUI.MenuItem {
         id: showHiddenItem
         property var modelAction: control.folderModel ? control.folderModel.action("showHidden") : null
-        text: modelAction ? modelAction.text : qsTr("Show hidden files")
+        text: modelAction ? modelAction.text : qsTr("Show Hidden Files")
         visible: !control.hasSelection && modelAction && modelAction.visible
         enabled: modelAction ? modelAction.enabled : false
-        checkable: true
-        checked: modelAction ? modelAction.checked : false
         onTriggered: modelAction.trigger()
     }
 

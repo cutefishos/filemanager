@@ -2143,7 +2143,7 @@ void FolderModel::createActions()
     QAction *restore = new QAction(tr("Restore"), this);
     QObject::connect(restore, &QAction::triggered, this, &FolderModel::restoreFromTrash);
 
-    QAction *showHidden = new QAction(tr("Show hidden files"), this);
+    QAction *showHidden = new QAction(tr("Show Hidden Files"), this);
     QObject::connect(showHidden, &QAction::triggered, this, [=] {
         setShowHiddenFiles(!m_showHiddenFiles);
     });
@@ -2304,8 +2304,9 @@ void FolderModel::updateActions()
 
     if (QAction *showHidden = m_actionCollection.action("showHidden")) {
         showHidden->setVisible(!isTrash);
-        showHidden->setCheckable(true);
-        showHidden->setChecked(m_showHiddenFiles);
+        // Plain text instead of a check mark: the label says what the item does.
+        showHidden->setText(m_showHiddenFiles ? tr("Hide Hidden Files")
+                                              : tr("Show Hidden Files"));
     }
 
     if (QAction *openInNewWindow = m_actionCollection.action("openInNewWindow")) {

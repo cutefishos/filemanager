@@ -100,11 +100,13 @@ private slots:
     void sourceLayoutChanged(const QList<QPersistentModelIndex> &parents, QAbstractItemModel::LayoutChangeHint hint);
 
 private:
-    void initMaps(int size = -1);
+    void initMaps();
     void updateMaps(int proxyIndex, int sourceIndex);
     int firstRow() const;
     int lastRow() const;
     int firstFreeRow() const;
+    int defaultCell(int ordinal) const;
+    int nextDefaultCell(const QHash<int, int> &occupied) const;
     void applyPositions();
     bool computeMaps(QHash<int, int> *proxyToSource, QHash<int, int> *sourceToProxy) const;
     bool fitsGrid(int stripe, int pos) const;
