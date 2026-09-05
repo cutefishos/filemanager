@@ -42,9 +42,6 @@ public:
     QString iconName() const;
     void setIconName(const QString &name);
 
-    QString iconPath() const;
-    void setIconPath(const QString &path);
-
     QUrl url() const;
     void setUrl(const QUrl &url);
 
@@ -71,7 +68,6 @@ private slots:
 private:
     QString m_displayName;
     QString m_iconName;
-    QString m_iconPath;
     QString m_udi;
     QUrl m_url;
     QString m_category;

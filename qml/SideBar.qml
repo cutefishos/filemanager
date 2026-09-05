@@ -238,7 +238,7 @@ Item {
                     width: listView.snap(22)
                     height: width
 
-                    source: "qrc:/images/" + model.iconPath
+                    source: model.iconName
                     color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 }
 

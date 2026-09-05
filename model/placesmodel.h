@@ -32,7 +32,6 @@ public:
     enum DataRole {
         NameRole = Qt::UserRole + 1,
         IconNameRole,
-        IconPathRole,
         UrlRole,
         PathRole,
         IsDeviceRole,

@@ -55,16 +55,6 @@ void PlacesItem::setIconName(const QString &name)
     m_iconName = name;
 }
 
-QString PlacesItem::iconPath() const
-{
-    return m_iconPath;
-}
-
-void PlacesItem::setIconPath(const QString &path)
-{
-    m_iconPath = path;
-}
-
 QUrl PlacesItem::url() const
 {
     return m_url;
@@ -118,7 +108,6 @@ void PlacesItem::updateDeviceInfo(const QString &udi)
     if (m_device.isValid()) {
         m_access = m_device.as<Solid::StorageAccess>();
         m_iconName = m_device.icon();
-        m_iconPath = QString("%1.svg").arg(m_iconName);
 
 #if SOLID_VERSION_MAJOR >= 5 && SOLID_VERSION_MINOR >= 71
         m_displayName = m_device.displayName();
