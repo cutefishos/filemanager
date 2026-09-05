@@ -19,10 +19,10 @@
 
 #include "filelauncher.h"
 
-#include <QDBusInterface>
-#include <QDBusPendingCall>
+#include "applicationlauncher.h"
+#include "applicationruntime.h"
+
 #include <QSettings>
-#include <QProcess>
 #include <QFile>
 #include <QDir>
 #include <QDebug>
@@ -45,6 +45,12 @@ FileLauncher::FileLauncher(QObject *parent)
 
 bool FileLauncher::launchApp(const QString &desktopFile, const QString &fileName)
 {
+    // The runtime knows the entry: let it expand Exec and track the instance
+    // under the application's own id.
+    if (ApplicationRuntime::instance()->launchApplication(
+                desktopFile, fileName.isEmpty() ? QStringList() : QStringList{fileName}))
+        return true;
+
     QSettings settings(desktopFile, QSettings::IniFormat);
     settings.beginGroup("Desktop Entry");
 
@@ -81,28 +87,11 @@ bool FileLauncher::launchExecutable(const QString &fileName)
 
 bool FileLauncher::startDetached(const QString &exec, QStringList args)
 {
-    QDBusInterface iface("com.cutefish.Session",
-                         "/Session",
-                         "com.cutefish.Session", QDBusConnection::sessionBus());
-
-    if (iface.isValid()) {
-        iface.asyncCall("launch", exec, args).waitForFinished();
-    } else {
-        QProcess::startDetached(exec, args);
-    }
-
-    return true;
+    return startDetached(exec, QString(), args);
 }
 
 bool FileLauncher::startDetached(const QString &exec, const QString &workingDir, QStringList args)
 {
-    QDBusInterface iface("com.cutefish.Session",
-                         "/Session",
-                         "com.cutefish.Session", QDBusConnection::sessionBus());
-
-    if (iface.isValid()) {
-        iface.asyncCall("launch", exec, workingDir, args).waitForFinished();
-    }
-
-    return true;
+    // The application runtime owns every application start of the session.
+    return ApplicationLauncher::startDetached(QStringList{exec} + args, workingDir);
 }

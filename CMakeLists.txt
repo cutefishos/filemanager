@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/applications
+                 ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-applications-build)
+
 find_package(Qt6 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
 
 find_path(LIBZIP_INCLUDE_DIR zip.h)
@@ -103,6 +106,7 @@ target_include_directories(cutefish-filemanager-core PUBLIC
 
 target_link_libraries(cutefish-filemanager-core
   PUBLIC
+  Cutefish::Applications
   Qt6::Core
   Qt6::DBus
   Qt6::Quick
