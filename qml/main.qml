@@ -345,16 +345,6 @@ FishUI.Window {
         anchors.bottom: parent.bottom
         z: 3
 
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            height: 1
-            color: Qt.rgba(FishUI.Theme.textColor.r,
-                           FishUI.Theme.textColor.g,
-                           FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.16 : 0.12)
-        }
-
         RowLayout {
             anchors.fill: parent
             anchors.leftMargin: FishUI.Units.smallSpacing * 1.5
