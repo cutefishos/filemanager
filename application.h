@@ -23,6 +23,7 @@
 #include <QApplication>
 
 namespace KIO { class Job; }
+class Window;
 
 class Application : public QApplication
 {
@@ -40,6 +41,7 @@ public:
 
 private:
     void openWindow(const QString &path);
+    void trackWindow(Window *window);
     QStringList formatUriList(const QStringList &list);
 
     /** Starts the trash job for @p paths, or returns nullptr if there is none. */
@@ -50,6 +52,7 @@ private:
 
 private:
     bool m_instance;
+    int m_windowCount = 0;
 };
 
 #endif // APPLICATION_H

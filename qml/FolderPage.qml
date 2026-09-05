@@ -21,7 +21,6 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt5Compat.GraphicalEffects
-import Qt.labs.platform 1.0
 
 import Cutefish.FileManager 1.0 as FM
 import FishUI 1.0 as FishUI
@@ -38,86 +37,30 @@ Item {
     property Item currentView: _viewLoader.item
     property int headerHeight: 0
     property int bottomNavigationHeight: 0
+    property string initialUrl: ""
+    readonly property string tabTitle: {
+        var path = currentUrl.toString()
+        if (path.indexOf("trash:/") === 0)
+            return qsTr("Trash")
+        if (path.indexOf("file://") === 0)
+            path = path.substring(7)
+        path = path.replace(/\/+$/, "")
+        var name = path.substring(path.lastIndexOf("/") + 1)
+        try { return decodeURIComponent(name) || "/" } catch (error) { return name || "/" }
+    }
 
     signal requestPathEditor()
+    signal openInNewTab(string path)
+    signal closeRequested()
 
     onCurrentUrlChanged: {
         if (!_viewLoader.item)
             return
 
         _viewLoader.item.reset()
-        _viewLoader.item.forceActiveFocus()
+        focusView()
     }
 
-    // Global Menu
-    MenuBar {
-        id: appMenu
-
-        Menu {
-            title: qsTr("File")
-
-            MenuItem {
-                text: qsTr("New Folder")
-                onTriggered: dirModel.newFolder()
-            }
-
-            MenuSeparator {}
-
-            MenuItem {
-                text: qsTr("Properties")
-                onTriggered: dirModel.openPropertiesDialog()
-            }
-
-            MenuSeparator {}
-
-            MenuItem {
-                text: qsTr("Quit")
-                onTriggered: root.close()
-            }
-        }
-
-        Menu {
-            title: qsTr("Edit")
-
-            MenuItem {
-                text: qsTr("Select All")
-                onTriggered: dirModel.selectAll()
-            }
-
-            MenuSeparator {}
-
-            MenuItem {
-                text: qsTr("Cut")
-                onTriggered: dirModel.cut()
-            }
-
-            MenuItem {
-                text: qsTr("Copy")
-                onTriggered: dirModel.copy()
-            }
-
-            MenuItem {
-                text: qsTr("Paste")
-                onTriggered: dirModel.paste()
-            }
-        }
-
-        Menu {
-            title: qsTr("Help")
-
-            MenuItem {
-                text: qsTr("About")
-                onTriggered: _aboutDialog.show()
-            }
-        }
-    }
-
-    FishUI.AboutDialog {
-        id: _aboutDialog
-        name: qsTr("File Manager")
-        description: qsTr("A file manager designed for CutefishOS.")
-        iconSource: "image://icontheme/file-system-manager"
-    }
 
     Rectangle {
         id: _background
@@ -142,15 +85,18 @@ Item {
         // showHiddenFiles: settings.showHiddenFiles
 
         Component.onCompleted: {
-            if (arg)
-                dirModel.url = arg
+            if (folderPage.initialUrl)
+                dirModel.url = folderPage.initialUrl
             else
                 dirModel.url = dirModel.homePath()
         }
 
+        onOpenTabRequested: function(path) { folderPage.openInNewTab(path) }
+
         // For new folder rename.
         onCurrentIndexChanged: {
-            _viewLoader.item.currentIndex = dirModel.currentIndex
+            if (_viewLoader.item)
+                _viewLoader.item.currentIndex = dirModel.currentIndex
         }
     }
 
@@ -163,17 +109,18 @@ Item {
 
         // Scroll to item.
         function onScrollToItem(index) {
-            _viewLoader.item.currentIndex = index
+            if (_viewLoader.item)
+                _viewLoader.item.currentIndex = index
         }
     }
 
     FM.ItemViewAdapter {
         id: viewAdapter
         adapterView: _viewLoader.item
-        adapterModel: _viewLoader.item.positioner ? _viewLoader.item.positioner : dirModel
+        adapterModel: _viewLoader.item && _viewLoader.item.positioner ? _viewLoader.item.positioner : dirModel
         adapterIconSize: 40
-        adapterVisibleArea: Qt.rect(_viewLoader.item.contentX, _viewLoader.item.contentY,
-                                    _viewLoader.item.contentWidth, _viewLoader.item.contentHeight)
+        adapterVisibleArea: _viewLoader.item ? Qt.rect(_viewLoader.item.contentX, _viewLoader.item.contentY,
+                                    _viewLoader.item.contentWidth, _viewLoader.item.contentHeight) : Qt.rect(0, 0, 0, 0)
     }
 
     FolderContextMenu {
@@ -198,11 +145,8 @@ Item {
                              case 1: return _gridViewComponent
                              }
 
-            onSourceComponentChanged: {
-                // Focus
-                _viewLoader.item.forceActiveFocus()
-
-                // ShortCut
+            onLoaded: {
+                folderPage.focusView()
                 shortCut.install(_viewLoader.item)
             }
         }
@@ -336,7 +280,7 @@ Item {
             dirModel.showHiddenFiles = !dirModel.showHiddenFiles
         }
         onClose: {
-            root.close()
+            folderPage.closeRequested()
         }
         onUndo: {
             dirModel.undo()
@@ -345,7 +289,12 @@ Item {
 
     function openUrl(url) {
         dirModel.url = url
-        _viewLoader.item.forceActiveFocus()
+        focusView()
+    }
+
+    function focusView() {
+        if (visible && _viewLoader.item)
+            _viewLoader.item.forceActiveFocus()
     }
 
     function goBack() {

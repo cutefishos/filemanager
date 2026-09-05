@@ -1604,6 +1604,7 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
 
         menu->addAction(m_actionCollection.action("open"));
         menu->addAction(m_actionCollection.action("openInNewWindow"));
+        menu->addAction(m_actionCollection.action("openInNewTab"));
 
         menu->addAction(m_actionCollection.action("openWith"));
         menu->addAction(m_actionCollection.action("compress"));
@@ -1708,6 +1709,16 @@ void FolderModel::openInNewWindow(const QString &url)
         if (item.isDir()) {
             QProcess::startDetached("cutefish-filemanager", QStringList() << item.url().toLocalFile());
         }
+    }
+}
+
+void FolderModel::openInNewTab()
+{
+    const QModelIndexList indexes = m_selectionModel->selectedIndexes();
+    for (const QModelIndex &index : indexes) {
+        const KFileItem item = itemForIndex(index);
+        if (item.isDir())
+            emit openTabRequested(item.url().toString());
     }
 }
 
@@ -2150,6 +2161,9 @@ void FolderModel::createActions()
 
     QAction *openInNewWindow = new QAction(tr("Open in new window"), this);
     QObject::connect(openInNewWindow, &QAction::triggered, this, [=] { this->openInNewWindow(); });
+    QAction *openInNewTab = new QAction(tr("Open In New Tab"), this);
+    connect(openInNewTab, &QAction::triggered, this, &FolderModel::openInNewTab);
+    m_actionCollection.addAction(QStringLiteral("openInNewTab"), openInNewTab);
 
     m_actionCollection.addAction(QStringLiteral("open"), open);
     m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
@@ -2311,6 +2325,9 @@ void FolderModel::updateActions()
 
     if (QAction *openInNewWindow = m_actionCollection.action("openInNewWindow")) {
         openInNewWindow->setVisible(hasDir && !isTrash);
+    }
+    if (QAction *openInNewTab = m_actionCollection.action("openInNewTab")) {
+        openInNewTab->setVisible(hasDir && !isTrash && !m_isDesktop);
     }
 }
 

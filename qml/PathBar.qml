@@ -33,6 +33,8 @@ Item {
 
     signal itemClicked(string path)
     signal editorAccepted(string path)
+    signal openInNewTab(string path)
+    signal openInNewWindow(string path)
 
     function nameForUrl(value) {
         if (!value)
@@ -141,6 +143,7 @@ Item {
             height: ListView.view.height - ListView.view.topMargin - ListView.view.bottomMargin
             width: _name.width + FishUI.Units.largeSpacing
             hoverEnabled: true
+            acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             z: -1
 
             property bool selected: index === _pathView.count - 1
@@ -159,9 +162,27 @@ Item {
                     dragged = true
             }
             onCanceled: dragged = true
-            onClicked: {
-                if (!dragged)
+            onClicked: function(mouse) {
+                if (dragged)
+                    return
+                if (mouse.button === Qt.RightButton)
+                    breadcrumbMenu.popup()
+                else if (mouse.button === Qt.MiddleButton)
+                    control.openInNewTab(model.path)
+                else
                     control.itemClicked(model.path)
+            }
+
+            FishUI.DesktopMenu {
+                id: breadcrumbMenu
+                FishUI.MenuItem {
+                    text: qsTr("Open In New Tab")
+                    onTriggered: control.openInNewTab(model.path)
+                }
+                FishUI.MenuItem {
+                    text: qsTr("Open in new window")
+                    onTriggered: control.openInNewWindow(model.path)
+                }
             }
 
             Rectangle {

@@ -21,6 +21,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Window 2.12
+import Qt.labs.platform 1.0 as Platform
 import FishUI 1.0 as FishUI
 
 import "./Controls"
@@ -42,6 +43,60 @@ FishUI.Window {
     LayoutMirroring.childrenInherit: true
 
     property QtObject settings: GlobalSettings { }
+    property var tabs: []
+    property int currentTab: 0
+    readonly property var _folderPage: tabs.length ? tabs[currentTab] : null
+
+    function openTab(path) {
+        var page = folderComponent.createObject(_content, { initialUrl: path || "" })
+        if (!page)
+            return
+        tabs = tabs.concat([page])
+        currentTab = tabs.length - 1
+        syncNavigation()
+    }
+
+    function closeTab(index) {
+        if (tabs.length === 1) {
+            root.close()
+            return
+        }
+        var page = tabs[index]
+        var remaining = tabs.slice()
+        remaining.splice(index, 1)
+        currentTab = Math.max(0, currentTab - (index <= currentTab ? 1 : 0))
+        tabs = remaining
+        page.destroy()
+        syncNavigation()
+    }
+
+    function syncNavigation() {
+        if (!_folderPage)
+            return
+        _pathBar.closeEditor()
+        _sideBar.updateSelection(_folderPage.currentUrl)
+        _pathBar.updateUrl(_folderPage.currentUrl)
+        _folderPage.focusView()
+    }
+
+    function moveTab(from, to) {
+        if (from === to || from < 0 || to < 0 || from >= tabs.length || to >= tabs.length)
+            return
+        var activePage = _folderPage
+        var reordered = tabs.slice()
+        reordered.splice(to, 0, reordered.splice(from, 1)[0])
+        tabs = reordered
+        currentTab = reordered.indexOf(activePage)
+        syncNavigation()
+    }
+
+    onCurrentTabChanged: syncNavigation()
+    Component.onCompleted: openTab(arg)
+
+    Shortcut { sequence: "Ctrl+T"; onActivated: root.openTab(_folderPage.currentUrl) }
+    Shortcut { sequence: "Ctrl+W"; onActivated: root.closeTab(root.currentTab) }
+    Shortcut { sequence: "Ctrl+Tab"; onActivated: root.currentTab = (root.currentTab + 1) % root.tabs.length }
+    Shortcut { sequence: "Ctrl+Shift+Tab"; onActivated: root.currentTab = (root.currentTab + root.tabs.length - 1) % root.tabs.length }
 
     onClosing: {
         if (root.visibility !== Window.Maximized &&
@@ -51,13 +106,102 @@ FishUI.Window {
         }
     }
 
+    Platform.MenuBar {
+        id: appMenu
+        objectName: "applicationMenuBar"
+        window: root
+
+        Platform.Menu {
+            title: qsTr("File")
+
+            Platform.MenuItem {
+                text: qsTr("New Tab")
+                onTriggered: root.openTab(root._folderPage.currentUrl)
+            }
+
+            Platform.MenuItem {
+                text: qsTr("Open In New Tab")
+                enabled: root._folderPage && root._folderPage.model.action("openInNewTab").visible
+                onTriggered: root._folderPage.model.openInNewTab()
+            }
+
+            Platform.MenuItem {
+                text: qsTr("Close Tab")
+                onTriggered: root.closeTab(root.currentTab)
+            }
+
+            Platform.MenuSeparator {}
+
+            Platform.MenuItem {
+                text: qsTr("New Folder")
+                onTriggered: root._folderPage.model.newFolder()
+            }
+
+            Platform.MenuSeparator {}
+
+            Platform.MenuItem {
+                text: qsTr("Properties")
+                onTriggered: root._folderPage.model.openPropertiesDialog()
+            }
+
+            Platform.MenuSeparator {}
+
+            Platform.MenuItem {
+                text: qsTr("Quit")
+                onTriggered: root.close()
+            }
+        }
+
+        Platform.Menu {
+            title: qsTr("Edit")
+
+            Platform.MenuItem {
+                text: qsTr("Select All")
+                onTriggered: root._folderPage.model.selectAll()
+            }
+
+            Platform.MenuSeparator {}
+
+            Platform.MenuItem {
+                text: qsTr("Cut")
+                onTriggered: root._folderPage.model.cut()
+            }
+
+            Platform.MenuItem {
+                text: qsTr("Copy")
+                onTriggered: root._folderPage.model.copy()
+            }
+
+            Platform.MenuItem {
+                text: qsTr("Paste")
+                onTriggered: root._folderPage.model.paste()
+            }
+        }
+
+        Platform.Menu {
+            title: qsTr("Help")
+
+            Platform.MenuItem {
+                text: qsTr("About")
+                onTriggered: _aboutDialog.show()
+            }
+        }
+    }
+
+    FishUI.AboutDialog {
+        id: _aboutDialog
+        name: qsTr("File Manager")
+        description: qsTr("A file manager designed for CutefishOS.")
+        iconSource: "image://icontheme/file-system-manager"
+    }
+
     OptionsMenu {
         id: optionsMenu
     }
 
     ArchiveProgressDialog {
         id: archiveProgressDialog
-        archiveModel: _folderPage.model
+        archiveModel: _folderPage ? _folderPage.model : null
         hostWindow: root
     }
 
@@ -81,7 +225,7 @@ FishUI.Window {
                 Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
-                enabled: _folderPage.canGoBack
+                enabled: _folderPage && _folderPage.canGoBack
                 source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
                                               : "qrc:/images/light/go-previous.svg"
                 onClicked: _folderPage.goBack()
@@ -92,7 +236,7 @@ FishUI.Window {
                 Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
-                enabled: _folderPage.canGoForward
+                enabled: _folderPage && _folderPage.canGoForward
                 source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
                                               : "qrc:/images/light/go-next.svg"
                 onClicked: _folderPage.goForward()
@@ -137,17 +281,48 @@ FishUI.Window {
             title: root.title
             onClicked: _folderPage.openUrl(path)
             onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
+            onOpenInNewTab: root.openTab(path)
         }
 
-        FolderPage {
-            id: _folderPage
+        Item {
+            id: _content
             Layout.fillWidth: true
             Layout.fillHeight: true
-            headerHeight: root.header.height
+
+            FolderTabBar {
+                id: tabBar
+                color: FishUI.Theme.secondBackgroundColor
+                objectName: "folderTabBar"
+                y: root.header.height
+                width: parent.width
+                z: 2
+                visible: root.tabs.length > 1
+                height: visible ? 38 : 0
+                tabs: root.tabs
+                currentIndex: root.currentTab
+                onSelected: function(index) { root.currentTab = index }
+                onCloseRequested: function(index) { root.closeTab(index) }
+                onNewRequested: root.openTab(_folderPage.currentUrl)
+                onDuplicateRequested: function(path) { root.openTab(path) }
+                onMoveRequested: function(from, to) { root.moveTab(from, to) }
+            }
+        }
+    }
+
+    Component {
+        id: folderComponent
+
+        FolderPage {
+            anchors.fill: parent
+            visible: root._folderPage === this
+            enabled: visible
+            headerHeight: root.header.height + tabBar.height
             bottomNavigationHeight: root.header.height
+            onOpenInNewTab: function(path) { root.openTab(path) }
+            onCloseRequested: root.closeTab(root.currentTab)
             onCurrentUrlChanged: {
-                _sideBar.updateSelection(currentUrl)
-                _pathBar.updateUrl(currentUrl)
+                if (visible)
+                    root.syncNavigation()
             }
             onRequestPathEditor: {
                 _pathBar.openEditor()
@@ -157,8 +332,8 @@ FishUI.Window {
 
     Item {
         id: _navigationBar
-        x: _folderPage.x
-        width: _folderPage.width
+        x: _content.x
+        width: _content.width
         height: root.header.height
         anchors.bottom: parent.bottom
         z: 3
@@ -187,6 +362,8 @@ FishUI.Window {
                 Layout.fillHeight: true
                 onItemClicked: _folderPage.openUrl(path)
                 onEditorAccepted: _folderPage.openUrl(path)
+                onOpenInNewTab: root.openTab(path)
+                onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
             }
         }
     }

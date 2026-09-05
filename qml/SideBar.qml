@@ -44,6 +44,7 @@ Item {
 
     signal clicked(string path)
     signal openInNewWindow(string path)
+    signal openInNewTab(string path)
 
     Fm {
         id: _fm
@@ -220,6 +221,12 @@ Item {
                         onTriggered: {
                             sideBar.openInNewWindow(model.path ? model.path : model.url)
                         }
+                    }
+
+                    FishUI.MenuItem {
+                        text: qsTr("Open In New Tab")
+                        enabled: !model.isDevice || !model.setupNeeded
+                        onTriggered: sideBar.openInNewTab(model.path ? model.path : model.url)
                     }
 
                     FishUI.MenuSeparator {

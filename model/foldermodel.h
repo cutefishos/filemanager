@@ -231,6 +231,7 @@ public:
     Q_INVOKABLE void openChangeWallpaperDialog();
     Q_INVOKABLE void openDeleteDialog();
     Q_INVOKABLE void openInNewWindow(const QString &url = QString());
+    Q_INVOKABLE void openInNewTab();
     Q_INVOKABLE void compressSelected();
     Q_INVOKABLE void extractSelectedArchive();
     Q_INVOKABLE void cancelArchive();
@@ -258,6 +259,7 @@ public:
 
 signals:
     void urlChanged();
+    void openTabRequested(const QString &url);
     void listingCompleted() const;
     void listingCanceled() const;
     void resolvedUrlChanged();

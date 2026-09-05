@@ -32,6 +32,7 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QDir>
+#include <QTimer>
 
 // KIO
 #include <KIO/CopyJob>
@@ -49,6 +50,7 @@ Application::Application(int& argc, char** argv)
     : QApplication(argc, argv)
     , m_instance(false)
 {
+    setQuitOnLastWindowClosed(true);
     if (QDBusConnection::sessionBus().registerService("com.cutefish.FileManager")) {
         setOrganizationName("cutefishos");
         setWindowIcon(QIcon::fromTheme("file-manager"));
@@ -114,6 +116,7 @@ void Application::emptyTrash()
 {
     Window *w = new Window;
     w->load(QUrl("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
+    trackWindow(w);
 }
 
 void Application::openWindow(const QString &path)
@@ -121,6 +124,21 @@ void Application::openWindow(const QString &path)
     Window *w = new Window;
     w->rootContext()->setContextProperty("arg", path);
     w->load(QUrl("qrc:/qml/main.qml"));
+    trackWindow(w);
+}
+
+void Application::trackWindow(Window *window)
+{
+    ++m_windowCount;
+    const int exitCode = window->quickWindow() ? EXIT_SUCCESS : EXIT_FAILURE;
+    connect(window, &QObject::destroyed, this, [this, exitCode] {
+        --m_windowCount;
+        // Hidden helper windows must not keep the browser's D-Bus service alive.
+        QTimer::singleShot(0, this, [this, exitCode] {
+            if (m_windowCount == 0)
+                QCoreApplication::exit(exitCode);
+        });
+    });
 }
 
 QStringList Application::formatUriList(const QStringList &list)
