@@ -64,19 +64,25 @@ FishUI.Window {
         var page = tabs[index]
         var remaining = tabs.slice()
         remaining.splice(index, 1)
-        currentTab = Math.max(0, currentTab - (index <= currentTab ? 1 : 0))
+        // The list has to shrink before the index moves, or the sync that
+        // follows the index change still sees the tab being closed.
         tabs = remaining
+        currentTab = Math.max(0, currentTab - (index <= currentTab ? 1 : 0))
         page.destroy()
         syncNavigation()
     }
 
     function syncNavigation() {
-        if (!_folderPage)
+        // Not _folderPage: its binding on currentTab has not been re-evaluated
+        // yet when this runs from onCurrentTabChanged, so it still holds the
+        // tab we are leaving.
+        var page = tabs.length ? tabs[currentTab] : null
+        if (!page)
             return
         _pathBar.closeEditor()
-        _sideBar.updateSelection(_folderPage.currentUrl)
-        _pathBar.updateUrl(_folderPage.currentUrl)
-        _folderPage.focusView()
+        _sideBar.updateSelection(page.currentUrl)
+        _pathBar.updateUrl(page.currentUrl)
+        page.focusView()
     }
 
     function moveTab(from, to) {
@@ -277,6 +283,7 @@ FishUI.Window {
 
         SideBar {
             id: _sideBar
+            objectName: "sideBar"
             Layout.fillHeight: true
             title: root.title
             onClicked: _folderPage.openUrl(path)

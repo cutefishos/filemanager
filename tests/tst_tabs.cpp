@@ -32,6 +32,8 @@ private slots:
         QObject *window = engine.rootObjects().first();
         QObject *menuBar = window->findChild<QObject *>("applicationMenuBar");
         QVERIFY(menuBar);
+        QObject *sideBar = window->findChild<QObject *>("sideBar");
+        QVERIFY(sideBar);
         QSignalSpy menuWindowChanges(menuBar, SIGNAL(windowChanged()));
         QVERIFY(menuWindowChanges.isValid());
         auto evaluate = [&](const QString &code) {
@@ -79,6 +81,8 @@ private slots:
 
         window->setProperty("currentTab", 0);
         QCOMPARE(activePage(), firstPage);
+        // Switching tabs has to move the sidebar selection with it.
+        QCOMPARE(sideBar->property("selectedPath").toString(), firstUrl);
         QCOMPARE(firstModel->url(), firstUrl);
         QVERIFY(firstModel->canGoBack());
         firstModel->goBack();
@@ -109,6 +113,7 @@ private slots:
         QTRY_COMPARE(evaluate("tabs.length").toInt(), 2);
         QTest::keyClick(quickWindow, Qt::Key_Tab, Qt::ControlModifier);
         QTRY_COMPARE(window->property("currentTab").toInt(), 0);
+        QCOMPARE(sideBar->property("selectedPath").toString(), initialUrl);
         QTest::keyClick(quickWindow, Qt::Key_W, Qt::ControlModifier);
         QTRY_COMPARE(evaluate("tabs.length").toInt(), 1);
 
