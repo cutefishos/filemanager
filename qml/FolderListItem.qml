@@ -33,6 +33,7 @@ Item {
     Accessible.role: Accessible.Canvas
 
     property Item iconArea: _image.visible ? _image : _icon
+    property string editName: model.fileName
     property Item labelArea: _label
     property Item labelArea2: _label2
 

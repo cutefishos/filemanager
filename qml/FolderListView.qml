@@ -70,24 +70,24 @@ ListView {
     }
 
     function rename() {
-        if (currentIndex !== -1) {
-            var renameAction = control.model.action("rename")
-            if (renameAction && !renameAction.enabled)
-                return
+        if (!control.currentItem || control.editor)
+            return
 
-            if (!control.editor)
-                control.editor = editorComponent.createObject(control)
+        var action = dirModel.action("rename")
+        if (action && !action.enabled)
+            return
 
-            control.editor.targetItem = control.currentItem
-        }
+        control.editor = editorComponent.createObject(control, {
+            "targetItem": control.currentItem,
+            "originalName": control.currentItem.editName,
+            "selectionEnd": dirModel.fileExtensionBoundary(control.currentIndex)
+        })
+        control.editor.begin()
     }
 
     function cancelRename() {
-        if (control.editor) {
+        if (control.editor)
             control.editor.cancel()
-            control.editor.destroy()
-            control.editor = null
-        }
     }
 
     function openContextMenu(modifiers) {
@@ -250,8 +250,10 @@ ListView {
         onPressed: function(mouse) {
             control.forceActiveFocus()
 
-            if (control.editor && childAt(mouse.x, mouse.y) !== control.editor)
-                control.editor.commit()
+            if (control.editor && !control.editor.commit()) {
+                mouse.accepted = true
+                return
+            }
 
             if (mouse.source === Qt.MouseEventSynthesizedByQt) {
                 var index = control.indexAt(mouse.x, mouse.y + control.contentY)
@@ -452,86 +454,15 @@ ListView {
     Component {
         id: editorComponent
 
-        TextField {
-            id: _editor
-            visible: false
-            wrapMode: Text.NoWrap
-            verticalAlignment: TextEdit.AlignVCenter
-            z: 999
-
-            background: Item {
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.topMargin: FishUI.Units.smallSpacing
-                    anchors.bottomMargin: FishUI.Units.smallSpacing
-                    radius: FishUI.Theme.smallRadius
-                    color: FishUI.Theme.backgroundColor
-                }
+        RenameEditor {
+            view: control
+            centered: false
+            onSubmitted: function(name) {
+                dirModel.rename(targetItem.index, name)
             }
-
-            property Item targetItem: null
-
-            onTargetItemChanged: {
-                if (targetItem != null) {
-                    var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
-                    width = targetItem.labelArea.width
-                    height = FishUI.Units.fontMetrics.height + FishUI.Units.largeSpacing * 2
-                    x = control.mapFromItem(targetItem.labelArea, 0, 0).x
-                    y = pos.y + (targetItem.height - height) / 2
-                    text = targetItem.labelArea.text
-                    targetItem.labelArea.visible = false
-                    targetItem.labelArea2.visible = false
-                    _editor.select(0, dirModel.fileExtensionBoundary(targetItem.index))
-                    visible = true
-                } else {
-                    x: 0
-                    y: 0
-                    visible = false
-                }
-            }
-
-            onVisibleChanged: {
-                if (visible)
-                    _editor.forceActiveFocus()
-                else
-                    control.forceActiveFocus()
-            }
-
-            Keys.onPressed: function(event) {
-                switch (event.key) {
-                case Qt.Key_Return:
-                case Qt.Key_Enter:
-                    commit()
-                    event.accepted = true
-                    break
-                case Qt.Key_Escape:
-                    cancel()
-                    event.accepted = true
-                    break
-                }
-            }
-
-            function commit() {
-                if (targetItem) {
-                    targetItem.labelArea.visible = true
-                    targetItem.labelArea2.visible = true
-                    dirModel.rename(targetItem.index, text)
-                    control.currentIndex = targetItem.index
-                    targetItem = null
-
-                    control.editor.destroy()
-                }
-            }
-
-            function cancel() {
-                if (targetItem) {
-                    targetItem.labelArea.visible = true
-                    targetItem.labelArea2.visible = true
-                    control.currentIndex = targetItem.index
-                    targetItem = null
-
-                    control.editor.destroy()
-                }
+            onFinished: {
+                control.editor = null
+                destroy()
             }
         }
     }

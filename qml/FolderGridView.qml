@@ -137,23 +137,24 @@ GridView {
     }
 
     function rename() {
-        if (control.currentIndex != -1) {
-            var renameAction = dirModel.action("rename")
-            if (renameAction && !renameAction.enabled)
-                return
+        if (!control.currentItem || control.editor)
+            return
 
-            if (!editor)
-                editor = editorComponent.createObject(control)
+        var action = dirModel.action("rename")
+        if (action && !action.enabled)
+            return
 
-            editor.targetItem = control.currentItem
-        }
+        control.editor = editorComponent.createObject(control, {
+            "targetItem": control.currentItem,
+            "originalName": control.currentItem.editName,
+            "selectionEnd": dirModel.fileExtensionBoundary(positioner.map(control.currentIndex))
+        })
+        control.editor.begin()
     }
 
     function cancelRename() {
-        if (editor) {
-            editor.cancel()
-            editor.targetItem = null;
-        }
+        if (control.editor)
+            control.editor.cancel()
     }
 
     // x, y are the click that opened the menu, in view coordinates.
@@ -458,8 +459,10 @@ GridView {
         onPressed: function(mouse) {
             control.forceActiveFocus()
 
-            if (control.editor && childAt(mouse.x, mouse.y) !== control.editor)
-                control.editor.commit()
+            if (control.editor && !control.editor.commit()) {
+                mouse.accepted = true
+                return
+            }
 
             pressX = mouse.x
             pressY = mouse.y
@@ -778,77 +781,15 @@ GridView {
     Component {
         id: editorComponent
 
-        TextField {
-            id: _editor
-            visible: false
-            wrapMode: TextEdit.Wrap
-            horizontalAlignment: TextEdit.AlignHCenter
-            topPadding: FishUI.Units.smallSpacing
-            bottomPadding: FishUI.Units.smallSpacing
-            z: 999
-
-            property Item targetItem: null
-
-            onTargetItemChanged: {
-                if (targetItem != null) {
-                    var pos = control.mapFromItem(targetItem, targetItem.labelArea.x, targetItem.labelArea.y)
-                    width = targetItem.width - FishUI.Units.smallSpacing
-                    height = targetItem.labelArea.paintedHeight + FishUI.Units.largeSpacing * 2
-                    x = targetItem.x + Math.abs(Math.min(control.contentX, control.originX))
-                    y = pos.y - FishUI.Units.smallSpacing
-                    text = targetItem.labelArea.text
-                    targetItem.labelArea.visible = false
-                    _editor.select(0, dirModel.fileExtensionBoundary(positioner.map(targetItem.index)))
-                    visible = true
-                } else {
-                    x = 0
-                    y = 0
-                    width = 0
-                    height = 0
-                    visible = false
-                }
+        RenameEditor {
+            view: control
+            centered: true
+            onSubmitted: function(name) {
+                dirModel.rename(positioner.map(targetItem.index), name)
             }
-
-            Keys.onPressed: function(event) {
-                switch (event.key) {
-                case Qt.Key_Return:
-                case Qt.Key_Enter:
-                    commit()
-                    event.accepted = true
-                    break
-                case Qt.Key_Escape:
-                    cancel()
-                    event.accepted = true
-                    break
-                }
-            }
-
-            onVisibleChanged: {
-                if (visible)
-                    _editor.forceActiveFocus()
-                else
-                    control.forceActiveFocus()
-            }
-
-            function commit() {
-                if (targetItem) {
-                    targetItem.labelArea.visible = true
-                    dirModel.rename(positioner.map(targetItem.index), text)
-                    control.currentIndex = targetItem.index
-                    targetItem = null
-
-                    control.editor.destroy()
-                }
-            }
-
-            function cancel() {
-                if (targetItem) {
-                    targetItem.labelArea.visible = true
-                    control.currentIndex = targetItem.index
-                    targetItem = null
-
-                    control.editor.destroy()
-                }
+            onFinished: {
+                control.editor = null
+                destroy()
             }
         }
     }

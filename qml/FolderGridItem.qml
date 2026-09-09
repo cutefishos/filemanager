@@ -32,6 +32,7 @@ Item {
     height: GridView.view.cellHeight
 
     property Item iconArea: _image.visible ? _image : _icon
+    property string editName: model.fileName
     property Item labelArea: _label
     property Item background: _background
 
@@ -196,6 +197,7 @@ Item {
         z: 1
         x: _label.x + (_label.width - _label.paintedWidth) / 2 - (FishUI.Units.smallSpacing / 2)
         y: _label.y
+        visible: _label.visible
         width: _label.paintedWidth + FishUI.Units.smallSpacing
         height: _label.paintedHeight
         radius: 4

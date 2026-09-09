@@ -7,3 +7,10 @@ enable_testing()
 add_executable(tst_placesmodel tst_placesmodel.cpp ../model/placesmodel.cpp ../model/placesitem.cpp)
 target_link_libraries(tst_placesmodel PRIVATE Qt6::Core Qt6::Test KF6::Solid)
 add_test(NAME placesmodel COMMAND tst_placesmodel)
+
+find_program(QMLTESTRUNNER_EXECUTABLE NAMES qmltestrunner6 qmltestrunner HINTS /usr/lib/qt6/bin)
+if(QMLTESTRUNNER_EXECUTABLE)
+    add_test(NAME rename-editor COMMAND ${QMLTESTRUNNER_EXECUTABLE}
+        -input ${CMAKE_CURRENT_SOURCE_DIR}/qml)
+    set_tests_properties(rename-editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
