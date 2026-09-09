@@ -209,6 +209,7 @@ Item {
         layoutDirection: Qt.LeftToRight
 
         isDesktopView: true
+        interactionSurface: rootItem
         iconSize: globalSettings.desktopIconSize
         maximumIconSize: globalSettings.maximumIconSize
         minimumIconSize: 22

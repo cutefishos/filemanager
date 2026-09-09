@@ -31,6 +31,9 @@ GridView {
 
     property bool isDesktopView: false
     property bool useCustomContextMenu: false
+    // Desktop input extends beyond the cells reserved for icons.
+    property Item interactionSurface: control
+    property bool pressActive: false
 
     property Item rubberBand: null
     property Item hoveredItem: null
@@ -172,6 +175,7 @@ GridView {
     }
 
     function reset() {
+        pressActive = false
         currentIndex = -1
         anchorIndex = 0
         cancelRename()
@@ -309,7 +313,7 @@ GridView {
         return iconWidth + extraWidth
     }
 
-    clip: true
+    clip: !isDesktopView
     // Dragging the view must rubber band select, not flick the content around
     // like a touch interface. WheelHandler and the scroll bar do the scrolling.
     interactive: false
@@ -448,6 +452,7 @@ GridView {
 
     MouseArea {
         id: _mouseArea
+        parent: control.interactionSurface
         anchors.fill: parent
         propagateComposedEvents: true
         preventStealing: true
@@ -457,6 +462,7 @@ GridView {
         z: -1
 
         onPressed: function(mouse) {
+            var pos = mapToItem(control, mouse.x, mouse.y)
             control.forceActiveFocus()
 
             if (control.editor && !control.editor.commit()) {
@@ -464,8 +470,9 @@ GridView {
                 return
             }
 
-            pressX = mouse.x
-            pressY = mouse.y
+            control.pressActive = true
+            pressX = pos.x
+            pressY = pos.y
 
             // 如果找到 hoveredItem 则点击后设置成为 pressedItem
             if (hoveredItem) {
@@ -495,7 +502,7 @@ GridView {
                 // 弹出 Item 菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers, mouse.x, mouse.y)
+                    control.openContextMenu(mouse.modifiers, pos.x, pos.y)
                     mouse.accepted = true
                 }
             } else {
@@ -508,23 +515,24 @@ GridView {
                 // 弹出文件夹菜单
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers, mouse.x, mouse.y)
+                    control.openContextMenu(mouse.modifiers, pos.x, pos.y)
                     mouse.accepted = true
                 }
             }
         }
 
         onPositionChanged: function(mouse) {
+            var pos = mapToItem(control, mouse.x, mouse.y)
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
-            var index = control.indexAt(mouse.x + control.contentX,
-                                        mouse.y + control.contentY)
+            var index = control.indexAt(pos.x + control.contentX,
+                                        pos.y + control.contentY)
             var indexItem = control.itemAtIndex(index)
 
             // Set hoveredItem.
             if (indexItem) {
-                var fPos = mapToItem(indexItem.background, mouse.x, mouse.y)
+                var fPos = control.mapToItem(indexItem.background, pos.x, pos.y)
 
                 if (fPos.x < 0 || fPos.y < 0
                         || fPos.x > indexItem.background.width
@@ -539,8 +547,10 @@ GridView {
 
             // Update rubberband geometry.
             if (control.rubberBand) {
-                var cPos = mapToItem(control.contentItem, mouse.x, mouse.y)
-                var leftEdge = Math.min(control.contentX, control.originX)
+                var cPos = control.mapToItem(control.contentItem, pos.x, pos.y)
+                var bounds = control.interactionSurface.mapToItem(control.contentItem, 0, 0,
+                        control.interactionSurface.width, control.interactionSurface.height)
+                var leftEdge = control.isDesktopView ? bounds.x : Math.min(control.contentX, control.originX)
                 var rB = control.rubberBand
 
                 if (cPos.x < cPress.x) {
@@ -548,16 +558,18 @@ GridView {
                     rB.width = Math.abs(rB.x - cPress.x)
                 } else {
                     rB.x = cPress.x
-                    const ceil = Math.max(control.width, control.contentItem.width) + leftEdge
+                    const ceil = control.isDesktopView ? bounds.x + bounds.width
+                                                      : Math.max(control.width, control.contentItem.width) + leftEdge
                     rB.width = Math.min(ceil - rB.x, Math.abs(rB.x - cPos.x))
                 }
 
                 if (cPos.y < cPress.y) {
-                    rB.y = Math.max(0, cPos.y)
+                    rB.y = Math.max(control.isDesktopView ? bounds.y : 0, cPos.y)
                     rB.height = Math.abs(rB.y - cPress.y)
                 } else {
                     rB.y = cPress.y
-                    const ceil = Math.max(control.height, control.contentItem.height)
+                    const ceil = control.isDesktopView ? bounds.y + bounds.height
+                                                      : Math.max(control.height, control.contentItem.height)
                     rB.height = Math.min(ceil - rB.y, Math.abs(rB.y - cPos.y))
                 }
 
@@ -571,18 +583,18 @@ GridView {
                 return
             }
 
-            if (pressX != -1) {
+            if (control.pressActive) {
                 if (pressedItem != null && dirModel.isSelected(positioner.map(pressedItem.index))) {
-                    control.dragX = mouse.x
-                    control.dragY = mouse.y
+                    control.dragX = pos.x
+                    control.dragY = pos.y
                     control.verticalDropHitscanOffset = pressedItem.y + (pressedItem.height / 2)
 
-                    var grab = mapToItem(pressedItem, mouse.x, mouse.y)
+                    var grab = control.mapToItem(pressedItem, pos.x, pos.y)
                     control.dragAnchorIndex = pressedItem.index
                     control.dragGrabOffset = Qt.point(grab.x, grab.y)
 
                     control.refreshDragImages()
-                    dirModel.dragSelected(mouse.x, mouse.y)
+                    dirModel.dragSelected(pos.x, pos.y)
                     control.dragX = -1
                     control.dragY = -1
                     clearPressState()
@@ -655,6 +667,7 @@ GridView {
     }
 
     function clearPressState() {
+        pressActive = false
         pressedItem = null
         pressX = -1
         pressY = -1
