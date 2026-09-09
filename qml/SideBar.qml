@@ -297,6 +297,7 @@ Item {
                     width: listView.snap(20)
                     height: width
 
+                    themeSize: 20
                     source: model.iconName
                     color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 }
