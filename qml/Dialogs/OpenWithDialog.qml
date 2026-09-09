@@ -29,10 +29,16 @@ FishUI.Window {
 
     property string url: main.url
     property int contentWidth: 400 + FishUI.Units.largeSpacing * 2
-    property int contentHeight: _mainLayout.implicitHeight + control.header.height + FishUI.Units.largeSpacing * 2
+    property int contentHeight: _mainLayout.implicitHeight + 32
 
-    title: qsTr("Open With")
+    title: "Open With"
     flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    modality: Qt.WindowModal
+    windowRadius: 16
+    windowButtonsTopMargin: 8
+    windowButtonsRightMargin: 8
+    header.height: 44
+    contentTopMargin: 0
     minimizeButtonVisible: false
     visible: false
 
@@ -72,9 +78,20 @@ FishUI.Window {
     ColumnLayout {
         id: _mainLayout
         anchors.fill: parent
-        spacing: 0
+        anchors.margins: 16
+        spacing: 16
 
-        GridView {
+        Label {
+            Layout.fillWidth: true
+            Layout.rightMargin: 32
+            text: control.title
+            textFormat: Text.PlainText
+            font.pixelSize: 14
+            font.weight: Font.DemiBold
+            color: FishUI.Theme.textColor
+        }
+
+        ListView {
             id: listView
             Layout.fillWidth: true
             Layout.preferredHeight: 250
@@ -82,18 +99,9 @@ FishUI.Window {
             clip: true
             ScrollBar.vertical: ScrollBar {}
 
-            leftMargin: FishUI.Units.smallSpacing
-            rightMargin: FishUI.Units.smallSpacing
-
-            cellHeight: {
-                var extraHeight = calcExtraSpacing(80, listView.Layout.preferredHeight - topMargin - bottomMargin)
-                return 80 + extraHeight
-            }
-
-            cellWidth: {
-                var extraWidth = calcExtraSpacing(120, listView.width - leftMargin - rightMargin)
-                return 120 + extraWidth
-            }
+            spacing: 4
+            boundsBehavior: Flickable.StopAtBounds
+            keyNavigationEnabled: true
 
             Label {
                 anchors.centerIn: parent
@@ -103,15 +111,8 @@ FishUI.Window {
 
             delegate: Item {
                 id: item
-                width: GridView.view.cellWidth
-                height: GridView.view.cellHeight
-                scale: mouseArea.pressed ? 0.95 : 1.0
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 100
-                    }
-                }
+                width: ListView.view.width
+                height: 52
 
                 property bool isSelected: listView.currentIndex === index
 
@@ -120,13 +121,15 @@ FishUI.Window {
                     anchors.fill: parent
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton
-                    onDoubleClicked: control.openApp()
+                    onDoubleClicked: {
+                        listView.currentIndex = index
+                        control.openApp()
+                    }
                     onClicked: listView.currentIndex = index
                 }
 
                 Rectangle {
                     anchors.fill: parent
-                    anchors.margins: FishUI.Units.smallSpacing
                     radius: FishUI.Theme.mediumRadius
                     color: isSelected ? FishUI.Theme.highlightColor
                                       : mouseArea.containsMouse ? Qt.rgba(FishUI.Theme.textColor.r,
@@ -136,25 +139,24 @@ FishUI.Window {
                     smooth: true
                 }
 
-                ColumnLayout {
+                RowLayout {
                     anchors.fill: parent
-                    anchors.margins: FishUI.Units.smallSpacing
-                    spacing: FishUI.Units.smallSpacing
+                    anchors.margins: 10
+                    spacing: 12
 
                     FishUI.IconItem {
                         id: icon
-                        Layout.preferredHeight: 36
-                        Layout.preferredWidth: height
+                        Layout.preferredHeight: 32
+                        Layout.preferredWidth: 32
                         source: model.icon
-                        Layout.alignment: Qt.AlignHCenter
                     }
 
                     Label {
                         text: model.name
                         Layout.fillWidth: true
                         elide: Text.ElideMiddle
-                        Layout.alignment: Qt.AlignHCenter
-                        horizontalAlignment: Qt.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        textFormat: Text.PlainText
                         color: isSelected ? FishUI.Theme.highlightedTextColor : FishUI.Theme.textColor
                     }
                 }
@@ -167,44 +169,27 @@ FishUI.Window {
             text: qsTr("Set as default")
             enabled: listView.count >= 1
             padding: 0
-
-            Layout.leftMargin: FishUI.Units.largeSpacing
-            Layout.bottomMargin: FishUI.Units.largeSpacing
         }
 
         RowLayout {
-            spacing: FishUI.Units.largeSpacing
-            Layout.leftMargin: FishUI.Units.largeSpacing
-            Layout.rightMargin: FishUI.Units.largeSpacing
-            Layout.bottomMargin: FishUI.Units.largeSpacing
+            spacing: 8
+            Layout.alignment: Qt.AlignRight
 
-            Button {
+            FishUI.ConfirmDialogButton {
                 text: qsTr("Cancel")
-                Layout.fillWidth: true
                 onClicked: control.close()
             }
 
-            Button {
+            FishUI.ConfirmDialogButton {
                 id: doneButton
                 focus: true
-                flat: true
+                primary: true
                 text: qsTr("Open")
                 enabled: listView.count > 0
-                Layout.fillWidth: true
                 onClicked: control.openApp()
             }
 
         }
     }
 
-    function calcExtraSpacing(cellSize, containerSize) {
-        var availableColumns = Math.floor(containerSize / cellSize)
-        var extraSpacing = 0
-        if (availableColumns > 0) {
-            var allColumnSize = availableColumns * cellSize
-            var extraSpace = Math.max(containerSize - allColumnSize, 0)
-            extraSpacing = extraSpace / availableColumns
-        }
-        return Math.floor(extraSpacing)
-    }
 }

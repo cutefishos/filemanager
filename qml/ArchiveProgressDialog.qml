@@ -15,6 +15,9 @@ FishUI.Window {
 
     flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     modality: Qt.NonModal
+    windowRadius: 16
+    windowButtonsTopMargin: 8
+    windowButtonsRightMargin: 8
     minimizeButtonVisible: false
     visible: archiveModel !== null && archiveModel.archiveBusy
 
@@ -28,30 +31,28 @@ FishUI.Window {
     x: hostWindow ? hostWindow.x + Math.round((hostWindow.width - width) / 2) : 0
     y: hostWindow ? hostWindow.y + Math.round((hostWindow.height - height) / 2) : 0
 
-    header.height: 40
+    header.height: 44
     headerBackground.color: FishUI.Theme.secondBackgroundColor
     background.color: FishUI.Theme.secondBackgroundColor
 
     headerItem: Item {
         Label {
             anchors.left: parent.left
-            anchors.leftMargin: FishUI.Units.largeSpacing
+            anchors.leftMargin: 16
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - FishUI.Units.largeSpacing * 2
+            width: parent.width - 64
             text: control.archiveModel === null ? qsTr("File operation")
                                                  : control.archiveModel.archiveOperation
             elide: Text.ElideRight
-            font.pointSize: 11
+            font.pixelSize: 14
+            font.weight: Font.DemiBold
         }
     }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.leftMargin: FishUI.Units.largeSpacing
-        anchors.rightMargin: FishUI.Units.largeSpacing
-        anchors.topMargin: FishUI.Units.smallSpacing
-        anchors.bottomMargin: FishUI.Units.largeSpacing
-        spacing: FishUI.Units.largeSpacing
+        anchors.margins: 16
+        spacing: 16
 
         Label {
             Layout.fillWidth: true
@@ -59,7 +60,8 @@ FishUI.Window {
                                                   : control.archiveModel.archiveCurrentFile
             visible: text.length > 0
             elide: Text.ElideMiddle
-            font.pointSize: 10
+            font.pixelSize: 14
+            color: FishUI.Theme.disabledTextColor
         }
 
         Item {
@@ -89,19 +91,15 @@ FishUI.Window {
         }
 
         RowLayout {
-            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignRight
+            spacing: 8
 
-            Item {
-                Layout.fillWidth: true
-            }
-
-            Button {
+            FishUI.ConfirmDialogButton {
                 text: control.archiveModel !== null && control.archiveModel.archiveCancelling
                       ? qsTr("Cancelling…") : qsTr("Cancel")
                 enabled: control.archiveModel !== null
                          && control.archiveModel.archiveBusy
                          && !control.archiveModel.archiveCancelling
-                flat: true
                 onClicked: control.archiveModel.cancelArchive()
             }
         }
