@@ -25,11 +25,13 @@
 
 class FolderModel;
 class QTimer;
+
 class Positioner : public QAbstractItemModel
 {
     Q_OBJECT
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
-    Q_PROPERTY(FolderModel *folderModel READ folderModel WRITE setFolderModel NOTIFY folderModelChanged)
+    Q_PROPERTY(FolderModel *folderModel READ folderModel WRITE setFolderModel NOTIFY
+                       folderModelChanged)
     Q_PROPERTY(int perStripe READ perStripe WRITE setPerStripe NOTIFY perStripeChanged)
     Q_PROPERTY(int stripes READ stripes WRITE setStripes NOTIFY stripesChanged)
     Q_PROPERTY(QStringList positions READ positions WRITE setPositions NOTIFY positionsChanged)
@@ -69,7 +71,8 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex index(int row, int column,
+                      const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -87,17 +90,22 @@ signals:
 private slots:
     void updatePositions();
     void sourceStatusChanged();
-    void sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
+    void sourceDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                           const QVector<int> &roles);
     void sourceModelAboutToBeReset();
     void sourceModelReset();
     void sourceRowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
-    void sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationRow);
+    void sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
+                                  const QModelIndex &destinationParent, int destinationRow);
     void sourceRowsAboutToBeRemoved(const QModelIndex &parent, int first, int last);
-    void sourceLayoutAboutToBeChanged(const QList<QPersistentModelIndex> &parents, QAbstractItemModel::LayoutChangeHint hint);
+    void sourceLayoutAboutToBeChanged(const QList<QPersistentModelIndex> &parents,
+                                      QAbstractItemModel::LayoutChangeHint hint);
     void sourceRowsInserted(const QModelIndex &parent, int first, int last);
-    void sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationRow);
+    void sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
+                         const QModelIndex &destinationParent, int destinationRow);
     void sourceRowsRemoved(const QModelIndex &parent, int first, int last);
-    void sourceLayoutChanged(const QList<QPersistentModelIndex> &parents, QAbstractItemModel::LayoutChangeHint hint);
+    void sourceLayoutChanged(const QList<QPersistentModelIndex> &parents,
+                             QAbstractItemModel::LayoutChangeHint hint);
 
 private:
     void initMaps();

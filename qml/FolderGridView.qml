@@ -39,9 +39,6 @@ GridView {
     property alias positions: positioner.positions
     property alias positioner: positioner
 
-    // The cell grid the view has room for. cellWidth/cellHeight are stretched to
-    // fill exactly this many cells, so this is also what the positioner stores
-    // icon cells against.
     readonly property int gridColumns: Math.max(1, Math.floor((width - leftMargin - rightMargin) / cellWidth))
     readonly property int gridRows: Math.max(1, Math.floor((height - topMargin - bottomMargin) / cellHeight))
     readonly property bool columnFlow: control.flow === GridView.FlowTopToBottom
@@ -227,7 +224,7 @@ GridView {
 
             if (currentIndex != -1)
                 anchorIndex = currentIndex
-        } else if (event.key === Qt.Key_Equal && event.modifiers & Qt.ControlModifier) {
+        } else if ((event.key === Qt.Key_Equal || event.key === Qt.Key_Plus) && event.modifiers & Qt.ControlModifier) {
             control.increaseIconSize()
         } else if (event.key === Qt.Key_Minus && event.modifiers & Qt.ControlModifier) {
             control.decreaseIconSize()
@@ -288,16 +285,24 @@ GridView {
         }
     }
 
+    readonly property real desktopLabelHeight: desktopLabelMetrics.height
+
+    FontMetrics {
+        id: desktopLabelMetrics
+        font.pixelSize: 13
+    }
+
     cellHeight: {
         var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 2) + FishUI.Units.largeSpacing * 2
         if (isDesktopView) {
-            var extraHeight = calcExtraSpacing(iconHeight, control.height - topMargin - bottomMargin)
-            return iconHeight + extraHeight
+            return Math.ceil(iconSize + 8 + 6 + desktopLabelHeight * 2 + 12)
         }
         return iconHeight
     }
 
     cellWidth: {
+        if (isDesktopView)
+            return Math.ceil(Math.max(96, iconSize + 40))
         var iconWidth = iconSize + FishUI.Units.largeSpacing * 4
         var extraWidth = calcExtraSpacing(iconWidth, control.width - leftMargin - rightMargin)
         return iconWidth + extraWidth
@@ -749,7 +754,7 @@ GridView {
             return
         }
 
-        iconSize += (iconSize * 0.1)
+        iconSize = Math.min(control.maximumIconSize, iconSize + (isDesktopView ? 8 : iconSize * 0.1))
     }
 
     function decreaseIconSize() {
@@ -758,7 +763,7 @@ GridView {
             return
         }
 
-        iconSize -= (iconSize * 0.1)
+        iconSize = Math.max(control.minimumIconSize, iconSize - (isDesktopView ? 8 : iconSize * 0.1))
     }
 
     function updateSelection(modifier) {

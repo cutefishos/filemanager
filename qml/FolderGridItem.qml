@@ -35,6 +35,8 @@ Item {
     property Item labelArea: _label
     property Item background: _background
 
+    readonly property bool desktop: GridView.view.isDesktopView
+
     property int index: model.index
     property bool hovered: GridView.view.hoveredItem === control
     property bool selected: model.selected
@@ -87,7 +89,7 @@ Item {
         id: _iconItem
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: FishUI.Units.smallSpacing
+        anchors.topMargin: control.desktop ? 8 : FishUI.Units.smallSpacing
         anchors.bottomMargin: FishUI.Units.smallSpacing
         z: 2
 
@@ -175,10 +177,11 @@ Item {
         z: 2
         anchors.top: _iconItem.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: FishUI.Units.smallSpacing
-        maximumLineCount: control.selected ? 3 : 2
+        anchors.topMargin: control.desktop ? 6 : FishUI.Units.smallSpacing
+        maximumLineCount: control.desktop ? 2 : (control.selected ? 3 : 2)
+        font.pixelSize: control.desktop ? 13 : FishUI.Theme.defaultFont.pixelSize
         horizontalAlignment: Text.AlignHCenter
-        width: parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
+        width: control.desktop ? parent.width - 12 : parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap

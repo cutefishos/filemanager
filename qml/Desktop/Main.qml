@@ -34,16 +34,12 @@ Item {
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
-    // Icon positions are stored per screen and per grid size, so switching
-    // resolution -- or icon size -- picks up the arrangement that belongs to it
-    // and switching back restores the previous one untouched.
     readonly property string screenName: (typeof desktopView !== "undefined" && desktopView)
                                          ? String(desktopView.screenName).replace(/[\/\\]/g, "_") : ""
-    readonly property string layoutKey: (_folderView.width > 0 && _folderView.height > 0)
-                                        ? "%1_%2x%3".arg(screenName).arg(_folderView.gridColumns).arg(_folderView.gridRows)
-                                        : ""
-
+    readonly property string legacyLayoutKey: "%1_%2x%3".arg(screenName)
+                                              .arg(_folderView.gridColumns).arg(_folderView.gridRows)
     property bool restoringLayout: false
+    property bool layoutLoaded: false
 
     GlobalSettings {
         id: globalSettings
@@ -61,7 +57,17 @@ Item {
         onTriggered: rootItem.saveLayout()
     }
 
-    onLayoutKeyChanged: loadLayout()
+    Timer {
+        id: restoreLayoutTimer
+        interval: 150
+        onTriggered: rootItem.loadLayout()
+    }
+
+    onScreenNameChanged: {
+        layoutLoaded = false;
+        saveLayoutTimer.stop()
+        restoreLayoutTimer.restart()
+    }
 
     Component.onCompleted: {
         loadLayout()
@@ -90,32 +96,43 @@ Item {
     }
 
     function loadLayout() {
-        if (!layoutKey)
+        if (_folderView.width <= 0 || _folderView.height <= 0 || layoutLoaded)
             return
 
         restoringLayout = true
 
-        var raw = layoutSettings.value("layout." + layoutKey, "")
+        var raw = layoutSettings.value("layout.v3." + screenName, "")
+        if (!raw)
+            raw = layoutSettings.value("layout.v2." + legacyLayoutKey, "")
+        if (!raw)
+            raw = layoutSettings.value("latest.v2." + screenName, "")
+        var legacy = false
+        if (!raw) {
+            raw = layoutSettings.value("layout." + legacyLayoutKey, "")
+            legacy = !!raw
+        }
 
         if (raw) {
             try {
                 var stored = JSON.parse(raw)
-                if (stored instanceof Array && stored.length >= 5)
+                if (stored instanceof Array && stored.length >= 5) {
+                    // Legacy headers counted occupied columns, not the screen grid.
+                    if (legacy)
+                        stored[0] = String(_folderView.gridColumns)
                     _folderView.positioner.positions = stored
+                }
             } catch (e) {
-                console.warn("Desktop: ignoring unreadable icon layout for", layoutKey, e)
+                console.warn("Desktop: ignoring unreadable icon layout for", screenName, e)
             }
         }
 
+        layoutLoaded = true
         restoringLayout = false
-
-        // Whatever we ended up with -- the stored layout, or the previous one
-        // reflowed into the new grid -- belongs to this profile from now on.
         saveLayoutTimer.restart()
     }
 
     function saveLayout() {
-        if (!layoutKey || restoringLayout)
+        if (!layoutLoaded || restoringLayout || restoreLayoutTimer.running)
             return
 
         var positions = _folderView.positioner.positions
@@ -125,7 +142,7 @@ Item {
         if (positions.length < 5)
             return
 
-        layoutSettings.setValue("layout." + layoutKey, JSON.stringify(positions))
+        layoutSettings.setValue("layout.v3." + screenName, JSON.stringify(positions))
     }
 
     Connections {
@@ -153,7 +170,7 @@ Item {
         id: viewAdapter
         adapterView: _folderView
         adapterModel: _folderView.positioner
-        adapterIconSize: 40
+        adapterIconSize: _folderView.iconSize
         adapterVisibleArea: Qt.rect(_folderView.contentX, _folderView.contentY,
                                     _folderView.contentWidth, _folderView.contentHeight)
     }
@@ -171,7 +188,25 @@ Item {
 
     FolderGridView {
         id: _folderView
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: 28 + 12
+        anchors.rightMargin: Dock.rightMargin + 12
+        readonly property real availableWidth: Math.max(0, rootItem.width - Dock.leftMargin - Dock.rightMargin - 24)
+        readonly property real availableHeight: Math.max(0, rootItem.height - 28 - Dock.bottomMargin - 24)
+        width: Math.floor(availableWidth / cellWidth) * cellWidth
+        height: Math.floor(availableHeight / cellHeight) * cellHeight
+        visible: width > 0 && height > 0
+        onWidthChanged: {
+            if (!rootItem.layoutLoaded)
+                restoreLayoutTimer.restart()
+        }
+        onHeightChanged: {
+            if (!rootItem.layoutLoaded)
+                restoreLayoutTimer.restart()
+        }
+        LayoutMirroring.enabled: false
+        layoutDirection: Qt.LeftToRight
 
         isDesktopView: true
         iconSize: globalSettings.desktopIconSize
@@ -181,14 +216,6 @@ Item {
         model: _folderView.positioner
 
         ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-
-        // Handle for topbar
-        topMargin: 28
-
-        // From dock
-        leftMargin: Dock.leftMargin
-        rightMargin: Dock.rightMargin
-        bottomMargin: Dock.bottomMargin
 
         flow: GridView.FlowTopToBottom
 

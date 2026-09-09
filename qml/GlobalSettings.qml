@@ -41,7 +41,7 @@ Settings {
     // UI
     property int width: 900
     property int height: 580
-    property int desktopIconSize: 72
+    property int desktopIconSize: 64
     property int maximumIconSize: 256
     property int minimumIconSize: 64
 
