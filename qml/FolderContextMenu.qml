@@ -126,17 +126,16 @@ FishUI.DesktopMenu {
     }
 
     FishUI.MenuItem {
-        id: openInNewWindowItem
-        property var modelAction: control.folderModel ? control.folderModel.action("openInNewWindow") : null
-        text: modelAction ? modelAction.text : qsTr("Open in new window")
+        property var modelAction: control.folderModel ? control.folderModel.action("openInNewTab") : null
+        text: modelAction ? modelAction.text : qsTr("Open In New Tab")
         visible: control.hasSelection && modelAction && modelAction.visible
         enabled: modelAction ? modelAction.enabled : false
         onTriggered: modelAction.trigger()
     }
 
     FishUI.MenuItem {
-        property var modelAction: control.folderModel ? control.folderModel.action("openInNewTab") : null
-        text: modelAction ? modelAction.text : qsTr("Open In New Tab")
+        property var modelAction: control.folderModel ? control.folderModel.action("openInNewWindow") : null
+        text: modelAction ? modelAction.text : qsTr("Open in new window")
         visible: control.hasSelection && modelAction && modelAction.visible
         enabled: modelAction ? modelAction.enabled : false
         onTriggered: modelAction.trigger()

@@ -1604,9 +1604,8 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         menu->addAction(m_actions.value("restore"));
 
         menu->addAction(m_actions.value("open"));
-        menu->addAction(m_actions.value("openInNewWindow"));
         menu->addAction(m_actions.value("openInNewTab"));
-
+        menu->addAction(m_actions.value("openInNewWindow"));
         menu->addAction(m_actions.value("openWith"));
         menu->addAction(m_actions.value("compress"));
         menu->addSeparator();
@@ -2237,7 +2236,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *openAction = m_actions.value(QStringLiteral("open"))) {
-        openAction->setVisible(!isTrash);
+        openAction->setVisible(!isTrash && !hasDir);
     }
 
     if (QAction *copyAction = m_actions.value(QStringLiteral("copy"))) {
@@ -2254,7 +2253,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *openWith = m_actions.value(QStringLiteral("openWith"))) {
-        openWith->setVisible(items.count() == 1 && !isTrash);
+        openWith->setVisible(items.count() == 1 && !isTrash && !hasDir);
     }
 
     if (QAction *compress = m_actions.value(QStringLiteral("compress"))) {
