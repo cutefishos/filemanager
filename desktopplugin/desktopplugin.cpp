@@ -24,7 +24,7 @@
 /**
  * "org.cutefish.filemanager.desktop" -- the file manager's desktop, packaged so
  * that any QML host (currently cutefish-shell) can place it in a window without
- * linking against KIO or knowing anything about files.
+ * linking against file operation libraries or knowing anything about files.
  */
 class CutefishDesktopPlugin : public QQmlExtensionPlugin
 {

@@ -18,15 +18,16 @@
  */
 
 #include "fm.h"
+#include "helper/iojobui.h"
 #include <QDir>
-#include <QUrl>
 #include <QStandardPaths>
+#include <QUrl>
+#include <task.h>
 
-#include <KIO/EmptyTrashJob>
-
-Fm::Fm(QObject *parent) : QObject(parent)
+Fm::Fm(QObject *parent)
+    : QObject(parent)
 {
-
+    CutefishFM::installIoJobUi();
 }
 
 QString Fm::rootPath()
@@ -36,7 +37,7 @@ QString Fm::rootPath()
 
 void Fm::emptyTrash()
 {
-    KIO::Job *job = KIO::emptyTrash();
+    Cutefish::IO::Task *job = Cutefish::IO::emptyTrash();
     job->start();
 }
 
@@ -44,11 +45,13 @@ bool Fm::isFixedFolder(const QUrl &folderUrl)
 {
     const QString folder = folderUrl.toLocalFile();
 
-    return folder == QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first() ||
-           folder == QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first() ||
-           folder == QStandardPaths::standardLocations(QStandardPaths::MusicLocation).first() ||
-           folder == QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).first() ||
-           folder == QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).first() ||
-           folder == QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first() ||
-           folder == QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).first();
+    return folder == QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first()
+            || folder == QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first()
+            || folder == QStandardPaths::standardLocations(QStandardPaths::MusicLocation).first()
+            || folder == QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).first()
+            || folder == QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).first()
+            || folder
+            == QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first()
+            || folder
+            == QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).first();
 }

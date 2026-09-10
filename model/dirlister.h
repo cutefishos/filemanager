@@ -20,20 +20,15 @@
 #ifndef DIRLISTER_H
 #define DIRLISTER_H
 
-#include <KDirLister>
-#include <KIO/Job>
+#include <directory.h>
 
-class DirLister : public KDirLister
+class DirLister : public Cutefish::IO::DirectoryLister
 {
     Q_OBJECT
 
 public:
     explicit DirLister(QObject *parent = nullptr);
     ~DirLister() override;
-
-Q_SIGNALS:
-    void error(const QString &string);
-
 };
 
 #endif // DIRLISTER_H

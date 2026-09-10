@@ -5,7 +5,6 @@ Maintainer: CutefishOS <support@cutefishos.com>
 Build-Depends: cmake,
                debhelper (>= 9),
                libzip-dev,
-               libkf6kio-dev,
                libkf6solid-dev,
                libkf6config-dev,
                libkf6xmlgui-dev,

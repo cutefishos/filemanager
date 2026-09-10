@@ -1,7 +1,7 @@
 # org.cutefish.filemanager.desktop
 #
 # Wraps the file manager core as a QML module so a shell can host the desktop
-# without depending on KIO. The module installs as a normal Qt QML module, so
+# without depending on file manager internals. The module installs as a normal Qt QML module, so
 # `import org.cutefish.filemanager.desktop 1.0` just works.
 
 set(PLUGIN_TARGET cutefishdesktopplugin)

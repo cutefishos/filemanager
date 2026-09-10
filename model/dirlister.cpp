@@ -20,7 +20,7 @@
 #include "dirlister.h"
 
 DirLister::DirLister(QObject *parent)
-    : KDirLister(parent)
+    : Cutefish::IO::DirectoryLister(parent)
 {
 }
 

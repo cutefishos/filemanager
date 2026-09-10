@@ -17,30 +17,31 @@ sudo mk-build-deps -i -t "apt-get --yes" -r
 ### Debian
 
 ```
-sudo apt install build-essential cmake extra-cmake-modules libkf5kio-dev libkf5solid-dev libkf5windowsystem-dev libkf5config-dev qtbase5-dev qtbase5-private-dev qtdeclarative5-dev qtquickcontrols2-5-dev qttools5-dev qttools5-dev-tools
+sudo apt install build-essential cmake extra-cmake-modules libkf6solid-dev libkf6config-dev libkf6xmlgui-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
 ```
 
 ### ArchLinux
 
 ```shell
-sudo pacman -S extra-cmake-modules qt5-base qt5-quickcontrols2 taglib kio
+sudo pacman -S extra-cmake-modules qt6-base qt6-declarative qt6-tools solid kconfig kxmlgui libzip
 ```
 
 ## Build
 
 ```shell
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr ..
-make
+cmake -S . -B /tmp/cutefish-filemanager-build -DCMAKE_INSTALL_PREFIX=/usr -DFILEMANAGER_BUILD_TESTS=ON
+cmake --build /tmp/cutefish-filemanager-build
+ctest --test-dir /tmp/cutefish-filemanager-build --output-on-failure
 ```
 
 ## Install
 
 ```shell
-sudo make install
+sudo cmake --install /tmp/cutefish-filemanager-build
 ```
 
 ## License
 
 This project has been licensed by GPLv3.
+
+Filesystem operations use [Cutefish::IO](../cutefish-framework/io/README.md), built from the sibling framework checkout.

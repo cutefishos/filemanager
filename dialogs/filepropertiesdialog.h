@@ -21,12 +21,10 @@
 #define FILEPROPERTIESDIALOG_H
 
 #include "../window.h"
+#include <QSharedPointer>
 #include <QTimer>
 #include <QUrl>
-#include <QSharedPointer>
-
-#include <KFileItem>
-#include <KIO/DirectorySizeJob>
+#include <filesystem.h>
 
 #include "cio/cfilesizejob.h"
 
@@ -44,8 +42,9 @@ class FilePropertiesDialog : public Window
     Q_PROPERTY(bool multiple READ multiple CONSTANT)
 
 public:
-    explicit FilePropertiesDialog(const KFileItem &item, QObject *parent = nullptr);
-    explicit FilePropertiesDialog(const KFileItemList &items, QObject *parent = nullptr);
+    explicit FilePropertiesDialog(const Cutefish::IO::FileItem &item, QObject *parent = nullptr);
+    explicit FilePropertiesDialog(const Cutefish::IO::FileItemList &items,
+                                  QObject *parent = nullptr);
     explicit FilePropertiesDialog(const QUrl &url, QObject *parent = nullptr);
     ~FilePropertiesDialog();
 
@@ -79,7 +78,7 @@ private slots:
     void updateTotalSize();
 
 private:
-    KFileItemList m_items;
+    Cutefish::IO::FileItemList m_items;
     QString m_location;
     QString m_fileName;
     QString m_iconName;

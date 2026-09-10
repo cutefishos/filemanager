@@ -25,7 +25,9 @@
 
 #include "foldermodel.h"
 #include "dirlister.h"
+#include "helper/iojobui.h"
 #include "window.h"
+#include <task.h>
 
 #include "../dialogs/filepropertiesdialog.h"
 #include "../dialogs/openwithdialog.h"
@@ -34,54 +36,40 @@
 #include "../helper/filelauncher.h"
 #include "../helper/fm.h"
 
-#include "../cio/cfilesizejob.h"
 #include "../cio/archivejob.h"
+#include "../cio/cfilesizejob.h"
 
 // Qt
-#include <QSet>
-#include <QDir>
-#include <QMenu>
 #include <QAction>
+#include <QApplication>
+#include <QClipboard>
 #include <QCollator>
 #include <QDBusInterface>
-#include <QStandardPaths>
-#include <QApplication>
-#include <QMimeDatabase>
-#include <QMimeData>
-#include <QClipboard>
-#include <QPainter>
-#include <QDrag>
-#include <QDir>
-#include <QProcess>
-#include <QSettings>
 #include <QDesktopServices>
+#include <QDir>
+#include <QDrag>
+#include <QMenu>
+#include <QMimeData>
+#include <QMimeDatabase>
+#include <QPainter>
 #include <QPixmapCache>
+#include <QProcess>
+#include <QSet>
+#include <QSettings>
+#include <QStandardPaths>
+#include <sys/stat.h>
 
 // Qt Quick
-#include <QQuickItem>
 #include <QQmlContext>
+#include <QQuickItem>
 
-// KIO
-#include <KIO/CopyJob>
-#include <KIO/Job>
-#include <KIO/MkdirJob>
-#include <KIO/PreviewJob>
-#include <KIO/DeleteJob>
-#include <KIO/DropJob>
-#include <KIO/FileUndoManager>
-#include <KIO/JobUiDelegate>
-#include <KIO/JobUiDelegateFactory>
-#include <KIO/Paste>
-#include <KIO/PasteJob>
-#include <KIO/RestoreJob>
-#include <KUrlMimeData>
-#include <KFileItemListProperties>
 #include <KDesktopFile>
 
 static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folderUrl)
 {
     for (const auto &url : urls) {
-        if (folderUrl.adjusted(QUrl::StripTrailingSlash) != url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash)) {
+        if (folderUrl.adjusted(QUrl::StripTrailingSlash)
+            != url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash)) {
             return false;
         }
     }
@@ -104,24 +92,22 @@ static QString uniquePath(const QString &directory, const QString &name, bool di
     QString candidate = QDir(directory).filePath(name);
     int index = 1;
     while (QFileInfo::exists(candidate)) {
-        candidate = QDir(directory).filePath(QStringLiteral("%1 %2%3")
-                                                  .arg(stem)
-                                                  .arg(index++)
-                                                  .arg(suffix));
+        candidate = QDir(directory).filePath(
+                QStringLiteral("%1 %2%3").arg(stem).arg(index++).arg(suffix));
     }
 
     return candidate;
 }
 
-static bool isZipFile(const KFileItem &item)
+static bool isZipFile(const Cutefish::IO::FileItem &item)
 {
     if (!item.isLocalFile())
         return false;
 
     const QString mimeType = item.mimetype();
-    return mimeType == QLatin1String("application/zip") ||
-           mimeType == QLatin1String("application/x-zip-compressed") ||
-           item.url().path().endsWith(QLatin1String(".zip"), Qt::CaseInsensitive);
+    return mimeType == QLatin1String("application/zip")
+            || mimeType == QLatin1String("application/x-zip-compressed")
+            || item.url().path().endsWith(QLatin1String(".zip"), Qt::CaseInsensitive);
 }
 
 static bool sendSystemNotification(const QString &summary, const QString &body)
@@ -148,7 +134,6 @@ static bool sendSystemNotification(const QString &summary, const QString &body)
 
 FolderModel::FolderModel(QObject *parent)
     : QSortFilterProxyModel(parent)
-    , m_dirWatch(nullptr)
     , m_status(None)
     , m_sortMode(0)
     , m_sortDesc(false)
@@ -174,6 +159,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_currentIndex(-1)
     , m_updateNeedSelectTimer(new QTimer(this))
 {
+    CutefishFM::installIoJobUi();
     QSettings settings("cutefishos", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
 
@@ -182,29 +168,29 @@ FolderModel::FolderModel(QObject *parent)
     connect(m_updateNeedSelectTimer, &QTimer::timeout, this, &FolderModel::updateNeedSelectUrls);
 
     m_dirLister = new DirLister(this);
-    m_dirLister->setDelayedMimeTypes(true);
-    m_dirLister->setAutoErrorHandlingEnabled(false);
     m_dirLister->setAutoUpdate(true);
     m_dirLister->setShowHiddenFiles(m_showHiddenFiles);
-    // connect(dirLister, &DirLister::error, this, &FolderModel::notification);
+    connect(m_dirLister, &Cutefish::IO::DirectoryLister::error, this, &FolderModel::notification);
 
-    connect(m_dirLister, &KCoreDirLister::started, this, std::bind(&FolderModel::setStatus, this, Status::Listing));
+    connect(m_dirLister, &Cutefish::IO::DirectoryLister::started, this,
+            std::bind(&FolderModel::setStatus, this, Status::Listing));
 
-    void (KCoreDirLister::*myCompletedSignal)() = &KCoreDirLister::completed;
+    void (Cutefish::IO::DirectoryLister::*myCompletedSignal)() =
+            &Cutefish::IO::DirectoryLister::completed;
     QObject::connect(m_dirLister, myCompletedSignal, this, [this] {
         setStatus(Status::Ready);
         emit listingCompleted();
     });
 
-    void (KCoreDirLister::*myCanceledSignal)() = &KCoreDirLister::canceled;
+    void (Cutefish::IO::DirectoryLister::*myCanceledSignal)() =
+            &Cutefish::IO::DirectoryLister::canceled;
     QObject::connect(m_dirLister, myCanceledSignal, this, [this] {
         setStatus(Status::Canceled);
         emit listingCanceled();
     });
 
-    m_dirModel = new KDirModel(this);
+    m_dirModel = new Cutefish::IO::DirectoryModel(this);
     m_dirModel->setDirLister(m_dirLister);
-    m_dirModel->setDropsAllowed(KDirModel::DropOnDirectory | KDirModel::DropOnLocalExecutable);
     m_dirModel->moveToThread(qApp->thread());
 
     // If we have dropped items queued for moving, go unsorted now.
@@ -237,7 +223,8 @@ FolderModel::FolderModel(QObject *parent)
     });
 
     m_selectionModel = new QItemSelectionModel(this, this);
-    connect(m_selectionModel, &QItemSelectionModel::selectionChanged, this, &FolderModel::selectionChanged);
+    connect(m_selectionModel, &QItemSelectionModel::selectionChanged, this,
+            &FolderModel::selectionChanged);
 
     setSourceModel(m_dirModel);
     setSortLocaleAware(true);
@@ -262,7 +249,6 @@ FolderModel::~FolderModel()
 
 void FolderModel::classBegin()
 {
-
 }
 
 void FolderModel::componentComplete()
@@ -302,7 +288,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    KFileItem item = itemForIndex(index);
+    Cutefish::IO::FileItem item = itemForIndex(index);
 
     switch (role) {
     case BlankRole:
@@ -338,21 +324,20 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     }
     case FileSizeRole: {
         if (item.isDir()) {
-            QDir dir(item.url().toLocalFile());
+            QDir dir(item.localPath());
             dir.setFilter(QDir::Dirs | QDir::AllEntries | QDir::NoDotAndDotDot);
             uint count = dir.count();
             return count == 1 ? tr("%1 item").arg(count) : tr("%1 items").arg(count);
         }
 
-        return KIO::convertSize(item.size());
+        return Cutefish::IO::convertSize(item.size());
     }
     case IconNameRole:
         return item.iconName();
     case ThumbnailRole: {
         if (item.isLocalFile()) {
             // Svg Image
-            if (item.mimetype() == "image/svg" ||
-                    item.mimetype() == "image/svg+xml") {
+            if (item.mimetype() == "image/svg" || item.mimetype() == "image/svg+xml") {
                 return item.url();
             }
 
@@ -365,7 +350,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return QVariant();
     }
     case ModifiedRole: {
-        return DateHelper::friendlyTime(item.time(KFileItem::ModificationTime));
+        return DateHelper::friendlyTime(item.time(Cutefish::IO::FileItem::ModificationTime));
     }
     default:
         break;
@@ -393,7 +378,7 @@ int FolderModel::indexForKeyboardSearch(const QString &text, int startFromIndex)
     return -1;
 }
 
-KFileItem FolderModel::itemForIndex(const QModelIndex &index) const
+Cutefish::IO::FileItem FolderModel::itemForIndex(const QModelIndex &index) const
 {
     return m_dirModel->itemForIndex(mapToSource(index));
 }
@@ -403,13 +388,13 @@ QModelIndex FolderModel::indexForUrl(const QUrl &url) const
     return m_dirModel->indexForUrl(url);
 }
 
-KFileItem FolderModel::fileItem(int index) const
+Cutefish::IO::FileItem FolderModel::fileItem(int index) const
 {
     if (index >= 0 && index < count()) {
         return itemForIndex(FolderModel::index(index, 0));
     }
 
-    return KFileItem();
+    return Cutefish::IO::FileItem();
 }
 
 QList<QUrl> FolderModel::selectedUrls() const
@@ -468,12 +453,10 @@ void FolderModel::setUrl(const QString &url)
     if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl)
         m_pathHistory.append(resolvedNewUrl);
 
-    beginResetModel();
     m_url = resolvedNewUrl.toString(QUrl::PreferLocalFile);
     m_dirModel->dirLister()->openUrl(isTrash ? QUrl(QStringLiteral("trash:/")) : resolvedNewUrl);
     clearDragImages();
     m_dragIndexes.clear();
-    endResetModel();
 
     if (isTrash) {
         refresh();
@@ -651,9 +634,10 @@ bool FolderModel::canGoForward() const
     return m_pathHistory.canGoForward();
 }
 
-bool FolderModel::isDir(const QModelIndex &index, const KDirModel *dirModel) const
+bool FolderModel::isDir(const QModelIndex &index,
+                        const Cutefish::IO::DirectoryModel *dirModel) const
 {
-    KFileItem item = dirModel->itemForIndex(index);
+    Cutefish::IO::FileItem item = dirModel->itemForIndex(index);
     if (item.isDir()) {
         return true;
     }
@@ -663,9 +647,10 @@ bool FolderModel::isDir(const QModelIndex &index, const KDirModel *dirModel) con
 
 bool FolderModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    const KDirModel *dirModel = static_cast<KDirModel *>(sourceModel());
+    const Cutefish::IO::DirectoryModel *dirModel =
+            static_cast<Cutefish::IO::DirectoryModel *>(sourceModel());
 
-    if (m_sortDirsFirst || left.column() == KDirModel::Size) {
+    if (m_sortDirsFirst || left.column() == Cutefish::IO::DirectoryModel::Size) {
         bool leftIsDir = isDir(left, dirModel);
         bool rightIsDir = isDir(right, dirModel);
 
@@ -678,23 +663,29 @@ bool FolderModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
         }
     }
 
-    const KFileItem leftItem = dirModel->data(left, KDirModel::FileItemRole).value<KFileItem>();
-    const KFileItem rightItem = dirModel->data(right, KDirModel::FileItemRole).value<KFileItem>();
+    const Cutefish::IO::FileItem leftItem =
+            dirModel->data(left, Cutefish::IO::DirectoryModel::FileItemRole)
+                    .value<Cutefish::IO::FileItem>();
+    const Cutefish::IO::FileItem rightItem =
+            dirModel->data(right, Cutefish::IO::DirectoryModel::FileItemRole)
+                    .value<Cutefish::IO::FileItem>();
     const int column = left.column();
     int result = 0;
 
     switch (column) {
-    case KDirModel::Size: {
+    case Cutefish::IO::DirectoryModel::Size: {
         if (isDir(left, dirModel) && isDir(right, dirModel)) {
-            const int leftChildCount = dirModel->data(left, KDirModel::ChildCountRole).toInt();
-            const int rightChildCount = dirModel->data(right, KDirModel::ChildCountRole).toInt();
+            const int leftChildCount =
+                    dirModel->data(left, Cutefish::IO::DirectoryModel::ChildCountRole).toInt();
+            const int rightChildCount =
+                    dirModel->data(right, Cutefish::IO::DirectoryModel::ChildCountRole).toInt();
             if (leftChildCount < rightChildCount)
                 result = -1;
             else if (leftChildCount > rightChildCount)
                 result = +1;
         } else {
-            const KIO::filesize_t leftSize = leftItem.size();
-            const KIO::filesize_t rightSize = rightItem.size();
+            const quint64 leftSize = leftItem.size();
+            const quint64 rightSize = rightItem.size();
             if (leftSize < rightSize)
                 result = -1;
             else if (leftSize > rightSize)
@@ -703,9 +694,11 @@ bool FolderModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
 
         break;
     }
-    case KDirModel::ModifiedTime: {
-        const long long leftTime = leftItem.entry().numberValue(KIO::UDSEntry::UDS_MODIFICATION_TIME, -1);
-        const long long rightTime = rightItem.entry().numberValue(KIO::UDSEntry::UDS_MODIFICATION_TIME, -1);
+    case Cutefish::IO::DirectoryModel::ModifiedTime: {
+        const long long leftTime =
+                leftItem.time(Cutefish::IO::FileItem::ModificationTime).toSecsSinceEpoch();
+        const long long rightTime =
+                rightItem.time(Cutefish::IO::FileItem::ModificationTime).toSecsSinceEpoch();
         if (leftTime < rightTime)
             result = -1;
         else if (leftTime > rightTime)
@@ -713,8 +706,9 @@ bool FolderModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
 
         break;
     }
-    case KDirModel::Type:
-        result = QString::compare(dirModel->data(left, Qt::DisplayRole).toString(), dirModel->data(right, Qt::DisplayRole).toString());
+    case Cutefish::IO::DirectoryModel::Type:
+        result = QString::compare(dirModel->data(left, Qt::DisplayRole).toString(),
+                                  dirModel->data(right, Qt::DisplayRole).toString());
         break;
 
     default:
@@ -749,7 +743,7 @@ Qt::DropActions FolderModel::supportedDropActions() const
     return Qt::CopyAction | Qt::MoveAction | Qt::LinkAction;
 }
 
-KFileItem FolderModel::rootItem() const
+Cutefish::IO::FileItem FolderModel::rootItem() const
 {
     return m_dirModel->dirLister()->rootItem();
 }
@@ -781,7 +775,7 @@ QAction *FolderModel::action(const QString &name) const
 
 void FolderModel::up()
 {
-    const QUrl &url = KIO::upUrl(resolvedUrl());
+    const QUrl &url = Cutefish::IO::upUrl(resolvedUrl());
 
     if (url.isValid()) {
         setUrl(url.toString());
@@ -815,8 +809,8 @@ void FolderModel::refresh()
 
 void FolderModel::undo()
 {
-    if (KIO::FileUndoManager::self()->isUndoAvailable()) {
-        KIO::FileUndoManager::self()->undo();
+    if (Cutefish::IO::TaskController::instance()->isUndoAvailable()) {
+        Cutefish::IO::TaskController::instance()->undo();
     }
 }
 
@@ -999,7 +993,7 @@ void FolderModel::newFolder()
 
     rememberNewDocumentPosition(newName);
 
-    auto job = KIO::mkdir(QUrl(rootItem().url().toString() + "/" + newName));
+    auto job = Cutefish::IO::mkdir(QUrl(rootItem().url().toString() + "/" + newName));
     job->start();
 }
 
@@ -1062,7 +1056,7 @@ void FolderModel::paste()
 
     // Update paste action
     if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
-        QList<QUrl> urls = mimeData ? KUrlMimeData::urlsFromMimeData(mimeData) : QList<QUrl>();
+        QList<QUrl> urls = mimeData ? mimeData->urls() : QList<QUrl>();
         const QString &currentUrl = rootItem().url().toLocalFile();
 
         if (!urls.isEmpty()) {
@@ -1073,8 +1067,8 @@ void FolderModel::paste()
 
         if (enable && !urls.isEmpty()) {
             for (QUrl url : urls) {
-                m_needSelectUrls.append(QUrl::fromLocalFile(QString("%1/%2").arg(currentUrl)
-                                                                            .arg(url.fileName())));
+                m_needSelectUrls.append(
+                        QUrl::fromLocalFile(QString("%1/%2").arg(currentUrl).arg(url.fileName())));
             }
         }
 
@@ -1086,10 +1080,10 @@ void FolderModel::paste()
         QMimeData *data = new QMimeData;
         for (QString mimetype : mimeData->formats()) {
             data->setData(mimetype, mimeData->data(mimetype));
-         }
+        }
 
-        KIO::Job *job = KIO::paste(data, m_dirModel->dirLister()->url());
-        // connect(job, &KIO::Job::finished, this, &FolderModel::delayUpdateNeedSelectUrls);
+        Cutefish::IO::Task *job = Cutefish::IO::paste(data, m_dirModel->dirLister()->url());
+        delete data;
         job->start();
 
         // Clear system clipboard.
@@ -1126,19 +1120,19 @@ void FolderModel::openSelected()
 
     const QList<QUrl> urls = selectedUrls();
     if (!m_isDesktop) {
-        if (urls.size() == 1 && KFileItem(urls.first()).isDir()) {
+        if (urls.size() == 1 && Cutefish::IO::FileItem(urls.first()).isDir()) {
             setUrl(urls.first().toLocalFile());
             return;
         }
     }
 
-    if (urls.size() == 1 && isZipFile(KFileItem(urls.first()))) {
+    if (urls.size() == 1 && isZipFile(Cutefish::IO::FileItem(urls.first()))) {
         extractSelectedArchive();
         return;
     }
 
     for (const QUrl &url : urls) {
-        KFileItem item(url);
+        Cutefish::IO::FileItem item(url);
         QString mimeType = item.mimetype();
 
         // Desktop file.
@@ -1148,14 +1142,14 @@ void FolderModel::openSelected()
         }
 
         // runnable
-        if (mimeType == "application/x-executable" ||
-            mimeType == "application/x-sharedlib" ||
-            mimeType == "application/x-iso9660-appimage" ||
-            mimeType == "application/vnd.appimage") {
+        if (mimeType == "application/x-executable" || mimeType == "application/x-sharedlib"
+            || mimeType == "application/x-iso9660-appimage"
+            || mimeType == "application/vnd.appimage") {
             QFileInfo fileInfo(url.toLocalFile());
             if (!fileInfo.isExecutable()) {
                 QFile file(url.toLocalFile());
-                file.setPermissions(file.permissions() | QFile::ExeOwner | QFile::ExeUser | QFile::ExeGroup | QFile::ExeOther);
+                file.setPermissions(file.permissions() | QFile::ExeOwner | QFile::ExeUser
+                                    | QFile::ExeGroup | QFile::ExeOther);
             }
 
             FileLauncher::self()->launchExecutable(url.toLocalFile());
@@ -1163,12 +1157,14 @@ void FolderModel::openSelected()
             continue;
         }
 
-        QString defaultAppDesktopFile = m_mimeAppManager->getDefaultAppByMimeType(item.currentMimeType());
+        QString defaultAppDesktopFile =
+                m_mimeAppManager->getDefaultAppByMimeType(item.currentMimeType());
 
         // If no default application is found,
         // look for the first one of the frequently used applications.
         if (defaultAppDesktopFile.isEmpty()) {
-            QStringList recommendApps = m_mimeAppManager->getRecommendedAppsByMimeType(item.currentMimeType());
+            QStringList recommendApps =
+                    m_mimeAppManager->getRecommendedAppsByMimeType(item.currentMimeType());
             if (recommendApps.count() > 0) {
                 defaultAppDesktopFile = recommendApps.first();
             }
@@ -1205,21 +1201,27 @@ void FolderModel::startArchiveJob(ArchiveJob *job, const QString &operation)
     m_archiveCurrentFile.clear();
     emit archiveCurrentFileChanged();
 
-    connect(job, &ArchiveJob::progressChanged, this, [this](int progress) {
-        if (m_archiveProgress == progress)
-            return;
+    connect(
+            job, &ArchiveJob::progressChanged, this,
+            [this](int progress) {
+                if (m_archiveProgress == progress)
+                    return;
 
-        m_archiveProgress = progress;
-        emit archiveProgressChanged();
-    }, Qt::QueuedConnection);
+                m_archiveProgress = progress;
+                emit archiveProgressChanged();
+            },
+            Qt::QueuedConnection);
 
-    connect(job, &ArchiveJob::currentFileChanged, this, [this](const QString &fileName) {
-        if (m_archiveCurrentFile == fileName)
-            return;
+    connect(
+            job, &ArchiveJob::currentFileChanged, this,
+            [this](const QString &fileName) {
+                if (m_archiveCurrentFile == fileName)
+                    return;
 
-        m_archiveCurrentFile = fileName;
-        emit archiveCurrentFileChanged();
-    }, Qt::QueuedConnection);
+                m_archiveCurrentFile = fileName;
+                emit archiveCurrentFileChanged();
+            },
+            Qt::QueuedConnection);
 
     connect(job, &ArchiveJob::completed, this, &FolderModel::archiveJobFinished,
             Qt::QueuedConnection);
@@ -1227,11 +1229,14 @@ void FolderModel::startArchiveJob(ArchiveJob *job, const QString &operation)
     // Do not delete the QThread from the completed callback: run() is still
     // unwinding at that point. Waiting for QThread::finished keeps cleanup
     // safe even when a very small archive completes immediately.
-    connect(job, &QThread::finished, this, [this, job]() {
-        if (m_archiveJob == job)
-            m_archiveJob = nullptr;
-        job->deleteLater();
-    }, Qt::QueuedConnection);
+    connect(
+            job, &QThread::finished, this,
+            [this, job]() {
+                if (m_archiveJob == job)
+                    m_archiveJob = nullptr;
+                job->deleteLater();
+            },
+            Qt::QueuedConnection);
 
     job->start();
 }
@@ -1260,10 +1265,10 @@ void FolderModel::compressSelected()
     if (destinationDirectory.isEmpty())
         return;
 
-    const QString baseName = urls.size() == 1
-                                 ? QFileInfo(paths.first()).fileName()
-                                 : QStringLiteral("Archive");
-    const QString outputPath = uniquePath(destinationDirectory, baseName + QStringLiteral(".zip"), false);
+    const QString baseName =
+            urls.size() == 1 ? QFileInfo(paths.first()).fileName() : QStringLiteral("Archive");
+    const QString outputPath =
+            uniquePath(destinationDirectory, baseName + QStringLiteral(".zip"), false);
 
     startArchiveJob(new ArchiveJob(ArchiveJob::Compress, paths, outputPath, this),
                     tr("Compressing"));
@@ -1275,7 +1280,7 @@ void FolderModel::extractSelectedArchive()
         return;
 
     const QUrl archiveUrl = selectedUrls().first();
-    const KFileItem item(archiveUrl);
+    const Cutefish::IO::FileItem item(archiveUrl);
     if (!isZipFile(item))
         return;
 
@@ -1289,11 +1294,9 @@ void FolderModel::extractSelectedArchive()
         baseName = QStringLiteral("Extracted");
 
     const QString outputPath = uniquePath(archiveInfo.absolutePath(), baseName, true);
-    startArchiveJob(new ArchiveJob(ArchiveJob::Extract,
-                                   QStringList() << archivePath,
-                                   outputPath,
-                                   this),
-                    tr("Extracting"));
+    startArchiveJob(
+            new ArchiveJob(ArchiveJob::Extract, QStringList() << archivePath, outputPath, this),
+            tr("Extracting"));
 }
 
 void FolderModel::cancelArchive()
@@ -1306,9 +1309,7 @@ void FolderModel::cancelArchive()
     m_archiveJob->cancel();
 }
 
-void FolderModel::archiveJobFinished(bool success,
-                                     bool canceled,
-                                     const QString &error,
+void FolderModel::archiveJobFinished(bool success, bool canceled, const QString &error,
                                      const QString &outputPath)
 {
     if (!m_archiveBusy)
@@ -1369,7 +1370,7 @@ void FolderModel::deleteSelected()
         }
     }
 
-    KIO::DeleteJob *job = KIO::del(selectedUrls());
+    Cutefish::IO::Task *job = Cutefish::IO::del(selectedUrls());
     job->start();
 }
 
@@ -1386,15 +1387,7 @@ void FolderModel::moveSelectedToTrash()
     }
 
     const QList<QUrl> urls = selectedUrls();
-    KJobUiDelegate *baseUiDelegate = KIO::createDefaultJobUiDelegate(KJobUiDelegate::AutoHandlingDisabled, nullptr);
-    auto *uiDelegate = dynamic_cast<KIO::JobUiDelegate *>(baseUiDelegate);
-
-    if (uiDelegate && uiDelegate->askDeleteConfirmation(urls, KIO::JobUiDelegate::Trash, KIO::JobUiDelegate::DefaultConfirmation)) {
-        KIO::Job *job = KIO::trash(urls);
-        job->uiDelegate()->setAutoErrorHandlingEnabled(true);
-        KIO::FileUndoManager::self()->recordJob(KIO::FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
-    }
-    delete baseUiDelegate;
+    Cutefish::IO::trash(urls);
 }
 
 void FolderModel::emptyTrash()
@@ -1416,7 +1409,8 @@ void FolderModel::setDragHotSpotScrollOffset(int x, int y)
     m_dragHotSpotScrollOffset.setY(y);
 }
 
-void FolderModel::addItemDragImage(int row, int x, int y, int width, int height, const QVariant &image)
+void FolderModel::addItemDragImage(int row, int x, int y, int width, int height,
+                                   const QVariant &image)
 {
     if (row < 0)
         return;
@@ -1460,19 +1454,21 @@ void FolderModel::dragSelected(int x, int y)
     m_dragInProgress = true;
     emit draggingChanged();
 
-    QMetaObject::invokeMethod(this, "dragSelectedInternal", Qt::QueuedConnection, Q_ARG(int, x), Q_ARG(int, y));
+    QMetaObject::invokeMethod(this, "dragSelectedInternal", Qt::QueuedConnection, Q_ARG(int, x),
+                              Q_ARG(int, y));
 }
 
 void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
 {
-    QMimeData *mimeData = qobject_cast<QMimeData *>(dropEvent->property("mimeData").value<QObject *>());
+    QMimeData *mimeData =
+            qobject_cast<QMimeData *>(dropEvent->property("mimeData").value<QObject *>());
 
     if (!mimeData) {
         return;
     }
 
     QModelIndex idx;
-    KFileItem item;
+    Cutefish::IO::FileItem item;
 
     if (row > -1 && row < rowCount()) {
         idx = index(row, 0);
@@ -1515,19 +1511,20 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
         return;
     }
 
-
     if (idx.isValid() && !(flags(idx) & Qt::ItemIsDropEnabled)) {
         return;
     }
 
     if (!isDropBetweenSharedViews(mimeData->urls(), dropTargetFolderUrl)) {
-        KIO::Job *job = KIO::move(mimeData->urls(), dropTargetUrl, KIO::HideProgressInfo);
+        Cutefish::IO::Task *job = Cutefish::IO::drop(
+                mimeData, dropTargetUrl,
+                static_cast<Qt::DropAction>(dropEvent->property("proposedAction").toInt()));
         job->start();
 
         // Add select
         for (QUrl url : mimeData->urls()) {
-            m_needSelectUrls.append(QUrl::fromLocalFile(QString("%1/%2").arg(rootItem().url().toLocalFile())
-                                                                        .arg(url.fileName())));
+            m_needSelectUrls.append(QUrl::fromLocalFile(
+                    QString("%1/%2").arg(rootItem().url().toLocalFile()).arg(url.fileName())));
         }
     }
 }
@@ -1542,10 +1539,9 @@ void FolderModel::setWallpaperSelected()
     if (!url.isLocalFile())
         return;
 
-    QDBusInterface iface("com.cutefish.Services",
-                         "/com/cutefish/Services/Appearance",
-                         "com.cutefish.Services.Appearance",
-                         QDBusConnection::sessionBus(), nullptr);
+    QDBusInterface iface("com.cutefish.Services", "/com/cutefish/Services/Appearance",
+                         "com.cutefish.Services.Appearance", QDBusConnection::sessionBus(),
+                         nullptr);
     if (iface.isValid())
         iface.call("setWallpaper", url.toLocalFile());
 }
@@ -1653,10 +1649,10 @@ void FolderModel::openPropertiesDialog()
         return;
     }
 
-    KFileItemList items;
+    Cutefish::IO::FileItemList items;
     items.reserve(indexes.count());
     for (const QModelIndex &index : indexes) {
-        KFileItem item = itemForIndex(index);
+        Cutefish::IO::FileItem item = itemForIndex(index);
         if (!item.isNull()) {
             items.append(item);
         }
@@ -1670,7 +1666,7 @@ void FolderModel::openInTerminal()
 {
     QString url;
     if (m_selectionModel->hasSelection()) {
-        KFileItem item = itemForIndex(m_selectionModel->selectedIndexes().first());
+        Cutefish::IO::FileItem item = itemForIndex(m_selectionModel->selectedIndexes().first());
         if (item.isDir()) {
             url = item.url().toLocalFile();
         }
@@ -1705,9 +1701,10 @@ void FolderModel::openInNewWindow(const QString &url)
         return;
 
     for (const QModelIndex &index : m_selectionModel->selectedIndexes()) {
-        KFileItem item = itemForIndex(index);
+        Cutefish::IO::FileItem item = itemForIndex(index);
         if (item.isDir()) {
-            QProcess::startDetached("cutefish-filemanager", QStringList() << item.url().toLocalFile());
+            QProcess::startDetached("cutefish-filemanager",
+                                    QStringList() << item.url().toLocalFile());
         }
     }
 }
@@ -1716,7 +1713,7 @@ void FolderModel::openInNewTab()
 {
     const QModelIndexList indexes = m_selectionModel->selectedIndexes();
     for (const QModelIndex &index : indexes) {
-        const KFileItem item = itemForIndex(index);
+        const Cutefish::IO::FileItem item = itemForIndex(index);
         if (item.isDir())
             emit openTabRequested(item.url().toString());
     }
@@ -1765,8 +1762,7 @@ void FolderModel::restoreFromTrash()
         if (!action->isVisible())
             return;
 
-
-    KIO::RestoreJob *job = KIO::restoreFromTrash(selectedUrls());
+    Cutefish::IO::Task *job = Cutefish::IO::restoreFromTrash(selectedUrls());
     job->start();
 }
 
@@ -1800,17 +1796,17 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
 
     // Start calculating file size.
     if (m_sizeJob == nullptr) {
-        m_sizeJob = new CFileSizeJob;
+        m_sizeJob = new CFileSizeJob(this);
 
-        connect(m_sizeJob, &CFileSizeJob::sizeChanged, this, [=] {
-            m_selectedItemSize = KIO::convertSize(m_sizeJob->totalSize());
+        connect(m_sizeJob, &CFileSizeJob::sizeChanged, this, [this] {
+            m_selectedItemSize = Cutefish::IO::convertSize(m_sizeJob->totalSize());
             if (!m_selectionModel->hasSelection())
                 m_selectedItemSize = "";
             emit selectedItemSizeChanged();
         });
 
-        connect(m_sizeJob, &CFileSizeJob::result, this, [=] {
-            m_selectedItemSize = KIO::convertSize(m_sizeJob->totalSize());
+        connect(m_sizeJob, &CFileSizeJob::result, this, [this] {
+            m_selectedItemSize = Cutefish::IO::convertSize(m_sizeJob->totalSize());
             if (!m_selectionModel->hasSelection())
                 m_selectedItemSize = "";
             emit selectedItemSizeChanged();
@@ -1908,7 +1904,11 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
             // Queued: the views are still inside the insertion transaction, and
             // repositioning the row from within it would reenter their models.
             QMetaObject::invokeMethod(
-                this, [this, pos, url] { Q_EMIT move(pos.x(), pos.y(), {url}); }, Qt::QueuedConnection);
+                    this,
+                    [this, pos, url] {
+                        Q_EMIT move(pos.x(), pos.y(), {url});
+                    },
+                    Qt::QueuedConnection);
         }
 
         if (url == m_newDocumentUrl) {
@@ -1918,7 +1918,7 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
     }
 
     // 新建文件夹需要先选择后再发送请求
-    QTimer::singleShot(m_updateNeedSelectTimer->interval() + 10, this, [=] {
+    QTimer::singleShot(m_updateNeedSelectTimer->interval() + 10, this, [this, changeIdx] {
         if (changeIdx.isValid()) {
             setSelected(changeIdx.row());
             emit requestRename();
@@ -1974,8 +1974,10 @@ bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 
 bool FolderModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
-    const KDirModel *dirModel = static_cast<KDirModel *>(sourceModel());
-    const KFileItem item = dirModel->itemForIndex(dirModel->index(sourceRow, KDirModel::Name, sourceParent));
+    const Cutefish::IO::DirectoryModel *dirModel =
+            static_cast<Cutefish::IO::DirectoryModel *>(sourceModel());
+    const Cutefish::IO::FileItem item = dirModel->itemForIndex(
+            dirModel->index(sourceRow, Cutefish::IO::DirectoryModel::Name, sourceParent));
 
     if (m_filterMode == NoFilter) {
         return true;
@@ -1988,13 +1990,14 @@ bool FolderModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParen
     }
 }
 
-bool FolderModel::matchMimeType(const KFileItem &item) const
+bool FolderModel::matchMimeType(const Cutefish::IO::FileItem &item) const
 {
     if (m_mimeSet.isEmpty()) {
         return false;
     }
 
-    if (m_mimeSet.contains(QLatin1String("all/all")) || m_mimeSet.contains(QLatin1String("all/allfiles"))) {
+    if (m_mimeSet.contains(QLatin1String("all/all"))
+        || m_mimeSet.contains(QLatin1String("all/allfiles"))) {
         return true;
     }
 
@@ -2002,7 +2005,7 @@ bool FolderModel::matchMimeType(const KFileItem &item) const
     return m_mimeSet.contains(mimeType);
 }
 
-bool FolderModel::matchPattern(const KFileItem &item) const
+bool FolderModel::matchPattern(const Cutefish::IO::FileItem &item) const
 {
     if (m_filterPatternMatchAll) {
         return true;
@@ -2149,18 +2152,21 @@ void FolderModel::createActions()
     QObject::connect(properties, &QAction::triggered, this, &FolderModel::openPropertiesDialog);
 
     QAction *changeBackground = new QAction(tr("Change background"), this);
-    QObject::connect(changeBackground, &QAction::triggered, this, &FolderModel::openChangeWallpaperDialog);
+    QObject::connect(changeBackground, &QAction::triggered, this,
+                     &FolderModel::openChangeWallpaperDialog);
 
     QAction *restore = new QAction(tr("Restore"), this);
     QObject::connect(restore, &QAction::triggered, this, &FolderModel::restoreFromTrash);
 
     QAction *showHidden = new QAction(tr("Show Hidden Files"), this);
-    QObject::connect(showHidden, &QAction::triggered, this, [=] {
+    QObject::connect(showHidden, &QAction::triggered, this, [this] {
         setShowHiddenFiles(!m_showHiddenFiles);
     });
 
     QAction *openInNewWindow = new QAction(tr("Open in new window"), this);
-    QObject::connect(openInNewWindow, &QAction::triggered, this, [=] { this->openInNewWindow(); });
+    QObject::connect(openInNewWindow, &QAction::triggered, this, [this] {
+        this->openInNewWindow();
+    });
     QAction *openInNewTab = new QAction(tr("Open In New Tab"), this);
     connect(openInNewTab, &QAction::triggered, this, &FolderModel::openInNewTab);
     m_actionCollection.addAction(QStringLiteral("openInNewTab"), openInNewTab);
@@ -2190,7 +2196,7 @@ void FolderModel::updateActions()
 {
     const QModelIndexList indexes = m_selectionModel->selectedIndexes();
 
-    KFileItemList items;
+    Cutefish::IO::FileItemList items;
     QList<QUrl> urls;
     bool hasRemoteFiles = false;
     bool isTrashLink = false;
@@ -2203,7 +2209,7 @@ void FolderModel::updateActions()
         items.reserve(indexes.count());
         urls.reserve(indexes.count());
         for (const QModelIndex &index : indexes) {
-            KFileItem item = itemForIndex(index);
+            Cutefish::IO::FileItem item = itemForIndex(index);
             if (!item.isNull()) {
                 hasRemoteFiles |= item.localPath().isEmpty();
                 items.append(item);
@@ -2215,7 +2221,7 @@ void FolderModel::updateActions()
         }
     }
 
-    KFileItemListProperties itemProperties(items);
+    Cutefish::IO::FileItemListProperties itemProperties(items);
     // Check if we're showing the menu for the trash link
     if (items.count() == 1 && items.at(0).isDesktopFile()) {
         KDesktopFile file(items.at(0).localPath());
@@ -2246,8 +2252,8 @@ void FolderModel::updateActions()
     }
 
     if (QAction *compress = m_actionCollection.action(QStringLiteral("compress"))) {
-        const bool canCompress = !indexes.isEmpty() && !isTrash && !hasRemoteFiles &&
-                                 rootItem().isWritable();
+        const bool canCompress =
+                !indexes.isEmpty() && !isTrash && !hasRemoteFiles && rootItem().isWritable();
         compress->setVisible(canCompress);
         compress->setEnabled(canCompress && !m_archiveJob);
 
@@ -2272,7 +2278,7 @@ void FolderModel::updateActions()
         bool enable = false;
 
         const QMimeData *mimeData = QApplication::clipboard()->mimeData();
-        QList<QUrl> urls = mimeData ? KUrlMimeData::urlsFromMimeData(mimeData) : QList<QUrl>();
+        QList<QUrl> urls = mimeData ? mimeData->urls() : QList<QUrl>();
 
         if (!urls.isEmpty()) {
             if (!rootItem().isNull()) {
@@ -2307,9 +2313,8 @@ void FolderModel::updateActions()
     }
 
     if (QAction *terminal = m_actionCollection.action("wallpaper")) {
-        terminal->setVisible(items.size() == 1 &&
-                             !isTrash &&
-                             supportSetAsWallpaper(items.first().mimetype()));
+        terminal->setVisible(items.size() == 1 && !isTrash
+                             && supportSetAsWallpaper(items.first().mimetype()));
     }
 
     if (QAction *properties = m_actionCollection.action("properties")) {
@@ -2319,8 +2324,7 @@ void FolderModel::updateActions()
     if (QAction *showHidden = m_actionCollection.action("showHidden")) {
         showHidden->setVisible(!isTrash);
         // Plain text instead of a check mark: the label says what the item does.
-        showHidden->setText(m_showHiddenFiles ? tr("Hide Hidden Files")
-                                              : tr("Show Hidden Files"));
+        showHidden->setText(m_showHiddenFiles ? tr("Hide Hidden Files") : tr("Show Hidden Files"));
     }
 
     if (QAction *openInNewWindow = m_actionCollection.action("openInNewWindow")) {

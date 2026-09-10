@@ -19,18 +19,18 @@
 
 #include "filepropertiesdialog.h"
 
-#include <QQmlContext>
 #include <QDir>
 #include <QFileInfo>
+#include <QQmlContext>
 
-FilePropertiesDialog::FilePropertiesDialog(const KFileItem &item, QObject *parent)
+FilePropertiesDialog::FilePropertiesDialog(const Cutefish::IO::FileItem &item, QObject *parent)
     : Window(parent)
 {
     m_items.append(item);
     init();
 }
 
-FilePropertiesDialog::FilePropertiesDialog(const KFileItemList &items, QObject *parent)
+FilePropertiesDialog::FilePropertiesDialog(const Cutefish::IO::FileItemList &items, QObject *parent)
     : Window(parent)
     , m_items(items)
 {
@@ -40,7 +40,7 @@ FilePropertiesDialog::FilePropertiesDialog(const KFileItemList &items, QObject *
 FilePropertiesDialog::FilePropertiesDialog(const QUrl &url, QObject *parent)
     : Window(parent)
 {
-    m_items.append(KFileItem(url));
+    m_items.append(Cutefish::IO::FileItem(url));
 
     init();
 }
@@ -103,13 +103,13 @@ void FilePropertiesDialog::init()
     m_multiple = m_items.count() > 1;
 
     QList<QUrl> list;
-    for (KFileItem item : m_items) {
+    for (Cutefish::IO::FileItem item : m_items) {
         list.append(item.url());
     }
 
     if (!m_multiple) {
-        KFileItem item = m_items.first();
-        QFileInfo info(item.url().toLocalFile());
+        Cutefish::IO::FileItem item = m_items.first();
+        QFileInfo info(item.localPath());
 
         QString path;
         m_fileName = m_items.first().name();
@@ -120,12 +120,12 @@ void FilePropertiesDialog::init()
             m_iconName = m_items.first().iconName();
 
         m_mimeType = m_items.first().mimetype();
-        m_size = KIO::convertSize(m_items.first().size());
+        m_size = Cutefish::IO::convertSize(m_items.first().size());
         m_location = info.dir().path();
 
-        m_creationTime = item.time(KFileItem::CreationTime).toString();
-        m_modifiedTime = item.time(KFileItem::ModificationTime).toString();
-        m_accessedTime = item.time(KFileItem::AccessTime).toString();
+        m_creationTime = item.time(Cutefish::IO::FileItem::CreationTime).toString();
+        m_modifiedTime = item.time(Cutefish::IO::FileItem::ModificationTime).toString();
+        m_accessedTime = item.time(Cutefish::IO::FileItem::AccessTime).toString();
 
         emit fileNameChanged();
         emit iconNameChanged();
@@ -152,7 +152,8 @@ void FilePropertiesDialog::init()
     load(QUrl("qrc:/qml/Dialogs/PropertiesDialog.qml"));
 
     m_sizeJob = std::shared_ptr<CFileSizeJob>(new CFileSizeJob);
-    connect(m_sizeJob.get(), &CFileSizeJob::sizeChanged, this, &FilePropertiesDialog::updateTotalSize);
+    connect(m_sizeJob.get(), &CFileSizeJob::sizeChanged, this,
+            &FilePropertiesDialog::updateTotalSize);
     connect(m_sizeJob.get(), &CFileSizeJob::result, this, &FilePropertiesDialog::updateTotalSize);
     m_sizeJob->start(list);
 }
@@ -162,6 +163,6 @@ void FilePropertiesDialog::updateTotalSize()
     if (!m_sizeJob)
         return;
 
-    m_size = KIO::convertSize(m_sizeJob->totalSize());
+    m_size = Cutefish::IO::convertSize(m_sizeJob->totalSize());
     emit fileSizeChanged();
 }

@@ -25,20 +25,18 @@
 #ifndef FOLDERMODEL_H
 #define FOLDERMODEL_H
 
-#include "../widgets/itemviewadapter.h"
 #include "../helper/pathhistory.h"
 #include "../mimetype/mimeappmanager.h"
+#include "../widgets/itemviewadapter.h"
+#include <directory.h>
 
-#include <QSortFilterProxyModel>
-#include <QRegularExpression>
 #include <QItemSelectionModel>
+#include <QPointer>
 #include <QQmlParserStatus>
 #include <QQuickItem>
-#include <QPointer>
+#include <QRegularExpression>
+#include <QSortFilterProxyModel>
 
-#include <KDirLister>
-#include <KDirModel>
-#include <KDirWatch>
 #include <KActionCollection>
 
 class QMenu;
@@ -46,6 +44,7 @@ class QMenu;
 class QDrag;
 class CFileSizeJob;
 class ArchiveJob;
+
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
 {
     Q_OBJECT
@@ -54,17 +53,21 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(QUrl resolvedUrl READ resolvedUrl NOTIFY resolvedUrlChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(int sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
-    Q_PROPERTY(bool sortDirsFirst READ sortDirsFirst WRITE setSortDirsFirst NOTIFY sortDirsFirstChanged)
+    Q_PROPERTY(bool sortDirsFirst READ sortDirsFirst WRITE setSortDirsFirst NOTIFY
+                       sortDirsFirstChanged)
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
     Q_PROPERTY(QObject *viewAdapter READ viewAdapter WRITE setViewAdapter NOTIFY viewAdapterChanged)
     Q_PROPERTY(bool isDesktop READ isDesktop WRITE setIsDesktop NOTIFY isDesktopChanged)
     Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
     Q_PROPERTY(int filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
-    Q_PROPERTY(QString filterPattern READ filterPattern WRITE setFilterPattern NOTIFY filterPatternChanged)
+    Q_PROPERTY(QString filterPattern READ filterPattern WRITE setFilterPattern NOTIFY
+                       filterPatternChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
-    Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY filterMimeTypesChanged)
+    Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY
+                       filterMimeTypesChanged)
     Q_PROPERTY(QString selectedItemSize READ selectedItemSize NOTIFY selectedItemSizeChanged)
-    Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY showHiddenFilesChanged)
+    Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY
+                       showHiddenFilesChanged)
     Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged)
     Q_PROPERTY(bool archiveBusy READ archiveBusy NOTIFY archiveBusyChanged)
     Q_PROPERTY(bool archiveCancelling READ archiveCancelling NOTIFY archiveCancellingChanged)
@@ -124,10 +127,10 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     int indexForKeyboardSearch(const QString &text, int startFromIndex = 0) const;
-    KFileItem itemForIndex(const QModelIndex &index) const;
+    Cutefish::IO::FileItem itemForIndex(const QModelIndex &index) const;
     QModelIndex indexForUrl(const QUrl &url) const;
 
-    KFileItem fileItem(int index) const;
+    Cutefish::IO::FileItem fileItem(int index) const;
 
     QList<QUrl> selectedUrls() const;
 
@@ -165,13 +168,13 @@ public:
     bool canGoBack() const;
     bool canGoForward() const;
 
-    bool isDir(const QModelIndex &index, const KDirModel *dirModel) const;
+    bool isDir(const QModelIndex &index, const Cutefish::IO::DirectoryModel *dirModel) const;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
     Qt::DropActions supportedDragActions() const override;
     Qt::DropActions supportedDropActions() const override;
 
-    KFileItem rootItem() const;
+    Cutefish::IO::FileItem rootItem() const;
 
     int count() const;
     int selectionCount() const;
@@ -217,7 +220,8 @@ public:
 
     Q_INVOKABLE void setDragHotSpotScrollOffset(int x, int y);
     Q_INVOKABLE bool updateItemDragRect(int row, int x, int y, int width, int height);
-    Q_INVOKABLE void addItemDragImage(int row, int x, int y, int width, int height, const QVariant &image);
+    Q_INVOKABLE void addItemDragImage(int row, int x, int y, int width, int height,
+                                      const QVariant &image);
     Q_INVOKABLE void clearDragImages();
     Q_INVOKABLE void dragSelected(int x, int y);
     Q_INVOKABLE void drop(QQuickItem *target, QObject *dropEvent, int row);
@@ -225,7 +229,8 @@ public:
     Q_INVOKABLE void setWallpaperSelected();
 
     Q_INVOKABLE void prepareContextMenu();
-    Q_INVOKABLE void openContextMenu(QQuickItem *visualParent = nullptr, Qt::KeyboardModifiers modifiers = Qt::NoModifier);
+    Q_INVOKABLE void openContextMenu(QQuickItem *visualParent = nullptr,
+                                     Qt::KeyboardModifiers modifiers = Qt::NoModifier);
     Q_INVOKABLE void openPropertiesDialog();
     Q_INVOKABLE void openInTerminal();
     Q_INVOKABLE void openChangeWallpaperDialog();
@@ -299,9 +304,7 @@ private slots:
     void delayUpdateNeedSelectUrls();
     void updateNeedSelectUrls();
     void startArchiveJob(ArchiveJob *job, const QString &operation);
-    void archiveJobFinished(bool success,
-                            bool canceled,
-                            const QString &error,
+    void archiveJobFinished(bool success, bool canceled, const QString &error,
                             const QString &outputPath);
 
 private:
@@ -316,19 +319,18 @@ private:
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
-    bool matchMimeType(const KFileItem &item) const;
-    bool matchPattern(const KFileItem &item) const;
+    bool matchMimeType(const Cutefish::IO::FileItem &item) const;
+    bool matchPattern(const Cutefish::IO::FileItem &item) const;
 
 private:
-    KDirModel *m_dirModel;
-    KDirWatch *m_dirWatch;
-    KDirLister *m_dirLister;
+    Cutefish::IO::DirectoryModel *m_dirModel;
+    Cutefish::IO::DirectoryLister *m_dirLister;
 
     QItemSelectionModel *m_selectionModel;
     QItemSelection m_pinnedSelection;
     QString m_url;
     QUrl m_newDocumentUrl;
-    QPoint m_newDocumentPos{-1, -1};
+    QPoint m_newDocumentPos {-1, -1};
     QList<QUrl> m_needSelectUrls;
 
     Status m_status;

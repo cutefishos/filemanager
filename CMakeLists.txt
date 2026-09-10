@@ -8,15 +8,21 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
+option(FILEMANAGER_BUILD_TESTS "Build file manager integration tests" OFF)
+if(FILEMANAGER_BUILD_TESTS)
+    enable_testing()
+endif()
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/io
+                 ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-io-build)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/applications
                  ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-applications-build)
 
-find_package(Qt6 COMPONENTS Core DBus Quick LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS Core DBus Quick Widgets LinguistTools REQUIRED)
 
 find_path(LIBZIP_INCLUDE_DIR zip.h)
 find_library(LIBZIP_LIBRARY NAMES zip)
@@ -24,7 +30,6 @@ if (NOT LIBZIP_INCLUDE_DIR OR NOT LIBZIP_LIBRARY)
     message(FATAL_ERROR "libzip development files are required to build filemanager")
 endif ()
 
-find_package(KF6KIO)
 find_package(KF6Solid)
 find_package(KF6Config)
 find_package(KF6XmlGui REQUIRED)
@@ -80,6 +85,7 @@ add_library(cutefish-filemanager-core STATIC
   helper/datehelper.cpp
   helper/pathhistory.cpp
   helper/fm.cpp
+  helper/iojobui.cpp
   helper/shortcut.cpp
   helper/filelauncher.cpp
   helper/keyboardsearchmanager.cpp
@@ -110,8 +116,8 @@ target_link_libraries(cutefish-filemanager-core
   Qt6::DBus
   Qt6::Quick
 
-  KF6::KIOCore
-  KF6::KIOWidgets
+  Cutefish::IO
+  Qt6::Widgets
   KF6::Solid
   KF6::ConfigCore
   KF6::XmlGui
@@ -155,6 +161,10 @@ option(FILEMANAGER_BUILD_TESTS "Build file manager integration tests" OFF)
 if(FILEMANAGER_BUILD_TESTS)
     enable_testing()
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(tst_iointegration tests/tst_iointegration.cpp)
+    target_link_libraries(tst_iointegration PRIVATE cutefish-filemanager-core Qt6::Test)
+    add_test(NAME iointegration COMMAND tst_iointegration)
+    set_tests_properties(iointegration PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_desktoplayout tests/tst_desktoplayout.cpp)
     target_link_libraries(tst_desktoplayout PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME desktoplayout COMMAND tst_desktoplayout)

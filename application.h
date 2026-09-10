@@ -22,7 +22,7 @@
 
 #include <QApplication>
 
-namespace KIO { class Job; }
+#include <task.h>
 class Window;
 
 class Application : public QApplication
@@ -30,7 +30,7 @@ class Application : public QApplication
     Q_OBJECT
 
 public:
-    explicit Application(int& argc, char** argv);
+    explicit Application(int &argc, char **argv);
 
     int run();
 
@@ -45,7 +45,7 @@ private:
     QStringList formatUriList(const QStringList &list);
 
     /** Starts the trash job for @p paths, or returns nullptr if there is none. */
-    KIO::Job *startTrashJob(const QStringList &paths);
+    Cutefish::IO::Task *startTrashJob(const QStringList &paths);
 
 private:
     bool parseCommandLineArgs();

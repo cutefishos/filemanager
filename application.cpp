@@ -19,37 +19,28 @@
 
 #include "application.h"
 #include "dbusinterface.h"
-#include "window.h"
 #include "filemanageradaptor.h"
+#include "helper/iojobui.h"
+#include "window.h"
+#include <task.h>
 
 #include <QCommandLineParser>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
 #include <QDBusConnection>
-#include <QPixmapCache>
-#include <QTranslator>
+#include <QDir>
 #include <QFileInfo>
 #include <QIcon>
-#include <QDir>
+#include <QPixmapCache>
 #include <QTimer>
+#include <QTranslator>
 
-// KIO
-#include <KIO/CopyJob>
-#include <KIO/Job>
-#include <KIO/PreviewJob>
-#include <KIO/DeleteJob>
-#include <KIO/DropJob>
-#include <KIO/FileUndoManager>
-#include <KIO/JobUiDelegate>
-#include <KIO/Paste>
-#include <KIO/PasteJob>
-#include <KIO/RestoreJob>
-
-Application::Application(int& argc, char** argv)
+Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
     , m_instance(false)
 {
+    CutefishFM::installIoJobUi();
     setQuitOnLastWindowClosed(true);
     if (QDBusConnection::sessionBus().registerService("com.cutefish.FileManager")) {
         setOrganizationName("cutefishos");
@@ -61,7 +52,9 @@ Application::Application(int& argc, char** argv)
 
         // Translations
         QLocale locale;
-        QString qmFilePath = QString("%1/%2.qm").arg("/usr/share/cutefish-filemanager/translations/").arg(locale.name());
+        QString qmFilePath = QString("%1/%2.qm")
+                                     .arg("/usr/share/cutefish-filemanager/translations/")
+                                     .arg(locale.name());
         if (QFile::exists(qmFilePath)) {
             QTranslator *translator = new QTranslator(this);
             if (translator->load(qmFilePath)) {
@@ -95,7 +88,7 @@ void Application::moveToTrash(const QStringList &paths)
     startTrashJob(paths);
 }
 
-KIO::Job *Application::startTrashJob(const QStringList &paths)
+Cutefish::IO::Task *Application::startTrashJob(const QStringList &paths)
 {
     if (paths.isEmpty())
         return nullptr;
@@ -106,9 +99,7 @@ KIO::Job *Application::startTrashJob(const QStringList &paths)
         urls.append(QUrl::fromLocalFile(path));
     }
 
-    KIO::Job *job = KIO::trash(urls);
-    job->uiDelegate()->setAutoErrorHandlingEnabled(true);
-    KIO::FileUndoManager::self()->recordJob(KIO::FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
+    Cutefish::IO::Task *job = Cutefish::IO::trash(urls);
     return job;
 }
 
@@ -167,7 +158,8 @@ bool Application::parseCommandLineArgs()
     QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
     parser.addOption(emptyTrashOption);
 
-    QCommandLineOption moveToTrashOption(QStringList() << "mtr" << "move-to-trash" << "Move To Trash");
+    QCommandLineOption moveToTrashOption(QStringList()
+                                         << "mtr" << "move-to-trash" << "Move To Trash");
     parser.addOption(moveToTrashOption);
 
     parser.process(arguments());
@@ -183,21 +175,21 @@ bool Application::parseCommandLineArgs()
         if (parser.isSet(emptyTrashOption)) {
             emptyTrash();
         } else if (parser.isSet(moveToTrashOption)) {
-            KIO::Job *job = startTrashJob(parser.positionalArguments());
+            Cutefish::IO::Task *job = startTrashJob(parser.positionalArguments());
 
             if (!job)
                 return false;
 
             // No window to show, so the event loop only has to live long enough
             // for the job to finish.
-            connect(job, &KJob::result, this, [] { QCoreApplication::quit(); });
+            connect(job, &Cutefish::IO::Task::result, this, [] {
+                QCoreApplication::quit();
+            });
         } else {
             openFiles(formatUriList(parser.positionalArguments()));
         }
     } else {
-        QDBusInterface iface("com.cutefish.FileManager",
-                             "/FileManager",
-                             "com.cutefish.FileManager",
+        QDBusInterface iface("com.cutefish.FileManager", "/FileManager", "com.cutefish.FileManager",
                              QDBusConnection::sessionBus(), this);
 
         if (parser.isSet(emptyTrashOption)) {
