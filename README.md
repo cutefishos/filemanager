@@ -17,13 +17,13 @@ sudo mk-build-deps -i -t "apt-get --yes" -r
 ### Debian
 
 ```
-sudo apt install build-essential cmake extra-cmake-modules libkf6solid-dev libkf6config-dev libkf6xmlgui-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
+sudo apt install build-essential cmake libkf6solid-dev libkf6config-dev libkf6xmlgui-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
 ```
 
 ### ArchLinux
 
 ```shell
-sudo pacman -S extra-cmake-modules qt6-base qt6-declarative qt6-tools solid kconfig kxmlgui libzip
+sudo pacman -S qt6-base qt6-declarative qt6-tools solid kconfig kxmlgui libzip
 ```
 
 ## Build
