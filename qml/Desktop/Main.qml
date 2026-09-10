@@ -190,10 +190,10 @@ Item {
         id: _folderView
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.topMargin: 28 + 12
-        anchors.rightMargin: Dock.rightMargin + 12
-        readonly property real availableWidth: Math.max(0, rootItem.width - Dock.leftMargin - Dock.rightMargin - 24)
-        readonly property real availableHeight: Math.max(0, rootItem.height - 28 - Dock.bottomMargin - 24)
+        anchors.topMargin: desktopView.topMargin + 12
+        anchors.rightMargin: desktopView.rightMargin + 12
+        readonly property real availableWidth: Math.max(0, rootItem.width - desktopView.leftMargin - desktopView.rightMargin - 24)
+        readonly property real availableHeight: Math.max(0, rootItem.height - desktopView.topMargin - desktopView.bottomMargin - 24)
         width: Math.floor(availableWidth / cellWidth) * cellWidth
         height: Math.floor(availableHeight / cellHeight) * cellHeight
         visible: width > 0 && height > 0

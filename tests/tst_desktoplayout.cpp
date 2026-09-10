@@ -24,11 +24,12 @@ private slots:
     {
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        QQmlPropertyMap dock;
-        dock.insert("leftMargin", 0);
-        dock.insert("rightMargin", 0);
-        dock.insert("bottomMargin", 64);
-        engine.rootContext()->setContextProperty("Dock", &dock);
+        QQmlPropertyMap desktopView;
+        desktopView.insert("leftMargin", 0);
+        desktopView.insert("topMargin", 28);
+        desktopView.insert("rightMargin", 0);
+        desktopView.insert("bottomMargin", 64);
+        engine.rootContext()->setContextProperty("desktopView", &desktopView);
         QQmlComponent component(&engine, QUrl("qrc:/qml/Desktop/Main.qml"));
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
         QScopedPointer<QObject> object(
@@ -62,6 +63,18 @@ private slots:
         QCOMPARE(expression.evaluate().toPointF(),
                  QPointF(grid->property("gridColumns").toInt() - 1, 0));
         QVERIFY(!expression.hasError());
+        desktopView.insert("rightMargin", 80);
+        desktopView.insert("topMargin", 36);
+        desktopView.insert("bottomMargin", 0);
+        QTRY_COMPARE(grid->x() + grid->width(), 1366.0 - 80 - 12);
+        QTRY_COMPARE(grid->y(), 48.0);
+        QCOMPARE(grid->property("availableHeight").toReal(), 768.0 - 36 - 24);
+        desktopView.insert("leftMargin", 72);
+        QCOMPARE(grid->property("availableWidth").toReal(), 1366.0 - 72 - 80 - 24);
+        desktopView.insert("leftMargin", 0);
+        desktopView.insert("rightMargin", 0);
+        desktopView.insert("topMargin", 28);
+        desktopView.insert("bottomMargin", 64);
         const int iconSize = grid->property("iconSize").toInt();
         grid->forceActiveFocus();
         QTest::keyClick(&window, Qt::Key_Minus, Qt::ControlModifier);

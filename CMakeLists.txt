@@ -70,7 +70,6 @@ add_library(cutefish-filemanager-core STATIC
   model/dirlister.cpp
   model/positioner.cpp
 
-  cio/cfilejob.cpp
   cio/cfilesizejob.cpp
   cio/archivejob.cpp
 
@@ -79,8 +78,6 @@ add_library(cutefish-filemanager-core STATIC
 
   widgets/rubberband.cpp
   widgets/itemviewadapter.cpp
-
-  desktop/dockdbusinterface.cpp
 
   helper/datehelper.cpp
   helper/pathhistory.cpp
@@ -157,9 +154,7 @@ install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")
 install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translations)
 
-option(FILEMANAGER_BUILD_TESTS "Build file manager integration tests" OFF)
 if(FILEMANAGER_BUILD_TESTS)
-    enable_testing()
     find_package(Qt6 REQUIRED COMPONENTS Test)
     add_executable(tst_iointegration tests/tst_iointegration.cpp)
     target_link_libraries(tst_iointegration PRIVATE cutefish-filemanager-core Qt6::Test)

@@ -18,13 +18,12 @@
 #include "desktopview.h"
 
 #include "qmltypes.h"
-#include "desktop/dockdbusinterface.h"
 
+#include <QDebug>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QScreen>
-#include <QDebug>
 
 static const char *kDesktopRootQml = "qrc:/qml/Desktop/Main.qml";
 
@@ -110,7 +109,6 @@ void DesktopView::createContent()
     // one engine without seeing each other's state.
     m_context = new QQmlContext(qmlContext(this), this);
     m_context->setContextProperty(QStringLiteral("desktopView"), this);
-    m_context->setContextProperty(QStringLiteral("Dock"), DockDBusInterface::self());
 
     m_component = new QQmlComponent(engine, QUrl(QString::fromLatin1(kDesktopRootQml)), this);
 

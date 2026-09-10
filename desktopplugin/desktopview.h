@@ -18,8 +18,8 @@
 #ifndef CUTEFISH_DESKTOPVIEW_H
 #define CUTEFISH_DESKTOPVIEW_H
 
-#include <QQuickItem>
 #include <QPointer>
+#include <QQuickItem>
 #include <QRect>
 
 class QQmlComponent;
@@ -52,6 +52,11 @@ class DesktopView : public QQuickItem
     Q_PROPERTY(QString screenName READ screenName NOTIFY screenChanged)
     Q_PROPERTY(QRect screenRect READ screenRect NOTIFY screenRectChanged)
 
+    Q_PROPERTY(qreal leftMargin MEMBER m_leftMargin NOTIFY marginsChanged)
+    Q_PROPERTY(qreal topMargin MEMBER m_topMargin NOTIFY marginsChanged)
+    Q_PROPERTY(qreal rightMargin MEMBER m_rightMargin NOTIFY marginsChanged)
+    Q_PROPERTY(qreal bottomMargin MEMBER m_bottomMargin NOTIFY marginsChanged)
+
 public:
     explicit DesktopView(QQuickItem *parent = nullptr);
     ~DesktopView() override;
@@ -63,6 +68,7 @@ public:
     QRect screenRect() const;
 
 signals:
+    void marginsChanged();
     void screenChanged();
     void screenRectChanged();
 
@@ -80,6 +86,10 @@ private:
     QQuickItem *m_content;
     QPointer<QScreen> m_screen;
     QRect m_screenRect;
+    qreal m_leftMargin = 0;
+    qreal m_topMargin = 0;
+    qreal m_rightMargin = 0;
+    qreal m_bottomMargin = 0;
 };
 
 #endif // CUTEFISH_DESKTOPVIEW_H
