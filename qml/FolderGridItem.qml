@@ -43,6 +43,11 @@ Item {
     property bool selected: model.selected
     property bool blank: model.blank
     property var fileName: model.displayName
+    readonly property color selectedTextColor: {
+        const color = FishUI.Theme.highlightColor
+        const luminance = color.r * 0.299 + color.g * 0.587 + color.b * 0.114
+        return luminance > 0.6 ? "#323238" : "white"
+    }
 
     // For desktop
     visible: GridView.view.isDesktopView ? !blank : true
@@ -168,7 +173,7 @@ Item {
             anchors.fill: _iconItem
             source: _iconItem
             color: "white"
-            opacity: 0.3
+            opacity: 0.1
             visible: control.hovered && !control.selected
         }
     }
@@ -188,9 +193,8 @@ Item {
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
         text: control.fileName
-        color: control.GridView.view.isDesktopView ? "white"
-                                                   : selected ? FishUI.Theme.highlightColor
-                                                              : FishUI.Theme.textColor
+        color: selected ? control.selectedTextColor
+                        : control.GridView.view.isDesktopView ? "white" : FishUI.Theme.textColor
         opacity: model.isHidden ? 0.8 : 1.0
     }
 
@@ -204,19 +208,7 @@ Item {
         radius: 4
         color: FishUI.Theme.highlightColor
 
-        opacity: {
-            if (control.selected && control.GridView.view.isDesktopView)
-                return 1
-
-            if (control.selected)
-                return 0.2
-
-            if (control.hovered)
-                return 0.05
-
-            return 0
-
-        }
+        opacity: control.selected ? 1 : 0
     }
 
     DropShadow {
