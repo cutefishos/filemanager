@@ -27,7 +27,7 @@ Settings {
     // the two hosts different preferences and silently reset the desktop's
     // icon size the first time the shell started.
     location: StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)
-              + "/cutefishos/cutefish-filemanager.conf"
+              + "/cutefish/cutefish-filemanager.conf"
 
     property int viewMethod: 1          // controls display mode: list or grid
 

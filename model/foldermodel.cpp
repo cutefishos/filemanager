@@ -159,7 +159,7 @@ FolderModel::FolderModel(QObject *parent)
     , m_updateNeedSelectTimer(new QTimer(this))
 {
     CutefishFM::installIoJobUi();
-    QSettings settings("cutefishos", qApp->applicationName());
+    QSettings settings("cutefish", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
 
     m_updateNeedSelectTimer->setSingleShot(true);
@@ -2039,7 +2039,7 @@ void FolderModel::setShowHiddenFiles(bool showHiddenFiles)
         m_dirLister->setShowHiddenFiles(m_showHiddenFiles);
         m_dirLister->emitChanges();
 
-        QSettings settings("cutefishos", qApp->applicationName());
+        QSettings settings("cutefish", qApp->applicationName());
         settings.setValue("showHiddenFiles", m_showHiddenFiles);
 
         emit showHiddenFilesChanged();

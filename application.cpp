@@ -43,7 +43,7 @@ Application::Application(int &argc, char **argv)
     CutefishFM::installIoJobUi();
     setQuitOnLastWindowClosed(true);
     if (QDBusConnection::sessionBus().registerService("com.cutefish.FileManager")) {
-        setOrganizationName("cutefishos");
+        setOrganizationName("cutefish");
         setWindowIcon(QIcon::fromTheme("file-manager"));
 
         new FileManagerAdaptor(this);
