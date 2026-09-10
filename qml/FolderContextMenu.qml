@@ -184,6 +184,13 @@ FishUI.DesktopMenu {
     }
 
     FishUI.MenuItem {
+        text: pasteItem.text
+        visible: control.hasSelection && pasteItem.modelAction && pasteItem.modelAction.visible
+        enabled: pasteItem.modelAction ? pasteItem.modelAction.enabled : false
+        onTriggered: pasteItem.modelAction.trigger()
+    }
+
+    FishUI.MenuItem {
         id: trashItem
         property var modelAction: control.folderModel ? control.folderModel.action("trash") : null
         text: modelAction ? modelAction.text : qsTr("Move To Trash")

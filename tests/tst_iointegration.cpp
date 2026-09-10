@@ -1,8 +1,12 @@
+#include "draganddrop/declarativedragdropevent.h"
+#include "draganddrop/declarativedroparea.h"
 #include "model/foldermodel.h"
 #include "qmltypes.h"
 #include <QApplication>
 #include <QClipboard>
+#include <QDropEvent>
 #include <QFile>
+#include <QMimeData>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -11,6 +15,14 @@
 #include <QTemporaryDir>
 #include <QtTest>
 #include <task.h>
+
+class TestDropArea : public DeclarativeDropArea
+{
+public:
+    using DeclarativeDropArea::dragEnterEvent;
+    using DeclarativeDropArea::dragMoveEvent;
+    using DeclarativeDropArea::dropEvent;
+};
 
 class IOIntegrationTest : public QObject
 {
@@ -71,6 +83,129 @@ private slots:
         trash.deleteSelected();
         QTRY_COMPARE(trash.count(), 0);
         QApplication::clipboard()->clear();
+    }
+
+    void acceptedDropAction_data()
+    {
+        QTest::addColumn<int>("action");
+        QTest::addColumn<bool>("isDesktop");
+        QTest::newRow("move-to-desktop") << int(Qt::MoveAction) << true;
+        QTest::newRow("move-to-window") << int(Qt::MoveAction) << false;
+        QTest::newRow("ctrl-copy-to-desktop") << int(Qt::CopyAction) << true;
+        QTest::newRow("ctrl-copy-to-window") << int(Qt::CopyAction) << false;
+    }
+
+    void acceptedDropAction()
+    {
+        QFETCH(int, action);
+        QFETCH(bool, isDesktop);
+        QTemporaryDir source;
+        QTemporaryDir destination;
+        QVERIFY(source.isValid());
+        QVERIFY(destination.isValid());
+        QVERIFY(QDir(source.path()).mkdir("folder"));
+        FolderModel desktop;
+        desktop.setIsDesktop(isDesktop);
+        desktop.setUrl(QUrl::fromLocalFile(destination.path()).toString());
+        QTRY_VERIFY(desktop.status() != FolderModel::Listing);
+
+        QMimeData mimeData;
+        mimeData.setUrls({QUrl::fromLocalFile(source.filePath("folder"))});
+        const auto modifiers = action == Qt::CopyAction ? Qt::ControlModifier : Qt::NoModifier;
+        TestDropArea area;
+        QDragEnterEvent enter(QPoint(), Qt::CopyAction | Qt::MoveAction, &mimeData, Qt::LeftButton,
+                              modifiers);
+        area.dragEnterEvent(&enter);
+        QCOMPARE(enter.dropAction(), Qt::DropAction(action));
+        QDragMoveEvent move(QPoint(1, 1), Qt::CopyAction | Qt::MoveAction, &mimeData,
+                            Qt::LeftButton, modifiers);
+        area.dragMoveEvent(&move);
+        QCOMPARE(move.dropAction(), Qt::DropAction(action));
+        QDropEvent drop(QPointF(240, 360), Qt::CopyAction | Qt::MoveAction, &mimeData,
+                        Qt::LeftButton, modifiers);
+        connect(&area, &DeclarativeDropArea::drop, &desktop, [&](DeclarativeDragDropEvent *event) {
+            desktop.drop(nullptr, event, -1);
+        });
+        QSignalSpy finished(Cutefish::IO::TaskController::instance(),
+                            &Cutefish::IO::TaskController::taskFinished);
+        QSignalSpy positioned(&desktop, &FolderModel::move);
+        area.dropEvent(&drop);
+        QCOMPARE(drop.dropAction(), Qt::DropAction(action));
+        QTRY_COMPARE(finished.count(), 1);
+        QVERIFY(QFileInfo(destination.filePath("folder")).isDir());
+        QCOMPARE(QFileInfo::exists(source.filePath("folder")), action == Qt::CopyAction);
+        if (isDesktop) {
+            QTRY_COMPARE(positioned.count(), 1);
+            QCOMPARE(positioned.first().at(0).toInt(), 240);
+            QCOMPARE(positioned.first().at(1).toInt(), 360);
+            QCOMPARE(positioned.first().at(2).value<QList<QUrl>>(),
+                     QList<QUrl> {QUrl::fromLocalFile(destination.filePath("folder"))});
+        } else {
+            QCOMPARE(positioned.count(), 0);
+        }
+    }
+
+    void copyThenNavigateAndPaste()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QVERIFY(QDir(directory.path()).mkdir("Documents"));
+        QFile file(directory.filePath("item.txt"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("payload");
+        file.close();
+        FolderModel folder;
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.count(), 2);
+        QQmlEngine engine;
+        QQmlComponent menuComponent(&engine, QUrl("qrc:/qml/FolderContextMenu.qml"));
+        QVERIFY2(menuComponent.isReady(), qPrintable(menuComponent.errorString()));
+        QScopedPointer<QObject> menu(menuComponent.createWithInitialProperties(
+                {{"folderModel", QVariant::fromValue(&folder)}}));
+        QVERIFY2(menu, qPrintable(menuComponent.errorString()));
+        folder.setSelected(folder.indexForKeyboardSearch("item.txt", 0));
+        QVERIFY(menu->property("hasSelection").toBool());
+        folder.copy();
+        QVERIFY(folder.action("paste")->isEnabled());
+        folder.setUrl(QUrl::fromLocalFile(directory.filePath("Documents")).toString());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QCOMPARE(folder.selectionCount(), 0);
+        QVERIFY(!menu->property("hasSelection").toBool());
+        QVERIFY(folder.action("paste")->isVisible());
+        QVERIFY(folder.action("paste")->isEnabled());
+        folder.action("paste")->trigger();
+        QTRY_VERIFY(QFileInfo::exists(directory.filePath("Documents/item.txt")));
+        QVERIFY(QFileInfo::exists(directory.filePath("item.txt")));
+        QApplication::clipboard()->clear();
+        QVERIFY(!folder.action("paste")->isEnabled());
+    }
+
+    void dropBackOntoSource()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        QVERIFY(QDir(dir.path()).mkdir("folder"));
+        FolderModel folder;
+        folder.setUrl(QUrl::fromLocalFile(dir.path()).toString());
+        QTRY_COMPARE(folder.count(), 1);
+
+        QMimeData mimeData;
+        mimeData.setUrls({QUrl::fromLocalFile(dir.filePath("folder"))});
+        QObject event;
+        event.setProperty("mimeData", QVariant::fromValue<QObject *>(&mimeData));
+        event.setProperty("proposedAction", int(Qt::MoveAction));
+        QSignalSpy tasks(Cutefish::IO::TaskController::instance(),
+                         &Cutefish::IO::TaskController::taskAdded);
+        QVERIFY(tasks.isValid());
+
+        folder.drop(nullptr, &event, 0);
+        QCOMPARE(tasks.count(), 0);
+        folder.drop(nullptr, &event, -1);
+        QCOMPARE(tasks.count(), 0);
+        mimeData.setUrls({QUrl::fromLocalFile(dir.filePath("folder/"))});
+        folder.drop(nullptr, &event, 0);
+        QCOMPARE(tasks.count(), 0);
+        QVERIFY(QFileInfo(dir.filePath("folder")).isDir());
     }
 
     void progressDialogPresentation()

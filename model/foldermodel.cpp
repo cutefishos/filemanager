@@ -232,10 +232,16 @@ FolderModel::FolderModel(QObject *parent)
 
     sort(m_sortMode, m_sortDesc ? Qt::DescendingOrder : Qt::AscendingOrder);
     createActions();
+    connect(QApplication::clipboard(), &QClipboard::dataChanged, this, &FolderModel::updateActions);
+    connect(this, &FolderModel::listingCompleted, this, &FolderModel::updateActions);
 
     connect(this, SIGNAL(rowsInserted(QModelIndex, int, int)), SIGNAL(countChanged()));
     connect(this, SIGNAL(rowsRemoved(QModelIndex, int, int)), SIGNAL(countChanged()));
     connect(this, SIGNAL(modelReset()), SIGNAL(countChanged()));
+    // QItemSelectionModel clears on reset without emitting selectionChanged.
+    connect(this, &QAbstractItemModel::modelReset, this, [this] {
+        selectionChanged({}, {});
+    });
 }
 
 FolderModel::~FolderModel()
@@ -291,7 +297,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
 
     switch (role) {
     case BlankRole:
-        return m_dragIndexes.contains(index);
+        return m_isDesktop && m_dragIndexes.contains(index);
     case SelectedRole:
         return m_selectionModel->isSelected(index);
     case UrlRole:
@@ -1499,6 +1505,14 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
         dropTargetFolderUrl = dropTargetFolderUrl.adjusted(QUrl::RemoveFilename);
     }
 
+    const QUrl normalizedTarget =
+            dropTargetFolderUrl.adjusted(QUrl::NormalizePathSegments | QUrl::StripTrailingSlash);
+    for (const QUrl &url : mimeData->urls()) {
+        if (url.adjusted(QUrl::NormalizePathSegments | QUrl::StripTrailingSlash)
+            == normalizedTarget)
+            return;
+    }
+
     const int x = dropEvent->property("x").toInt();
     const int y = dropEvent->property("y").toInt();
 
@@ -1521,9 +1535,17 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
     }
 
     if (!isDropBetweenSharedViews(mimeData->urls(), dropTargetFolderUrl)) {
+        if (m_isDesktop && row == -1) {
+            for (const QUrl &url : mimeData->urls())
+                m_dropTargetPositions.insert(url.fileName(), QPoint(x, y));
+            m_dropTargetPositionsCleanup->start();
+        }
+        const QVariant acceptedAction = dropEvent->property("dropAction");
         Cutefish::IO::Task *job = Cutefish::IO::drop(
                 mimeData, dropTargetUrl,
-                static_cast<Qt::DropAction>(dropEvent->property("proposedAction").toInt()));
+                static_cast<Qt::DropAction>(
+                        acceptedAction.isValid() ? acceptedAction.toInt()
+                                                 : dropEvent->property("proposedAction").toInt()));
         job->start();
 
         // Add select

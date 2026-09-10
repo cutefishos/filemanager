@@ -8,6 +8,17 @@
 #include "declarativedroparea.h"
 #include "declarativedragdropevent.h"
 
+static void acceptFileDrop(QDropEvent *event)
+{
+    if (event->mimeData()->hasUrls() && event->modifiers() == Qt::NoModifier
+        && event->possibleActions().testFlag(Qt::MoveAction)) {
+        event->setDropAction(Qt::MoveAction);
+        event->accept();
+    } else {
+        event->acceptProposedAction();
+    }
+}
+
 DeclarativeDropArea::DeclarativeDropArea(QQuickItem *parent)
     : QQuickItem(parent)
     , m_enabled(true)
@@ -40,7 +51,7 @@ void DeclarativeDropArea::dragEnterEvent(QDragEnterEvent *event)
     }
 
     DeclarativeDragDropEvent dde(event, this);
-    event->accept();
+    acceptFileDrop(event);
 
     Q_EMIT dragEnter(&dde);
 
@@ -74,7 +85,7 @@ void DeclarativeDropArea::dragMoveEvent(QDragMoveEvent *event)
         event->ignore();
         return;
     }
-    event->accept();
+    acceptFileDrop(event);
     // if the position we export didn't change, don't generate the move event
     if (event->pos() == m_oldDragMovePos) {
         return;
@@ -90,7 +101,8 @@ void DeclarativeDropArea::dropEvent(QDropEvent *event)
     // do it anyways, in the unlikely case m_preventStealing
     // was changed while drag, do it after a loop,
     // so the parent dropevent doesn't get delivered
-    metaObject()->invokeMethod(this, "temporaryInhibitParent", Qt::QueuedConnection, Q_ARG(bool, false));
+    metaObject()->invokeMethod(this, "temporaryInhibitParent", Qt::QueuedConnection,
+                               Q_ARG(bool, false));
 
     m_oldDragMovePos = QPoint(-1, -1);
 
@@ -99,6 +111,7 @@ void DeclarativeDropArea::dropEvent(QDropEvent *event)
     }
 
     DeclarativeDragDropEvent dde(event, this);
+    acceptFileDrop(event);
     Q_EMIT drop(&dde);
     setContainsDrag(false);
 }

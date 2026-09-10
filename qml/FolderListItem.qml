@@ -46,16 +46,30 @@ Item {
                                                        : Qt.darker(FishUI.Theme.backgroundColor, 1.05)
     property color selectedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.2)
                                                         : Qt.darker(FishUI.Theme.backgroundColor, 1.15)
-//    onSelectedChanged: {
-//        if (selected && !blank) {
-//            _listItem.grabToImage(function(result) {
-//                folderModel.addItemDragImage(_listItem.index,
-//                                             _listItem.x,
-//                                             _listItem.y,
-//                                             _listItem.width, _listItem.height, result.image)
-//            })
-//        }
-//    }
+    onSelectedChanged: updateDragImage()
+    onBlankChanged: updateDragImage()
+    onXChanged: updateDragImage()
+    onYChanged: updateDragImage()
+    onWidthChanged: updateDragImage()
+    onHeightChanged: updateDragImage()
+    ListView.onReused: updateDragImage()
+    Component.onCompleted: updateDragImage()
+
+    function updateDragImage() {
+        if (!ListView.view || !selected || blank || _listItem.width <= 0 || _listItem.height <= 0)
+            return
+
+        var row = _listItem.index
+        var x = _listItem.x
+        var y = _listItem.y
+        var width = _listItem.width
+        var height = _listItem.height
+
+        _listItem.grabToImage(function(result) {
+            if (_listItem.selected && !_listItem.blank && _listItem.index === row)
+                dirModel.addItemDragImage(row, x, y, width, height, result.image)
+        })
+    }
 
     Rectangle {
         id: _background

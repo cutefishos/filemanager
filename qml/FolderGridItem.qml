@@ -60,9 +60,12 @@ Item {
     // old cell would drag the wrong picture at the wrong offset from the cursor.
     onXChanged: updateDragImage()
     onYChanged: updateDragImage()
+    onWidthChanged: updateDragImage()
+    onHeightChanged: updateDragImage()
+    Component.onCompleted: updateDragImage()
 
     function updateDragImage() {
-        if (!GridView.view.isDesktopView || !selected || blank)
+        if (!GridView.view || !selected || blank || control.width <= 0 || control.height <= 0)
             return
 
         var row = GridView.view.positioner.map(control.index)
@@ -72,7 +75,9 @@ Item {
         var height = control.height
 
         control.grabToImage(function(result) {
-            dirModel.addItemDragImage(row, x, y, width, height, result.image)
+            if (control.GridView.view && control.selected && !control.blank
+                    && control.GridView.view.positioner.map(control.index) === row)
+                dirModel.addItemDragImage(row, x, y, width, height, result.image)
         })
     }
 

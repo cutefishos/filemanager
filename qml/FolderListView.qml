@@ -69,6 +69,19 @@ ListView {
         target: control
     }
 
+    function refreshDragImages() {
+        dirModel.setDragHotSpotScrollOffset(control.contentX, control.contentY)
+
+        for (var i = 0; i < control.count; ++i) {
+            var item = control.itemAtIndex(i)
+            if (!item || item.blank || !item.selected)
+                continue
+
+            if (!dirModel.updateItemDragRect(item.index, item.x, item.y, item.width, item.height))
+                item.updateDragImage()
+        }
+    }
+
     function rename() {
         if (!control.currentItem || control.editor)
             return
@@ -373,6 +386,7 @@ ListView {
                     control.dragX = mouse.x
                     control.dragY = mouse.y
                     control.verticalDropHitscanOffset = pressedItem.y + (pressedItem.height / 2)
+                    control.refreshDragImages()
                     dirModel.dragSelected(mouse.x, mouse.y)
                     control.dragX = -1
                     control.dragY = -1
