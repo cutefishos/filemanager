@@ -23,6 +23,7 @@ import QtQuick.Layouts 1.12
 import QtQuick.Window 2.12
 import Qt.labs.platform 1.0 as Platform
 import FishUI 1.0 as FishUI
+import Cutefish.DragDrop 1.0 as DragDrop
 
 import "./Controls"
 
@@ -94,6 +95,38 @@ FishUI.Window {
         tabs = reordered
         currentTab = reordered.indexOf(activePage)
         syncNavigation()
+    }
+
+    function updateCurrentViewDragPosition(source, x, y) {
+        var view = root._folderPage ? root._folderPage.currentView : null
+        if (!view)
+            return
+
+        view.updateDragScrollPosition(source.mapToItem(view, x, y).y)
+    }
+
+    function stopCurrentViewDragScroll() {
+        if (root._folderPage && root._folderPage.currentView)
+            root._folderPage.currentView.stopDragScroll()
+    }
+
+    function dropOnCurrentView(source, event, x, y) {
+        var view = root._folderPage ? root._folderPage.currentView : null
+        if (!view) {
+            event.ignore()
+            return
+        }
+
+        var position = source.mapToItem(view, x, y)
+        if (position.x < 0 || position.y < 0
+                || position.x > view.width || position.y > view.height) {
+            root.stopCurrentViewDragScroll()
+            event.ignore()
+            return
+        }
+
+        root.stopCurrentViewDragScroll()
+        view.drop(view, event, position)
     }
 
     onCurrentTabChanged: syncNavigation()
@@ -275,6 +308,30 @@ FishUI.Window {
                 }
             }
         }
+
+    }
+
+    // Cover the actual window header layer, not only its title-content slot.
+    DragDrop.DropArea {
+        id: _headerDragArea
+        parent: root.header
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        height: root.header.height
+        z: 1000
+
+        onDragEnter: function(event) {
+            root.updateCurrentViewDragPosition(_headerDragArea, event.x, event.y)
+        }
+        onDragMove: function(event) {
+            root.updateCurrentViewDragPosition(_headerDragArea, event.x, event.y)
+        }
+        onDragLeave: root.stopCurrentViewDragScroll()
+        onDrop: {
+            root.stopCurrentViewDragScroll()
+            event.ignore()
+        }
     }
 
     RowLayout {
@@ -312,6 +369,23 @@ FishUI.Window {
                 onNewRequested: root.openTab(_folderPage.currentUrl)
                 onDuplicateRequested: function(path) { root.openTab(path) }
                 onMoveRequested: function(from, to) { root.moveTab(from, to) }
+            }
+
+            DragDrop.DropArea {
+                id: _contentDragArea
+                anchors.fill: parent
+                z: 10
+
+                onDragEnter: function(event) {
+                    root.updateCurrentViewDragPosition(_contentDragArea, event.x, event.y)
+                }
+                onDragMove: function(event) {
+                    root.updateCurrentViewDragPosition(_contentDragArea, event.x, event.y)
+                }
+                onDragLeave: root.stopCurrentViewDragScroll()
+                onDrop: function(event) {
+                    root.dropOnCurrentView(_contentDragArea, event, event.x, event.y)
+                }
             }
         }
     }
@@ -361,6 +435,26 @@ FishUI.Window {
                 onEditorAccepted: function(path) { _folderPage.openUrl(path) }
                 onOpenInNewTab: function(path) { root.openTab(path) }
                 onOpenInNewWindow: function(path) { _folderPage.model.openInNewWindow(path) }
+            }
+        }
+
+        // Keep the path bar part of the file view's drag-scroll edge, but do
+        // not treat releasing a file on the navigation bar as a file drop.
+        DragDrop.DropArea {
+            id: _navigationDragArea
+            anchors.fill: parent
+            z: 10
+
+            onDragEnter: function(event) {
+                root.updateCurrentViewDragPosition(_navigationDragArea, event.x, event.y)
+            }
+            onDragMove: function(event) {
+                root.updateCurrentViewDragPosition(_navigationDragArea, event.x, event.y)
+            }
+            onDragLeave: root.stopCurrentViewDragScroll()
+            onDrop: {
+                root.stopCurrentViewDragScroll()
+                event.ignore()
             }
         }
     }

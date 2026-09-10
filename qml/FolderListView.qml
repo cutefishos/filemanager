@@ -33,6 +33,16 @@ ListView {
     property Item pressedItem: null
 
     property int verticalDropHitscanOffset: 0
+    property real dragPositionY: -1
+    property int dragScrollDirection: 0
+    property int dragScrollElapsed: 0
+    property real dragScrollVelocity: 0
+    property bool dragScrollActive: false
+
+    readonly property real dragScrollEdge: 48
+    readonly property int dragScrollRamp: 180
+    readonly property real dragScrollMaxSpeed: 560
+    readonly property int dragScrollInterval: 16
 
     property int pressX: -1
     property int pressY: -1
@@ -80,6 +90,50 @@ ListView {
             if (!dirModel.updateItemDragRect(item.index, item.x, item.y, item.width, item.height))
                 item.updateDragImage()
         }
+    }
+
+    function updateDragScrollPosition(y) {
+        dragPositionY = y
+        dragScrollActive = true
+
+        var direction = y < dragScrollEdge ? -1
+                        : y > control.height - dragScrollEdge ? 1 : 0
+        if (direction === dragScrollDirection)
+            return
+
+        dragScrollDirection = direction
+        dragScrollElapsed = 0
+        dragScrollVelocity = 0
+    }
+
+    function stopDragScroll() {
+        dragPositionY = -1
+        dragScrollDirection = 0
+        dragScrollElapsed = 0
+        dragScrollVelocity = 0
+        dragScrollActive = false
+    }
+
+    function autoScrollDuringDrag() {
+        if (!dragScrollActive || dragScrollDirection === 0)
+            return
+
+        dragScrollElapsed += dragScrollInterval
+        var minimum = control.originY
+        var maximum = Math.max(minimum, control.contentHeight - control.height + control.originY)
+        var distance = dragScrollDirection < 0
+                ? dragScrollEdge - dragPositionY
+                : dragPositionY - (control.height - dragScrollEdge)
+        var edgeProgress = Math.max(0, Math.min(1, distance / dragScrollEdge))
+        var rampProgress = Math.max(0, Math.min(1,
+                                                  dragScrollElapsed / dragScrollRamp))
+        var ramp = 1 - Math.pow(1 - rampProgress, 3)
+        var targetVelocity = dragScrollMaxSpeed * Math.pow(edgeProgress, 1.5) * ramp
+
+        dragScrollVelocity += (targetVelocity - dragScrollVelocity) * 0.25
+        var next = control.contentY + dragScrollDirection * dragScrollVelocity * dragScrollInterval / 1000
+
+        control.contentY = Math.max(minimum, Math.min(maximum, next))
     }
 
     function rename() {
@@ -238,11 +292,32 @@ ListView {
     }
 
     DragDrop.DropArea {
+        id: dropArea
         anchors.fill: parent
 
+        onDragEnter: function(event) {
+            control.updateDragScrollPosition(event.y)
+        }
+
+        onDragMove: function(event) {
+            control.updateDragScrollPosition(event.y)
+        }
+
+        onDragLeave: control.stopDragScroll()
+
         onDrop: function(event) {
+            control.stopDragScroll()
             control.drop(control, event, mapToItem(control, event.x, event.y))
         }
+    }
+
+    // Drag move events stop when the pointer stays at an edge, so keep scrolling
+    // from the last position until the drag leaves the view.
+    Timer {
+        interval: control.dragScrollInterval
+        repeat: true
+        running: control.dragScrollActive
+        onTriggered: control.autoScrollDuringDrag()
     }
 
     MouseArea {
@@ -346,8 +421,6 @@ ListView {
             } else {
                 control.hoveredItem = item
             }
-
-            // TODO: autoscroll
 
             if (control.rubberBand) {
                 var rB = control.rubberBand

@@ -1,12 +1,14 @@
-#include "qmltypes.h"
 #include "model/foldermodel.h"
+#include "qmltypes.h"
 
 #include <QApplication>
-#include <QQuickItem>
-#include <QQuickWindow>
+#include <QDragEnterEvent>
+#include <QMimeData>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQmlExpression>
+#include <QQuickItem>
+#include <QQuickWindow>
 #include <QTemporaryDir>
 #include <QtTest>
 #include <functional>
@@ -16,6 +18,58 @@ class TabsTest : public QObject
     Q_OBJECT
 
 private slots:
+
+    void headerDragScroll_data()
+    {
+        QTest::addColumn<int>("viewMethod");
+        QTest::newRow("list") << 0;
+        QTest::newRow("grid") << 1;
+    }
+
+    void headerDragScroll()
+    {
+        QFETCH(int, viewMethod);
+        QTemporaryDir folders;
+        QVERIFY(folders.isValid());
+        for (int i = 0; i < 120; ++i)
+            QVERIFY(QDir(folders.path()).mkdir(QString::number(i)));
+        QQmlApplicationEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("arg", folders.path());
+        engine.load(QUrl("qrc:/qml/main.qml"));
+        QVERIFY(!engine.rootObjects().isEmpty());
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QVERIFY(window);
+        auto *settings = window->property("settings").value<QObject *>();
+        QVERIFY(settings);
+        settings->setProperty("viewMethod", viewMethod);
+        auto *page = window->property("_folderPage").value<QObject *>();
+        QVERIFY(page);
+        QQuickItem *view = nullptr;
+        QTRY_VERIFY((view = page->property("currentView").value<QQuickItem *>()));
+        QTRY_COMPARE(view->objectName(),
+                     viewMethod == 0 ? QString("FolderListView") : QString("FolderGridView"));
+        QTRY_VERIFY(view->property("contentHeight").toReal() > view->height() + 600);
+        view->setProperty("contentY", 500);
+        QMimeData mime;
+        mime.setUrls({QUrl::fromLocalFile(folders.filePath("0"))});
+        const QPoint headerPoint(window->width() / 2, 20);
+        QDragEnterEvent enter(headerPoint, Qt::CopyAction, &mime, Qt::LeftButton, Qt::NoModifier);
+        QCoreApplication::sendEvent(window, &enter);
+        QVERIFY(enter.isAccepted());
+        QDragMoveEvent move(headerPoint, Qt::CopyAction, &mime, Qt::LeftButton, Qt::NoModifier);
+        QCoreApplication::sendEvent(window, &move);
+        QTRY_VERIFY(view->property("dragScrollActive").toBool());
+        QVERIFY(view->property("dragPositionY").toReal() < 0);
+        QTRY_VERIFY(view->property("contentY").toReal() < 480);
+        QDragLeaveEvent leave;
+        QCoreApplication::sendEvent(window, &leave);
+        QTRY_VERIFY(!view->property("dragScrollActive").toBool());
+        const qreal stopped = view->property("contentY").toReal();
+        QTest::qWait(100);
+        QCOMPARE(view->property("contentY").toReal(), stopped);
+    }
+
     void navigationAndLifetime()
     {
         QTemporaryDir folders;
@@ -65,7 +119,8 @@ private slots:
         QTRY_VERIFY(firstModel->canGoBack());
         const QString firstUrl = firstModel->url();
 
-        QVERIFY(QMetaObject::invokeMethod(window, "openTab", Q_ARG(QVariant, dir.filePath("second"))));
+        QVERIFY(QMetaObject::invokeMethod(window, "openTab",
+                                          Q_ARG(QVariant, dir.filePath("second"))));
         QCOMPARE(evaluate("tabs.length").toInt(), 2);
         QCOMPARE(window->property("currentTab").toInt(), 1);
         QVERIFY(bar->isVisible());
@@ -117,7 +172,8 @@ private slots:
         QTest::keyClick(quickWindow, Qt::Key_W, Qt::ControlModifier);
         QTRY_COMPARE(evaluate("tabs.length").toInt(), 1);
 
-        QVERIFY(QMetaObject::invokeMethod(window, "openTab", Q_ARG(QVariant, dir.filePath("second"))));
+        QVERIFY(QMetaObject::invokeMethod(window, "openTab",
+                                          Q_ARG(QVariant, dir.filePath("second"))));
         QObject *draggedPage = activePage();
         std::function<QQuickItem *(QQuickItem *, const QString &)> findItem;
         findItem = [&](QQuickItem *parent, const QString &name) -> QQuickItem * {
@@ -136,8 +192,12 @@ private slots:
         auto *closeButton = draggedTab->findChild<QQuickItem *>("tabCloseButton");
         QVERIFY(closeButton);
         QVERIFY(closeButton->x() > draggedTab->width() / 2);
-        const QPoint from = draggedTab->mapToScene(QPointF(draggedTab->width() / 2, draggedTab->height() / 2)).toPoint();
-        const QPoint to = targetTab->mapToScene(QPointF(targetTab->width() / 2, targetTab->height() / 2)).toPoint();
+        const QPoint from =
+                draggedTab->mapToScene(QPointF(draggedTab->width() / 2, draggedTab->height() / 2))
+                        .toPoint();
+        const QPoint to =
+                targetTab->mapToScene(QPointF(targetTab->width() / 2, targetTab->height() / 2))
+                        .toPoint();
         QTest::mousePress(quickWindow, Qt::LeftButton, Qt::NoModifier, from);
         QTest::mouseMove(quickWindow, to, 30);
         QTRY_COMPARE(bar->property("dragIndex").toInt(), 1);
@@ -151,7 +211,8 @@ private slots:
             // The software renderer cannot render FishUI's rounded-window shader mask.
             window->setProperty("windowRadius", 0);
             QTest::qWait(150);
-            QVERIFY(quickWindow->grabWindow().save(qEnvironmentVariable("FILEMANAGER_TEST_SCREENSHOT")));
+            QVERIFY(quickWindow->grabWindow().save(
+                    qEnvironmentVariable("FILEMANAGER_TEST_SCREENSHOT")));
         }
     }
 };
