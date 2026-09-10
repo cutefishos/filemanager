@@ -30,9 +30,6 @@ if (NOT LIBZIP_INCLUDE_DIR OR NOT LIBZIP_LIBRARY)
     message(FATAL_ERROR "libzip development files are required to build filemanager")
 endif ()
 
-find_package(KF6Solid)
-find_package(KF6Config)
-find_package(KF6XmlGui REQUIRED)
 
 # Where QML modules go, so the desktop plugin lands next to FishUI.
 find_program(QT_PATHS_EXECUTABLE NAMES qtpaths6 REQUIRED)
@@ -87,6 +84,7 @@ add_library(cutefish-filemanager-core STATIC
   helper/filelauncher.cpp
   helper/keyboardsearchmanager.cpp
 
+  mimetype/mimeapps.cpp
   mimetype/mimeappmanager.cpp
   mimetype/xdgdesktopfile.cpp
 
@@ -115,9 +113,6 @@ target_link_libraries(cutefish-filemanager-core
 
   Cutefish::IO
   Qt6::Widgets
-  KF6::Solid
-  KF6::ConfigCore
-  KF6::XmlGui
   ${LIBZIP_LIBRARY}
 )
 
@@ -156,6 +151,13 @@ install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translatio
 
 if(FILEMANAGER_BUILD_TESTS)
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(tst_mimeapps tests/tst_mimeapps.cpp mimetype/mimeapps.cpp)
+    target_include_directories(tst_mimeapps PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(tst_mimeapps PRIVATE Qt6::Core Qt6::Test)
+    add_test(NAME mimeapps COMMAND tst_mimeapps)
+    add_executable(tst_placesmodel tests/tst_placesmodel.cpp model/placesmodel.cpp model/placesitem.cpp)
+    target_link_libraries(tst_placesmodel PRIVATE Cutefish::IO Qt6::Test)
+    add_test(NAME placesmodel COMMAND tst_placesmodel)
     add_executable(tst_iointegration tests/tst_iointegration.cpp)
     target_link_libraries(tst_iointegration PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME iointegration COMMAND tst_iointegration)

@@ -20,9 +20,9 @@
 #ifndef PLACESMODEL_H
 #define PLACESMODEL_H
 
-#include <QAbstractItemModel>
-#include <Solid/Predicate>
 #include "placesitem.h"
+#include <QAbstractItemModel>
+#include <volumemanager.h>
 
 class PlacesModel : public QAbstractItemModel
 {
@@ -38,8 +38,10 @@ public:
         IsDeviceRole,
         IsOpticalDisc,
         setupNeededRole,
+        CanEjectRole,
         CategoryRole
     };
+
     Q_ENUMS(DataRole);
 
     explicit PlacesModel(QObject *parent = nullptr);
@@ -51,7 +53,8 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex index(int row, int column,
+                      const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &child) const override;
 
     Q_INVOKABLE QVariantMap get(const int &index) const;
@@ -67,6 +70,7 @@ public:
 signals:
     void favoritesChanged();
     void deviceSetupDone(const QString &filePath);
+    void deviceOperationFailed(const QString &message);
 
 private slots:
     void onDeviceAdded(const QString &udi);
@@ -76,7 +80,7 @@ private slots:
 private:
     void saveFavorites();
     QList<PlacesItem *> m_items;
-    Solid::Predicate m_predicate;
+    Cutefish::IO::VolumeManager *m_volumeManager;
 };
 
 #endif

@@ -24,16 +24,14 @@
 #include <QPointer>
 #include <QUrl>
 
-#include <Solid/Device>
-#include <Solid/StorageAccess>
+#include <volumemanager.h>
 
 class PlacesItem : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit PlacesItem(const QString &displayName = QString(),
-                        QUrl url = QUrl(),
+    explicit PlacesItem(const QString &displayName = QString(), QUrl url = QUrl(),
                         QObject *parent = nullptr);
 
     QString displayName() const;
@@ -48,7 +46,7 @@ public:
     QString path() const;
 
     QString udi() const;
-    void setUdi(const QString &udi);
+    void setVolume(const Cutefish::IO::Volume &volume);
 
     bool isDevice();
     bool setupNeeded();
@@ -58,12 +56,10 @@ public:
 
     bool isOpticalDisc() const;
 
+    bool canEject() const { return m_canEject; }
+
 signals:
     void itemChanged(PlacesItem *);
-
-private slots:
-    void updateDeviceInfo(const QString &udi);
-    void onAccessibilityChanged(bool isAccessible);
 
 private:
     QString m_displayName;
@@ -75,8 +71,8 @@ private:
     bool m_isOpticalDisc;
     bool m_isAccessible;
 
-    Solid::Device m_device;
-    QPointer<Solid::StorageAccess> m_access;
+    bool m_hasFilesystem = false;
+    bool m_canEject = false;
 };
 
 #endif // PLACESITEM_H

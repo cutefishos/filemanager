@@ -11,6 +11,7 @@ class PlacesModelTest : public QObject
     Q_OBJECT
 
 private slots:
+
     void favorites()
     {
         QTemporaryDir config;
@@ -28,16 +29,26 @@ private slots:
         const QUrl first = QUrl::fromLocalFile(dir.filePath("first"));
         const QUrl second = QUrl::fromLocalFile(dir.filePath("second"));
         PlacesModel model;
-        QAbstractItemModelTester tester(&model, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        QAbstractItemModelTester tester(&model,
+                                        QAbstractItemModelTester::FailureReportingMode::QtTest);
         QCOMPARE(model.favoriteCount(), 0);
+        const auto checkTrash = [](const PlacesModel &places) {
+            const QModelIndex trash = places.index(places.favoriteCount(), 0);
+            QCOMPARE(trash.data(PlacesModel::UrlRole).toUrl(), QUrl("trash:///"));
+            QVERIFY(trash.data(PlacesModel::CategoryRole).toString().isEmpty());
+            QVERIFY(!trash.data(PlacesModel::IsDeviceRole).toBool());
+        };
+        checkTrash(model);
         QVERIFY(!model.canAddFavorites({}));
         QVERIFY(!model.addFavorites({QUrl("https://example.com")}, 0));
         QVERIFY(!model.addFavorites({first, QUrl::fromLocalFile(dir.filePath("missing"))}, 0));
         QCOMPARE(model.favoriteCount(), 0);
         QVERIFY(model.addFavorites({first, second}, 0));
         QCOMPARE(model.favoriteCount(), 2);
+        checkTrash(model);
         QVERIFY(model.addFavorites({first}, 0));
         QCOMPARE(model.favoriteCount(), 2);
+        checkTrash(model);
         QVERIFY(!model.moveFavorite(2, 0));
         QVERIFY(!model.moveFavorite(0, 3));
         QVERIFY(model.moveFavorite(0, 2));
@@ -51,11 +62,13 @@ private slots:
         {
             PlacesModel restored;
             QCOMPARE(restored.favoriteCount(), 1);
+            checkTrash(restored);
             QCOMPARE(restored.get(0).value("url").toUrl(), second);
         }
         model.removeFavorite(0);
         PlacesModel empty;
         QCOMPARE(empty.favoriteCount(), 0);
+        checkTrash(empty);
     }
 };
 

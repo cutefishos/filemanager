@@ -19,23 +19,20 @@
 
 #include "mimeappmanager.h"
 #include "helper/filelauncher.h"
+#include "mimeapps.h"
 
-#include <QStandardPaths>
-#include <QDirIterator>
-#include <QUrl>
 #include <QDir>
+#include <QDirIterator>
+#include <QStandardPaths>
+#include <QUrl>
 
+#include <QDateTime>
+#include <QDebug>
 #include <QMimeDatabase>
 #include <QMimeType>
-#include <QSettings>
-#include <QDateTime>
-#include <QThread>
-#include <QDebug>
 #include <QSet>
-
-#include <KConfig>
-#include <KConfigGroup>
-#include <KSharedConfig>
+#include <QSettings>
+#include <QThread>
 
 static MimeAppManager *SELF = nullptr;
 
@@ -48,17 +45,19 @@ MimeAppManager *MimeAppManager::self()
 }
 
 MimeAppManager::MimeAppManager(QObject *parent)
-    : QObject(parent),
-      m_fileSystemWatcher(new QFileSystemWatcher),
-      m_updateTimer(new QTimer(this))
+    : QObject(parent)
+    , m_fileSystemWatcher(new QFileSystemWatcher)
+    , m_updateTimer(new QTimer(this))
 {
     m_updateTimer->setInterval(100);
     m_updateTimer->setSingleShot(true);
 
     m_fileSystemWatcher->addPaths(desktopPaths());
 
-    connect(m_fileSystemWatcher, &QFileSystemWatcher::directoryChanged, this, &MimeAppManager::onFileChanged);
-    connect(m_fileSystemWatcher, &QFileSystemWatcher::fileChanged, this, &MimeAppManager::onFileChanged);
+    connect(m_fileSystemWatcher, &QFileSystemWatcher::directoryChanged, this,
+            &MimeAppManager::onFileChanged);
+    connect(m_fileSystemWatcher, &QFileSystemWatcher::fileChanged, this,
+            &MimeAppManager::onFileChanged);
     connect(m_updateTimer, &QTimer::timeout, this, &MimeAppManager::initApplications);
 
     m_updateTimer->start();
@@ -67,8 +66,7 @@ MimeAppManager::MimeAppManager(QObject *parent)
 QStringList MimeAppManager::desktopPaths()
 {
     QStringList folders;
-    folders << QString("/usr/share/applications")
-            << QString("/usr/local/share/applications/")
+    folders << QString("/usr/share/applications") << QString("/usr/local/share/applications/")
             << QDir::homePath() + QString("/.local/share/applications");
 
     return folders;
@@ -78,7 +76,8 @@ QString MimeAppManager::mimeAppsListFilePath()
 {
     // return QString("%1/.config/mimeapps.list").arg(QDir::homePath());
 
-    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + QLatin1String("/mimeapps.list");
+    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+            + QLatin1String("/mimeapps.list");
 }
 
 void MimeAppManager::initApplications()
@@ -89,7 +88,8 @@ void MimeAppManager::initApplications()
     QMap<QString, QSet<QString>> mimeAppsSet;
 
     for (const QString &folder : desktopPaths()) {
-        QDirIterator itor(folder, QStringList("*.desktop"), QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+        QDirIterator itor(folder, QStringList("*.desktop"), QDir::Files | QDir::NoDotAndDotDot,
+                          QDirIterator::Subdirectories);
         while (itor.hasNext()) {
             itor.next();
             QString filePath = itor.filePath();
@@ -138,9 +138,10 @@ void MimeAppManager::initApplications()
                 fileInfos.append(info);
             }
 
-            std::sort(fileInfos.begin(), fileInfos.end(), [=] (const QFileInfo &f1, const QFileInfo &f2) {
-                return f1.birthTime() < f2.birthTime();
-            });
+            std::sort(fileInfos.begin(), fileInfos.end(),
+                      [=](const QFileInfo &f1, const QFileInfo &f2) {
+                          return f1.birthTime() < f2.birthTime();
+                      });
 
             for (QFileInfo info : fileInfos) {
                 orderApps.append(info.absoluteFilePath());
@@ -241,42 +242,18 @@ QString MimeAppManager::getDefaultAppByFilePath(const QString &filePath)
 
 QString MimeAppManager::getDefaultAppByMimeType(const QMimeType &mimeType)
 {
-    QString mimeappsFile = mimeAppsListFilePath();
-
-    if (!QFile::exists(mimeappsFile))
-        return QString();
-
-    QSettings settings(mimeappsFile, QSettings::IniFormat);
-
-    // for (const QString group : settings.childGroups()) {
-    //     settings.beginGroup(group);
-    //     for (const QString &key : settings.allKeys()) {
-    //         if (key == mimeType.name())
-    //             return settings.value(key).toString();
-    //     }
-    //     settings.endGroup();
-    // }
-
-    settings.beginGroup("Default Applications");
-    // TODO: User applications directory?
-    if (settings.contains(mimeType.name())) {
-        const QString desktopFile = QString("/usr/share/applications/%1").arg(settings.value(mimeType.name()).toString());
-        if (QFile::exists(desktopFile)) {
-            return desktopFile;
+    for (const QString &group :
+         {QStringLiteral("Default Applications"), QStringLiteral("Added Associations")}) {
+        const auto apps = MimeApps::associations(mimeAppsListFilePath(), group, mimeType.name());
+        for (const QString &app : apps) {
+            for (const QString &folder : desktopPaths()) {
+                const QString path = QDir(folder).filePath(app);
+                if (QFileInfo(path).isFile())
+                    return path;
+            }
         }
     }
-
-    settings.endGroup();
-
-    settings.beginGroup("Added Associations");
-    if (settings.contains(mimeType.name())) {
-        QString desktopFile = QString("/usr/share/applications/%1").arg(settings.value(mimeType.name()).toString());
-        if (QFile::exists(desktopFile)) {
-            return desktopFile;
-        }
-    }
-
-    return QString();
+    return {};
 }
 
 QString MimeAppManager::getDefaultAppDesktopByMimeType(const QString &mimeType)
@@ -286,71 +263,16 @@ QString MimeAppManager::getDefaultAppDesktopByMimeType(const QString &mimeType)
 
 bool MimeAppManager::setDefaultAppForType(const QString &mimeType, const QString &app)
 {
-    Q_UNUSED(mimeType);
-
-    // ref: https://specifications.freedesktop.org/mime-apps-spec/1.0.1/ar01s03.html
-
-    QString mimeappsFile = mimeAppsListFilePath();
-    QString desktop = app;
-
-    if (QFile::exists(desktop)) {
-        QFileInfo info(desktop);
-        desktop = info.completeBaseName();
-    } else {
+    if (!QFileInfo(app).isFile())
         return false;
-    }
-
-    KSharedConfig::Ptr profile = KSharedConfig::openConfig(QStringLiteral("mimeapps.list"),
-                                                           KConfig::NoGlobals,
-                                                           QStandardPaths::GenericConfigLocation);
-    KConfigGroup defaultApp(profile, "Default Applications");
-    defaultApp.writeXdgListEntry(mimeType, {desktop});
-
-    KConfigGroup addedApps(profile, "Added Associations");
-    QStringList apps = addedApps.readXdgListEntry(mimeType);
-    apps.removeAll(desktop);
-    apps.prepend(desktop); // make it the preferred app
-    addedApps.writeXdgListEntry(mimeType, apps);
-
-    profile->sync();
-
-    return true;
+    return MimeApps::setDefault(mimeAppsListFilePath(), mimeType, QFileInfo(app).fileName());
 }
 
 bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString &desktop)
 {
-    // ref: https://specifications.freedesktop.org/mime-apps-spec/1.0.1/ar01s03.html
-
-    QMimeType mimeType;
-    QString value = desktop;
-
     if (!QFile::exists(filePath))
         return false;
-    else
-        mimeType = QMimeDatabase().mimeTypeForFile(filePath);
-
-    if (QFile::exists(value)) {
-        QFileInfo info(value);
-        value = info.fileName();
-    } else {
-        return false;
-    }
-
-    KSharedConfig::Ptr profile = KSharedConfig::openConfig(QStringLiteral("mimeapps.list"),
-                                                           KConfig::NoGlobals,
-                                                           QStandardPaths::GenericConfigLocation);
-    KConfigGroup defaultApp(profile, "Default Applications");
-    defaultApp.writeXdgListEntry(mimeType.name(), {value});
-
-    KConfigGroup addedApps(profile, "Added Associations");
-    QStringList apps = addedApps.readXdgListEntry(mimeType.name());
-    apps.removeAll(value);
-    apps.prepend(value); // make it the preferred app
-    addedApps.writeXdgListEntry(mimeType.name(), apps);
-
-    profile->sync();
-
-    return true;
+    return setDefaultAppForType(QMimeDatabase().mimeTypeForFile(filePath).name(), desktop);
 }
 
 QStringList MimeAppManager::getRecommendedAppsByFilePath(const QString &filePath)
@@ -381,8 +303,9 @@ QStringList MimeAppManager::getRecommendedAppsByMimeType(const QMimeType &mimeTy
                         const XdgDesktopFile &appDesktop = m_desktopObjects.value(app);
                         const XdgDesktopFile &otherDesktop = m_desktopObjects.value(other);
 
-                        if (appDesktop.value("Exec").toString() == otherDesktop.value("Exec").toString() &&
-                                appDesktop.localeName() == otherDesktop.localeName()) {
+                        if (appDesktop.value("Exec").toString()
+                                    == otherDesktop.value("Exec").toString()
+                            && appDesktop.localeName() == otherDesktop.localeName()) {
                             exists = true;
                             break;
                         }

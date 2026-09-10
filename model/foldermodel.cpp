@@ -63,7 +63,7 @@
 #include <QQmlContext>
 #include <QQuickItem>
 
-#include <KDesktopFile>
+#include "mimetype/xdgdesktopfile.h"
 
 static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folderUrl)
 {
@@ -144,7 +144,6 @@ FolderModel::FolderModel(QObject *parent)
     , m_complete(false)
     , m_isDesktop(false)
     , m_selectedItemSize("")
-    , m_actionCollection(this)
     , m_dragInProgress(false)
     , m_dropTargetPositionsCleanup(new QTimer(this))
     , m_viewAdapter(nullptr)
@@ -299,10 +298,10 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return item.url();
     case DisplayNameRole: {
         if (item.isDesktopFile()) {
-            KDesktopFile dfile(item.localPath());
+            XdgDesktopFile dfile(item.localPath());
 
-            if (!dfile.readName().isEmpty())
-                return dfile.readName();
+            if (!dfile.localeName().isEmpty())
+                return dfile.localeName();
         }
 
         return item.url().fileName();
@@ -770,7 +769,7 @@ QString FolderModel::desktopPath() const
 
 QAction *FolderModel::action(const QString &name) const
 {
-    return m_actionCollection.action(name);
+    return m_actions.value(name);
 }
 
 void FolderModel::up()
@@ -1040,7 +1039,7 @@ void FolderModel::copy()
     if (!m_selectionModel->hasSelection())
         return;
 
-    if (QAction *action = m_actionCollection.action("copy"))
+    if (QAction *action = m_actions.value("copy"))
         if (!action->isEnabled())
             return;
 
@@ -1055,7 +1054,7 @@ void FolderModel::paste()
     bool enable = false;
 
     // Update paste action
-    if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
+    if (QAction *paste = m_actions.value(QStringLiteral("paste"))) {
         QList<QUrl> urls = mimeData ? mimeData->urls() : QList<QUrl>();
         const QString &currentUrl = rootItem().url().toLocalFile();
 
@@ -1098,7 +1097,7 @@ void FolderModel::cut()
     if (!m_selectionModel->hasSelection())
         return;
 
-    if (QAction *action = m_actionCollection.action("cut"))
+    if (QAction *action = m_actions.value("cut"))
         if (!action->isEnabled())
             return;
 
@@ -1364,7 +1363,7 @@ void FolderModel::deleteSelected()
         return;
     }
 
-    if (QAction *action = m_actionCollection.action(QStringLiteral("del"))) {
+    if (QAction *action = m_actions.value(QStringLiteral("del"))) {
         if (!action->isEnabled()) {
             return;
         }
@@ -1380,7 +1379,7 @@ void FolderModel::moveSelectedToTrash()
         return;
     }
 
-    if (QAction *action = m_actionCollection.action(QStringLiteral("trash"))) {
+    if (QAction *action = m_actions.value(QStringLiteral("trash"))) {
         if (!action->isEnabled()) {
             return;
         }
@@ -1566,59 +1565,59 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
         QAction *selectAll = new QAction(tr("Select All"), this);
         connect(selectAll, &QAction::triggered, this, &FolderModel::selectAll);
 
-        menu->addAction(m_actionCollection.action("newFolder"));
+        menu->addAction(m_actions.value("newFolder"));
 
         if (!isTrash) {
             QMenu *newMenu = new QMenu(tr("New Documents"));
-            newMenu->addAction(m_actionCollection.action("newTextFile"));
+            newMenu->addAction(m_actions.value("newTextFile"));
             menu->addMenu(newMenu);
         }
 
         menu->addSeparator();
-        menu->addAction(m_actionCollection.action("paste"));
+        menu->addAction(m_actions.value("paste"));
         menu->addAction(selectAll);
-        if (m_actionCollection.action("terminal")->isVisible()) {
+        if (m_actions.value("terminal")->isVisible()) {
             menu->addSeparator();
-            menu->addAction(m_actionCollection.action("terminal"));
+            menu->addAction(m_actions.value("terminal"));
         }
 
         if (m_isDesktop) {
-            menu->addAction(m_actionCollection.action("changeBackground"));
+            menu->addAction(m_actions.value("changeBackground"));
         }
 
         menu->addSeparator();
-        menu->addAction(m_actionCollection.action("showHidden"));
+        menu->addAction(m_actions.value("showHidden"));
 
         menu->addSeparator();
-        menu->addAction(m_actionCollection.action("emptyTrash"));
-        menu->addAction(m_actionCollection.action("properties"));
+        menu->addAction(m_actions.value("emptyTrash"));
+        menu->addAction(m_actions.value("properties"));
     } else {
         // Open the items menu.
 
         // Trash items
-        menu->addAction(m_actionCollection.action("restore"));
+        menu->addAction(m_actions.value("restore"));
 
-        menu->addAction(m_actionCollection.action("open"));
-        menu->addAction(m_actionCollection.action("openInNewWindow"));
-        menu->addAction(m_actionCollection.action("openInNewTab"));
+        menu->addAction(m_actions.value("open"));
+        menu->addAction(m_actions.value("openInNewWindow"));
+        menu->addAction(m_actions.value("openInNewTab"));
 
-        menu->addAction(m_actionCollection.action("openWith"));
-        menu->addAction(m_actionCollection.action("compress"));
+        menu->addAction(m_actions.value("openWith"));
+        menu->addAction(m_actions.value("compress"));
         menu->addSeparator();
-        menu->addAction(m_actionCollection.action("cut"));
-        menu->addAction(m_actionCollection.action("copy"));
-        menu->addAction(m_actionCollection.action("trash"));
-        menu->addAction(m_actionCollection.action("del"));
-        menu->addAction(m_actionCollection.action("rename"));
+        menu->addAction(m_actions.value("cut"));
+        menu->addAction(m_actions.value("copy"));
+        menu->addAction(m_actions.value("trash"));
+        menu->addAction(m_actions.value("del"));
+        menu->addAction(m_actions.value("rename"));
 
-        if (m_actionCollection.action("terminal")->isVisible()) {
+        if (m_actions.value("terminal")->isVisible()) {
             menu->addSeparator();
-            menu->addAction(m_actionCollection.action("terminal"));
+            menu->addAction(m_actions.value("terminal"));
         }
 
-        menu->addAction(m_actionCollection.action("wallpaper"));
+        menu->addAction(m_actions.value("wallpaper"));
         menu->addSeparator();
-        menu->addAction(m_actionCollection.action("properties"));
+        menu->addAction(m_actions.value("properties"));
     }
 
     QPoint position;
@@ -1758,7 +1757,7 @@ void FolderModel::restoreFromTrash()
     if (!m_selectionModel->hasSelection())
         return;
 
-    if (QAction *action = m_actionCollection.action("restore"))
+    if (QAction *action = m_actions.value("restore"))
         if (!action->isVisible())
             return;
 
@@ -2169,27 +2168,27 @@ void FolderModel::createActions()
     });
     QAction *openInNewTab = new QAction(tr("Open In New Tab"), this);
     connect(openInNewTab, &QAction::triggered, this, &FolderModel::openInNewTab);
-    m_actionCollection.addAction(QStringLiteral("openInNewTab"), openInNewTab);
+    m_actions.insert(QStringLiteral("openInNewTab"), openInNewTab);
 
-    m_actionCollection.addAction(QStringLiteral("open"), open);
-    m_actionCollection.addAction(QStringLiteral("openWith"), openWith);
-    m_actionCollection.addAction(QStringLiteral("compress"), compress);
-    m_actionCollection.addAction(QStringLiteral("cut"), cut);
-    m_actionCollection.addAction(QStringLiteral("copy"), copy);
-    m_actionCollection.addAction(QStringLiteral("paste"), paste);
-    m_actionCollection.addAction(QStringLiteral("newFolder"), newFolder);
-    m_actionCollection.addAction(QStringLiteral("newTextFile"), newTextFile);
-    m_actionCollection.addAction(QStringLiteral("trash"), trash);
-    m_actionCollection.addAction(QStringLiteral("emptyTrash"), emptyTrash);
-    m_actionCollection.addAction(QStringLiteral("del"), del);
-    m_actionCollection.addAction(QStringLiteral("rename"), rename);
-    m_actionCollection.addAction(QStringLiteral("terminal"), terminal);
-    m_actionCollection.addAction(QStringLiteral("wallpaper"), wallpaper);
-    m_actionCollection.addAction(QStringLiteral("properties"), properties);
-    m_actionCollection.addAction(QStringLiteral("changeBackground"), changeBackground);
-    m_actionCollection.addAction(QStringLiteral("restore"), restore);
-    m_actionCollection.addAction(QStringLiteral("showHidden"), showHidden);
-    m_actionCollection.addAction(QStringLiteral("openInNewWindow"), openInNewWindow);
+    m_actions.insert(QStringLiteral("open"), open);
+    m_actions.insert(QStringLiteral("openWith"), openWith);
+    m_actions.insert(QStringLiteral("compress"), compress);
+    m_actions.insert(QStringLiteral("cut"), cut);
+    m_actions.insert(QStringLiteral("copy"), copy);
+    m_actions.insert(QStringLiteral("paste"), paste);
+    m_actions.insert(QStringLiteral("newFolder"), newFolder);
+    m_actions.insert(QStringLiteral("newTextFile"), newTextFile);
+    m_actions.insert(QStringLiteral("trash"), trash);
+    m_actions.insert(QStringLiteral("emptyTrash"), emptyTrash);
+    m_actions.insert(QStringLiteral("del"), del);
+    m_actions.insert(QStringLiteral("rename"), rename);
+    m_actions.insert(QStringLiteral("terminal"), terminal);
+    m_actions.insert(QStringLiteral("wallpaper"), wallpaper);
+    m_actions.insert(QStringLiteral("properties"), properties);
+    m_actions.insert(QStringLiteral("changeBackground"), changeBackground);
+    m_actions.insert(QStringLiteral("restore"), restore);
+    m_actions.insert(QStringLiteral("showHidden"), showHidden);
+    m_actions.insert(QStringLiteral("openInNewWindow"), openInNewWindow);
 }
 
 void FolderModel::updateActions()
@@ -2224,34 +2223,35 @@ void FolderModel::updateActions()
     Cutefish::IO::FileItemListProperties itemProperties(items);
     // Check if we're showing the menu for the trash link
     if (items.count() == 1 && items.at(0).isDesktopFile()) {
-        KDesktopFile file(items.at(0).localPath());
-        if (file.hasLinkType() && file.readUrl() == QLatin1String("trash:/")) {
+        XdgDesktopFile file(items.at(0).localPath());
+        if (file.value("Type").toString() == QLatin1String("Link")
+            && file.value("URL").toString() == QLatin1String("trash:/")) {
             isTrashLink = true;
         }
     }
 
-    if (QAction *openAction = m_actionCollection.action(QStringLiteral("open"))) {
+    if (QAction *openAction = m_actions.value(QStringLiteral("open"))) {
         openAction->setVisible(!isTrash);
     }
 
-    if (QAction *copyAction = m_actionCollection.action(QStringLiteral("copy"))) {
+    if (QAction *copyAction = m_actions.value(QStringLiteral("copy"))) {
         copyAction->setVisible(!isTrash);
     }
 
-    if (QAction *cutAction = m_actionCollection.action(QStringLiteral("cut"))) {
+    if (QAction *cutAction = m_actions.value(QStringLiteral("cut"))) {
         cutAction->setVisible(!isTrash);
         cutAction->setEnabled(rootItem().isWritable());
     }
 
-    if (QAction *restoreAction = m_actionCollection.action(QStringLiteral("restore"))) {
+    if (QAction *restoreAction = m_actions.value(QStringLiteral("restore"))) {
         restoreAction->setVisible(items.count() >= 1 && isTrash);
     }
 
-    if (QAction *openWith = m_actionCollection.action(QStringLiteral("openWith"))) {
+    if (QAction *openWith = m_actions.value(QStringLiteral("openWith"))) {
         openWith->setVisible(items.count() == 1 && !isTrash);
     }
 
-    if (QAction *compress = m_actionCollection.action(QStringLiteral("compress"))) {
+    if (QAction *compress = m_actions.value(QStringLiteral("compress"))) {
         const bool canCompress =
                 !indexes.isEmpty() && !isTrash && !hasRemoteFiles && rootItem().isWritable();
         compress->setVisible(canCompress);
@@ -2264,17 +2264,17 @@ void FolderModel::updateActions()
         }
     }
 
-    if (QAction *newFolder = m_actionCollection.action(QStringLiteral("newFolder"))) {
+    if (QAction *newFolder = m_actions.value(QStringLiteral("newFolder"))) {
         newFolder->setVisible(!isTrash);
         newFolder->setEnabled(rootItem().isWritable());
     }
 
-    if (QAction *newTextFile = m_actionCollection.action(QStringLiteral("newTextFile"))) {
+    if (QAction *newTextFile = m_actions.value(QStringLiteral("newTextFile"))) {
         newTextFile->setVisible(!isTrash);
         newTextFile->setEnabled(rootItem().isWritable());
     }
 
-    if (QAction *paste = m_actionCollection.action(QStringLiteral("paste"))) {
+    if (QAction *paste = m_actions.value(QStringLiteral("paste"))) {
         bool enable = false;
 
         const QMimeData *mimeData = QApplication::clipboard()->mimeData();
@@ -2290,47 +2290,47 @@ void FolderModel::updateActions()
         paste->setVisible(!isTrash);
     }
 
-    if (QAction *rename = m_actionCollection.action(QStringLiteral("rename"))) {
+    if (QAction *rename = m_actions.value(QStringLiteral("rename"))) {
         rename->setEnabled(itemProperties.supportsMoving());
         rename->setVisible(!isTrash && !Fm::isFixedFolder(items.first().url()));
     }
 
-    if (QAction *trash = m_actionCollection.action("trash")) {
+    if (QAction *trash = m_actions.value("trash")) {
         trash->setEnabled(itemProperties.supportsMoving());
         trash->setVisible(!isTrash);
     }
 
-    if (QAction *emptyTrash = m_actionCollection.action("emptyTrash")) {
+    if (QAction *emptyTrash = m_actions.value("emptyTrash")) {
         emptyTrash->setVisible(isTrash && rowCount() > 0);
     }
 
-    if (QAction *del = m_actionCollection.action(QStringLiteral("del"))) {
+    if (QAction *del = m_actions.value(QStringLiteral("del"))) {
         del->setVisible(isTrash && itemProperties.supportsDeleting());
     }
 
-    if (QAction *terminal = m_actionCollection.action("terminal")) {
+    if (QAction *terminal = m_actions.value("terminal")) {
         terminal->setVisible(items.size() == 1 && items.first().isDir() && !isTrash);
     }
 
-    if (QAction *terminal = m_actionCollection.action("wallpaper")) {
+    if (QAction *terminal = m_actions.value("wallpaper")) {
         terminal->setVisible(items.size() == 1 && !isTrash
                              && supportSetAsWallpaper(items.first().mimetype()));
     }
 
-    if (QAction *properties = m_actionCollection.action("properties")) {
+    if (QAction *properties = m_actions.value("properties")) {
         properties->setVisible(!isTrash);
     }
 
-    if (QAction *showHidden = m_actionCollection.action("showHidden")) {
+    if (QAction *showHidden = m_actions.value("showHidden")) {
         showHidden->setVisible(!isTrash);
         // Plain text instead of a check mark: the label says what the item does.
         showHidden->setText(m_showHiddenFiles ? tr("Hide Hidden Files") : tr("Show Hidden Files"));
     }
 
-    if (QAction *openInNewWindow = m_actionCollection.action("openInNewWindow")) {
+    if (QAction *openInNewWindow = m_actions.value("openInNewWindow")) {
         openInNewWindow->setVisible(hasDir && !isTrash);
     }
-    if (QAction *openInNewTab = m_actionCollection.action("openInNewTab")) {
+    if (QAction *openInNewTab = m_actions.value("openInNewTab")) {
         openInNewTab->setVisible(hasDir && !isTrash && !m_isDesktop);
     }
 }

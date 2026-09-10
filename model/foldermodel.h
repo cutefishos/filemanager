@@ -37,7 +37,8 @@
 #include <QRegularExpression>
 #include <QSortFilterProxyModel>
 
-#include <KActionCollection>
+#include <QAction>
+#include <QHash>
 
 class QMenu;
 
@@ -358,7 +359,7 @@ private:
     // selection is held for as long as this menu is up.
     QPointer<QMenu> m_contextMenu;
 
-    KActionCollection m_actionCollection;
+    QHash<QString, QAction *> m_actions;
     QHash<int, DragImage *> m_dragImages;
     QModelIndexList m_dragIndexes;
     QPoint m_dragHotSpotScrollOffset;

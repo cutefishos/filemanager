@@ -19,21 +19,15 @@
 
 #include "placesmodel.h"
 
-#include <QStandardPaths>
-#include <QDir>
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QSettings>
-
-#include <Solid/Device>
-#include <Solid/DeviceNotifier>
-#include <Solid/StorageDrive>
-#include <Solid/StorageAccess>
-#include <Solid/Predicate>
-#include <Solid/OpticalDrive>
+#include <QStandardPaths>
 
 PlacesModel::PlacesModel(QObject *parent)
     : QAbstractItemModel(parent)
+    , m_volumeManager(new Cutefish::IO::VolumeManager(this))
 {
     const QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
 
@@ -50,7 +44,8 @@ PlacesModel::PlacesModel(QObject *parent)
         m_items.append(item);
     }
 
-    const QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    const QString documentsPath =
+            QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     if (QDir(documentsPath).exists()) {
         PlacesItem *item = new PlacesItem(tr("Documents"), QUrl::fromLocalFile(documentsPath));
         item->setIconName("folder-documents");
@@ -113,31 +108,34 @@ PlacesModel::PlacesModel(QObject *parent)
     for (PlacesItem *item : m_items)
         item->setCategory(tr("Favorites"));
 
-    QString predicateStr(
-        QString::fromLatin1("[[[[ StorageVolume.ignored == false AND [ StorageVolume.usage == 'FileSystem' OR StorageVolume.usage == 'Encrypted' ]]"
-                            " OR "
-                            "[ IS StorageAccess AND StorageDrive.driveType == 'Floppy' ]]"
-                            " OR "
-                            "OpticalDisc.availableContent & 'Audio' ]"
-                            " OR "
-                            "StorageAccess.ignored == false ]"));
-    m_predicate = Solid::Predicate::fromString(predicateStr);
-
-    Solid::DeviceNotifier *notifier = Solid::DeviceNotifier::instance();
-    connect(notifier, &Solid::DeviceNotifier::deviceAdded, this, &PlacesModel::onDeviceAdded);
-    connect(notifier, &Solid::DeviceNotifier::deviceRemoved, this, &PlacesModel::onDeviceRemoved);
-
-    // Init devices
-    const QList<Solid::Device> &deviceList = Solid::Device::listFromQuery(m_predicate);
-    for (const Solid::Device &device : deviceList) {
-        PlacesItem *deviceItem = new PlacesItem;
-        deviceItem->setUdi(device.udi());
-        deviceItem->setCategory(tr("Locations"));
-        m_items.append(deviceItem);
-    }
+    connect(m_volumeManager, &Cutefish::IO::VolumeManager::volumeAdded, this,
+            &PlacesModel::onDeviceAdded);
+    connect(m_volumeManager, &Cutefish::IO::VolumeManager::volumeRemoved, this,
+            &PlacesModel::onDeviceRemoved);
+    connect(m_volumeManager, &Cutefish::IO::VolumeManager::volumeChanged, this,
+            [this](const QString &id) {
+                onDeviceAdded(id);
+            });
+    connect(m_volumeManager, &Cutefish::IO::VolumeManager::operationFinished, this,
+            [this](const QString &id, const QString &operation, const QString &path) {
+                if (operation != "mount" || path.isEmpty())
+                    return;
+                for (PlacesItem *item : m_items) {
+                    if (item->udi() == id) {
+                        auto volume = m_volumeManager->volume(id);
+                        volume.mountPoints = {path};
+                        item->setVolume(volume);
+                        emit deviceSetupDone(path);
+                        break;
+                    }
+                }
+            });
+    connect(m_volumeManager, &Cutefish::IO::VolumeManager::operationFailed, this,
+            [this](const QString &, const QString &, const QString &message) {
+                emit deviceOperationFailed(message);
+            });
 
     PlacesItem *trashItem = new PlacesItem(tr("Trash"), QUrl(QStringLiteral("trash:///")));
-    trashItem->setCategory(tr("Locations"));
     trashItem->setIconName("user-trash");
     m_items.append(trashItem);
 
@@ -237,6 +235,7 @@ QHash<int, QByteArray> PlacesModel::roleNames() const
     roleNames[PlacesModel::IsDeviceRole] = "isDevice";
     roleNames[PlacesModel::IsOpticalDisc] = "isOpticalDisc";
     roleNames[PlacesModel::setupNeededRole] = "setupNeeded";
+    roleNames[PlacesModel::CanEjectRole] = "canEject";
     roleNames[PlacesModel::CategoryRole] = "category";
     return roleNames;
 }
@@ -284,6 +283,8 @@ QVariant PlacesModel::data(const QModelIndex &index, int role) const
     case PlacesModel::setupNeededRole:
         return item->setupNeeded();
         break;
+    case PlacesModel::CanEjectRole:
+        return item->canEject();
     case PlacesModel::CategoryRole:
         return item->category();
         break;
@@ -332,60 +333,42 @@ QVariantMap PlacesModel::get(const int &index) const
 
 void PlacesModel::requestSetup(const int &index)
 {
-    PlacesItem *item = m_items.at(index);
-    if (!item->udi().isEmpty()) {
-        Solid::Device device = Solid::Device(item->udi());
-        Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
-        access->setup();
-        connect(access, &Solid::StorageAccess::setupDone, this, [this, item, access]() {
-            if (item) {
-                // 更新信息，让 qml 里的 sidebar 识别到
-                item->setUrl(QUrl::fromLocalFile(access->filePath()));
-                emit deviceSetupDone(access->filePath());
-            }
-        });
-    }
+    if (index >= 0 && index < m_items.size() && m_items.at(index)->isDevice())
+        m_volumeManager->mount(m_items.at(index)->udi());
 }
 
 void PlacesModel::requestEject(const int &index)
 {
-    PlacesItem *item = m_items.at(index);
-    if (!item->udi().isEmpty()) {
-        Solid::Device device = Solid::Device(item->udi());
-        Solid::OpticalDrive *drive = device.parent().as<Solid::OpticalDrive>();
-
-        if (drive) {
-            drive->eject();
-        }
-    }
+    if (index >= 0 && index < m_items.size() && m_items.at(index)->isDevice())
+        m_volumeManager->eject(m_items.at(index)->udi());
 }
 
 void PlacesModel::requestTeardown(const int &index)
 {
-    PlacesItem *item = m_items.at(index);
-
-    if (!item->udi().isEmpty()) {
-        Solid::Device device = Solid::Device(item->udi());
-        Solid::StorageAccess *access = device.as<Solid::StorageAccess>();
-
-        if (access != nullptr) {
-            access->teardown();
-        }
-    }
+    if (index >= 0 && index < m_items.size() && m_items.at(index)->isDevice())
+        m_volumeManager->unmount(m_items.at(index)->udi());
 }
 
 void PlacesModel::onDeviceAdded(const QString &udi)
 {
-    if (m_predicate.matches(Solid::Device(udi))) {
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        PlacesItem *deviceItem = new PlacesItem;
-        deviceItem->setUdi(udi);
-        deviceItem->setCategory(tr("Locations"));
-        m_items.append(deviceItem);
-        endInsertRows();
-
-        connect(deviceItem, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
+    const auto volume = m_volumeManager->volume(udi);
+    if (!volume.filesystem && !volume.optical) {
+        onDeviceRemoved(udi);
+        return;
     }
+    for (PlacesItem *item : m_items) {
+        if (item->udi() == udi) {
+            item->setVolume(volume);
+            return;
+        }
+    }
+    auto *item = new PlacesItem;
+    item->setVolume(volume);
+    item->setCategory(tr("Locations"));
+    beginInsertRows(QModelIndex(), rowCount(), rowCount());
+    m_items.append(item);
+    endInsertRows();
+    connect(item, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
 }
 
 void PlacesModel::onDeviceRemoved(const QString &udi)
@@ -397,7 +380,8 @@ void PlacesModel::onDeviceRemoved(const QString &udi)
             m_items.removeOne(item);
             endRemoveRows();
 
-            disconnect(item);
+            delete item;
+            return;
         }
     }
 }

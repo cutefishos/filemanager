@@ -20,12 +20,7 @@
 #include "placesitem.h"
 #include <QDebug>
 
-#include <Solid/OpticalDisc>
-#include <solid_version.h>
-
-PlacesItem::PlacesItem(const QString &displayName,
-                       QUrl url,
-                       QObject *parent)
+PlacesItem::PlacesItem(const QString &displayName, QUrl url, QObject *parent)
     : QObject(parent)
     , m_displayName(displayName)
     , m_url(url)
@@ -78,63 +73,27 @@ QString PlacesItem::udi() const
     return m_udi;
 }
 
-void PlacesItem::setUdi(const QString &udi)
+void PlacesItem::setVolume(const Cutefish::IO::Volume &volume)
 {
-    m_udi = udi;
-    updateDeviceInfo(m_udi);
+    m_udi = volume.id;
+    m_displayName = volume.name;
+    m_iconName = volume.icon;
+    m_isOpticalDisc = volume.optical;
+    m_canEject = volume.ejectable || volume.canPowerOff;
+    m_hasFilesystem = volume.filesystem;
+    m_isAccessible = !volume.mountPoints.isEmpty();
+    m_url = m_isAccessible ? QUrl::fromLocalFile(volume.mountPoints.first()) : QUrl();
+    emit itemChanged(this);
 }
 
 bool PlacesItem::isDevice()
 {
-    return !m_udi.isEmpty() && m_device.isValid();
+    return !m_udi.isEmpty();
 }
 
 bool PlacesItem::setupNeeded()
 {
-    if (m_access) {
-        return !m_isAccessible;
-    }
-
-    return false;
-}
-
-void PlacesItem::updateDeviceInfo(const QString &udi)
-{
-    m_device = Solid::Device(udi);
-
-    if (m_access)
-        m_access->disconnect(this);
-
-    if (m_device.isValid()) {
-        m_access = m_device.as<Solid::StorageAccess>();
-        m_iconName = m_device.icon();
-
-#if SOLID_VERSION_MAJOR >= 5 && SOLID_VERSION_MINOR >= 71
-        m_displayName = m_device.displayName();
-#else
-        m_displayName = m_device.description();
-#endif
-
-        if (m_device.is<Solid::OpticalDisc>()) {
-            m_isOpticalDisc = true;
-            emit itemChanged(this);
-        }
-
-        if (m_access) {
-            m_url = QUrl::fromLocalFile(m_access->filePath());
-            connect(m_access.data(), &Solid::StorageAccess::accessibilityChanged, this, &PlacesItem::onAccessibilityChanged);
-            onAccessibilityChanged(m_access->isAccessible());
-        }
-    } else {
-        m_access = nullptr;
-    }
-}
-
-void PlacesItem::onAccessibilityChanged(bool isAccessible)
-{
-    m_isAccessible = isAccessible;
-
-    emit itemChanged(this);
+    return m_hasFilesystem && !m_isAccessible;
 }
 
 QString PlacesItem::category() const

@@ -52,8 +52,21 @@ Item {
 
     PlacesModel {
         id: placesModel
+        onDeviceOperationFailed: function(message) {
+            deviceError.text = message
+            deviceError.open()
+        }
         onFavoritesChanged: sideBar.updateSelection(sideBar.selectedPath)
         onDeviceSetupDone: sideBar.clicked(filePath)    // 设备挂载上后，模拟点击了该设备以打开该页面
+    }
+
+    Dialog {
+        id: deviceError
+        property alias text: errorLabel.text
+        title: qsTr("Device operation failed")
+        modal: true
+        standardButtons: Dialog.Ok
+        contentItem: Label { id: errorLabel; wrapMode: Text.Wrap; width: 320 }
     }
 
     Rectangle {
@@ -135,7 +148,7 @@ Item {
             section.property: "category"
             section.delegate: Label {
                 width: ListView.view.width
-                height: section === qsTr("Favorites") ? 0 : listView.snap(36)
+                height: !section || section === qsTr("Favorites") ? 0 : listView.snap(36)
                 // ListView controls delegate visibility, including zero-height sections.
                 text: section === qsTr("Favorites") ? "" : section
                 leftPadding: listView.snap(listView.sideInset + FishUI.Units.smallSpacing)
@@ -247,10 +260,7 @@ Item {
                     FishUI.MenuItem {
                         id: _ejectMenuItem
                         text: qsTr("Eject")
-                        visible: model.isDevice &&
-                                 !model.setupNeeded &&
-                                 model.isOpticalDisc &&
-                                 !model.url.toString() === _fm.rootPath()
+                        visible: model.isDevice && model.canEject
 
                         onTriggered: {
                             placesModel.requestEject(index)
@@ -262,8 +272,7 @@ Item {
                         text: qsTr("Unmount")
                         visible: model.isDevice &&
                                  !model.setupNeeded &&
-                                 !model.isOpticalDisc &&
-                                 !model.url.toString() === _fm.rootPath()
+                                 model.path && model.path !== _fm.rootPath()
 
                         onTriggered: {
                             placesModel.requestTeardown(index)
