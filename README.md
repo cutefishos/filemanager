@@ -6,6 +6,8 @@ Cutefish File Manager, simple to use, beautiful, and retain the classic PC inter
 
 ## Dependencies
 
+File Manager uses Qt 6 and Cutefish::IO; it does not depend on KDE Frameworks.
+
 ### Ubuntu
 
 ```
@@ -17,13 +19,13 @@ sudo mk-build-deps -i -t "apt-get --yes" -r
 ### Debian
 
 ```
-sudo apt install build-essential cmake libkf6solid-dev libkf6config-dev libkf6xmlgui-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
+sudo apt install build-essential cmake libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
 ```
 
 ### ArchLinux
 
 ```shell
-sudo pacman -S qt6-base qt6-declarative qt6-tools solid kconfig kxmlgui libzip
+sudo pacman -S qt6-base qt6-declarative qt6-tools libzip
 ```
 
 ## Build
