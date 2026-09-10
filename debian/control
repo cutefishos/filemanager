@@ -4,11 +4,9 @@ Priority: optional
 Maintainer: CutefishOS <support@cutefishos.com>
 Build-Depends: cmake,
                debhelper (>= 9),
-               extra-cmake-modules,
                libzip-dev,
                libkf6kio-dev,
                libkf6solid-dev,
-               libkf6windowsystem-dev,
                libkf6config-dev,
                libkf6xmlgui-dev,
                qt6-base-dev,

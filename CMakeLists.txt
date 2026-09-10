@@ -26,7 +26,6 @@ endif ()
 
 find_package(KF6KIO)
 find_package(KF6Solid)
-find_package(KF6WindowSystem)
 find_package(KF6Config)
 find_package(KF6XmlGui REQUIRED)
 
@@ -112,10 +111,8 @@ target_link_libraries(cutefish-filemanager-core
   Qt6::Quick
 
   KF6::KIOCore
-  KF6::KIOFileWidgets
   KF6::KIOWidgets
   KF6::Solid
-  KF6::WindowSystem
   KF6::ConfigCore
   KF6::XmlGui
   ${LIBZIP_LIBRARY}
