@@ -20,7 +20,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import Qt5Compat.GraphicalEffects
 
 import Cutefish.FileManager 1.0 as FM
 import FishUI 1.0 as FishUI
