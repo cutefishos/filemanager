@@ -357,10 +357,10 @@ FishUI.Window {
                 id: _pathBar
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                onItemClicked: _folderPage.openUrl(path)
-                onEditorAccepted: _folderPage.openUrl(path)
-                onOpenInNewTab: root.openTab(path)
-                onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
+                onItemClicked: function(path) { _folderPage.openUrl(path) }
+                onEditorAccepted: function(path) { _folderPage.openUrl(path) }
+                onOpenInNewTab: function(path) { root.openTab(path) }
+                onOpenInNewWindow: function(path) { _folderPage.model.openInNewWindow(path) }
             }
         }
     }

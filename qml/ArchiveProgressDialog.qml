@@ -44,8 +44,7 @@ FishUI.Window {
             text: control.archiveModel === null ? qsTr("File operation")
                                                  : control.archiveModel.archiveOperation
             elide: Text.ElideRight
-            font.pixelSize: 14
-            font.weight: Font.DemiBold
+            font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 14, weight: Font.DemiBold })
         }
     }
 
@@ -60,7 +59,7 @@ FishUI.Window {
                                                   : control.archiveModel.archiveCurrentFile
             visible: text.length > 0
             elide: Text.ElideMiddle
-            font.pixelSize: 14
+            font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 14 })
             color: FishUI.Theme.disabledTextColor
         }
 

@@ -332,6 +332,12 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return Cutefish::IO::convertSize(item.size());
     }
     case IconNameRole:
+        if (item.isDesktopFile()) {
+            const XdgDesktopFile desktopFile(item.localPath());
+            const QString icon = desktopFile.value(QStringLiteral("Icon")).toString();
+            if (!icon.isEmpty())
+                return icon;
+        }
         return item.iconName();
     case ThumbnailRole: {
         if (item.isLocalFile()) {

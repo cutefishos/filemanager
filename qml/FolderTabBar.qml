@@ -166,8 +166,8 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     text: modelData.tabTitle
-                    font.pixelSize: 12
-                    font.weight: tab.selected ? Font.Medium : Font.Normal
+                    font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 12,
+                                    weight: tab.selected ? Font.Medium : Font.Normal })
                     elide: Text.ElideMiddle
                     color: FishUI.Theme.textColor
                 }
@@ -251,7 +251,7 @@ Rectangle {
         width: 28
         height: 28
         text: "+"
-        font.pixelSize: 20
+        font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 20 })
         Accessible.name: qsTr("New Tab")
         onClicked: control.newRequested()
         background: Rectangle {

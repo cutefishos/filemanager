@@ -151,6 +151,10 @@ install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translatio
 
 if(FILEMANAGER_BUILD_TESTS)
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(tst_desktopicons tests/tst_desktopicons.cpp)
+    target_link_libraries(tst_desktopicons PRIVATE cutefish-filemanager-core Qt6::Test)
+    add_test(NAME desktopicons COMMAND tst_desktopicons)
+    set_tests_properties(desktopicons PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_executable(tst_mimeapps tests/tst_mimeapps.cpp mimetype/mimeapps.cpp)
     target_include_directories(tst_mimeapps PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_mimeapps PRIVATE Qt6::Core Qt6::Test)

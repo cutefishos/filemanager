@@ -184,8 +184,7 @@ FishUI.Window {
                     Layout.fillWidth: true
                     text: control.heading
                     textFormat: Text.PlainText
-                    font.pixelSize: 13
-                    font.weight: Font.DemiBold
+                    font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 13, weight: Font.DemiBold })
                     color: FishUI.Theme.textColor
                     wrapMode: Text.Wrap
                     maximumLineCount: 2
@@ -197,7 +196,7 @@ FishUI.Window {
                           : control.conflict ? qsTr("“%1” already exists in this location.").arg(control.fileName(control.conflictPath))
                           : control.currentName
                     textFormat: Text.PlainText
-                    font.pixelSize: 12
+                    font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 12 })
                     color: FishUI.Theme.disabledTextColor
                     wrapMode: control.finished || control.conflict ? Text.Wrap : Text.NoWrap
                     maximumLineCount: 4
@@ -246,7 +245,7 @@ FishUI.Window {
                     visible: !control.finished
                     text: control.summary
                     textFormat: Text.PlainText
-                    font.pixelSize: 11
+                    font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 11 })
                     color: FishUI.Theme.disabledTextColor
                     wrapMode: Text.Wrap
                 }

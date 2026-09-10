@@ -180,7 +180,8 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: control.desktop ? 6 : FishUI.Units.smallSpacing
         maximumLineCount: control.desktop ? 2 : (control.selected ? 3 : 2)
-        font.pixelSize: control.desktop ? 13 : FishUI.Theme.defaultFont.pixelSize
+        font: control.desktop ? Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 13 })
+                              : FishUI.Theme.defaultFont
         horizontalAlignment: Text.AlignHCenter
         width: control.desktop ? parent.width - 12 : parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText
