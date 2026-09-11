@@ -208,8 +208,6 @@ private slots:
         QCOMPARE(menuWindowChanges.count(), 0);
         QCOMPARE(window->findChildren<QObject *>("applicationMenuBar").count(), 1);
         if (qEnvironmentVariableIsSet("FILEMANAGER_TEST_SCREENSHOT")) {
-            // The software renderer cannot render FishUI's rounded-window shader mask.
-            window->setProperty("windowRadius", 0);
             QTest::qWait(150);
             QVERIFY(quickWindow->grabWindow().save(
                     qEnvironmentVariable("FILEMANAGER_TEST_SCREENSHOT")));

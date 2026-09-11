@@ -33,7 +33,6 @@ FishUI.Window {
     title: "Open With"
     flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     modality: Qt.WindowModal
-    windowRadius: 16
     windowButtonsTopMargin: 8
     windowButtonsRightMargin: 8
     header.height: 44

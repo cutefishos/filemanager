@@ -15,7 +15,6 @@ FishUI.Window {
 
     flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     modality: Qt.NonModal
-    windowRadius: 16
     windowButtonsTopMargin: 8
     windowButtonsRightMargin: 8
     minimizeButtonVisible: false
