@@ -100,7 +100,7 @@ Item {
         id: _iconItem
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: control.desktop ? 8 : FishUI.Units.smallSpacing
+        anchors.topMargin: control.desktop ? control.GridView.view.desktopIconTopMargin : FishUI.Units.smallSpacing
         anchors.bottomMargin: FishUI.Units.smallSpacing
         z: 2
 
@@ -158,8 +158,8 @@ Item {
             anchors.right: _icon.visible ? _icon.right : _image.right
             anchors.bottom: _icon.visible ? _icon.bottom : _image.bottom
             source: "image://icontheme/emblem-symbolic-link"
-            width: 16
-            height: 16
+            width: control.desktop ? Math.max(16, Math.round(control.GridView.view.iconSize / 4)) : 16
+            height: width
             visible: model.isLink
             sourceSize: Qt.size(width, height)
         }
@@ -188,12 +188,12 @@ Item {
         z: 2
         anchors.top: _iconItem.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: control.desktop ? 6 : FishUI.Units.smallSpacing
+        anchors.topMargin: control.desktop ? control.GridView.view.desktopLabelSpacing : FishUI.Units.smallSpacing
         maximumLineCount: control.desktop ? 2 : (control.selected ? 3 : 2)
-        font: control.desktop ? Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 13 })
-                              : FishUI.Theme.defaultFont
+        font: control.desktop ? control.GridView.view.desktopLabelFont : FishUI.Theme.defaultFont
         horizontalAlignment: Text.AlignHCenter
-        width: control.desktop ? parent.width - 12 : parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
+        width: control.desktop ? parent.width - control.GridView.view.desktopLabelInset * 2
+                               : parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
@@ -201,32 +201,55 @@ Item {
         color: selected ? control.selectedTextColor
                         : control.GridView.view.isDesktopView ? "white" : FishUI.Theme.textColor
         opacity: model.isHidden ? 0.8 : 1.0
+        // A layer effect on the label itself would lose hinting and fringe the
+        // glyphs; the faint 1px edge hides the subpixel fringes instead.
+        style: control.desktop && !control.selected ? Text.Raised : Text.Normal
+        styleColor: Qt.rgba(0, 0, 0, 0.2)
     }
 
     Rectangle {
+        readonly property real hPadding: control.desktop ? 4 : FishUI.Units.smallSpacing / 2
+        readonly property real vPadding: control.desktop ? 1 : 0
+
         z: 1
-        x: _label.x + (_label.width - _label.paintedWidth) / 2 - (FishUI.Units.smallSpacing / 2)
-        y: _label.y
+        x: _label.x + (_label.width - _label.paintedWidth) / 2 - hPadding
+        y: _label.y - vPadding
         visible: _label.visible
-        width: _label.paintedWidth + FishUI.Units.smallSpacing
-        height: _label.paintedHeight
+        width: _label.paintedWidth + hPadding * 2
+        height: _label.paintedHeight + vPadding * 2
         radius: 4
         color: FishUI.Theme.highlightColor
 
         opacity: control.selected ? 1 : 0
     }
 
-    DropShadow {
-        anchors.fill: _label
-        source: _label
+    // Soft halo from a blurred black copy; only its alpha survives the blur.
+    Item {
         z: 1
-        horizontalOffset: 1
-        verticalOffset: 1
-        radius: 4
-        samples: radius * 2 + 1
-        spread: 0.35
-        color: Qt.rgba(0, 0, 0, 0.3)
-        opacity: model.isHidden ? 0.6 : 1
-        visible: control.GridView.view.isDesktopView && !control.selected
+        x: _label.x - 8
+        y: _label.y - 8 + 1
+        width: _label.width + 16
+        height: _label.height + 16
+        visible: control.desktop && _label.visible && !control.selected
+        opacity: model.isHidden ? 0.25 : 0.45
+
+        Text {
+            x: 8
+            y: 8
+            width: _label.width
+            text: _label.text
+            font: _label.font
+            textFormat: _label.textFormat
+            horizontalAlignment: _label.horizontalAlignment
+            wrapMode: _label.wrapMode
+            maximumLineCount: _label.maximumLineCount
+            elide: _label.elide
+            color: "black"
+        }
+
+        layer.enabled: visible
+        layer.effect: FastBlur {
+            radius: 8
+        }
     }
 }

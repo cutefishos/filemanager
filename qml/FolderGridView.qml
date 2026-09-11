@@ -344,24 +344,34 @@ GridView {
         }
     }
 
+    // Desktop cell metrics, shared with FolderGridItem. Text steps up once per
+    // 32px of icon so labels stay at roughly a fifth of the icon, as on macOS.
+    readonly property int desktopLabelPixelSize: Math.min(14, 12 + Math.floor(Math.max(0, iconSize - 64) / 32))
+    readonly property font desktopLabelFont: Qt.font({ family: FishUI.Theme.fontFamily,
+                                                       pixelSize: desktopLabelPixelSize })
+    readonly property int desktopIconTopMargin: 6
+    readonly property int desktopLabelSpacing: 5
+    readonly property int desktopLabelInset: 6
+    readonly property int desktopCellBottomMargin: 8
     readonly property real desktopLabelHeight: desktopLabelMetrics.height
 
     FontMetrics {
         id: desktopLabelMetrics
-        font.pixelSize: 13
+        font: control.desktopLabelFont
     }
 
     cellHeight: {
         var iconHeight = iconSize + (FishUI.Units.fontMetrics.height * 2) + FishUI.Units.largeSpacing * 2
         if (isDesktopView) {
-            return Math.ceil(iconSize + 8 + 6 + desktopLabelHeight * 2 + 12)
+            return Math.ceil(desktopIconTopMargin + iconSize + desktopLabelSpacing
+                             + desktopLabelHeight * 2 + desktopCellBottomMargin)
         }
         return iconHeight
     }
 
     cellWidth: {
         if (isDesktopView)
-            return Math.ceil(Math.max(96, iconSize + 40))
+            return Math.ceil(Math.max(88, iconSize + 44))
         var iconWidth = iconSize + FishUI.Units.largeSpacing * 4
         var extraWidth = calcExtraSpacing(iconWidth, control.width - leftMargin - rightMargin)
         return iconWidth + extraWidth
