@@ -29,7 +29,9 @@ int main(int argc, char **argv)
     QQuickStyle::setStyle(QStringLiteral("Fish"));
     app.setApplicationName(QStringLiteral("cutefish-filechooser"));
     app.setOrganizationName(QStringLiteral("cutefish"));
-    app.setDesktopFileName(QStringLiteral("cutefish-filemanager"));
+    // Its own identity, not File Manager's: the dock matches windows by app id,
+    // and the dialog must not land on File Manager's task.
+    app.setDesktopFileName(QStringLiteral("cutefish-filechooser"));
     app.setWindowIcon(QIcon::fromTheme(QStringLiteral("system-file-manager")));
 
     QFile input;

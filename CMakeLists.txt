@@ -191,6 +191,8 @@ add_dependencies(cutefish-filemanager translations)
 
 install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")
+# NoDisplay: the dialog is launched by the portal, and its window is not a task.
+install(FILES cutefish-filechooser.desktop DESTINATION "/usr/share/applications")
 install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translations)
 
 if(FILEMANAGER_BUILD_TESTS)

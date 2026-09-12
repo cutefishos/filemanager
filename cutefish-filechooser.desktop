@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=File Chooser
+Name[zh_CN]=文件选择器
+Comment=Cutefish file chooser dialog
+Exec=/usr/libexec/cutefish-filechooser
+Icon=file-system-manager
+Categories=Qt;System;FileTools;
+NoDisplay=true
