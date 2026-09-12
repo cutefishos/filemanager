@@ -22,7 +22,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/io
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/applications
                  ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-applications-build)
 
-find_package(Qt6 COMPONENTS Core DBus Quick Widgets LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS Core DBus Quick QuickControls2 Widgets LinguistTools REQUIRED)
 
 find_path(LIBZIP_INCLUDE_DIR zip.h)
 find_library(LIBZIP_LIBRARY NAMES zip)
@@ -135,6 +135,12 @@ add_executable(cutefish-filemanager
 
 target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
 
+add_library(cutefish-filechooser-ui STATIC chooser/filechooser.cpp chooser/filechooser.h)
+target_link_libraries(cutefish-filechooser-ui PUBLIC cutefish-filemanager-core Qt6::QuickControls2)
+add_executable(cutefish-filechooser chooser/main.cpp chooser/chooser.qrc)
+target_link_libraries(cutefish-filechooser PRIVATE cutefish-filechooser-ui)
+install(TARGETS cutefish-filechooser RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+
 # ---------------------------------------------------------------------------
 # The desktop, as a QML module for cutefish-shell
 # ---------------------------------------------------------------------------
@@ -151,6 +157,10 @@ install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translatio
 
 if(FILEMANAGER_BUILD_TESTS)
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(tst_filechooser tests/tst_filechooser.cpp chooser/chooser.qrc)
+    target_link_libraries(tst_filechooser PRIVATE cutefish-filechooser-ui Qt6::Test)
+    add_test(NAME filechooser COMMAND tst_filechooser)
+    set_tests_properties(filechooser PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_desktopicons tests/tst_desktopicons.cpp)
     target_link_libraries(tst_desktopicons PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME desktopicons COMMAND tst_desktopicons)

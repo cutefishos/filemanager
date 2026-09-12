@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/chooser">
+        <file>FileChooser.qml</file>
+    </qresource>
+</RCC>
