@@ -65,10 +65,15 @@ Successful output contains `response: 0`, `uris` (encoded local file URIs),
 Cancellation returns `{"response":1}`. A nonzero process exit or malformed result
 is a portal failure. Input and output are limited to 1 MiB.
 
+On Wayland the requesting application exports its toplevel through
+`xdg-foreign-unstable-v2` and the portal passes `wayland:<handle>`; the helper
+imports it, calls `set_parent_of`, and marks itself a modal `xdg_dialog_v1`, so
+the dialog stacks above its application and blocks it. X11 parents use
+`setTransientParent`. Both need the compositor to provide those globals.
+
 The helper does not create or truncate save targets. Existing save targets require
 confirmation; bulk saves choose unused names. Creating a folder is an explicit UI
-action. X11 parent windows are supported; Wayland foreign parenting and non-Unicode
-native paths are not supported yet.
+action. Non-Unicode native paths are not supported yet.
 
 Example preview in a Cutefish session:
 

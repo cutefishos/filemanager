@@ -1,5 +1,6 @@
 #include "filechooser.h"
 #include "qmltypes.h"
+#include "waylandparent.h"
 
 #include <QApplication>
 #include <QFile>
@@ -65,18 +66,21 @@ int main(int argc, char **argv)
 
     std::unique_ptr<QWindow> foreignParent;
     const QString parentWindow = request.value("parent_window").toString();
+    const bool modal = request.value("modal").toBool(true);
+    // Wayland parenting and modality go through xdg-foreign and xdg_dialog_v1,
+    // which Qt does not drive itself; see applyWaylandParent().
     if (QGuiApplication::platformName() == "xcb" && parentWindow.startsWith("x11:")) {
         bool valid = false;
         const auto id = parentWindow.mid(4).toULongLong(&valid, 16);
         if (valid && id) {
             foreignParent.reset(QWindow::fromWinId(id));
             window->setTransientParent(foreignParent.get());
-            window->setModality(request.value("modal").toBool(true) ? Qt::WindowModal
-                                                                    : Qt::NonModal);
+            window->setModality(modal ? Qt::WindowModal : Qt::NonModal);
         }
     }
-    QTimer::singleShot(0, window, [window] {
+    QTimer::singleShot(0, window, [window, parentWindow, modal] {
         window->show();
+        applyWaylandParent(window, parentWindow, modal);
         window->requestActivate();
     });
     return app.exec();

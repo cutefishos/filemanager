@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(filemanager LANGUAGES CXX)
+# C is needed for the generated Wayland protocol marshalling.
+project(filemanager LANGUAGES C CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -137,8 +138,45 @@ target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
 
 add_library(cutefish-filechooser-ui STATIC chooser/filechooser.cpp chooser/filechooser.h)
 target_link_libraries(cutefish-filechooser-ui PUBLIC cutefish-filemanager-core Qt6::QuickControls2)
-add_executable(cutefish-filechooser chooser/main.cpp chooser/chooser.qrc)
+
+# The dialog runs in its own process, so the requesting window can only be
+# reached through xdg-foreign; the protocol code is optional at build time.
+set(FILECHOOSER_WAYLAND_SOURCES chooser/waylandparent.cpp chooser/waylandparent.h)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(WaylandClient QUIET IMPORTED_TARGET wayland-client)
+pkg_check_modules(WaylandProtocols QUIET wayland-protocols>=1.32)
+find_package(Qt6 QUIET COMPONENTS GuiPrivate)
+if(WaylandClient_FOUND AND WaylandProtocols_FOUND AND TARGET Qt6::GuiPrivate)
+    pkg_get_variable(WAYLAND_PROTOCOLS_DATADIR wayland-protocols pkgdatadir)
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    set(CHOOSER_PROTOCOL_DIR ${CMAKE_BINARY_DIR}/chooser-protocols)
+    file(MAKE_DIRECTORY ${CHOOSER_PROTOCOL_DIR})
+    foreach(protocol xdg-shell:stable/xdg-shell
+                     xdg-dialog-v1:staging/xdg-dialog
+                     xdg-foreign-unstable-v2:unstable/xdg-foreign)
+        string(REPLACE ":" ";" parts ${protocol})
+        list(GET parts 0 name)
+        list(GET parts 1 directory)
+        set(xml ${WAYLAND_PROTOCOLS_DATADIR}/${directory}/${name}.xml)
+        add_custom_command(OUTPUT ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
+            COMMAND ${WAYLAND_SCANNER} private-code ${xml} ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
+            DEPENDS ${xml} VERBATIM)
+        add_custom_command(OUTPUT ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h
+            COMMAND ${WAYLAND_SCANNER} client-header ${xml} ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h
+            DEPENDS ${xml} VERBATIM)
+        list(APPEND FILECHOOSER_WAYLAND_SOURCES
+            ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
+            ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h)
+    endforeach()
+endif()
+
+add_executable(cutefish-filechooser chooser/main.cpp chooser/chooser.qrc ${FILECHOOSER_WAYLAND_SOURCES})
 target_link_libraries(cutefish-filechooser PRIVATE cutefish-filechooser-ui)
+if(WaylandClient_FOUND AND WaylandProtocols_FOUND AND TARGET Qt6::GuiPrivate)
+    target_compile_definitions(cutefish-filechooser PRIVATE CUTEFISH_FILECHOOSER_WAYLAND)
+    target_include_directories(cutefish-filechooser PRIVATE ${CHOOSER_PROTOCOL_DIR})
+    target_link_libraries(cutefish-filechooser PRIVATE PkgConfig::WaylandClient Qt6::GuiPrivate)
+endif()
 install(TARGETS cutefish-filechooser RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 
 # ---------------------------------------------------------------------------
