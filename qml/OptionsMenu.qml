@@ -65,8 +65,8 @@ FishUI.DesktopMenu {
     FishUI.MenuItem {
         text: qsTr("Type")
         reservesCheckColumn: true
-        checked: settings.sortMode === 6
-        onTriggered: settings.sortMode = 6
+        checked: settings.sortMode === 3
+        onTriggered: settings.sortMode = 3
     }
 
     FishUI.MenuItem {

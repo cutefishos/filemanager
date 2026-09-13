@@ -22,6 +22,7 @@ import QtQuick.Layouts 1.15
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
 import Cutefish.DragDrop 1.0 as DragDrop
+import "FileList" as FileList
 
 ListView {
     id: control
@@ -58,7 +59,17 @@ ListView {
     property int anchorIndex: 0
     property bool useCustomContextMenu: false
 
-    property var itemHeight: FishUI.Units.fontMetrics.height * 2 + FishUI.Units.smallSpacing
+    // Named apart from the context's settings so the binding below is not circular.
+    readonly property var listSettings: settings
+    readonly property FileList.Columns columns: FileList.Columns {
+        settings: control.listSettings
+        availableWidth: Math.max(0, control.width - control.leftMargin - control.rightMargin)
+    }
+    readonly property real rowHeight: columns.rowHeight
+    readonly property real headerHeight: columns.headerHeight
+
+    property real lastMouseX: -1
+    property real lastMouseY: -1
 
     property variant cachedRectangleSelection: null
 
@@ -69,7 +80,9 @@ ListView {
     cacheBuffer: width
     reuseItems: true
 
-    ScrollBar.vertical: ScrollBar { }
+    ScrollBar.vertical: ScrollBar {
+        topPadding: control.headerHeight
+    }
     boundsBehavior: Flickable.StopAtBounds
     // Dragging the view must rubber band select, not flick the content around
     // like a touch interface. WheelHandler and the scroll bar do the scrolling.
@@ -96,7 +109,7 @@ ListView {
         dragPositionY = y
         dragScrollActive = true
 
-        var direction = y < dragScrollEdge ? -1
+        var direction = y < headerHeight + dragScrollEdge ? -1
                         : y > control.height - dragScrollEdge ? 1 : 0
         if (direction === dragScrollDirection)
             return
@@ -119,10 +132,10 @@ ListView {
             return
 
         dragScrollElapsed += dragScrollInterval
-        var minimum = control.originY
-        var maximum = Math.max(minimum, control.contentHeight - control.height + control.originY)
+        var minimum = control.originY - control.topMargin
+        var maximum = Math.max(minimum, control.contentHeight + control.bottomMargin - control.height + control.originY)
         var distance = dragScrollDirection < 0
-                ? dragScrollEdge - dragPositionY
+                ? headerHeight + dragScrollEdge - dragPositionY
                 : dragPositionY - (control.height - dragScrollEdge)
         var edgeProgress = Math.max(0, Math.min(1, distance / dragScrollEdge))
         var rampProgress = Math.max(0, Math.min(1,
@@ -134,6 +147,70 @@ ListView {
         var next = control.contentY + dragScrollDirection * dragScrollVelocity * dragScrollInterval / 1000
 
         control.contentY = Math.max(minimum, Math.min(maximum, next))
+
+        if (control.rubberBand)
+            control.updateRubberBand(control.lastMouseX, control.lastMouseY)
+    }
+
+    function ensureIndexVisible(index) {
+        if (index < 0 || index >= control.count)
+            return
+
+        var top = index * control.rowHeight
+        var visibleTop = control.contentY + control.headerHeight
+        var visibleBottom = control.contentY + control.height - control.bottomMargin
+
+        if (top < visibleTop)
+            control.contentY = top - control.headerHeight
+        else if (top + control.rowHeight > visibleBottom)
+            control.contentY = top + control.rowHeight - control.height + control.bottomMargin
+    }
+
+    function moveCurrentIndex(newIndex, modifiers) {
+        if (control.count === 0 || (editor && editor.targetItem))
+            return
+
+        newIndex = Math.max(0, Math.min(control.count - 1, newIndex))
+        if (!(modifiers & Qt.ShiftModifier) || currentIndex === -1)
+            anchorIndex = newIndex
+
+        currentIndex = newIndex
+        updateSelection(modifiers)
+        ensureIndexVisible(newIndex)
+    }
+
+    function updateRubberBand(mouseX, mouseY) {
+        var rB = control.rubberBand
+        if (!rB || !cPress)
+            return
+
+        var cPos = mapToItem(control.contentItem, mouseX, mouseY)
+        var leftEdge = Math.min(control.contentX, control.originX)
+
+        if (cPos.x < cPress.x) {
+            rB.x = Math.max(leftEdge, cPos.x)
+            rB.width = Math.abs(rB.x - cPress.x)
+        } else {
+            rB.x = cPress.x
+            var ceil = Math.max(control.width, control.contentItem.width) + leftEdge
+            rB.width = Math.min(ceil - rB.x, Math.abs(rB.x - cPos.x))
+        }
+
+        var bottom = Math.max(control.count * control.rowHeight, control.contentY + control.height)
+        if (cPos.y < cPress.y) {
+            rB.y = Math.max(control.originY - control.topMargin, cPos.y)
+            rB.height = Math.abs(rB.y - cPress.y)
+        } else {
+            rB.y = cPress.y
+            rB.height = Math.min(bottom - rB.y, Math.abs(rB.y - cPos.y))
+        }
+
+        // Ensure rubberband is at least 1px in size or else it will become
+        // invisible and not match any items.
+        rB.width = Math.max(1, rB.width)
+        rB.height = Math.max(1, rB.height)
+
+        control.rectangleSelect(rB.x, rB.y, rB.width, rB.height)
     }
 
     function rename() {
@@ -213,7 +290,21 @@ ListView {
     Keys.onPressed: function(event) {
         control.keyPress(event)
 
-        if (event.key === Qt.Key_Control) {
+        var page = Math.max(1, Math.floor((control.height - control.headerHeight) / control.rowHeight) - 1)
+
+        if (event.key === Qt.Key_Home) {
+            moveCurrentIndex(0, event.modifiers)
+            event.accepted = true
+        } else if (event.key === Qt.Key_End) {
+            moveCurrentIndex(control.count - 1, event.modifiers)
+            event.accepted = true
+        } else if (event.key === Qt.Key_PageUp) {
+            moveCurrentIndex(Math.max(0, currentIndex) - page, event.modifiers)
+            event.accepted = true
+        } else if (event.key === Qt.Key_PageDown) {
+            moveCurrentIndex(currentIndex + page, event.modifiers)
+            event.accepted = true
+        } else if (event.key === Qt.Key_Control) {
             ctrlPressed = true
         } else if (event.key === Qt.Key_Shift) {
             shiftPressed = true
@@ -240,29 +331,11 @@ ListView {
     }
 
     Keys.onUpPressed: function(event) {
-        if (!editor || !editor.targetItem) {
-            var newIndex = currentIndex
-            newIndex--;
-
-            if (newIndex < 0)
-                newIndex = 0
-
-            currentIndex = newIndex
-            updateSelection(event.modifiers)
-        }
+        moveCurrentIndex(currentIndex === -1 ? 0 : currentIndex - 1, event.modifiers)
     }
 
     Keys.onDownPressed: function(event) {
-        if (!editor || !editor.targetItem) {
-            var newIndex = currentIndex
-            newIndex++
-
-            if (newIndex >= control.count)
-                return
-
-            currentIndex = newIndex
-            updateSelection(event.modifiers)
-        }
+        moveCurrentIndex(currentIndex + 1, event.modifiers)
     }
 
     onCachedRectangleSelectionChanged: {
@@ -281,6 +354,11 @@ ListView {
 
     onContentYChanged: {
         cancelRename()
+
+        if (_mouseArea.containsMouse && !rubberBand && lastMouseY >= control.headerHeight) {
+            var item = control.itemAt(lastMouseX - control.leftMargin, lastMouseY + control.contentY)
+            hoveredItem = item && !item.blank ? item : null
+        }
     }
 
     onPressXChanged: {
@@ -289,6 +367,15 @@ ListView {
 
     onPressYChanged: {
         cPress = mapToItem(control.contentItem, pressX, pressY)
+    }
+
+    // Rows scroll beneath the header, so it blocks input over itself.
+    FileList.Header {
+        z: 2
+        width: control.width
+        columns: control.columns
+        leftInset: control.leftMargin
+        rightInset: control.rightMargin
     }
 
     DragDrop.DropArea {
@@ -343,16 +430,9 @@ ListView {
                 return
             }
 
-            if (mouse.source === Qt.MouseEventSynthesizedByQt) {
-                var index = control.indexAt(mouse.x, mouse.y + control.contentY)
-                var indexItem = control.itemAtIndex(index)
-                if (indexItem && indexItem.iconArea) {
-                    control.currentIndex = index
-                    hoveredItem = indexItem
-                } else {
-                    hoveredItem = null
-                }
-            }
+            // Hover goes stale when the wheel scrolls under a still pointer.
+            var pressed = control.itemAt(mouse.x - control.leftMargin, mouse.y + control.contentY)
+            hoveredItem = pressed && !pressed.blank ? pressed : null
 
             pressX = mouse.x
             pressY = mouse.y
@@ -410,9 +490,11 @@ ListView {
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
-            var cPos = mapToItem(control.contentItem, mouse.x, mouse.y)
-            var item = control.itemAt(mouse.x - control.leftMargin, mouse.y + control.contentY)
-            var leftEdge = Math.min(control.contentX, control.originX)
+            control.lastMouseX = mouse.x
+            control.lastMouseY = mouse.y
+
+            var item = mouse.y < control.headerHeight
+                    ? null : control.itemAt(mouse.x - control.leftMargin, mouse.y + control.contentY)
 
             if (!item || item.blank) {
                 if (control.hoveredItem) {
@@ -423,35 +505,14 @@ ListView {
             }
 
             if (control.rubberBand) {
-                var rB = control.rubberBand
-
-                if (cPos.x < cPress.x) {
-                    rB.x = Math.max(leftEdge, cPos.x)
-                    rB.width = Math.abs(rB.x - cPress.x)
-                } else {
-                    rB.x = cPress.x
-                    var ceil = Math.max(control.width, control.contentItem.width) + leftEdge
-                    rB.width = Math.min(ceil - rB.x, Math.abs(rB.x - cPos.x))
-                }
-
-                if (cPos.y < cPress.y) {
-                    rB.y = Math.max(0, cPos.y)
-                    rB.height = Math.abs(rB.y - cPress.y)
-                } else {
-                    rB.y = cPress.y
-                    var ceilValue = Math.max(control.height, control.contentItem.height)
-                    rB.height = Math.min(ceilValue - rB.y, Math.abs(rB.y - cPos.y))
-                }
-
-                // Ensure rubberband is at least 1px in size or else it will become
-                // invisible and not match any items.
-                rB.width = Math.max(1, rB.width)
-                rB.height = Math.max(1, rB.height)
-
-                control.rectangleSelect(rB.x, rB.y, rB.width, rB.height)
-
+                control.updateRubberBand(mouse.x, mouse.y)
+                control.updateDragScrollPosition(mouse.y)
                 return
             }
+
+            if (pressX != -1 && Math.abs(mouse.x - pressX) < Qt.styleHints.startDragDistance
+                    && Math.abs(mouse.y - pressY) < Qt.styleHints.startDragDistance)
+                return
 
             // Drag
             if (pressX != -1) {
@@ -501,6 +562,8 @@ ListView {
     }
 
     function pressCanceled() {
+        control.stopDragScroll()
+
         if (control.rubberBand) {
             control.rubberBand.close()
             control.rubberBand = null
@@ -527,11 +590,10 @@ ListView {
 
     function rectangleSelect(x, y, width, height) {
         var indexes = []
-        for (var i = y; i <= y + height; i += 10) {
-            const index = control.indexAt(control.leftMargin, i)
-            if(!indexes.includes(index) && index > -1 && index < control.count)
-                indexes.push(index)
-        }
+        var first = Math.max(0, Math.floor(y / control.rowHeight))
+        var last = Math.min(control.count - 1, Math.floor((y + height) / control.rowHeight))
+        for (var i = first; i <= last; ++i)
+            indexes.push(i)
         cachedRectangleSelection = indexes
     }
 

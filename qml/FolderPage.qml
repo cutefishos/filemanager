@@ -81,6 +81,7 @@ Item {
         id: dirModel
         viewAdapter: viewAdapter
         sortMode: settings.sortMode
+        sortDesc: settings.sortDesc
         // showHiddenFiles: settings.showHiddenFiles
 
         Component.onCompleted: {
@@ -193,11 +194,10 @@ Item {
 
             onContextMenuRequested: folderMenu.popup()
 
-            topMargin: FishUI.Units.smallSpacing
-            leftMargin: FishUI.Units.largeSpacing
+            topMargin: _folderListView.headerHeight + 2
+            leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
             bottomMargin: FishUI.Units.smallSpacing
-            spacing: FishUI.Units.largeSpacing
 
             delegate: FolderListItem {}
         }

@@ -292,6 +292,8 @@ QHash<int, QByteArray> FolderModel::staticRoleNames()
     roleNames[ThumbnailRole] = "thumbnail";
     roleNames[ModifiedRole] = "modified";
     roleNames[IsDesktopFileRole] = "desktopFile";
+    roleNames[ModifiedDateRole] = "modifiedDate";
+    roleNames[FileTypeRole] = "fileType";
     return roleNames;
 }
 
@@ -369,6 +371,17 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     }
     case ModifiedRole: {
         return DateHelper::friendlyTime(item.time(Cutefish::IO::FileItem::ModificationTime));
+    }
+    case ModifiedDateRole: {
+        return DateHelper::columnTime(item.time(Cutefish::IO::FileItem::ModificationTime));
+    }
+    case FileTypeRole: {
+        if (item.isDir())
+            return tr("Folder");
+
+        static QMimeDatabase db;
+        const QString comment = db.mimeTypeForName(item.mimetype()).comment();
+        return comment.isEmpty() ? item.mimetype() : comment;
     }
     default:
         break;
@@ -536,6 +549,25 @@ void FolderModel::setSortMode(int mode)
         }
 
         emit sortModeChanged();
+    }
+}
+
+bool FolderModel::sortDesc() const
+{
+    return m_sortDesc;
+}
+
+void FolderModel::setSortDesc(bool desc)
+{
+    if (m_sortDesc != desc) {
+        m_sortDesc = desc;
+
+        if (m_sortMode != -1 /* Unsorted */) {
+            invalidateIfComplete();
+            sort(m_sortMode, m_sortDesc ? Qt::DescendingOrder : Qt::AscendingOrder);
+        }
+
+        emit sortDescChanged();
     }
 }
 

@@ -11,6 +11,7 @@ public:
     explicit DateHelper(QObject *parent = nullptr);
 
     Q_INVOKABLE static QString friendlyTime(const QDateTime &time);
+    static QString columnTime(const QDateTime &time);
 };
 
 #endif // DATEHELPER_H

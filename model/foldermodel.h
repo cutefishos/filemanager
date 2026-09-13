@@ -55,6 +55,7 @@ class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
     Q_PROPERTY(QUrl resolvedUrl READ resolvedUrl NOTIFY resolvedUrlChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(int sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
+    Q_PROPERTY(bool sortDesc READ sortDesc WRITE setSortDesc NOTIFY sortDescChanged)
     Q_PROPERTY(bool sortDirsFirst READ sortDirsFirst WRITE setSortDirsFirst NOTIFY
                        sortDirsFirstChanged)
     Q_PROPERTY(bool dragging READ dragging NOTIFY draggingChanged)
@@ -93,7 +94,9 @@ public:
         IconNameRole,
         ThumbnailRole,
         ModifiedRole,
-        IsDesktopFileRole
+        IsDesktopFileRole,
+        ModifiedDateRole,
+        FileTypeRole
     };
 
     enum FilterMode {
@@ -149,6 +152,9 @@ public:
 
     int sortMode() const;
     void setSortMode(int mode);
+
+    bool sortDesc() const;
+    void setSortDesc(bool desc);
 
     bool sortDirsFirst() const;
     void setSortDirsFirst(bool enable);

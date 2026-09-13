@@ -37,6 +37,11 @@ Settings {
     // Name, Date, Size
     property int orderBy: 0
     property int sortMode: 0
+    property bool sortDesc: false
+
+    property real listDateColumnWidth: 180
+    property real listSizeColumnWidth: 96
+    property real listTypeColumnWidth: 150
 
     // UI
     property int width: 900
@@ -46,4 +51,10 @@ Settings {
     property int minimumIconSize: 64
 
     property int gridIconSize: 64
+
+    // Type sorting used to be stored as 6, which is not a model column.
+    Component.onCompleted: {
+        if (sortMode === 6)
+            sortMode = 3
+    }
 }

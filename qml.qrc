@@ -10,6 +10,9 @@
         <file>qml/FolderListItem.qml</file>
         <file>qml/Dialogs/PropertiesDialog.qml</file>
         <file>qml/FolderListView.qml</file>
+        <file>qml/FileList/Columns.qml</file>
+        <file>qml/FileList/Header.qml</file>
+        <file>qml/FileList/Row.qml</file>
         <file>qml/Controls/IconButton.qml</file>
         <file>images/dark/go-next.svg</file>
         <file>images/dark/go-previous.svg</file>

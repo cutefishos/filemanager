@@ -24,6 +24,8 @@ class FileChooser : public QSortFilterProxyModel
     Q_PROPERTY(bool canGoBack READ canGoBack NOTIFY locationChanged)
     Q_PROPERTY(bool canGoForward READ canGoForward NOTIFY locationChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
+    Q_PROPERTY(int sortMode READ sortMode WRITE setSortMode NOTIFY sortChanged)
+    Q_PROPERTY(bool sortDesc READ sortDesc WRITE setSortDesc NOTIFY sortChanged)
 
 public:
     explicit FileChooser(const QJsonObject &request, QObject *parent = nullptr);
@@ -46,6 +48,10 @@ public:
     bool canGoBack() const;
     bool canGoForward() const;
     bool busy() const;
+    int sortMode() const;
+    void setSortMode(int mode);
+    bool sortDesc() const;
+    void setSortDesc(bool desc);
 
     Q_INVOKABLE void navigate(const QString &path);
     Q_INVOKABLE void up();
@@ -54,6 +60,7 @@ public:
     Q_INVOKABLE void select(int row, int modifiers = 0);
     Q_INVOKABLE void activate(int row);
     Q_INVOKABLE void selectAll();
+    Q_INVOKABLE bool isSelected(int row) const;
     Q_INVOKABLE void setChoice(const QString &id, const QString &value);
     Q_INVOKABLE void newFolder(const QString &name);
     Q_INVOKABLE void accept(bool overwrite = false);
@@ -67,6 +74,7 @@ signals:
     void filterIndexChanged();
     void showHiddenChanged();
     void busyChanged();
+    void sortChanged();
     void confirmOverwrite(const QString &name);
     void finished(const QJsonObject &result);
 

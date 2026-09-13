@@ -5,6 +5,8 @@ import QtQuick.Window
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
 import "../qml/Controls" as FileManagerControls
+import "../qml/FileList" as FileList
+import "../qml" as FileManager
 
 FishUI.Window {
     id: root
@@ -30,6 +32,14 @@ FishUI.Window {
     onClosing: chooser.cancel()
 
     readonly property bool canCreateFolder: chooser.saveMode || chooser.directoryMode
+
+    // Shares column widths and sort order with the file manager's list view.
+    FileManager.GlobalSettings {
+        id: listSettings
+    }
+
+    Binding { target: chooser; property: "sortMode"; value: listSettings.sortMode }
+    Binding { target: chooser; property: "sortDesc"; value: listSettings.sortDesc }
 
     // FishUI's title-bar double click otherwise calls this even on fixed-size windows.
     function toggleMaximized() {}
@@ -401,131 +411,118 @@ FishUI.Window {
                         id: files
                         objectName: "fileList"
                         anchors.fill: parent
-                        anchors.margins: FishUI.Units.smallSpacing
                         model: chooser
                         clip: true
                         focus: true
                         currentIndex: -1
                         keyNavigationEnabled: false
-                        spacing: 1
                         boundsBehavior: Flickable.StopAtBounds
                         interactive: false
+                        topMargin: columns.headerHeight + 2
+                        leftMargin: FishUI.Units.smallSpacing
+                        rightMargin: FishUI.Units.largeSpacing
+                        bottomMargin: FishUI.Units.smallSpacing
 
-                        readonly property real rowHeight: FishUI.Units.fontMetrics.height * 2 + FishUI.Units.smallSpacing
+                        readonly property FileList.Columns columns: FileList.Columns {
+                            settings: listSettings
+                            availableWidth: Math.max(0, files.width - files.leftMargin - files.rightMargin)
+                        }
 
                         FishUI.WheelHandler { target: files }
-                        ScrollBar.vertical: ScrollBar {}
+                        ScrollBar.vertical: ScrollBar {
+                            topPadding: files.columns.headerHeight
+                        }
+
+                        function moveCurrentIndex(newIndex, modifiers) {
+                            if (count === 0)
+                                return
+                            currentIndex = Math.max(0, Math.min(count - 1, newIndex))
+                            chooser.select(currentIndex, modifiers)
+
+                            var top = currentIndex * columns.rowHeight
+                            if (top < contentY + columns.headerHeight)
+                                contentY = top - columns.headerHeight
+                            else if (top + columns.rowHeight > contentY + height - bottomMargin)
+                                contentY = top + columns.rowHeight - height + bottomMargin
+                        }
 
                         Keys.onPressed: function(event) {
-                            if (event.key === Qt.Key_Down || event.key === Qt.Key_Up) {
-                                currentIndex = Math.max(0, Math.min(count - 1, currentIndex + (event.key === Qt.Key_Down ? 1 : -1)))
-                                chooser.select(currentIndex, event.modifiers)
-                                positionViewAtIndex(currentIndex, ListView.Contain)
-                                event.accepted = true
+                            var page = Math.max(1, Math.floor((height - columns.headerHeight) / columns.rowHeight) - 1)
+
+                            if (event.key === Qt.Key_Down) {
+                                moveCurrentIndex(currentIndex + 1, event.modifiers)
+                            } else if (event.key === Qt.Key_Up) {
+                                moveCurrentIndex(currentIndex === -1 ? 0 : currentIndex - 1, event.modifiers)
+                            } else if (event.key === Qt.Key_Home) {
+                                moveCurrentIndex(0, event.modifiers)
+                            } else if (event.key === Qt.Key_End) {
+                                moveCurrentIndex(count - 1, event.modifiers)
+                            } else if (event.key === Qt.Key_PageUp) {
+                                moveCurrentIndex(Math.max(0, currentIndex) - page, event.modifiers)
+                            } else if (event.key === Qt.Key_PageDown) {
+                                moveCurrentIndex(currentIndex + page, event.modifiers)
                             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                 if (chooser.multiple)
                                     chooser.accept()
                                 else
                                     chooser.activate(currentIndex)
-                                event.accepted = true
                             } else if (event.key === Qt.Key_A && (event.modifiers & Qt.ControlModifier)) {
                                 chooser.selectAll()
-                                event.accepted = true
+                            } else {
+                                return
                             }
+                            event.accepted = true
                         }
 
-                        delegate: Item {
+                        // Rows scroll beneath the header, so it blocks input over itself.
+                        FileList.Header {
+                            z: 2
+                            width: files.width
+                            columns: files.columns
+                            leftInset: files.leftMargin
+                            rightInset: files.rightMargin
+                            backgroundColor: root.background.color
+                        }
+
+                        delegate: MouseArea {
                             id: entry
                             required property int index
                             required property var model
 
-                            width: ListView.view.width
-                            height: files.rowHeight
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: FishUI.Theme.smallRadius
-                                color: entry.model.selected ? FishUI.Theme.highlightColor
-                                                            : Qt.rgba(FishUI.Theme.textColor.r,
-                                                                      FishUI.Theme.textColor.g,
-                                                                      FishUI.Theme.textColor.b, 1)
-                                visible: entry.model.selected || pointer.containsMouse
-                                opacity: entry.model.selected ? 0.1 : (FishUI.Theme.darkMode ? 0.08 : 0.04)
+                            readonly property bool selected: model.selected
+                            readonly property bool previousSelected: {
+                                chooser.selectionSummary
+                                return selected && chooser.isSelected(index - 1)
+                            }
+                            readonly property bool nextSelected: {
+                                chooser.selectionSummary
+                                return selected && chooser.isSelected(index + 1)
                             }
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: FishUI.Units.smallSpacing
-                                anchors.rightMargin: FishUI.Units.largeSpacing
-                                spacing: FishUI.Units.largeSpacing
+                            width: files.columns.availableWidth
+                            height: files.columns.rowHeight
+                            hoverEnabled: true
+                            acceptedButtons: Qt.LeftButton
 
-                                Item {
-                                    Layout.preferredWidth: files.rowHeight * 0.72
-                                    Layout.preferredHeight: width
-                                    opacity: entry.model.isHidden ? 0.5 : 1.0
+                            Accessible.name: model.fileName
+                            Accessible.role: Accessible.Row
 
-                                    Image {
-                                        id: entryIcon
-                                        anchors.fill: parent
-                                        source: "image://icontheme/" + entry.model.iconName
-                                        sourceSize: Qt.size(width, height)
-                                        visible: !entryThumbnail.visible
-                                        asynchronous: true
-                                    }
-
-                                    Image {
-                                        id: entryThumbnail
-                                        anchors.fill: parent
-                                        source: entry.model.thumbnail ? entry.model.thumbnail : ""
-                                        sourceSize: Qt.size(width, height)
-                                        visible: status === Image.Ready
-                                        fillMode: Image.PreserveAspectFit
-                                        asynchronous: true
-                                        cache: false
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        text: entry.model.fileName
-                                        textFormat: Text.PlainText
-                                        elide: Text.ElideMiddle
-                                        color: entry.model.selected ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
-                                        opacity: entry.model.isHidden ? 0.8 : 1.0
-                                    }
-
-                                    Label {
-                                        Layout.fillWidth: true
-                                        text: entry.model.isDir ? qsTr("Folder") : entry.model.fileSize
-                                        textFormat: Text.PlainText
-                                        elide: Text.ElideRight
-                                        color: entry.model.selected ? FishUI.Theme.highlightColor : FishUI.Theme.disabledTextColor
-                                        opacity: entry.model.isHidden ? 0.8 : 1.0
-                                    }
-                                }
-
-                                Label {
-                                    text: entry.model.modified
-                                    textFormat: Text.PlainText
-                                    color: entry.model.selected ? FishUI.Theme.highlightColor : FishUI.Theme.disabledTextColor
-                                    opacity: entry.model.isHidden ? 0.8 : 1.0
-                                }
+                            onClicked: function(mouse) {
+                                files.currentIndex = entry.index
+                                files.forceActiveFocus()
+                                chooser.select(entry.index, mouse.modifiers)
                             }
+                            onDoubleClicked: chooser.activate(entry.index)
 
-                            MouseArea {
-                                id: pointer
+                            FileList.Row {
                                 anchors.fill: parent
-                                hoverEnabled: true
-                                onClicked: function(mouse) {
-                                    files.currentIndex = entry.index
-                                    files.forceActiveFocus()
-                                    chooser.select(entry.index, mouse.modifiers)
-                                }
-                                onDoubleClicked: chooser.activate(entry.index)
+                                columns: files.columns
+                                itemModel: entry.model
+                                rowIndex: entry.index
+                                selected: entry.selected
+                                hovered: entry.containsMouse
+                                previousSelected: entry.previousSelected
+                                nextSelected: entry.nextSelected
                             }
                         }
                     }

@@ -25,6 +25,8 @@ FileChooser::FileChooser(const QJsonObject &request, QObject *parent)
     connect(&m_folder, &FolderModel::canGoBackChanged, this, &FileChooser::locationChanged);
     connect(&m_folder, &FolderModel::canGoForwardChanged, this, &FileChooser::locationChanged);
     connect(&m_folder, &FolderModel::statusChanged, this, &FileChooser::busyChanged);
+    connect(&m_folder, &FolderModel::sortModeChanged, this, &FileChooser::sortChanged);
+    connect(&m_folder, &FolderModel::sortDescChanged, this, &FileChooser::sortChanged);
     connect(&m_folder, &FolderModel::notification, this, &FileChooser::setError);
 
     m_filterIndex = qBound(0, request.value("filter_index").toInt(),
@@ -167,6 +169,26 @@ bool FileChooser::busy() const
     return m_folder.status() == FolderModel::Listing;
 }
 
+int FileChooser::sortMode() const
+{
+    return m_folder.sortMode();
+}
+
+void FileChooser::setSortMode(int mode)
+{
+    m_folder.setSortMode(mode);
+}
+
+bool FileChooser::sortDesc() const
+{
+    return m_folder.sortDesc();
+}
+
+void FileChooser::setSortDesc(bool desc)
+{
+    m_folder.setSortDesc(desc);
+}
+
 void FileChooser::navigate(const QString &input)
 {
     QUrl url(input);
@@ -247,6 +269,12 @@ void FileChooser::selectAll()
         if (directoryMode() || !item.data(FolderModel::IsDirRole).toBool())
             m_folder.setSelected(mapToSource(item).row());
     }
+}
+
+bool FileChooser::isSelected(int row) const
+{
+    const auto item = index(row, 0);
+    return item.isValid() && m_folder.isSelected(mapToSource(item).row());
 }
 
 void FileChooser::setChoice(const QString &id, const QString &value)

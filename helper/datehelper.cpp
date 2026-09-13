@@ -1,10 +1,10 @@
 #include "datehelper.h"
-#include <QLocale>
 #include <QDateTime>
+#include <QLocale>
 
-DateHelper::DateHelper(QObject *parent) : QObject(parent)
+DateHelper::DateHelper(QObject *parent)
+    : QObject(parent)
 {
-
 }
 
 QString DateHelper::friendlyTime(const QDateTime &time)
@@ -32,4 +32,21 @@ QString DateHelper::friendlyTime(const QDateTime &time)
         return tr("%1 days ago").arg(days);
 
     return QLocale().toString(time, QLocale::ShortFormat);
+}
+
+QString DateHelper::columnTime(const QDateTime &time)
+{
+    if (!time.isValid())
+        return QString();
+
+    const QLocale locale;
+    const QString clock = locale.toString(time.time(), QLocale::ShortFormat);
+    const qint64 days = time.date().daysTo(QDate::currentDate());
+
+    if (days == 0)
+        return tr("Today at %1").arg(clock);
+    if (days == 1)
+        return tr("Yesterday at %1").arg(clock);
+
+    return locale.toString(time, QLocale::ShortFormat);
 }
