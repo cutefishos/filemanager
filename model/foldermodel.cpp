@@ -145,6 +145,8 @@ FolderModel::FolderModel(QObject *parent)
     , m_isDesktop(false)
     , m_selectedItemSize("")
     , m_dragInProgress(false)
+    , m_dragWaitingForImages(false)
+    , m_dragImageTimeout(new QTimer(this))
     , m_dropTargetPositionsCleanup(new QTimer(this))
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
@@ -161,6 +163,11 @@ FolderModel::FolderModel(QObject *parent)
     CutefishFM::installIoJobUi();
     QSettings settings("cutefish", qApp->applicationName());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
+
+    // A grab that never reports back must not swallow the drag.
+    m_dragImageTimeout->setSingleShot(true);
+    m_dragImageTimeout->setInterval(200);
+    connect(m_dragImageTimeout, &QTimer::timeout, this, &FolderModel::startPendingDrag);
 
     m_updateNeedSelectTimer->setSingleShot(true);
     m_updateNeedSelectTimer->setInterval(50);
@@ -1420,6 +1427,18 @@ void FolderModel::setDragHotSpotScrollOffset(int x, int y)
     m_dragHotSpotScrollOffset.setY(y);
 }
 
+void FolderModel::beginItemDragImage(int row)
+{
+    if (row >= 0)
+        m_pendingDragImages.insert(row);
+}
+
+void FolderModel::cancelItemDragImage(int row)
+{
+    if (m_pendingDragImages.remove(row) && m_pendingDragImages.isEmpty())
+        startPendingDrag();
+}
+
 void FolderModel::addItemDragImage(int row, int x, int y, int width, int height,
                                    const QVariant &image)
 {
@@ -1435,6 +1454,9 @@ void FolderModel::addItemDragImage(int row, int x, int y, int width, int height,
     dragImage->blank = false;
 
     m_dragImages.insert(row, dragImage);
+
+    if (m_pendingDragImages.remove(row) && m_pendingDragImages.isEmpty())
+        startPendingDrag();
 }
 
 // Moves an already grabbed snapshot to where the icon sits now. Returns false
@@ -1455,6 +1477,11 @@ void FolderModel::clearDragImages()
 {
     qDeleteAll(m_dragImages);
     m_dragImages.clear();
+
+    if (!m_pendingDragImages.isEmpty()) {
+        m_pendingDragImages.clear();
+        startPendingDrag();
+    }
 }
 
 void FolderModel::dragSelected(int x, int y)
@@ -1465,8 +1492,27 @@ void FolderModel::dragSelected(int x, int y)
     m_dragInProgress = true;
     emit draggingChanged();
 
-    QMetaObject::invokeMethod(this, "dragSelectedInternal", Qt::QueuedConnection, Q_ARG(int, x),
-                              Q_ARG(int, y));
+    m_pendingDragPos = QPoint(x, y);
+    m_dragWaitingForImages = true;
+
+    // Pressing an unselected icon selects it and starts its snapshot, which
+    // only arrives after a frame; starting the drag first leaves no pixmap.
+    if (m_pendingDragImages.isEmpty())
+        startPendingDrag();
+    else
+        m_dragImageTimeout->start();
+}
+
+void FolderModel::startPendingDrag()
+{
+    if (!m_dragWaitingForImages)
+        return;
+
+    m_dragWaitingForImages = false;
+    m_dragImageTimeout->stop();
+
+    QMetaObject::invokeMethod(this, "dragSelectedInternal", Qt::QueuedConnection,
+                              Q_ARG(int, m_pendingDragPos.x()), Q_ARG(int, m_pendingDragPos.y()));
 }
 
 void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
@@ -1809,6 +1855,7 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
     } else {
         foreach (const QModelIndex &idx, deselected.indexes()) {
             delete m_dragImages.take(idx.row());
+            cancelItemDragImage(idx.row());
         }
     }
 
@@ -1866,7 +1913,9 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
 
 void FolderModel::dragSelectedInternal(int x, int y)
 {
-    if (!m_viewAdapter || !m_selectionModel->hasSelection()) {
+    // The button may have been released while the snapshots were pending.
+    if (!m_viewAdapter || !m_selectionModel->hasSelection()
+        || !(QGuiApplication::mouseButtons() & Qt::LeftButton)) {
         m_dragInProgress = false;
         emit draggingChanged();
         return;

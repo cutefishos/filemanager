@@ -35,6 +35,7 @@
 #include <QQmlParserStatus>
 #include <QQuickItem>
 #include <QRegularExpression>
+#include <QSet>
 #include <QSortFilterProxyModel>
 
 #include <QAction>
@@ -221,6 +222,8 @@ public:
 
     Q_INVOKABLE void setDragHotSpotScrollOffset(int x, int y);
     Q_INVOKABLE bool updateItemDragRect(int row, int x, int y, int width, int height);
+    Q_INVOKABLE void beginItemDragImage(int row);
+    Q_INVOKABLE void cancelItemDragImage(int row);
     Q_INVOKABLE void addItemDragImage(int row, int x, int y, int width, int height,
                                       const QVariant &image);
     Q_INVOKABLE void clearDragImages();
@@ -315,6 +318,7 @@ private:
     void createActions();
     void updateActions();
     void addDragImage(QDrag *drag, int x, int y);
+    void startPendingDrag();
 
     bool isSupportThumbnails(const QString &mimeType) const;
 
@@ -364,6 +368,11 @@ private:
     QModelIndexList m_dragIndexes;
     QPoint m_dragHotSpotScrollOffset;
     bool m_dragInProgress;
+    // Rows whose snapshot is still being grabbed; a drag waits for them.
+    QSet<int> m_pendingDragImages;
+    QPoint m_pendingDragPos;
+    bool m_dragWaitingForImages;
+    QTimer *m_dragImageTimeout;
 
     QHash<QString, QPoint> m_dropTargetPositions;
     QTimer *m_dropTargetPositionsCleanup;

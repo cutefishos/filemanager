@@ -69,10 +69,15 @@ Item {
         var width = _listItem.width
         var height = _listItem.height
 
-        _listItem.grabToImage(function(result) {
+        dirModel.beginItemDragImage(row)
+        var grabbing = _listItem.grabToImage(function(result) {
             if (_listItem.selected && !_listItem.blank && _listItem.index === row)
                 dirModel.addItemDragImage(row, x, y, width, height, result.image)
+            else
+                dirModel.cancelItemDragImage(row)
         })
+        if (!grabbing)
+            dirModel.cancelItemDragImage(row)
     }
 
     Rectangle {

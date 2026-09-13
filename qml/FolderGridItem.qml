@@ -79,11 +79,16 @@ Item {
         var width = control.width
         var height = control.height
 
-        control.grabToImage(function(result) {
+        dirModel.beginItemDragImage(row)
+        var grabbing = control.grabToImage(function(result) {
             if (control.GridView.view && control.selected && !control.blank
                     && control.GridView.view.positioner.map(control.index) === row)
                 dirModel.addItemDragImage(row, x, y, width, height, result.image)
+            else
+                dirModel.cancelItemDragImage(row)
         })
+        if (!grabbing)
+            dirModel.cancelItemDragImage(row)
     }
 
     Rectangle {
