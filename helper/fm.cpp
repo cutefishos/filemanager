@@ -22,6 +22,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QUrl>
+#include <fileitem.h>
 #include <task.h>
 
 Fm::Fm(QObject *parent)
@@ -43,15 +44,5 @@ void Fm::emptyTrash()
 
 bool Fm::isFixedFolder(const QUrl &folderUrl)
 {
-    const QString folder = folderUrl.toLocalFile();
-
-    return folder == QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first()
-            || folder == QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).first()
-            || folder == QStandardPaths::standardLocations(QStandardPaths::MusicLocation).first()
-            || folder == QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).first()
-            || folder == QStandardPaths::standardLocations(QStandardPaths::PicturesLocation).first()
-            || folder
-            == QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation).first()
-            || folder
-            == QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).first();
+    return Cutefish::IO::isStandardFolder(folderUrl);
 }

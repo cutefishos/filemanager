@@ -1587,11 +1587,16 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
             m_dropTargetPositionsCleanup->start();
         }
         const QVariant acceptedAction = dropEvent->property("dropAction");
-        Cutefish::IO::Task *job = Cutefish::IO::drop(
-                mimeData, dropTargetUrl,
-                static_cast<Qt::DropAction>(
-                        acceptedAction.isValid() ? acceptedAction.toInt()
-                                                 : dropEvent->property("proposedAction").toInt()));
+        const auto action = static_cast<Qt::DropAction>(
+                acceptedAction.isValid() ? acceptedAction.toInt()
+                                         : dropEvent->property("proposedAction").toInt());
+        if (action == Qt::MoveAction) {
+            for (const QUrl &url : mimeData->urls()) {
+                if (Cutefish::IO::isStandardFolder(url))
+                    return;
+            }
+        }
+        Cutefish::IO::Task *job = Cutefish::IO::drop(mimeData, dropTargetUrl, action);
         job->start();
 
         // Add select
@@ -2276,6 +2281,7 @@ void FolderModel::updateActions()
     bool hasRemoteFiles = false;
     bool isTrashLink = false;
     bool hasDir = false;
+    bool hasStandardFolder = false;
     const bool isTrash = (resolvedUrl().scheme() == QLatin1String("trash"));
 
     if (indexes.isEmpty()) {
@@ -2293,6 +2299,7 @@ void FolderModel::updateActions()
 
             if (item.isDir())
                 hasDir = true;
+            hasStandardFolder |= Cutefish::IO::isStandardFolder(item.url());
         }
     }
 
@@ -2316,7 +2323,7 @@ void FolderModel::updateActions()
 
     if (QAction *cutAction = m_actions.value(QStringLiteral("cut"))) {
         cutAction->setVisible(!isTrash);
-        cutAction->setEnabled(rootItem().isWritable());
+        cutAction->setEnabled(rootItem().isWritable() && !hasStandardFolder);
     }
 
     if (QAction *restoreAction = m_actions.value(QStringLiteral("restore"))) {
@@ -2372,7 +2379,7 @@ void FolderModel::updateActions()
     }
 
     if (QAction *trash = m_actions.value("trash")) {
-        trash->setEnabled(itemProperties.supportsMoving());
+        trash->setEnabled(itemProperties.supportsMoving() && !hasStandardFolder);
         trash->setVisible(!isTrash);
     }
 

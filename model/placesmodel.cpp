@@ -19,11 +19,23 @@
 
 #include "placesmodel.h"
 
+#include <fileitem.h>
+#include <task.h>
+
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
 #include <QSettings>
 #include <QStandardPaths>
+
+static PlacesItem *createFolderItem(const QUrl &url)
+{
+    const QString path = url.toLocalFile();
+    auto *item = new PlacesItem(QFileInfo(path).fileName(), url);
+    const QString icon = Cutefish::IO::standardFolderIconName(path);
+    item->setIconName(icon.isEmpty() ? QStringLiteral("folder") : icon);
+    return item;
+}
 
 PlacesModel::PlacesModel(QObject *parent)
     : QAbstractItemModel(parent)
@@ -97,10 +109,8 @@ PlacesModel::PlacesModel(QObject *parent)
                     break;
                 }
             }
-            if (!favorite) {
-                favorite = new PlacesItem(QFileInfo(url.toLocalFile()).fileName(), url);
-                favorite->setIconName(QStringLiteral("folder"));
-            }
+            if (!favorite)
+                favorite = createFolderItem(url);
             m_items.append(favorite);
         }
         qDeleteAll(defaults);
@@ -180,8 +190,7 @@ bool PlacesModel::addFavorites(const QList<QUrl> &urls, int before)
             duplicate |= m_items.at(row)->url() == url;
         if (duplicate)
             continue;
-        auto *item = new PlacesItem(QFileInfo(url.toLocalFile()).fileName(), url);
-        item->setIconName(QStringLiteral("folder"));
+        auto *item = createFolderItem(url);
         item->setCategory(tr("Favorites"));
         beginInsertRows(QModelIndex(), before, before);
         m_items.insert(before++, item);
@@ -202,6 +211,43 @@ bool PlacesModel::moveFavorite(int from, int before)
     m_items.move(from, before > from ? before - 1 : before);
     endMoveRows();
     saveFavorites();
+    return true;
+}
+
+bool PlacesModel::canDropInto(const QList<QUrl> &urls, int row) const
+{
+    if (urls.isEmpty() || row < 0 || row >= m_items.size())
+        return false;
+    const PlacesItem *item = m_items.at(row);
+    const bool toTrash = item->url().scheme() == QLatin1String("trash");
+    if (!toTrash && (item->path().isEmpty() || !QFileInfo(item->path()).isWritable()))
+        return false;
+    const QString target = QDir::cleanPath(item->path());
+    for (const QUrl &url : urls) {
+        if (!url.isLocalFile() || Cutefish::IO::isStandardFolder(url))
+            return false;
+        if (toTrash)
+            continue;
+        const QString source = QDir::cleanPath(url.toLocalFile());
+        // Dropping into the parent is a no-op; into itself or a descendant is impossible.
+        if (QFileInfo(source).absolutePath() == target || target == source
+            || target.startsWith(source + QLatin1Char('/')))
+            return false;
+    }
+    return true;
+}
+
+bool PlacesModel::dropInto(const QList<QUrl> &urls, int row, int action)
+{
+    if (!canDropInto(urls, row))
+        return false;
+    const PlacesItem *item = m_items.at(row);
+    if (item->url().scheme() == QLatin1String("trash"))
+        Cutefish::IO::trash(urls);
+    else if (action == Qt::CopyAction)
+        Cutefish::IO::copy(urls, QUrl::fromLocalFile(item->path()));
+    else
+        Cutefish::IO::move(urls, QUrl::fromLocalFile(item->path()));
     return true;
 }
 

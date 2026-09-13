@@ -39,6 +39,8 @@ Item {
     property alias model: listView.model
     property string selectedPath
     property int dropIndex: -1
+    // Row a drop moves into, as opposed to dropIndex which pins before a row.
+    property int dropTargetRow: -1
     property real dropY: 0
     property real pointerY: 0
 
@@ -158,6 +160,7 @@ Item {
                 height: listView.snap(Math.max(34, FishUI.Units.fontMetrics.height + 12))
 
                 property bool checked: sideBar.currentIndex === index
+                property bool dropTarget: sideBar.dropTargetRow === index
                 opacity: _mouseArea.drag.active ? 0.45 : 1
                 property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
                                                                  : Qt.darker(FishUI.Theme.backgroundColor, 1.1)
@@ -178,11 +181,11 @@ Item {
                     onReleased: {
                         if (drag.active)
                             dragProxy.Drag.drop()
-                        sideBar.dropIndex = -1
+                        sideBar.clearDrop()
                     }
                     onCanceled: {
                         dragProxy.Drag.cancel()
-                        sideBar.dropIndex = -1
+                        sideBar.clearDrop()
                     }
                     onPositionChanged: function(mouse) {
                         if (drag.active)
@@ -278,7 +281,7 @@ Item {
                     width: _item.width - listView.sideInset * 2
                     height: parent.height
                     radius: FishUI.Theme.mediumRadius
-                    color: _mouseArea.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
+                    color: _mouseArea.pressed || _item.dropTarget ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
                                                        FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
                            _mouseArea.containsMouse && !checked ? Qt.rgba(FishUI.Theme.textColor.r,
@@ -333,25 +336,33 @@ Item {
         anchors.fill: parent
         z: 10
         property bool internalDrag: false
+        property bool canPin: false
+        property var urls: []
         onEntered: function(drag) {
             internalDrag = drag.source === dragProxy
-            drag.accepted = internalDrag || (drag.hasUrls && placesModel.canAddFavorites(drag.urls))
+            urls = !internalDrag && drag.hasUrls ? drag.urls : []
+            canPin = urls.length > 0 && placesModel.canAddFavorites(urls)
+            drag.accepted = internalDrag || urls.length > 0
             if (drag.accepted)
                 sideBar.positionDrop(drag.y)
         }
         onPositionChanged: function(drag) {
             sideBar.positionDrop(drag.y)
         }
-        onExited: sideBar.dropIndex = -1
+        onExited: sideBar.clearDrop()
         onDropped: function(drop) {
-            if (sideBar.dropIndex < 0)
-                return
-            var accepted = internalDrag
-                    ? placesModel.moveFavorite(dragProxy.favoriteRow, sideBar.dropIndex)
-                    : placesModel.addFavorites(drop.urls, sideBar.dropIndex)
+            var accepted = false
+            var action = drop.proposedAction === Qt.CopyAction ? Qt.CopyAction : Qt.MoveAction
+            if (sideBar.dropTargetRow >= 0)
+                accepted = placesModel.dropInto(drop.urls, sideBar.dropTargetRow, action)
+            else if (sideBar.dropIndex >= 0 && internalDrag)
+                accepted = placesModel.moveFavorite(dragProxy.favoriteRow, sideBar.dropIndex)
+            else if (sideBar.dropIndex >= 0)
+                accepted = placesModel.addFavorites(drop.urls, sideBar.dropIndex)
             if (accepted)
-                drop.accept(internalDrag ? Qt.MoveAction : Qt.CopyAction)
-            sideBar.dropIndex = -1
+                drop.accept(sideBar.dropTargetRow >= 0 ? action
+                                                       : internalDrag ? Qt.MoveAction : Qt.CopyAction)
+            sideBar.clearDrop()
         }
     }
 
@@ -390,10 +401,35 @@ Item {
         }
     }
 
+    function clearDrop() {
+        dropIndex = -1
+        dropTargetRow = -1
+    }
+
     function positionDrop(y) {
         pointerY = y
         var count = placesModel.favoriteCount
         var contentY = y - listView.y + listView.contentY
+        dropTargetRow = -1
+
+        if (!favoritesDrop.internalDrag) {
+            var row = listView.indexAt(listView.width / 2, contentY)
+            var rowItem = row >= 0 ? listView.itemAtIndex(row) : null
+            if (rowItem && placesModel.canDropInto(favoritesDrop.urls, row)) {
+                // Favorite rows keep their edges for pinning between rows.
+                var edge = favoritesDrop.canPin && row < count ? rowItem.height / 4 : 0
+                if (contentY >= rowItem.y + edge && contentY <= rowItem.y + rowItem.height - edge) {
+                    dropIndex = -1
+                    dropTargetRow = row
+                    return
+                }
+            }
+            if (!favoritesDrop.canPin || row >= count) {
+                dropIndex = -1
+                return
+            }
+        }
+
         var boundary = listView.headerItem.y + listView.headerItem.height
         dropIndex = count
         for (var i = 0; i < count; ++i) {
