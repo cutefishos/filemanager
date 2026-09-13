@@ -284,7 +284,8 @@ Item {
                     color: _mouseArea.pressed || _item.dropTarget ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
                                                        FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
-                           _mouseArea.containsMouse && !checked ? Qt.rgba(FishUI.Theme.textColor.r,
+                           // Hover still reaches other rows while a favorite is dragged.
+                           _mouseArea.containsMouse && !checked && !dragProxy.dragging ? Qt.rgba(FishUI.Theme.textColor.r,
                                                                           FishUI.Theme.textColor.g,
                                                                           FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
                            checked ? Qt.rgba(FishUI.Theme.textColor.r,
