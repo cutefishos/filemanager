@@ -295,7 +295,7 @@ Item {
             width: 0
             height: 0
             z: 99999
-            color: FishUI.Theme.highlightColor
+            color: "white"
 
             function close() {
                 opacityAnimation.restart()

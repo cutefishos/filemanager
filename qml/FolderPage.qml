@@ -212,7 +212,7 @@ Item {
             width: 0
             height: 0
             z: 99999
-            color: FishUI.Theme.highlightColor
+            color: FishUI.Theme.darkMode ? "white" : FishUI.Theme.disabledTextColor
 
             function close() {
                 opacityAnimation.restart()

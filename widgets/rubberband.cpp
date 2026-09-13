@@ -19,9 +19,8 @@
 
 #include "rubberband.h"
 
-#include <QApplication>
 #include <QPainter>
-#include <QStyleOptionRubberBand>
+#include <QPen>
 
 RubberBand::RubberBand(QQuickItem *parent)
     : QQuickPaintedItem(parent)
@@ -34,22 +33,17 @@ RubberBand::~RubberBand()
 
 void RubberBand::paint(QPainter *painter)
 {
-    if (!qApp) {
-        return;
-    }
+    const QRectF rect = contentsBoundingRect();
+    QColor fillColor = m_color;
+    fillColor.setAlphaF(0.12);
 
-    QPalette palette;
-    palette.setColor(QPalette::Highlight, m_color);
+    QColor borderColor = m_color;
+    borderColor.setAlphaF(0.7);
 
-    QStyleOptionRubberBand opt;
-    opt.state = QStyle::State_None;
-    opt.direction = qApp->layoutDirection();
-    opt.styleObject = this;
-    opt.palette = palette;
-    opt.shape = QRubberBand::Rectangle;
-    opt.opaque = false;
-    opt.rect = contentsBoundingRect().toRect();
-    qApp->style()->drawControl(QStyle::CE_RubberBand, &opt, painter);
+    painter->fillRect(rect, fillColor);
+    painter->setPen(QPen(borderColor, 1.0));
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(rect.adjusted(0.5, 0.5, -0.5, -0.5));
 }
 
 bool RubberBand::intersects(const QRectF &rect) const
