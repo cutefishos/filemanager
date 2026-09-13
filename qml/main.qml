@@ -31,8 +31,8 @@ FishUI.Window {
     id: root
     width: settings.width
     height: settings.height
-    minimumWidth: 900
-    minimumHeight: 580
+    minimumWidth: 600
+    minimumHeight: 500
     visible: true
     title: qsTr("File Manager")
 

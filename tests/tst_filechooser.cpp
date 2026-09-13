@@ -192,7 +192,7 @@ int main(int argc, char **argv)
     qputenv("XDG_DATA_HOME", environment.filePath("data").toUtf8());
     QApplication app(argc, argv);
     QQuickStyle::setStyle(QStringLiteral("Fish"));
-    QIcon::setThemeName(QStringLiteral("Crule"));
+    QIcon::setThemeName(QStringLiteral("Cutefish-Light"));
     CutefishFM::registerQmlTypes();
     CutefishFM::initResources();
     FileChooserTest test;
