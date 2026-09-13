@@ -74,13 +74,6 @@ Item {
         color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.5)
                                      : Qt.darker(FishUI.Theme.backgroundColor, 1.05)
         opacity: 0.7
-
-        Behavior on color {
-            ColorAnimation {
-                duration: 250
-                easing.type: Easing.Linear
-            }
-        }
     }
 
     ColumnLayout {
