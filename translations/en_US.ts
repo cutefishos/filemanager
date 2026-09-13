@@ -2,39 +2,57 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>ArchiveProgressDialog</name>
+    <message>
+        <location filename="../qml/ArchiveProgressDialog.qml" line="+43"/>
+        <source>File operation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+54"/>
+        <source>Cancelling…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Cancel</translation>
+    </message>
+</context>
+<context>
     <name>DateHelper</name>
     <message>
-        <location filename="../helper/datehelper.cpp" line="15"/>
+        <location filename="../helper/datehelper.cpp" line="+16"/>
         <source>Now</source>
         <translation>Now</translation>
     </message>
     <message>
-        <location filename="../helper/datehelper.cpp" line="17"/>
+        <location line="+2"/>
         <source>1 minute ago</source>
         <translation>1 minute ago</translation>
     </message>
     <message>
-        <location filename="../helper/datehelper.cpp" line="19"/>
+        <location line="+2"/>
         <source>%1 minutes ago</source>
         <translation>%1 minutes ago</translation>
     </message>
     <message>
-        <location filename="../helper/datehelper.cpp" line="23"/>
+        <location line="+4"/>
         <source>1 hour ago</source>
         <translation>1 hour ago</translation>
     </message>
     <message>
-        <location filename="../helper/datehelper.cpp" line="25"/>
+        <location line="+2"/>
         <source>%1 hours ago</source>
         <translation>%1 hours ago</translation>
     </message>
     <message>
-        <location filename="../helper/datehelper.cpp" line="29"/>
+        <location line="+4"/>
         <source>1 day ago</source>
         <translation>1 day ago</translation>
     </message>
     <message>
-        <location filename="../helper/datehelper.cpp" line="31"/>
+        <location line="+2"/>
         <source>%1 days ago</source>
         <translation>%1 days ago</translation>
     </message>
@@ -42,187 +60,521 @@
 <context>
     <name>DeleteDialog</name>
     <message>
-        <location filename="../qml/Dialogs/DeleteDialog.qml" line="47"/>
+        <location filename="../qml/Dialogs/DeleteDialog.qml" line="+24"/>
         <source>Do you want to delete it permanently?</source>
         <translation>Do you want to delete it permanently?</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/DeleteDialog.qml" line="56"/>
+        <location line="+1"/>
         <source>Cancel</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/DeleteDialog.qml" line="62"/>
+        <location line="-2"/>
+        <location line="+3"/>
         <source>Delete</source>
         <translation>Delete</translation>
-    </message>
-</context>
-<context>
-    <name>DesktopView</name>
-    <message>
-        <location filename="../desktop/desktopview.cpp" line="46"/>
-        <source>Desktop</source>
-        <translation>Desktop</translation>
     </message>
 </context>
 <context>
     <name>EmptyTrashDialog</name>
     <message>
-        <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="30"/>
-        <source>File Manager</source>
-        <translation>File Manager</translation>
-    </message>
-    <message>
-        <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="77"/>
+        <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="+25"/>
         <source>Do you want to permanently delete all files from the Trash?</source>
         <translation>Do you want to permanently delete all files from the Trash?</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="86"/>
+        <location line="+1"/>
         <source>Cancel</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/EmptyTrashDialog.qml" line="92"/>
+        <location line="-2"/>
+        <location line="+3"/>
         <source>Empty Trash</source>
         <translation>Empty Trash</translation>
+    </message>
+</context>
+<context>
+    <name>FileChooser</name>
+    <message>
+        <location filename="../chooser/FileChooser.qml" line="+53"/>
+        <source>“%1” already exists. Replace it?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+87"/>
+        <location line="+9"/>
+        <location line="+1"/>
+        <source>Favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+103"/>
+        <source>Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Forward</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+121"/>
+        <source>Location</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+115"/>
+        <source>Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+33"/>
+        <source>Empty folder</source>
+        <translation type="unfinished">Empty folder</translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Save As:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>File Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>File type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <location line="+65"/>
+        <source>New Folder</source>
+        <translation type="unfinished">New Folder</translation>
+    </message>
+    <message>
+        <location line="-46"/>
+        <location line="+26"/>
+        <location line="+38"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Cancel</translation>
+    </message>
+    <message>
+        <location line="-44"/>
+        <source>Replace File?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Replace</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Folder name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Device unavailable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../chooser/filechooser.cpp" line="+56"/>
+        <source>Save File</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+9"/>
+        <source>Open</source>
+        <translation type="unfinished">Open</translation>
+    </message>
+    <message>
+        <location line="-2"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Select Folder</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+46"/>
+        <source>Select a file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 items selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+69"/>
+        <source>This folder is unavailable or cannot be read.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+86"/>
+        <source>The folder could not be created. Choose another name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Enter a file name without slashes.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <location line="+43"/>
+        <source>You do not have permission to save here.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-30"/>
+        <source>Choose a local file or folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The selected item is no longer available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Select folders only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Select files only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Select a file to open.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>A suggested file name is invalid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>No file names were provided.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>FilePropertiesDialog</name>
     <message>
-        <location filename="../dialogs/filepropertiesdialog.cpp" line="192"/>
-        <source>Properties</source>
-        <translation>Properties</translation>
-    </message>
-    <message>
-        <location filename="../dialogs/filepropertiesdialog.cpp" line="245"/>
+        <location filename="../dialogs/filepropertiesdialog.cpp" line="+139"/>
         <source>%1 files</source>
         <translation>%1 files</translation>
     </message>
 </context>
 <context>
-    <name>FolderModel</name>
+    <name>FolderContextMenu</name>
     <message>
-        <location filename="../model/foldermodel.cpp" line="295"/>
-        <source>%1 item</source>
-        <translation>%1 item</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="295"/>
-        <source>%1 items</source>
-        <translation>%1 items</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="400"/>
-        <source>The file or folder %1 does not exist.</source>
-        <translation>The file or folder %1 does not exist.</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1256"/>
-        <source>Select All</source>
-        <translation>Select All</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1373"/>
-        <source>File Manager</source>
-        <translation>File Manager</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1691"/>
-        <source>Open</source>
-        <translation>Open</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1694"/>
-        <source>Open with</source>
-        <translation>Open with</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1697"/>
-        <source>Cut</source>
-        <translation>Cut</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1700"/>
-        <source>Copy</source>
-        <translation>Copy</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1703"/>
-        <source>Paste</source>
-        <translation>Paste</translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="898"/>
-        <location filename="../model/foldermodel.cpp" line="1706"/>
+        <location filename="../qml/FolderContextMenu.qml" line="+14"/>
         <source>New Folder</source>
-        <translation>New Folder</translation>
+        <translation type="unfinished">New Folder</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="920"/>
-        <location filename="../model/foldermodel.cpp" line="1710"/>
-        <source>New Text</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../model/foldermodel.cpp" line="1259"/>
-        <location filename="../model/foldermodel.cpp" line="1709"/>
+        <location line="+8"/>
         <source>New Documents</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1714"/>
+        <location line="+9"/>
+        <source>New Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Paste</source>
+        <translation type="unfinished">Paste</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Select All</source>
+        <translation type="unfinished">Select All</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+160"/>
+        <source>Open in Terminal</source>
+        <translation type="unfinished">Open in Terminal</translation>
+    </message>
+    <message>
+        <location line="-151"/>
+        <source>Change background</source>
+        <translation type="unfinished">Change background</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Show Hidden Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Empty Trash</source>
+        <translation type="unfinished">Empty Trash</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Restore</source>
+        <translation type="unfinished">Restore</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Open</source>
+        <translation type="unfinished">Open</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Open In New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Open in new window</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Open with</source>
+        <translation type="unfinished">Open with</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Compress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Cut</source>
+        <translation type="unfinished">Cut</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Copy</source>
+        <translation type="unfinished">Copy</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Move To Trash</source>
+        <translation type="unfinished">Move To Trash</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Delete</source>
+        <translation type="unfinished">Delete</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Rename</source>
+        <translation type="unfinished">Rename</translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Set as Wallpaper</source>
+        <translation type="unfinished">Set as Wallpaper</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Properties</source>
+        <translation type="unfinished">Properties</translation>
+    </message>
+</context>
+<context>
+    <name>FolderModel</name>
+    <message>
+        <location filename="../model/foldermodel.cpp" line="+335"/>
+        <source>%1 item</source>
+        <translation>%1 item</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>%1 items</source>
+        <translation>%1 items</translation>
+    </message>
+    <message>
+        <location line="+110"/>
+        <source>The file or folder %1 does not exist.</source>
+        <translation>The file or folder %1 does not exist.</translation>
+    </message>
+    <message>
+        <location line="+1148"/>
+        <source>Select All</source>
+        <translation>Select All</translation>
+    </message>
+    <message>
+        <location line="-237"/>
+        <source>File Manager</source>
+        <translation>File Manager</translation>
+    </message>
+    <message>
+        <location line="+777"/>
+        <source>Open</source>
+        <translation>Open</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Open with</source>
+        <translation>Open with</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Cut</source>
+        <translation>Cut</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Copy</source>
+        <translation>Copy</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Paste</source>
+        <translation>Paste</translation>
+    </message>
+    <message>
+        <location line="-1158"/>
+        <location line="+1161"/>
+        <source>New Folder</source>
+        <translation>New Folder</translation>
+    </message>
+    <message>
+        <location line="-1137"/>
+        <location line="+1141"/>
+        <source>New Text</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-886"/>
+        <source>Only local files can be compressed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Compressing</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Extracting</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+39"/>
+        <source>%1 canceled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>%1 failed: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+247"/>
+        <location line="+555"/>
+        <source>New Documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-15"/>
+        <source>Compress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
         <source>Move To Trash</source>
         <translation>Move To Trash</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1717"/>
+        <location line="+3"/>
         <source>Empty Trash</source>
         <translation>Empty Trash</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1720"/>
+        <location line="+3"/>
         <source>Delete</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1723"/>
+        <location line="+3"/>
         <source>Rename</source>
         <translation>Rename</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1726"/>
+        <location line="+3"/>
         <source>Open in Terminal</source>
         <translation>Open in Terminal</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1729"/>
+        <location line="+3"/>
         <source>Set as Wallpaper</source>
         <translation>Set as Wallpaper</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1732"/>
+        <location line="+3"/>
         <source>Properties</source>
         <translation>Properties</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1735"/>
+        <location line="+3"/>
         <source>Change background</source>
         <translation>Change background</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1738"/>
+        <location line="+4"/>
         <source>Restore</source>
         <translation>Restore</translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1741"/>
-        <source>Show hidden files</source>
-        <translation>Show hidden files</translation>
+        <location line="+3"/>
+        <location line="+167"/>
+        <source>Show Hidden Files</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/foldermodel.cpp" line="1746"/>
+        <location line="-158"/>
+        <source>Open In New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+92"/>
+        <source>Compress “%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Compress Items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>Hide Hidden Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-162"/>
         <source>Open in new window</source>
         <translation type="unfinished"></translation>
     </message>
@@ -230,213 +582,334 @@
 <context>
     <name>FolderPage</name>
     <message>
-        <location filename="../qml/FolderPage.qml" line="147"/>
+        <location filename="../qml/FolderPage.qml" line="+43"/>
+        <source>Trash</source>
+        <translation type="unfinished">Trash</translation>
+    </message>
+    <message>
+        <location line="+29"/>
         <source>Empty folder</source>
         <translation>Empty folder</translation>
     </message>
+</context>
+<context>
+    <name>FolderTabBar</name>
     <message>
-        <location filename="../qml/FolderPage.qml" line="200"/>
-        <source>Open</source>
-        <translation>Open</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="64"/>
-        <location filename="../qml/FolderPage.qml" line="205"/>
-        <source>Properties</source>
-        <translation>Properties</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="54"/>
-        <source>File</source>
-        <translation>File</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="57"/>
-        <source>New Folder</source>
-        <translation>New Folder</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="71"/>
-        <source>Quit</source>
-        <translation>Quit</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="77"/>
-        <source>Edit</source>
-        <translation>Edit</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="80"/>
-        <source>Select All</source>
-        <translation>Select All</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="87"/>
-        <source>Cut</source>
-        <translation>Cut</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="92"/>
-        <source>Copy</source>
-        <translation>Copy</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="97"/>
-        <source>Paste</source>
-        <translation>Paste</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="103"/>
-        <source>Help</source>
-        <translation>Help</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="106"/>
-        <source>About</source>
-        <translation>About</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="114"/>
-        <source>File Manager</source>
-        <translation type="unfinished">File Manager</translation>
-    </message>
-    <message>
-        <location filename="../qml/FolderPage.qml" line="115"/>
-        <source>A file manager designed for CutefishOS.</source>
+        <location filename="../qml/FolderTabBar.qml" line="+185"/>
+        <location line="+32"/>
+        <source>Close Tab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="268"/>
-        <source>%1 item</source>
-        <translation>%1 item</translation>
+        <location line="-4"/>
+        <source>Open In New Tab</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="269"/>
-        <source>%1 items</source>
-        <translation>%1 items</translation>
+        <location line="+42"/>
+        <source>New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>IoTaskDialog</name>
+    <message>
+        <location filename="../qml/Dialogs/IoTaskDialog.qml" line="+67"/>
+        <source>Copying “%1” to “%2”</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="275"/>
-        <source>%1 selected</source>
-        <translation>%1 selected</translation>
+        <location line="+1"/>
+        <source>Copying %1 items to “%2”</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/FolderPage.qml" line="300"/>
-        <source>Empty Trash</source>
-        <translation>Empty Trash</translation>
+        <location line="+2"/>
+        <source>Moving “%1” to “%2”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Moving %1 items to “%2”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Moving “%1” to Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Moving %1 items to Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Restoring “%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Restoring %1 items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Deleting “%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Deleting %1 items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Emptying Trash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Renaming “%1” to “%2”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Creating “%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Creating links in “%1”</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+16"/>
+        <source>Preparing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-8"/>
+        <source>About a second remaining</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>About %1 seconds remaining</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>About a minute remaining</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>About %1 minutes remaining</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Stopping…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Waiting for your choice</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Finishing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Working on “%1”…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Working…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>%1 of %2 items</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+84"/>
+        <source>“%1” already exists in this location.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Cancel</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Skip</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Keep Both</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Replace</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>OpenWithDialog</name>
     <message>
-        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="80"/>
+        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="+105"/>
         <source>No applications</source>
         <translation>No applications</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="144"/>
+        <location line="+61"/>
         <source>Set as default</source>
         <translation>Set as default</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="159"/>
+        <location line="+10"/>
         <source>Cancel</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/OpenWithDialog.qml" line="168"/>
+        <location line="+8"/>
         <source>Open</source>
         <translation>Open</translation>
-    </message>
-    <message>
-        <location filename="../dialogs/openwithdialog.cpp" line="32"/>
-        <source>Open With</source>
-        <translation>Open With</translation>
     </message>
 </context>
 <context>
     <name>OptionsMenu</name>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="47"/>
+        <location filename="../qml/OptionsMenu.qml" line="+29"/>
+        <source>New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>Icons</source>
         <translation>Icons</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="85"/>
+        <location line="+7"/>
         <source>List</source>
         <translation>List</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="127"/>
+        <location line="+9"/>
         <source>Name</source>
         <translation>Name</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="165"/>
+        <location line="+7"/>
         <source>Date</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="189"/>
+        <location line="+7"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="../qml/OptionsMenu.qml" line="227"/>
+        <location line="+7"/>
         <source>Size</source>
         <translation>Size</translation>
     </message>
 </context>
 <context>
+    <name>PathBar</name>
+    <message>
+        <location filename="../qml/PathBar.qml" line="+43"/>
+        <source>Trash</source>
+        <translation type="unfinished">Trash</translation>
+    </message>
+    <message>
+        <location line="+135"/>
+        <source>Open In New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Open in new window</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>PlacesModel</name>
     <message>
-        <location filename="../model/placesmodel.cpp" line="39"/>
+        <location filename="../model/placesmodel.cpp" line="+35"/>
         <source>Home</source>
         <translation>Home</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="47"/>
+        <location line="+7"/>
         <source>Desktop</source>
         <translation>Desktop</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="55"/>
+        <location line="+8"/>
         <source>Documents</source>
         <translation>Documents</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="63"/>
+        <location line="+7"/>
         <source>Downloads</source>
         <translation>Downloads</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="71"/>
+        <location line="+7"/>
         <source>Music</source>
         <translation>Music</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="79"/>
+        <location line="+7"/>
         <source>Pictures</source>
         <translation>Pictures</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="87"/>
+        <location line="+7"/>
         <source>Videos</source>
         <translation>Videos</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="93"/>
+        <location line="+31"/>
+        <location line="+47"/>
+        <location line="+29"/>
+        <source>Favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-47"/>
         <source>Trash</source>
         <translation>Trash</translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="117"/>
-        <location filename="../model/placesmodel.cpp" line="288"/>
-        <source>Drives</source>
-        <translation>Drives</translation>
+        <location line="+229"/>
+        <source>Locations</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../model/placesmodel.cpp" line="169"/>
+        <location line="-101"/>
         <source>Computer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -444,70 +917,115 @@
 <context>
     <name>PropertiesDialog</name>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="100"/>
+        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="+32"/>
+        <source>Properties</source>
+        <translation type="unfinished">Properties</translation>
+    </message>
+    <message>
+        <location line="+59"/>
         <source>Type:</source>
         <translation>Type:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="113"/>
+        <location line="+13"/>
         <source>Location:</source>
         <translation>Location:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="124"/>
+        <location line="+13"/>
         <source>Size:</source>
         <translation>Size:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="131"/>
+        <location line="+7"/>
         <source>Calculating...</source>
         <translation>Calculating...</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="135"/>
+        <location line="+4"/>
         <source>Created:</source>
         <translation>Created:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="148"/>
+        <location line="+13"/>
         <source>Modified:</source>
         <translation>Modified:</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="161"/>
+        <location line="+13"/>
         <source>Accessed:</source>
         <translation>Accessed:</translation>
     </message>
+</context>
+<context>
+    <name>RenameEditor</name>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="183"/>
-        <source>Cancel</source>
-        <translation>Cancel</translation>
+        <location filename="../qml/RenameEditor.qml" line="+45"/>
+        <source>Rename</source>
+        <translation type="unfinished">Rename</translation>
     </message>
     <message>
-        <location filename="../qml/Dialogs/PropertiesDialog.qml" line="189"/>
-        <source>OK</source>
-        <translation>OK</translation>
+        <location line="+1"/>
+        <source>Return to save, Escape to cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Enter a name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Choose a name other than . or ..</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Names cannot contain / or line breaks.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>SideBar</name>
     <message>
-        <location filename="../qml/SideBar.qml" line="126"/>
+        <location filename="../qml/SideBar.qml" line="+66"/>
+        <source>Device operation failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+45"/>
+        <location line="+33"/>
+        <location line="+2"/>
+        <source>Favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+68"/>
         <source>Open</source>
         <translation type="unfinished">Open</translation>
     </message>
     <message>
-        <location filename="../qml/SideBar.qml" line="137"/>
+        <location line="+11"/>
         <source>Open in new window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/SideBar.qml" line="151"/>
+        <location line="+8"/>
+        <source>Open In New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Remove from Favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>Eject</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/SideBar.qml" line="164"/>
+        <location line="+10"/>
         <source>Unmount</source>
         <translation type="unfinished"></translation>
     </message>
@@ -515,9 +1033,85 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../qml/main.qml" line="35"/>
+        <location filename="../qml/main.qml" line="+37"/>
+        <location line="+195"/>
         <source>File Manager</source>
         <translation>File Manager</translation>
+    </message>
+    <message>
+        <location line="-78"/>
+        <source>File</source>
+        <translation type="unfinished">File</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Open In New Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Close Tab</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>New Folder</source>
+        <translation type="unfinished">New Folder</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Properties</source>
+        <translation type="unfinished">Properties</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Quit</source>
+        <translation type="unfinished">Quit</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Edit</source>
+        <translation type="unfinished">Edit</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Select All</source>
+        <translation type="unfinished">Select All</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Cut</source>
+        <translation type="unfinished">Cut</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Copy</source>
+        <translation type="unfinished">Copy</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Paste</source>
+        <translation type="unfinished">Paste</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Help</source>
+        <translation type="unfinished">Help</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>About</source>
+        <translation type="unfinished">About</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>A file manager designed for CutefishOS.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
