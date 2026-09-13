@@ -20,6 +20,8 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/io
                  ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-io-build)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/application
+                 ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-application-build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/applications
                  ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-applications-build)
 
@@ -107,6 +109,7 @@ target_include_directories(cutefish-filemanager-core PUBLIC
 
 target_link_libraries(cutefish-filemanager-core
   PUBLIC
+  Cutefish::Application
   Cutefish::Applications
   Qt6::Core
   Qt6::DBus

@@ -1,3 +1,4 @@
+#include "cutefishapplication.h"
 #include "filechooser.h"
 #include "qmltypes.h"
 #include "waylandparent.h"
@@ -8,7 +9,6 @@
 #include <QJsonDocument>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QQuickStyle>
 #include <QQuickWindow>
 #include <QTimer>
 #include <QWindow>
@@ -26,9 +26,8 @@ int main(int argc, char **argv)
         return 1;
 
     QApplication app(argc, argv);
-    QQuickStyle::setStyle(QStringLiteral("Fish"));
+    Cutefish::Application::prepare();
     app.setApplicationName(QStringLiteral("cutefish-filechooser"));
-    app.setOrganizationName(QStringLiteral("cutefish"));
     // Its own identity, not File Manager's: the dock matches windows by app id,
     // and the dialog must not land on File Manager's task.
     app.setDesktopFileName(QStringLiteral("cutefish-filechooser"));

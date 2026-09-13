@@ -18,6 +18,7 @@
  */
 
 #include "application.h"
+#include "cutefishapplication.h"
 #include "dbusinterface.h"
 #include "filemanageradaptor.h"
 #include "helper/iojobui.h"
@@ -40,10 +41,10 @@ Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
     , m_instance(false)
 {
+    Cutefish::Application::prepare();
     CutefishFM::installIoJobUi();
     setQuitOnLastWindowClosed(true);
     if (QDBusConnection::sessionBus().registerService("com.cutefish.FileManager")) {
-        setOrganizationName("cutefish");
         setWindowIcon(QIcon::fromTheme("file-manager"));
 
         new FileManagerAdaptor(this);
