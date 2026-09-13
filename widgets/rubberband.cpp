@@ -1,49 +1,64 @@
-/*
- * Copyright (C) 2021 CutefishOS Team.
- *
- * Author:     revenmartin <revenmartin@gmail.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include "rubberband.h"
 
-#include <QPainter>
-#include <QPen>
+#include <QQuickWindow>
+#include <QSGRectangleNode>
 
 RubberBand::RubberBand(QQuickItem *parent)
-    : QQuickPaintedItem(parent)
+    : QQuickItem(parent)
 {
+    // Scene graph nodes only move vertices; a painted item re-rasterises and
+    // uploads the whole band on every pointer move, which lags behind the cursor.
+    setFlag(ItemHasContents);
 }
 
 RubberBand::~RubberBand()
 {
 }
 
-void RubberBand::paint(QPainter *painter)
+QSGNode *RubberBand::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 {
-    const QRectF rect = contentsBoundingRect();
+    Q_UNUSED(data);
+
+    const QRectF rect = boundingRect();
+
+    if (rect.isEmpty()) {
+        delete oldNode;
+        return nullptr;
+    }
+
+    QSGNode *root = oldNode;
+
+    if (!root) {
+        root = new QSGNode;
+        for (int i = 0; i < 5; ++i) {
+            QSGRectangleNode *node = window()->createRectangleNode();
+            root->appendChildNode(node);
+        }
+    }
+
     QColor fillColor = m_color;
     fillColor.setAlphaF(0.12);
 
     QColor borderColor = m_color;
     borderColor.setAlphaF(0.7);
 
-    painter->fillRect(rect, fillColor);
-    painter->setPen(QPen(borderColor, 1.0));
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRect(rect.adjusted(0.5, 0.5, -0.5, -0.5));
+    const qreal border = qMin<qreal>(1.0, qMin(rect.width(), rect.height()) / 2);
+    const QRectF rects[5] = {
+            rect.adjusted(border, border, -border, -border),
+            QRectF(rect.left(), rect.top(), rect.width(), border),
+            QRectF(rect.left(), rect.bottom() - border, rect.width(), border),
+            QRectF(rect.left(), rect.top() + border, border, rect.height() - 2 * border),
+            QRectF(rect.right() - border, rect.top() + border, border, rect.height() - 2 * border),
+    };
+
+    QSGNode *child = root->firstChild();
+    for (int i = 0; i < 5; ++i, child = child->nextSibling()) {
+        auto *node = static_cast<QSGRectangleNode *>(child);
+        node->setRect(rects[i]);
+        node->setColor(i == 0 ? fillColor : borderColor);
+    }
+
+    return root;
 }
 
 bool RubberBand::intersects(const QRectF &rect) const

@@ -59,6 +59,10 @@ Item {
         if (!ListView.view || !selected || blank || _listItem.width <= 0 || _listItem.height <= 0)
             return
 
+        // The view snapshots the final selection when the rubber band closes.
+        if (ListView.view.rubberBand)
+            return
+
         var row = _listItem.index
         var x = _listItem.x
         var y = _listItem.y

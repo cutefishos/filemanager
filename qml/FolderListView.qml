@@ -507,6 +507,12 @@ ListView {
 
             control.cachedRectangleSelection = null
             dirModel.unpinSelection()
+
+            for (var i = 0; i < control.count; ++i) {
+                var item = control.itemAtIndex(i)
+                if (item && item.selected)
+                    item.updateDragImage()
+            }
         }
 
         clearPressState()

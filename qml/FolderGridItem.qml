@@ -68,6 +68,11 @@ Item {
         if (!GridView.view || !selected || blank || control.width <= 0 || control.height <= 0)
             return
 
+        // Grabbing every icon a rubber band sweeps over stalls the band; the view
+        // snapshots the final selection when the band closes.
+        if (GridView.view.rubberBand)
+            return
+
         var row = GridView.view.positioner.map(control.index)
         var x = control.x
         var y = control.y
