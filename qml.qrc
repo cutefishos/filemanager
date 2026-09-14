@@ -23,12 +23,6 @@
         <file>qml/FolderGridView.qml</file>
         <file>qml/GlobalSettings.qml</file>
         <file>qml/FolderGridItem.qml</file>
-        <file>images/light/order_by_name.svg</file>
-        <file>images/dark/order_by_name.svg</file>
-        <file>images/light/date.svg</file>
-        <file>images/dark/date.svg</file>
-        <file>images/light/size.svg</file>
-        <file>images/dark/size.svg</file>
         <file>qml/OptionsMenu.qml</file>
         <file>qml/Dialogs/EmptyTrashDialog.qml</file>
         <file>qml/Dialogs/OpenWithDialog.qml</file>
