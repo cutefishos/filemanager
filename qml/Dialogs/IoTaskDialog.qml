@@ -207,36 +207,12 @@ FishUI.Window {
                     objectName: "ioProgressBar"
                     Layout.fillWidth: true
                     Layout.topMargin: 4
-                    implicitHeight: 6
                     visible: !control.finished
                     from: 0
                     to: 1
                     value: Math.min(0.99, control.fraction)
                     indeterminate: !control.canceling && !control.conflict
                                    && (!control.info || control.info.preparing || !control.info.totalsKnown)
-                    background: Rectangle {
-                        radius: 3
-                        color: FishUI.Theme.darkMode ? "#454548" : "#dddddf"
-                    }
-                    contentItem: Item {
-                        clip: true
-                        Rectangle {
-                            id: fill
-                            property real motion: 0
-                            height: parent.height
-                            width: progressBar.indeterminate ? parent.width / 3 : progressBar.visualPosition * parent.width
-                            x: progressBar.indeterminate ? (parent.width + width) * motion - width : 0
-                            radius: 3
-                            color: FishUI.Theme.highlightColor
-                            NumberAnimation on motion {
-                                from: 0
-                                to: 1
-                                duration: 1200
-                                loops: Animation.Infinite
-                                running: progressBar.visible && progressBar.indeterminate
-                            }
-                        }
-                    }
                 }
                 Label {
                     objectName: "ioProgressSummary"
