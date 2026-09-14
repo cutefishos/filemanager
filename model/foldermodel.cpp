@@ -1154,7 +1154,6 @@ void FolderModel::cut()
 
     QMimeData *mimeData = QSortFilterProxyModel::mimeData(m_selectionModel->selectedIndexes());
 
-    mimeData->setData("application/x-kde-cutselection", QByteArray("1"));
     mimeData->setData("application/x-cutefish-cutselection", QByteArray("1"));
 
     QApplication::clipboard()->setMimeData(mimeData);
