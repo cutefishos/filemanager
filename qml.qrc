@@ -14,10 +14,6 @@
         <file>qml/FileList/Header.qml</file>
         <file>qml/FileList/Row.qml</file>
         <file>qml/Controls/IconButton.qml</file>
-        <file>images/dark/grid.svg</file>
-        <file>images/dark/list.svg</file>
-        <file>images/light/grid.svg</file>
-        <file>images/light/list.svg</file>
         <file>qml/PathBar.qml</file>
         <file>qml/Desktop/Main.qml</file>
         <file>qml/FolderGridView.qml</file>

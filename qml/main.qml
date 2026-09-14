@@ -296,10 +296,7 @@ FishUI.Window {
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
 
-                property var gridSource: FishUI.Theme.darkMode ? "qrc:/images/dark/grid.svg" : "qrc:/images/light/grid.svg"
-                property var listSource: FishUI.Theme.darkMode ? "qrc:/images/dark/list.svg" : "qrc:/images/light/list.svg"
-
-                source: settings.viewMethod === 0 ? listSource : gridSource
+                iconName: settings.viewMethod === 0 ? "list" : "grid"
 
                 onClicked: {
                     optionsMenu.popup()
