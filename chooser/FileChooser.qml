@@ -258,7 +258,7 @@ FishUI.Window {
                                                             : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.08)
                         pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.15)
                                                             : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.16)
-                        source: "qrc:/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + "go-previous.svg"
+                        iconName: "chevron-left"
                         enabled: chooser.canGoBack
                         Accessible.name: qsTr("Back")
                         onClicked: chooser.back()
@@ -272,7 +272,7 @@ FishUI.Window {
                                                             : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.08)
                         pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.15)
                                                             : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.16)
-                        source: "qrc:/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + "go-next.svg"
+                        iconName: "chevron-right"
                         enabled: chooser.canGoForward
                         Accessible.name: qsTr("Forward")
                         onClicked: chooser.forward()

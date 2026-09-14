@@ -54,38 +54,14 @@ MouseArea {
                 color: _cell.sorted ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
             }
 
-            Canvas {
+            FishUI.Icon {
                 id: _chevron
-
-                readonly property color strokeColor: _titleLabel.color
-                readonly property bool descending: _cell.columns.sortDesc
-
                 anchors.verticalCenter: parent.verticalCenter
-                width: 9
-                height: 6
+                width: 12
+                height: 12
                 visible: _cell.sorted
-                onStrokeColorChanged: requestPaint()
-                onDescendingChanged: requestPaint()
-
-                onPaint: {
-                    var ctx = getContext("2d")
-                    ctx.reset()
-                    ctx.strokeStyle = strokeColor
-                    ctx.lineWidth = 1.5
-                    ctx.lineCap = "round"
-                    ctx.lineJoin = "round"
-                    ctx.beginPath()
-                    if (descending) {
-                        ctx.moveTo(1, 1.5)
-                        ctx.lineTo(4.5, 4.5)
-                        ctx.lineTo(8, 1.5)
-                    } else {
-                        ctx.moveTo(1, 4.5)
-                        ctx.lineTo(4.5, 1.5)
-                        ctx.lineTo(8, 4.5)
-                    }
-                    ctx.stroke()
-                }
+                name: _cell.columns.sortDesc ? "chevron-down" : "chevron-up"
+                color: _titleLabel.color
             }
         }
     }

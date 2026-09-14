@@ -265,8 +265,7 @@ FishUI.Window {
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoBack
-                source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-previous.svg"
-                                              : "qrc:/images/light/go-previous.svg"
+                iconName: "chevron-left"
                 onClicked: _folderPage.goBack()
             }
 
@@ -276,8 +275,7 @@ FishUI.Window {
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoForward
-                source: FishUI.Theme.darkMode ? "qrc:/images/dark/go-next.svg"
-                                              : "qrc:/images/light/go-next.svg"
+                iconName: "chevron-right"
                 onClicked: _folderPage.goForward()
             }
 

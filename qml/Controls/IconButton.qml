@@ -26,6 +26,8 @@ Item {
     height: 24
 
     property alias source: _image.source
+    // A FishUI.Icon glyph drawn instead of source.
+    property alias iconName: _icon.name
     property color backgroundColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
                                                           : FishUI.Theme.secondBackgroundColor
     property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.7)
@@ -56,6 +58,16 @@ Item {
         smooth: false
         antialiasing: true
         opacity: control.enabled ? 1 : 0.35
+        visible: !control.iconName
+    }
+
+    FishUI.Icon {
+        id: _icon
+        anchors.centerIn: parent
+        width: 18
+        height: width
+        opacity: control.enabled ? 1 : 0.35
+        visible: !!control.iconName
     }
 
     MouseArea {
