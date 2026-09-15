@@ -19,7 +19,6 @@
 
 import QtQuick 2.12
 import QtQuick.Controls 2.12
-import QtQuick.Window 2.12
 
 import Cutefish.FileManager 1.0
 import FishUI 1.0 as FishUI
@@ -53,16 +52,9 @@ Item {
         return separator >= 0 ? (path.substring(separator + 1) || "/") : path
     }
 
-    // The path bar is part of the navigation bar.  Start the Wayland move only
-    // after a drag begins, so a single click can open the path editor.
     property bool _dragged: false
     property real _pressX: 0
     property real _pressY: 0
-
-    function startWindowMove() {
-        if (Window.window && Window.window.helper)
-            Window.window.helper.startSystemMove(Window.window)
-    }
 
     Rectangle {
         anchors.fill: parent
@@ -90,22 +82,6 @@ Item {
         onClicked: {
             if (!_dragged)
                 openEditor()
-        }
-    }
-
-    // Once the pointer crosses the drag threshold, take over from a
-    // breadcrumb MouseArea and cancel its click before moving the window.
-    DragHandler {
-        target: null
-        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-        grabPermissions: PointerHandler.CanTakeOverFromItems
-                         | PointerHandler.CanTakeOverFromHandlersOfDifferentType
-                         | PointerHandler.ApprovesTakeOverByAnything
-        onActiveChanged: {
-            if (active) {
-                _dragged = true
-                control.startWindowMove()
-            }
         }
     }
 
