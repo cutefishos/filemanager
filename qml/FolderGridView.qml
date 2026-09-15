@@ -73,6 +73,8 @@ GridView {
     property bool shiftPressed: false
 
     property variant cPress: null
+    property real lastMouseX: -1
+    property real lastMouseY: -1
     property Item editor: null
     property int anchorIndex: 0
 
@@ -268,6 +270,47 @@ GridView {
         var next = control.contentY + dragScrollDirection * dragScrollVelocity * dragScrollInterval / 1000
 
         control.contentY = Math.max(minimum, Math.min(maximum, next))
+
+        if (control.rubberBand)
+            control.updateRubberBand(control.lastMouseX, control.lastMouseY)
+    }
+
+    function updateRubberBand(mouseX, mouseY) {
+        var rB = control.rubberBand
+        if (!rB || !cPress)
+            return
+
+        var cPos = control.mapToItem(control.contentItem, mouseX, mouseY)
+        var bounds = control.interactionSurface.mapToItem(control.contentItem, 0, 0,
+                control.interactionSurface.width, control.interactionSurface.height)
+        var leftEdge = control.isDesktopView ? bounds.x : Math.min(control.contentX, control.originX)
+
+        if (cPos.x < cPress.x) {
+            rB.x = Math.max(leftEdge, cPos.x)
+            rB.width = Math.abs(rB.x - cPress.x)
+        } else {
+            rB.x = cPress.x
+            const ceil = control.isDesktopView ? bounds.x + bounds.width
+                                              : Math.max(control.width, control.contentItem.width) + leftEdge
+            rB.width = Math.min(ceil - rB.x, Math.abs(rB.x - cPos.x))
+        }
+
+        if (cPos.y < cPress.y) {
+            rB.y = Math.max(control.isDesktopView ? bounds.y : 0, cPos.y)
+            rB.height = Math.abs(rB.y - cPress.y)
+        } else {
+            rB.y = cPress.y
+            const ceil = control.isDesktopView ? bounds.y + bounds.height
+                                              : Math.max(control.height, control.contentItem.height)
+            rB.height = Math.min(ceil - rB.y, Math.abs(rB.y - cPos.y))
+        }
+
+        // Ensure rubberband is at least 1px in size or else it will become
+        // invisible and not match any items.
+        rB.width = Math.max(1, rB.width)
+        rB.height = Math.max(1, rB.height)
+
+        control.rectangleSelect(rB.x, rB.y, rB.width, rB.height)
     }
 
     highlightMoveDuration: 0
@@ -608,6 +651,8 @@ GridView {
 
         onPositionChanged: function(mouse) {
             var pos = mapToItem(control, mouse.x, mouse.y)
+            control.lastMouseX = pos.x
+            control.lastMouseY = pos.y
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
 
@@ -632,39 +677,8 @@ GridView {
 
             // Update rubberband geometry.
             if (control.rubberBand) {
-                var cPos = control.mapToItem(control.contentItem, pos.x, pos.y)
-                var bounds = control.interactionSurface.mapToItem(control.contentItem, 0, 0,
-                        control.interactionSurface.width, control.interactionSurface.height)
-                var leftEdge = control.isDesktopView ? bounds.x : Math.min(control.contentX, control.originX)
-                var rB = control.rubberBand
-
-                if (cPos.x < cPress.x) {
-                    rB.x = Math.max(leftEdge, cPos.x)
-                    rB.width = Math.abs(rB.x - cPress.x)
-                } else {
-                    rB.x = cPress.x
-                    const ceil = control.isDesktopView ? bounds.x + bounds.width
-                                                      : Math.max(control.width, control.contentItem.width) + leftEdge
-                    rB.width = Math.min(ceil - rB.x, Math.abs(rB.x - cPos.x))
-                }
-
-                if (cPos.y < cPress.y) {
-                    rB.y = Math.max(control.isDesktopView ? bounds.y : 0, cPos.y)
-                    rB.height = Math.abs(rB.y - cPress.y)
-                } else {
-                    rB.y = cPress.y
-                    const ceil = control.isDesktopView ? bounds.y + bounds.height
-                                                      : Math.max(control.height, control.contentItem.height)
-                    rB.height = Math.min(ceil - rB.y, Math.abs(rB.y - cPos.y))
-                }
-
-                // Ensure rubberband is at least 1px in size or else it will become
-                // invisible and not match any items.
-                rB.width = Math.max(1, rB.width)
-                rB.height = Math.max(1, rB.height)
-
-                control.rectangleSelect(rB.x, rB.y, rB.width, rB.height)
-
+                control.updateRubberBand(pos.x, pos.y)
+                control.updateDragScrollPosition(pos.y)
                 return
             }
 
@@ -759,6 +773,8 @@ GridView {
     }
 
     function pressCanceled() {
+        control.stopDragScroll()
+
         if (control.rubberBand) {
             control.rubberBand.close()
             control.rubberBand = null
