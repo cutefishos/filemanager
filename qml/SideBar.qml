@@ -62,13 +62,17 @@ Item {
         onDeviceSetupDone: sideBar.clicked(filePath)    // 设备挂载上后，模拟点击了该设备以打开该页面
     }
 
-    Dialog {
+    FishUI.ConfirmDialog {
         id: deviceError
-        property alias text: errorLabel.text
+        parentWindow: sideBar.Window.window
+        x: sideBar.Window.window ? sideBar.Window.window.x
+                                  + Math.round((sideBar.Window.window.width - width) / 2) : 0
+        y: sideBar.Window.window ? sideBar.Window.window.y
+                                  + Math.round((sideBar.Window.window.height - height) / 2) : 0
+        showOnCompleted: false
         title: qsTr("Device operation failed")
-        modal: true
-        standardButtons: Dialog.Ok
-        contentItem: Label { id: errorLabel; wrapMode: Text.Wrap; width: 320 }
+        confirmText: qsTr("Close")
+        cancelButtonVisible: false
     }
 
     Rectangle {

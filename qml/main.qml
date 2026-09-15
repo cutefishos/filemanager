@@ -229,6 +229,7 @@ FishUI.Window {
 
     FishUI.AboutDialog {
         id: _aboutDialog
+        parentWindow: root
         name: qsTr("File Manager")
         description: qsTr("A file manager designed for CutefishOS.")
         iconSource: "image://icontheme/file-system-manager"

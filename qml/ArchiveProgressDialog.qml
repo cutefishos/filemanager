@@ -12,6 +12,7 @@ FishUI.Window {
     // Not `Window`: that is QtQuick.Window's own type, and the desktop's host
     // window is a QQuickWindow subclass from C++, which is not one.
     property QtObject hostWindow
+    parentWindow: hostWindow
 
     flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     modality: Qt.NonModal
@@ -109,15 +110,6 @@ FishUI.Window {
             closeEvent.accepted = false
         }
     }
-
-    function updateTransientParent() {
-        if (hostWindow)
-            control.transientParent = hostWindow
-    }
-
-    onHostWindowChanged: updateTransientParent()
-
-    Component.onCompleted: updateTransientParent()
 
     onVisibleChanged: {
         if (visible)

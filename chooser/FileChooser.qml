@@ -60,7 +60,7 @@ FishUI.Window {
             pathBar.closeEditor()
         }
         function onConfirmOverwrite(name) {
-            overwriteLabel.text = qsTr("“%1” already exists. Replace it?").arg(name)
+            overwriteDialog.text = qsTr("“%1” already exists. Replace it?").arg(name)
             overwriteDialog.open()
         }
     }
@@ -691,87 +691,109 @@ FishUI.Window {
         }
     }
 
-    Dialog {
+    FishUI.ConfirmDialog {
         id: overwriteDialog
-        anchors.centerIn: parent
-        width: Math.min(420, root.width - 40)
-        modal: true
+        parentWindow: root
+        x: root.x + Math.round((root.width - width) / 2)
+        y: root.y + Math.round((root.height - height) / 2)
+        showOnCompleted: false
         title: qsTr("Replace File?")
-        contentItem: Label { id: overwriteLabel; wrapMode: Text.Wrap; textFormat: Text.PlainText }
-        footer: RowLayout {
-            spacing: 8
-            Item { Layout.fillWidth: true }
-            FishUI.ConfirmDialogButton {
-                text: qsTr("Cancel")
-                Layout.bottomMargin: 16
-                onClicked: overwriteDialog.reject()
-            }
-            FishUI.ConfirmDialogButton {
-                text: qsTr("Replace")
-                primary: true
-                destructive: true
-                Layout.rightMargin: 16
-                Layout.bottomMargin: 16
-                onClicked: overwriteDialog.accept()
-            }
-        }
+        confirmText: qsTr("Replace")
+        destructive: true
         onAccepted: chooser.accept(true)
     }
-    Dialog {
+    FishUI.Window {
         id: newFolderDialog
-        anchors.centerIn: parent
+        parentWindow: root
+        x: root.x + Math.round((root.width - width) / 2)
+        y: root.y + Math.round((root.height - height) / 2)
         width: 340
-        modal: true
+        property int contentHeight: layout.implicitHeight + 32
+        height: contentHeight
+        minimumWidth: width
+        maximumWidth: width
+        minimumHeight: contentHeight
+        maximumHeight: contentHeight
+        flags: Qt.Dialog | Qt.FramelessWindowHint
+        modality: Qt.WindowModal
+        visible: false
+        minimizeButtonVisible: false
+        header.height: 44
+        contentTopMargin: 0
+        background.color: FishUI.Theme.secondBackgroundColor
         title: qsTr("New Folder")
 
         function begin() {
-            folderName.text = ""
-            open()
+            folderName.clear()
+            show()
+            raise()
+            requestActivate()
             folderName.forceActiveFocus()
         }
 
-        contentItem: TextField {
-            id: folderName
-            placeholderText: qsTr("Folder name")
-            selectByMouse: true
-            onAccepted: if (text.length > 0) newFolderDialog.accept()
+        function accept() {
+            if (folderName.text.length === 0)
+                return
+            const name = folderName.text
+            close()
+            chooser.newFolder(name)
         }
-        footer: RowLayout {
-            spacing: 8
-            Item { Layout.fillWidth: true }
-            FishUI.ConfirmDialogButton {
-                text: qsTr("Cancel")
-                Layout.bottomMargin: 16
-                onClicked: newFolderDialog.reject()
+
+        Shortcut {
+            sequence: "Escape"
+            onActivated: newFolderDialog.close()
+        }
+
+        ColumnLayout {
+            id: layout
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 16
+
+            Label {
+                Layout.fillWidth: true
+                Layout.rightMargin: 32
+                text: newFolderDialog.title
+                textFormat: Text.PlainText
+                font.pixelSize: 14
+                font.weight: Font.DemiBold
+                color: FishUI.Theme.textColor
             }
-            FishUI.ConfirmDialogButton {
-                text: qsTr("Create")
-                primary: true
-                enabled: folderName.text.length > 0
-                Layout.rightMargin: 16
-                Layout.bottomMargin: 16
-                onClicked: newFolderDialog.accept()
+
+            TextField {
+                id: folderName
+                Layout.fillWidth: true
+                placeholderText: qsTr("Folder name")
+                selectByMouse: true
+                onAccepted: newFolderDialog.accept()
+            }
+
+            RowLayout {
+                Layout.alignment: Qt.AlignRight
+                spacing: 8
+
+                FishUI.ConfirmDialogButton {
+                    text: qsTr("Cancel")
+                    onClicked: newFolderDialog.close()
+                }
+
+                FishUI.ConfirmDialogButton {
+                    text: qsTr("Create")
+                    primary: true
+                    enabled: folderName.text.length > 0
+                    onClicked: newFolderDialog.accept()
+                }
             }
         }
-        onAccepted: chooser.newFolder(folderName.text)
     }
-    Dialog {
+    FishUI.ConfirmDialog {
         id: deviceError
-        property alias text: deviceErrorLabel.text
-        anchors.centerIn: parent
-        width: 360
-        modal: true
+        parentWindow: root
+        x: root.x + Math.round((root.width - width) / 2)
+        y: root.y + Math.round((root.height - height) / 2)
+        showOnCompleted: false
         title: qsTr("Device unavailable")
-        contentItem: Label { id: deviceErrorLabel; wrapMode: Text.Wrap; textFormat: Text.PlainText }
-        footer: RowLayout {
-            Item { Layout.fillWidth: true }
-            FishUI.ConfirmDialogButton {
-                text: qsTr("Close")
-                primary: true
-                Layout.rightMargin: 16
-                Layout.bottomMargin: 16
-                onClicked: deviceError.accept()
-            }
-        }
+        confirmText: qsTr("Close")
+        cancelButtonVisible: false
     }
 }
