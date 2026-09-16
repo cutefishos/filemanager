@@ -26,13 +26,6 @@ FishUI.DesktopMenu {
     id: control
 
     FishUI.MenuItem {
-        text: qsTr("New Tab")
-        onTriggered: root.openTab(root._folderPage.currentUrl)
-    }
-
-    FishUI.MenuSeparator {}
-
-    FishUI.MenuItem {
         text: qsTr("Icons")
         reservesCheckColumn: true
         checked: settings.viewMethod === 1
