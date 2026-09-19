@@ -47,6 +47,9 @@ FishUI.Window {
     property var tabs: []
     property int currentTab: 0
     readonly property var _folderPage: tabs.length ? tabs[currentTab] : null
+    property string dragHoverTarget: ""
+    property int dragHoverTabIndex: -1
+    readonly property int springLoadDelay: 650
 
     function openTab(path) {
         var page = folderComponent.createObject(_content, { initialUrl: path || "" })
@@ -97,6 +100,48 @@ FishUI.Window {
         syncNavigation()
     }
 
+    function setDragHoverTarget(target, tabIndex) {
+        if (dragHoverTarget === target && dragHoverTabIndex === tabIndex)
+            return
+
+        springLoadTimer.stop()
+        dragHoverTarget = target
+        dragHoverTabIndex = tabIndex
+        if (target !== "")
+            springLoadTimer.start()
+    }
+
+    function updateDragHoverPosition(source, x, y) {
+        var backPos = source.mapToItem(_backButton, x, y)
+        if (_backButton.enabled && backPos.x >= 0 && backPos.y >= 0
+                && backPos.x < _backButton.width && backPos.y < _backButton.height) {
+            setDragHoverTarget("back", -1)
+            return
+        }
+
+        var forwardPos = source.mapToItem(_forwardButton, x, y)
+        if (_forwardButton.enabled && forwardPos.x >= 0 && forwardPos.y >= 0
+                && forwardPos.x < _forwardButton.width && forwardPos.y < _forwardButton.height) {
+            setDragHoverTarget("forward", -1)
+            return
+        }
+
+        var tabPos = source.mapToItem(tabBar, x, y)
+        var tabIndex = tabBar.visible ? tabBar.indexAtPosition(tabPos.x, tabPos.y) : -1
+        if (tabIndex >= 0 && tabIndex !== currentTab) {
+            setDragHoverTarget("tab", tabIndex)
+            return
+        }
+
+        setDragHoverTarget("", -1)
+    }
+
+    function clearDragHoverTarget() {
+        springLoadTimer.stop()
+        dragHoverTarget = ""
+        dragHoverTabIndex = -1
+    }
+
     function updateCurrentViewDragPosition(source, event) {
         var view = root._folderPage ? root._folderPage.currentView : null
         if (!view)
@@ -108,6 +153,7 @@ FishUI.Window {
     }
 
     function stopCurrentViewDragScroll() {
+        clearDragHoverTarget()
         if (root._folderPage && root._folderPage.currentView) {
             root._folderPage.currentView.stopDragScroll()
             root._folderPage.currentView.clearDropTarget()
@@ -135,6 +181,25 @@ FishUI.Window {
 
     onCurrentTabChanged: syncNavigation()
     Component.onCompleted: openTab(arg)
+
+    Timer {
+        id: springLoadTimer
+        objectName: "springLoadTimer"
+        interval: root.springLoadDelay
+        onTriggered: {
+            if (root.dragHoverTarget === "tab"
+                    && root.dragHoverTabIndex >= 0
+                    && root.dragHoverTabIndex < root.tabs.length) {
+                root.currentTab = root.dragHoverTabIndex
+            } else if (root.dragHoverTarget === "back"
+                       && root._folderPage && root._folderPage.canGoBack) {
+                root._folderPage.goBack()
+            } else if (root.dragHoverTarget === "forward"
+                       && root._folderPage && root._folderPage.canGoForward) {
+                root._folderPage.goForward()
+            }
+        }
+    }
 
     Shortcut { sequence: "Ctrl+T"; onActivated: root.openTab(_folderPage.currentUrl) }
     Shortcut { sequence: "Ctrl+W"; onActivated: root.closeTab(root.currentTab) }
@@ -265,21 +330,27 @@ FishUI.Window {
             }
 
             IconButton {
+                id: _backButton
+                objectName: "backButton"
                 Layout.alignment: root.windowButtonsAlignment
                 Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoBack
+                highlighted: root.dragHoverTarget === "back"
                 iconName: "chevron-left"
                 onClicked: _folderPage.goBack()
             }
 
             IconButton {
+                id: _forwardButton
+                objectName: "forwardButton"
                 Layout.alignment: root.windowButtonsAlignment
                 Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoForward
+                highlighted: root.dragHoverTarget === "forward"
                 iconName: "chevron-right"
                 onClicked: _folderPage.goForward()
             }
@@ -322,10 +393,12 @@ FishUI.Window {
         z: 1000
 
         onDragEnter: function(event) {
+            root.updateDragHoverPosition(_headerDragArea, event.x, event.y)
             root.updateCurrentViewDragPosition(_headerDragArea, event)
             event.accept(Qt.MoveAction)
         }
         onDragMove: function(event) {
+            root.updateDragHoverPosition(_headerDragArea, event.x, event.y)
             root.updateCurrentViewDragPosition(_headerDragArea, event)
             event.accept(Qt.MoveAction)
         }
@@ -366,6 +439,7 @@ FishUI.Window {
                 height: visible ? 38 : 0
                 tabs: root.tabs
                 currentIndex: root.currentTab
+                springLoadIndex: root.dragHoverTarget === "tab" ? root.dragHoverTabIndex : -1
                 onSelected: function(index) { root.currentTab = index }
                 onCloseRequested: function(index) { root.closeTab(index) }
                 onNewRequested: root.openTab(_folderPage.currentUrl)
@@ -379,10 +453,12 @@ FishUI.Window {
                 z: 10
 
                 onDragEnter: function(event) {
+                    root.updateDragHoverPosition(_contentDragArea, event.x, event.y)
                     root.updateCurrentViewDragPosition(_contentDragArea, event)
                     event.accept(Qt.MoveAction)
                 }
                 onDragMove: function(event) {
+                    root.updateDragHoverPosition(_contentDragArea, event.x, event.y)
                     root.updateCurrentViewDragPosition(_contentDragArea, event)
                     event.accept(Qt.MoveAction)
                 }
@@ -450,10 +526,12 @@ FishUI.Window {
             z: 10
 
             onDragEnter: function(event) {
+                root.updateDragHoverPosition(_navigationDragArea, event.x, event.y)
                 root.updateCurrentViewDragPosition(_navigationDragArea, event)
                 event.accept(Qt.MoveAction)
             }
             onDragMove: function(event) {
+                root.updateDragHoverPosition(_navigationDragArea, event.x, event.y)
                 root.updateCurrentViewDragPosition(_navigationDragArea, event)
                 event.accept(Qt.MoveAction)
             }

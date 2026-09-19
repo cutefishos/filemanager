@@ -12,6 +12,7 @@ Rectangle {
     property real pointerX: 0
     property real dragPos: 0
     property real dragOffset: 0
+    property int springLoadIndex: -1
     signal selected(int index)
     signal closeRequested(int index)
     signal newRequested()
@@ -38,6 +39,13 @@ Rectangle {
         var limit = Math.max(0, list.contentWidth - list.tabWidth)
         dragPos = Math.max(0, Math.min(limit, x - list.x + list.contentX - dragOffset))
         dropIndex = Math.max(0, Math.min(tabs.length - 1, Math.round(dragPos / list.tabWidth)))
+    }
+
+    function indexAtPosition(x, y) {
+        if (x < list.x || x >= list.x + list.width || y < list.y || y >= list.y + list.height)
+            return -1
+        return Math.max(0, Math.min(tabs.length - 1,
+                                   Math.floor((x - list.x + list.contentX) / list.tabWidth)))
     }
 
     Rectangle {
@@ -89,6 +97,7 @@ Rectangle {
                                                : control.slotFor(index) * list.tabWidth
                 z: control.dragIndex === index ? 2 : tab.selected ? 1 : 0
                 property bool selected: index === control.currentIndex
+                property bool springLoadTarget: index === control.springLoadIndex
 
                 // Only the shuffling aside during a drag animates; opening or
                 // closing a tab must place the rest at once.
@@ -103,7 +112,8 @@ Rectangle {
                     radius: height / 2
                     color: tab.selected ? (FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 2)
                                                                : FishUI.Theme.secondBackgroundColor)
-                                        : mouse.containsMouse ? control.hoverColor : "transparent"
+                                        : mouse.containsMouse || tab.springLoadTarget
+                                                ? control.hoverColor : "transparent"
                 }
 
                 MouseArea {

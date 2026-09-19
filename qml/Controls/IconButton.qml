@@ -34,6 +34,7 @@ Item {
                                                    : Qt.darker(FishUI.Theme.secondBackgroundColor, 1.2)
     property color pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.4)
                                                      : Qt.darker(FishUI.Theme.secondBackgroundColor, 1.3)
+    property bool highlighted: false
 
     signal clicked()
 
@@ -45,7 +46,7 @@ Item {
         radius: width / 2
         color: !control.enabled ? "transparent"
              : _mouseArea.pressed ? pressedColor
-             : _mouseArea.containsMouse ? control.hoveredColor
+             : _mouseArea.containsMouse || control.highlighted ? control.hoveredColor
              : control.backgroundColor
     }
 

@@ -86,6 +86,84 @@ private slots:
         view->setProperty("rubberBand", QVariant::fromValue<QQuickItem *>(nullptr));
     }
 
+    void springLoadedNavigation()
+    {
+        QTemporaryDir folders;
+        QVERIFY(folders.isValid());
+        QDir dir(folders.path());
+        QVERIFY(dir.mkdir("first"));
+        QVERIFY(dir.mkdir("second"));
+
+        QQmlApplicationEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("arg", folders.path());
+        engine.load(QUrl("qrc:/qml/main.qml"));
+        QVERIFY(!engine.rootObjects().isEmpty());
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QVERIFY(window);
+        window->resize(900, 600);
+
+        auto *firstPage = window->property("_folderPage").value<QObject *>();
+        QVERIFY(firstPage);
+        auto *firstModel = qobject_cast<FolderModel *>(
+                firstPage->property("model").value<QObject *>());
+        QVERIFY(firstModel);
+        const QString initialUrl = firstModel->url();
+        firstModel->setUrl(QUrl::fromLocalFile(dir.filePath("first")).toString());
+        QTRY_VERIFY(firstModel->canGoBack());
+
+        QVERIFY(QMetaObject::invokeMethod(window, "openTab",
+                                          Q_ARG(QVariant, dir.filePath("second"))));
+        QCOMPARE(window->property("currentTab").toInt(), 1);
+
+        auto *bar = window->findChild<QQuickItem *>("folderTabBar");
+        QVERIFY(bar);
+        QTRY_VERIFY(bar->width() > 0);
+        std::function<QQuickItem *(QQuickItem *, const QString &)> findItem;
+        findItem = [&](QQuickItem *parent, const QString &name) -> QQuickItem * {
+            if (parent->objectName() == name)
+                return parent;
+            for (auto *child : parent->childItems()) {
+                if (auto *found = findItem(child, name))
+                    return found;
+            }
+            return nullptr;
+        };
+        QTRY_VERIFY(findItem(bar, "folderTab0"));
+        auto *firstTab = findItem(bar, "folderTab0");
+        QTRY_VERIFY(firstTab->width() > 0 && firstTab->height() > 0);
+        const QPointF tabPoint = firstTab->mapToItem(
+                bar, QPointF(firstTab->width() / 2, firstTab->height() / 2));
+        QVariant tabIndex;
+        QVERIFY(QMetaObject::invokeMethod(bar, "indexAtPosition",
+                                          Q_RETURN_ARG(QVariant, tabIndex),
+                                          Q_ARG(QVariant, tabPoint.x()),
+                                          Q_ARG(QVariant, tabPoint.y())));
+        QCOMPARE(tabIndex.toInt(), 0);
+
+        QVERIFY(QMetaObject::invokeMethod(window, "updateDragHoverPosition",
+                                          Q_ARG(QVariant, QVariant::fromValue(bar)),
+                                          Q_ARG(QVariant, tabPoint.x()),
+                                          Q_ARG(QVariant, tabPoint.y())));
+        QCOMPARE(bar->property("springLoadIndex").toInt(), 0);
+        QTest::qWait(300);
+        QCOMPARE(window->property("currentTab").toInt(), 1);
+        QTRY_COMPARE(window->property("currentTab").toInt(), 0);
+        QVERIFY(QMetaObject::invokeMethod(window, "clearDragHoverTarget"));
+
+        auto *backButton = window->findChild<QQuickItem *>("backButton");
+        QVERIFY(backButton);
+        QVERIFY(backButton->property("enabled").toBool());
+        QVERIFY(QMetaObject::invokeMethod(window, "updateDragHoverPosition",
+                                          Q_ARG(QVariant, QVariant::fromValue(backButton)),
+                                          Q_ARG(QVariant, backButton->width() / 2),
+                                          Q_ARG(QVariant, backButton->height() / 2)));
+        QVERIFY(backButton->property("highlighted").toBool());
+        QTRY_COMPARE(firstModel->url(), initialUrl);
+        QVERIFY(QMetaObject::invokeMethod(window, "clearDragHoverTarget"));
+        QVERIFY(!backButton->property("highlighted").toBool());
+    }
+
     void navigationAndLifetime()
     {
         QTemporaryDir folders;
