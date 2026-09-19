@@ -87,6 +87,9 @@ add_library(cutefish-filemanager-core STATIC
   helper/filelauncher.cpp
   helper/keyboardsearchmanager.cpp
 
+  operations/operationtask.cpp
+  operations/fileoperationsclient.cpp
+
   mimetype/mimeapps.cpp
   mimetype/mimeappmanager.cpp
   mimetype/xdgdesktopfile.cpp
@@ -138,6 +141,25 @@ add_executable(cutefish-filemanager
 )
 
 target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
+
+add_executable(cutefish-filemanager-daemon
+  daemon/main.cpp
+  daemon/fileoperationsservice.cpp
+  daemon/daemontask.cpp
+  daemon/daemonarchivetask.cpp
+  cio/archivejob.cpp
+)
+target_include_directories(cutefish-filemanager-daemon PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(cutefish-filemanager-daemon PRIVATE ${LIBZIP_INCLUDE_DIR})
+target_link_libraries(cutefish-filemanager-daemon PRIVATE
+  Cutefish::IO
+  Qt6::Core
+  Qt6::DBus
+  ${LIBZIP_LIBRARY}
+)
+
+configure_file(daemon/com.cutefish.FileOperations.service.in
+               com.cutefish.FileOperations.service @ONLY)
 
 add_library(cutefish-filechooser-ui STATIC chooser/filechooser.cpp chooser/filechooser.h)
 target_link_libraries(cutefish-filechooser-ui PUBLIC cutefish-filemanager-core Qt6::QuickControls2)
@@ -193,6 +215,9 @@ add_custom_target(translations DEPENDS ${QM_FILES} SOURCES ${TS_FILES})
 add_dependencies(cutefish-filemanager translations)
 
 install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS cutefish-filemanager-daemon RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileOperations.service
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")
 # NoDisplay: the dialog is launched by the portal, and its window is not a task.
 install(FILES cutefish-filechooser.desktop DESTINATION "/usr/share/applications")
@@ -212,8 +237,8 @@ if(FILEMANAGER_BUILD_TESTS)
     target_include_directories(tst_mimeapps PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_mimeapps PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME mimeapps COMMAND tst_mimeapps)
-    add_executable(tst_placesmodel tests/tst_placesmodel.cpp model/placesmodel.cpp model/placesitem.cpp)
-    target_link_libraries(tst_placesmodel PRIVATE Cutefish::IO Qt6::Test)
+    add_executable(tst_placesmodel tests/tst_placesmodel.cpp)
+    target_link_libraries(tst_placesmodel PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME placesmodel COMMAND tst_placesmodel)
     add_executable(tst_iointegration tests/tst_iointegration.cpp)
     target_link_libraries(tst_iointegration PRIVATE cutefish-filemanager-core Qt6::Test)
@@ -231,4 +256,12 @@ if(FILEMANAGER_BUILD_TESTS)
     target_link_libraries(tst_lifecycle PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME lifecycle COMMAND tst_lifecycle)
     set_tests_properties(lifecycle PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    add_executable(tst_fileoperationsdaemon tests/tst_fileoperationsdaemon.cpp)
+    target_link_libraries(tst_fileoperationsdaemon PRIVATE Qt6::Core Qt6::DBus Qt6::Test)
+    add_dependencies(tst_fileoperationsdaemon cutefish-filemanager-daemon)
+    find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
+    add_test(NAME fileoperationsdaemon
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_fileoperationsdaemon>)
+    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs lifecycle
+                 APPEND PROPERTY ENVIRONMENT "CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
 endif()

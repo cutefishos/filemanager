@@ -46,7 +46,7 @@ class QMimeData;
 
 class QDrag;
 class CFileSizeJob;
-class ArchiveJob;
+class OperationTask;
 
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
 {
@@ -315,7 +315,8 @@ private slots:
     void onRowsInserted(const QModelIndex &parent, int first, int last);
     void delayUpdateNeedSelectUrls();
     void updateNeedSelectUrls();
-    void startArchiveJob(ArchiveJob *job, const QString &operation);
+    void startArchiveJob(OperationTask *job, const QString &operation,
+                         const QString &outputPath);
     void archiveJobFinished(bool success, bool canceled, const QString &error,
                             const QString &outputPath);
 
@@ -395,12 +396,13 @@ private:
 
     CFileSizeJob *m_sizeJob;
 
-    QPointer<ArchiveJob> m_archiveJob;
+    QPointer<OperationTask> m_archiveJob;
     bool m_archiveBusy;
     bool m_archiveCancelling;
     int m_archiveProgress;
     QString m_archiveOperation;
     QString m_archiveCurrentFile;
+    QString m_archiveOutputPath;
 
     int m_currentIndex;
 

@@ -28,6 +28,16 @@ FishUI.Window {
     maximumWidth: width
     maximumHeight: height
 
+    DragHandler {
+        parent: control.contentItem
+        target: null
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        grabPermissions: PointerHandler.CanTakeOverFromItems
+                         | PointerHandler.CanTakeOverFromHandlersOfDifferentType
+                         | PointerHandler.ApprovesTakeOverByAnything
+        onActiveChanged: if (active) control.helper.startSystemMove(control)
+    }
+
     x: hostWindow ? hostWindow.x + Math.round((hostWindow.width - width) / 2) : 0
     y: hostWindow ? hostWindow.y + Math.round((hostWindow.height - height) / 2) : 0
 
@@ -101,13 +111,6 @@ FishUI.Window {
                          && !control.archiveModel.archiveCancelling
                 onClicked: control.archiveModel.cancelArchive()
             }
-        }
-    }
-
-    onClosing: function(closeEvent) {
-        if (control.archiveModel !== null && control.archiveModel.archiveBusy) {
-            control.archiveModel.cancelArchive()
-            closeEvent.accepted = false
         }
     }
 

@@ -22,8 +22,9 @@
 #include "dbusinterface.h"
 #include "filemanageradaptor.h"
 #include "helper/iojobui.h"
+#include "operations/fileoperationsclient.h"
+#include "operations/operationtask.h"
 #include "window.h"
-#include <task.h>
 
 #include <QCommandLineParser>
 #include <QQmlApplicationEngine>
@@ -89,7 +90,7 @@ void Application::moveToTrash(const QStringList &paths)
     startTrashJob(paths);
 }
 
-Cutefish::IO::Task *Application::startTrashJob(const QStringList &paths)
+OperationTask *Application::startTrashJob(const QStringList &paths)
 {
     if (paths.isEmpty())
         return nullptr;
@@ -100,8 +101,7 @@ Cutefish::IO::Task *Application::startTrashJob(const QStringList &paths)
         urls.append(QUrl::fromLocalFile(path));
     }
 
-    Cutefish::IO::Task *job = Cutefish::IO::trash(urls);
-    return job;
+    return FileOperationsClient::instance()->trash(urls);
 }
 
 void Application::emptyTrash()
@@ -176,14 +176,12 @@ bool Application::parseCommandLineArgs()
         if (parser.isSet(emptyTrashOption)) {
             emptyTrash();
         } else if (parser.isSet(moveToTrashOption)) {
-            Cutefish::IO::Task *job = startTrashJob(parser.positionalArguments());
+            OperationTask *job = startTrashJob(parser.positionalArguments());
 
             if (!job)
                 return false;
 
-            // No window to show, so the event loop only has to live long enough
-            // for the job to finish.
-            connect(job, &Cutefish::IO::Task::result, this, [] {
+            connect(job, &OperationTask::result, this, [] {
                 QCoreApplication::quit();
             });
         } else {

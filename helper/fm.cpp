@@ -19,11 +19,11 @@
 
 #include "fm.h"
 #include "helper/iojobui.h"
+#include "operations/fileoperationsclient.h"
 #include <QDir>
 #include <QStandardPaths>
 #include <QUrl>
 #include <fileitem.h>
-#include <task.h>
 
 Fm::Fm(QObject *parent)
     : QObject(parent)
@@ -38,8 +38,7 @@ QString Fm::rootPath()
 
 void Fm::emptyTrash()
 {
-    Cutefish::IO::Task *job = Cutefish::IO::emptyTrash();
-    job->start();
+    FileOperationsClient::instance()->emptyTrash();
 }
 
 bool Fm::isFixedFolder(const QUrl &folderUrl)

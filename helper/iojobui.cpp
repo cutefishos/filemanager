@@ -1,10 +1,11 @@
 #include "iojobui.h"
+#include "operations/fileoperationsclient.h"
+#include "operations/operationtask.h"
 #include "window.h"
 #include <QCoreApplication>
 #include <QQmlContext>
 #include <QQuickWindow>
 #include <QTimer>
-#include <task.h>
 
 namespace CutefishFM {
 void installIoJobUi()
@@ -13,19 +14,15 @@ void installIoJobUi()
     if (installed)
         return;
     installed = true;
-    auto *controller = Cutefish::IO::TaskController::instance();
-    QObject::connect(controller, &Cutefish::IO::TaskController::taskAdded, controller,
-                     [](Cutefish::IO::Task *task) {
-                         if (task->request().operation == Cutefish::IO::Operation::Size)
-                             return;
+    auto *controller = FileOperationsClient::instance();
+    QObject::connect(controller, &FileOperationsClient::taskAdded, controller,
+                     [](OperationTask *task) {
                          // Defer QML construction so taskAdded cannot reenter a partially created
                          // folder model.
                          QTimer::singleShot(0, task, [task] {
                              auto *window = new Window;
                              window->rootContext()->setContextProperty("ioTask", task);
                              window->load(QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
-                             if (!window->quickWindow())
-                                 task->cancel();
                          });
                      });
 }

@@ -22,8 +22,8 @@
 
 #include <QApplication>
 
-#include <task.h>
 class Window;
+class OperationTask;
 
 class Application : public QApplication
 {
@@ -45,7 +45,7 @@ private:
     QStringList formatUriList(const QStringList &list);
 
     /** Starts the trash job for @p paths, or returns nullptr if there is none. */
-    Cutefish::IO::Task *startTrashJob(const QStringList &paths);
+    OperationTask *startTrashJob(const QStringList &paths);
 
 private:
     bool parseCommandLineArgs();

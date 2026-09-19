@@ -26,6 +26,8 @@
 #include "foldermodel.h"
 #include "dirlister.h"
 #include "helper/iojobui.h"
+#include "operations/fileoperationsclient.h"
+#include "operations/operationtask.h"
 #include "window.h"
 #include <task.h>
 
@@ -36,7 +38,6 @@
 #include "../helper/filelauncher.h"
 #include "../helper/fm.h"
 
-#include "../cio/archivejob.h"
 #include "../cio/cfilesizejob.h"
 
 // Qt
@@ -253,10 +254,6 @@ FolderModel::FolderModel(QObject *parent)
 
 FolderModel::~FolderModel()
 {
-    if (m_archiveJob) {
-        m_archiveJob->cancel();
-        m_archiveJob->wait();
-    }
 }
 
 void FolderModel::classBegin()
@@ -859,9 +856,7 @@ void FolderModel::refresh()
 
 void FolderModel::undo()
 {
-    if (Cutefish::IO::TaskController::instance()->isUndoAvailable()) {
-        Cutefish::IO::TaskController::instance()->undo();
-    }
+    FileOperationsClient::instance()->undo();
 }
 
 bool FolderModel::supportSetAsWallpaper(const QString &mimeType)
@@ -1043,8 +1038,8 @@ void FolderModel::newFolder()
 
     rememberNewDocumentPosition(newName);
 
-    auto job = Cutefish::IO::mkdir(QUrl(rootItem().url().toString() + "/" + newName));
-    job->start();
+    FileOperationsClient::instance()->mkdir(
+            QUrl(rootItem().url().toString() + "/" + newName));
 }
 
 void FolderModel::newTextFile()
@@ -1081,8 +1076,18 @@ void FolderModel::rename(int row, const QString &name)
     if (row < 0)
         return;
 
-    QModelIndex idx = index(row, 0);
-    m_dirModel->setData(mapToSource(idx), name, Qt::EditRole);
+    if (name.isEmpty() || name == "." || name == ".." || name.contains('/')
+        || name.contains(QChar(0))) {
+        return;
+    }
+
+    const QUrl source = itemForIndex(index(row, 0)).url();
+    if (!source.isLocalFile())
+        return;
+
+    const QUrl destination = QUrl::fromLocalFile(
+            QFileInfo(source.toLocalFile()).absolutePath() + '/' + name);
+    FileOperationsClient::instance()->rename(source, destination);
 }
 
 void FolderModel::copy()
@@ -1132,9 +1137,8 @@ void FolderModel::paste()
             data->setData(mimetype, mimeData->data(mimetype));
         }
 
-        Cutefish::IO::Task *job = Cutefish::IO::paste(data, m_dirModel->dirLister()->url());
+        FileOperationsClient::instance()->paste(data, m_dirModel->dirLister()->url());
         delete data;
-        job->start();
 
         // Clear system clipboard.
         if (mimeData->hasFormat("application/x-cutefish-cutselection")) {
@@ -1228,7 +1232,8 @@ void FolderModel::openSelected()
     }
 }
 
-void FolderModel::startArchiveJob(ArchiveJob *job, const QString &operation)
+void FolderModel::startArchiveJob(OperationTask *job, const QString &operation,
+                                  const QString &outputPath)
 {
     if (!job)
         return;
@@ -1247,47 +1252,32 @@ void FolderModel::startArchiveJob(ArchiveJob *job, const QString &operation)
     m_archiveOperation = operation;
     emit archiveOperationChanged();
 
+    m_archiveOutputPath = outputPath;
+
     m_archiveCurrentFile.clear();
     emit archiveCurrentFileChanged();
 
-    connect(
-            job, &ArchiveJob::progressChanged, this,
-            [this](int progress) {
-                if (m_archiveProgress == progress)
-                    return;
-
-                m_archiveProgress = progress;
-                emit archiveProgressChanged();
-            },
-            Qt::QueuedConnection);
-
-    connect(
-            job, &ArchiveJob::currentFileChanged, this,
-            [this](const QString &fileName) {
-                if (m_archiveCurrentFile == fileName)
-                    return;
-
-                m_archiveCurrentFile = fileName;
-                emit archiveCurrentFileChanged();
-            },
-            Qt::QueuedConnection);
-
-    connect(job, &ArchiveJob::completed, this, &FolderModel::archiveJobFinished,
-            Qt::QueuedConnection);
-
-    // Do not delete the QThread from the completed callback: run() is still
-    // unwinding at that point. Waiting for QThread::finished keeps cleanup
-    // safe even when a very small archive completes immediately.
-    connect(
-            job, &QThread::finished, this,
-            [this, job]() {
-                if (m_archiveJob == job)
-                    m_archiveJob = nullptr;
-                job->deleteLater();
-            },
-            Qt::QueuedConnection);
-
-    job->start();
+    connect(job, &OperationTask::progressInfoChanged, this, [this, job] {
+        const QVariantMap info = job->progressInfo();
+        const int progress = info.value(QStringLiteral("totalsKnown")).toBool()
+                ? info.value(QStringLiteral("processedItems")).toInt()
+                : -1;
+        if (m_archiveProgress != progress) {
+            m_archiveProgress = progress;
+            emit archiveProgressChanged();
+        }
+        const QString current = info.value(QStringLiteral("currentPath")).toString();
+        if (m_archiveCurrentFile != current) {
+            m_archiveCurrentFile = current;
+            emit archiveCurrentFileChanged();
+        }
+    });
+    connect(job, &OperationTask::result, this, [this, job](OperationTask *) {
+        archiveJobFinished(!job->error() && !job->wasCanceled(), job->wasCanceled(),
+                           job->errorString(), m_archiveOutputPath);
+        if (m_archiveJob == job)
+            m_archiveJob = nullptr;
+    });
 }
 
 void FolderModel::compressSelected()
@@ -1319,8 +1309,8 @@ void FolderModel::compressSelected()
     const QString outputPath =
             uniquePath(destinationDirectory, baseName + QStringLiteral(".zip"), false);
 
-    startArchiveJob(new ArchiveJob(ArchiveJob::Compress, paths, outputPath, this),
-                    tr("Compressing"));
+    startArchiveJob(FileOperationsClient::instance()->compress(paths, outputPath),
+                    tr("Compressing"), outputPath);
 }
 
 void FolderModel::extractSelectedArchive()
@@ -1343,9 +1333,8 @@ void FolderModel::extractSelectedArchive()
         baseName = QStringLiteral("Extracted");
 
     const QString outputPath = uniquePath(archiveInfo.absolutePath(), baseName, true);
-    startArchiveJob(
-            new ArchiveJob(ArchiveJob::Extract, QStringList() << archivePath, outputPath, this),
-            tr("Extracting"));
+    startArchiveJob(FileOperationsClient::instance()->extract(archivePath, outputPath),
+                    tr("Extracting"), outputPath);
 }
 
 void FolderModel::cancelArchive()
@@ -1419,8 +1408,7 @@ void FolderModel::deleteSelected()
         }
     }
 
-    Cutefish::IO::Task *job = Cutefish::IO::del(selectedUrls());
-    job->start();
+    FileOperationsClient::instance()->remove(selectedUrls());
 }
 
 void FolderModel::moveSelectedToTrash()
@@ -1436,7 +1424,7 @@ void FolderModel::moveSelectedToTrash()
     }
 
     const QList<QUrl> urls = selectedUrls();
-    Cutefish::IO::trash(urls);
+    FileOperationsClient::instance()->trash(urls);
 }
 
 void FolderModel::emptyTrash()
@@ -1665,8 +1653,7 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
                 m_dropTargetPositions.insert(url.fileName(), QPoint(x, y));
             m_dropTargetPositionsCleanup->start();
         }
-        Cutefish::IO::Task *job = Cutefish::IO::drop(mimeData, targetUrl, action);
-        job->start();
+        FileOperationsClient::instance()->drop(mimeData, targetUrl, action);
 
         // Add select
         for (QUrl url : mimeData->urls()) {
@@ -1908,8 +1895,7 @@ void FolderModel::restoreFromTrash()
         if (!action->isVisible())
             return;
 
-    Cutefish::IO::Task *job = Cutefish::IO::restoreFromTrash(selectedUrls());
-    job->start();
+    FileOperationsClient::instance()->restore(selectedUrls());
 }
 
 void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected)

@@ -35,6 +35,16 @@ FishUI.Window {
     property int sourceCount: 0
     property var info: ioTask ? ioTask.progressInfo : null
 
+    DragHandler {
+        parent: control.contentItem
+        target: null
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        grabPermissions: PointerHandler.CanTakeOverFromItems
+                         | PointerHandler.CanTakeOverFromHandlersOfDifferentType
+                         | PointerHandler.ApprovesTakeOverByAnything
+        onActiveChanged: if (active) control.helper.startSystemMove(control)
+    }
+
     readonly property string heading: operationHeading()
     readonly property string currentName: info && info.currentPath.length
                                           ? fileName(info.currentPath) : sourceName
@@ -50,8 +60,12 @@ FishUI.Window {
         sourceName = ioTask.sourceName
         sourceCount = ioTask.sourceCount
         destinationName = ioTask.destinationName
+        if (ioTask.waitingForConflict) {
+            conflictPath = ioTask.conflictPath
+            conflict = true
+            show()
+        }
     }
-    onClosing: if (!finished && ioTask) ioTask.cancel()
     onVisibilityChanged: function(visibility) {
         if (visibility === Window.Maximized || visibility === Window.FullScreen)
             showNormal()
@@ -82,6 +96,8 @@ FishUI.Window {
         case "rename": return qsTr("Renaming “%1” to “%2”").arg(sourceName).arg(destinationName)
         case "mkdir": return qsTr("Creating “%1”").arg(destinationName)
         case "link": return qsTr("Creating links in “%1”").arg(destinationName)
+        case "compress": return qsTr("Compressing to “%1”").arg(destinationName)
+        case "extract": return qsTr("Extracting to “%1”").arg(destinationName)
         default: return qsTr("Preparing…")
         }
     }
@@ -126,11 +142,12 @@ FishUI.Window {
 
     Shortcut {
         sequence: "Escape"
-        onActivated: control.finished ? control.close() : control.cancelTask()
+        onActivated: control.close()
     }
     Timer {
         id: delay
-        interval: 750
+        objectName: "ioShowDelay"
+        interval: control.operation === "emptyTrash" ? 300 : 750
         running: true
         onTriggered: if (!control.finished) control.show()
     }

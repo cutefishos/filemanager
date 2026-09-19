@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.cutefish.FileOperations
+Exec=@CMAKE_INSTALL_FULL_LIBEXECDIR@/cutefish-filemanager-daemon

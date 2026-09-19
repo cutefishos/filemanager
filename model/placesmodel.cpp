@@ -18,6 +18,7 @@
  */
 
 #include "placesmodel.h"
+#include "operations/fileoperationsclient.h"
 
 #include <fileitem.h>
 #include <task.h>
@@ -252,11 +253,11 @@ bool PlacesModel::dropInto(const QList<QUrl> &urls, int row, int action)
         return false;
     const PlacesItem *item = m_items.at(row);
     if (item->url().scheme() == QLatin1String("trash"))
-        Cutefish::IO::trash(urls);
+        FileOperationsClient::instance()->trash(urls);
     else if (action == Qt::CopyAction)
-        Cutefish::IO::copy(urls, QUrl::fromLocalFile(item->path()));
+        FileOperationsClient::instance()->copy(urls, QUrl::fromLocalFile(item->path()));
     else
-        Cutefish::IO::move(urls, QUrl::fromLocalFile(item->path()));
+        FileOperationsClient::instance()->move(urls, QUrl::fromLocalFile(item->path()));
     return true;
 }
 

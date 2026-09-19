@@ -356,6 +356,60 @@ private slots:
         QTRY_VERIFY(dialog->property("finished").toBool());
         QVERIFY(QFileInfo::exists(source.fileName()));
     }
+
+    void closingProgressDialogDoesNotCancelTask()
+    {
+        QTemporaryDir sourceDirectory;
+        QTemporaryDir destinationDirectory;
+        QFile source(sourceDirectory.filePath("payload"));
+        QVERIFY(source.open(QIODevice::WriteOnly));
+        QCOMPARE(source.write(QByteArray(1024 * 1024, 'x')), qint64(1024 * 1024));
+        source.close();
+
+        Cutefish::IO::Task task({Cutefish::IO::Operation::Copy,
+                                 {QUrl::fromLocalFile(source.fileName())},
+                                 QUrl::fromLocalFile(destinationDirectory.path())});
+        QQmlEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("ioTask", &task);
+        QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
+        QScopedPointer<QObject> dialog(component.create());
+        QVERIFY2(dialog, qPrintable(component.errorString()));
+        auto *window = qobject_cast<QQuickWindow *>(dialog.data());
+        QVERIFY(window);
+
+        window->show();
+        QSignalSpy done(&task, &Cutefish::IO::Task::result);
+        window->close();
+        task.start();
+        QTRY_COMPARE(done.size(), 1);
+        QVERIFY(!task.wasCanceled());
+        QVERIFY(QFileInfo::exists(destinationDirectory.filePath("payload")));
+    }
+
+    void emptyTrashProgressUsesShortDelay()
+    {
+        Cutefish::IO::Task task({Cutefish::IO::Operation::EmptyTrash});
+        QQmlEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("ioTask", &task);
+        QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
+        QScopedPointer<QObject> dialog(component.create());
+        QVERIFY2(dialog, qPrintable(component.errorString()));
+
+        auto *delay = dialog->findChild<QObject *>("ioShowDelay");
+        QVERIFY(delay);
+        QCOMPARE(delay->property("interval").toInt(), 300);
+
+        auto *window = qobject_cast<QQuickWindow *>(dialog.data());
+        QVERIFY(window);
+        QVERIFY(!window->isVisible());
+        QSignalSpy done(&task, &Cutefish::IO::Task::result);
+        task.start();
+        QTRY_COMPARE(done.size(), 1);
+        QTest::qWait(350);
+        QVERIFY(!window->isVisible());
+    }
 };
 QTEST_MAIN(IOIntegrationTest)
 #include "tst_iointegration.moc"
