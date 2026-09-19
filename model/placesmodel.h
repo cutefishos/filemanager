@@ -62,7 +62,7 @@ public:
     Q_INVOKABLE bool canAddFavorites(const QList<QUrl> &urls) const;
     Q_INVOKABLE bool addFavorites(const QList<QUrl> &urls, int before);
     Q_INVOKABLE bool moveFavorite(int from, int before);
-    Q_INVOKABLE bool canDropInto(const QList<QUrl> &urls, int row) const;
+    Q_INVOKABLE bool canDropInto(const QList<QUrl> &urls, int row, int action) const;
     Q_INVOKABLE bool dropInto(const QList<QUrl> &urls, int row, int action);
     Q_INVOKABLE void removeFavorite(int row);
     Q_INVOKABLE void requestSetup(const int &index);

@@ -214,17 +214,26 @@ bool PlacesModel::moveFavorite(int from, int before)
     return true;
 }
 
-bool PlacesModel::canDropInto(const QList<QUrl> &urls, int row) const
+bool PlacesModel::canDropInto(const QList<QUrl> &urls, int row, int action) const
 {
     if (urls.isEmpty() || row < 0 || row >= m_items.size())
         return false;
     const PlacesItem *item = m_items.at(row);
     const bool toTrash = item->url().scheme() == QLatin1String("trash");
-    if (!toTrash && (item->path().isEmpty() || !QFileInfo(item->path()).isWritable()))
-        return false;
+    if (!toTrash) {
+        const QFileInfo target(item->path());
+        if (item->path().isEmpty() || !target.isDir() || !target.isWritable()
+            || !target.isExecutable())
+            return false;
+    }
     const QString target = QDir::cleanPath(item->path());
+    const auto dropAction = static_cast<Qt::DropAction>(action);
+    const bool moving = toTrash || dropAction == Qt::MoveAction
+            || dropAction == Qt::TargetMoveAction;
     for (const QUrl &url : urls) {
-        if (!url.isLocalFile() || Cutefish::IO::isStandardFolder(url))
+        if (!url.isLocalFile())
+            return false;
+        if (moving && !Cutefish::IO::canMoveStandardFolderTo(url, item->url()))
             return false;
         if (toTrash)
             continue;
@@ -239,7 +248,7 @@ bool PlacesModel::canDropInto(const QList<QUrl> &urls, int row) const
 
 bool PlacesModel::dropInto(const QList<QUrl> &urls, int row, int action)
 {
-    if (!canDropInto(urls, row))
+    if (!canDropInto(urls, row, action))
         return false;
     const PlacesItem *item = m_items.at(row);
     if (item->url().scheme() == QLatin1String("trash"))

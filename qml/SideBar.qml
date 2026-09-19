@@ -41,6 +41,7 @@ Item {
     property int dropIndex: -1
     // Row a drop moves into, as opposed to dropIndex which pins before a row.
     property int dropTargetRow: -1
+    property int dropRejectedRow: -1
     property real dropY: 0
     property real pointerY: 0
 
@@ -165,6 +166,7 @@ Item {
 
                 property bool checked: sideBar.currentIndex === index
                 property bool dropTarget: sideBar.dropTargetRow === index
+                property bool dropRejected: sideBar.dropRejectedRow === index
                 opacity: _mouseArea.drag.active ? 0.45 : 1
                 property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
                                                                  : Qt.darker(FishUI.Theme.backgroundColor, 1.1)
@@ -285,7 +287,8 @@ Item {
                     width: _item.width - listView.sideInset * 2
                     height: parent.height
                     radius: FishUI.Theme.mediumRadius
-                    color: _mouseArea.pressed || _item.dropTarget ? Qt.rgba(FishUI.Theme.textColor.r,
+                    color: _item.dropRejected ? Qt.alpha("#d94b4b", 0.16) :
+                           _mouseArea.pressed || _item.dropTarget ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
                                                        FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
                            // Hover still reaches other rows while a favorite is dragged.
@@ -295,6 +298,8 @@ Item {
                            checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                              FishUI.Theme.textColor.g,
                                              FishUI.Theme.textColor.b, 0.05) : "transparent"
+                    border.width: _item.dropTarget || _item.dropRejected ? 2 : 0
+                    border.color: _item.dropRejected ? "#d94b4b" : FishUI.Theme.highlightColor
 
                     smooth: true
                 }
@@ -343,21 +348,29 @@ Item {
         property bool internalDrag: false
         property bool canPin: false
         property var urls: []
+        property int dropAction: Qt.IgnoreAction
         onEntered: function(drag) {
             internalDrag = drag.source === dragProxy
             urls = !internalDrag && drag.hasUrls ? drag.urls : []
+            dropAction = (drag.modifiers & Qt.ControlModifier) ? Qt.CopyAction : Qt.MoveAction
             canPin = urls.length > 0 && placesModel.canAddFavorites(urls)
             drag.accepted = internalDrag || urls.length > 0
-            if (drag.accepted)
+            if (drag.accepted) {
                 sideBar.positionDrop(drag.y)
+                drag.accept(Qt.MoveAction)
+            }
         }
         onPositionChanged: function(drag) {
+            dropAction = (drag.modifiers & Qt.ControlModifier) ? Qt.CopyAction : Qt.MoveAction
             sideBar.positionDrop(drag.y)
+            drag.accepted = sideBar.dropTargetRow >= 0 || sideBar.dropIndex >= 0
+            if (drag.accepted)
+                drag.accept(Qt.MoveAction)
         }
         onExited: sideBar.clearDrop()
         onDropped: function(drop) {
             var accepted = false
-            var action = drop.proposedAction === Qt.CopyAction ? Qt.CopyAction : Qt.MoveAction
+            var action = (drop.modifiers & Qt.ControlModifier) ? Qt.CopyAction : Qt.MoveAction
             if (sideBar.dropTargetRow >= 0)
                 accepted = placesModel.dropInto(drop.urls, sideBar.dropTargetRow, action)
             else if (sideBar.dropIndex >= 0 && internalDrag)
@@ -409,6 +422,7 @@ Item {
     function clearDrop() {
         dropIndex = -1
         dropTargetRow = -1
+        dropRejectedRow = -1
     }
 
     function positionDrop(y) {
@@ -416,16 +430,21 @@ Item {
         var count = placesModel.favoriteCount
         var contentY = y - listView.y + listView.contentY
         dropTargetRow = -1
+        dropRejectedRow = -1
 
         if (!favoritesDrop.internalDrag) {
             var row = listView.indexAt(listView.width / 2, contentY)
             var rowItem = row >= 0 ? listView.itemAtIndex(row) : null
-            if (rowItem && placesModel.canDropInto(favoritesDrop.urls, row)) {
+            if (rowItem) {
                 // Favorite rows keep their edges for pinning between rows.
                 var edge = favoritesDrop.canPin && row < count ? rowItem.height / 4 : 0
                 if (contentY >= rowItem.y + edge && contentY <= rowItem.y + rowItem.height - edge) {
                     dropIndex = -1
-                    dropTargetRow = row
+                    if (placesModel.canDropInto(favoritesDrop.urls, row,
+                                                favoritesDrop.dropAction))
+                        dropTargetRow = row
+                    else
+                        dropRejectedRow = row
                     return
                 }
             }

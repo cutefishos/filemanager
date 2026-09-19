@@ -42,7 +42,10 @@ Item {
     property bool hovered: GridView.view.hoveredItem === control
     property bool selected: model.selected
     property bool blank: model.blank
+    property bool isDir: model.isDir
     property var fileName: model.displayName
+    readonly property bool dropTarget: GridView.view.dropTargetItem === control
+    readonly property bool dropAllowed: dropTarget && GridView.view.dropTargetAllowed
     readonly property color selectedTextColor: {
         const color = FishUI.Theme.highlightColor
         const luminance = color.r * 0.299 + color.g * 0.587 + color.b * 0.114
@@ -98,12 +101,12 @@ Item {
         x: (parent.width - width) / 2
         y: _iconItem.y
 
-        // (Deprecated) Rectangle rounded corner.
-        //color: selected || hovered ? FishUI.Theme.highlightColor : "transparent"
-        color: "transparent"
-        // radius: FishUI.Theme.mediumRadius
-        // visible: selected || hovered
-        // opacity: selected ? 1.0 : 0.2
+        color: control.dropTarget
+                ? Qt.alpha(control.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b", 0.16)
+                : "transparent"
+        radius: FishUI.Theme.mediumRadius
+        border.width: control.dropTarget ? 2 : 0
+        border.color: control.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b"
     }
 
     Item {

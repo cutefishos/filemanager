@@ -13,6 +13,8 @@ Item {
     property int rowIndex: 0
     property bool selected: false
     property bool hovered: false
+    property bool dropTarget: false
+    property bool dropAllowed: false
     // Adjacent selected rows read as one block, so only the outer corners round.
     property bool previousSelected: false
     property bool nextSelected: false
@@ -39,8 +41,12 @@ Item {
         topRightRadius: row.previousSelected ? 0 : cornerRadius
         bottomLeftRadius: row.nextSelected ? 0 : cornerRadius
         bottomRightRadius: row.nextSelected ? 0 : cornerRadius
+        border.width: row.dropTarget ? 2 : 0
+        border.color: row.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b"
 
         color: {
+            if (row.dropTarget)
+                return Qt.alpha(row.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b", 0.16)
             if (row.selected)
                 return FishUI.Theme.highlightColor
             if (row.hovered)

@@ -42,6 +42,7 @@
 #include <QHash>
 
 class QMenu;
+class QMimeData;
 
 class QDrag;
 class CFileSizeJob;
@@ -234,6 +235,7 @@ public:
                                       const QVariant &image);
     Q_INVOKABLE void clearDragImages();
     Q_INVOKABLE void dragSelected(int x, int y);
+    Q_INVOKABLE bool canDrop(QObject *mimeData, int row, int action) const;
     Q_INVOKABLE void drop(QQuickItem *target, QObject *dropEvent, int row);
 
     Q_INVOKABLE void setWallpaperSelected();
@@ -325,6 +327,8 @@ private:
     void updateActions();
     void addDragImage(QDrag *drag, int x, int y);
     void startPendingDrag();
+    bool canDropUrls(const QList<QUrl> &urls, int row, Qt::DropAction action) const;
+    QUrl dropTargetUrl(int row) const;
 
     bool isSupportThumbnails(const QString &mimeType) const;
 

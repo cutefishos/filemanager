@@ -12,6 +12,7 @@
 #include <QQmlEngine>
 #include <QQuickWindow>
 #include <QSignalSpy>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QtTest>
 #include <task.h>
@@ -198,6 +199,8 @@ private slots:
                          &Cutefish::IO::TaskController::taskAdded);
         QVERIFY(tasks.isValid());
 
+        QVERIFY(!folder.canDrop(&mimeData, 0, Qt::MoveAction));
+        QVERIFY(!folder.canDrop(&mimeData, -1, Qt::MoveAction));
         folder.drop(nullptr, &event, 0);
         QCOMPARE(tasks.count(), 0);
         folder.drop(nullptr, &event, -1);
@@ -206,6 +209,69 @@ private slots:
         folder.drop(nullptr, &event, 0);
         QCOMPARE(tasks.count(), 0);
         QVERIFY(QFileInfo(dir.filePath("folder")).isDir());
+    }
+
+    void dropEligibility()
+    {
+        QTemporaryDir directory;
+        QTemporaryDir source;
+        QVERIFY(directory.isValid());
+        QVERIFY(source.isValid());
+        QVERIFY(QDir(directory.path()).mkdir("writable"));
+        QVERIFY(QDir(directory.path()).mkdir("readonly"));
+        QFile plainFile(directory.filePath("plain.txt"));
+        QVERIFY(plainFile.open(QIODevice::WriteOnly));
+        plainFile.close();
+        QFile sourceFile(source.filePath("item.txt"));
+        QVERIFY(sourceFile.open(QIODevice::WriteOnly));
+        sourceFile.close();
+
+        FolderModel folder;
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.count(), 3);
+        const int writable = folder.indexForKeyboardSearch("writable", 0);
+        const int readonly = folder.indexForKeyboardSearch("readonly", 0);
+        const int file = folder.indexForKeyboardSearch("plain.txt", 0);
+        QVERIFY(writable >= 0);
+        QVERIFY(readonly >= 0);
+        QVERIFY(file >= 0);
+
+        QMimeData mimeData;
+        mimeData.setUrls({QUrl::fromLocalFile(sourceFile.fileName())});
+        QVERIFY(folder.canDrop(&mimeData, writable, Qt::MoveAction));
+        QVERIFY(folder.canDrop(&mimeData, -1, Qt::CopyAction));
+        QVERIFY(!folder.canDrop(&mimeData, file, Qt::MoveAction));
+
+        const QString readonlyPath = directory.filePath("readonly");
+        QVERIFY(QFile::setPermissions(readonlyPath, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+        QVERIFY(!QFileInfo(readonlyPath).isWritable());
+        QVERIFY(!folder.canDrop(&mimeData, readonly, Qt::MoveAction));
+
+        QObject event;
+        event.setProperty("mimeData", QVariant::fromValue<QObject *>(&mimeData));
+        event.setProperty("dropAction", int(Qt::MoveAction));
+        QSignalSpy tasks(Cutefish::IO::TaskController::instance(),
+                         &Cutefish::IO::TaskController::taskAdded);
+        folder.drop(nullptr, &event, readonly);
+        QCOMPARE(tasks.count(), 0);
+        QVERIFY(QFile::setPermissions(
+                readonlyPath,
+                QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner));
+
+        const QUrl home = QUrl::fromLocalFile(
+                QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+        const QUrl documents = QUrl::fromLocalFile(
+                QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+        QVERIFY(!Cutefish::IO::canMoveStandardFolderTo(home, home));
+        if (documents != home) {
+            QVERIFY(Cutefish::IO::isStandardFolder(documents));
+            QVERIFY(Cutefish::IO::canMoveStandardFolderTo(documents, home));
+            QVERIFY(!Cutefish::IO::canMoveStandardFolderTo(
+                    documents, QUrl::fromLocalFile(directory.filePath("writable"))));
+            mimeData.setUrls({documents});
+            QVERIFY(!folder.canDrop(&mimeData, writable, Qt::MoveAction));
+            QVERIFY(folder.canDrop(&mimeData, writable, Qt::CopyAction));
+        }
     }
 
     void progressDialogPresentation()

@@ -97,17 +97,21 @@ FishUI.Window {
         syncNavigation()
     }
 
-    function updateCurrentViewDragPosition(source, x, y) {
+    function updateCurrentViewDragPosition(source, event) {
         var view = root._folderPage ? root._folderPage.currentView : null
         if (!view)
-            return
+            return false
 
-        view.updateDragScrollPosition(source.mapToItem(view, x, y).y)
+        var position = source.mapToItem(view, event.x, event.y)
+        view.updateDragScrollPosition(position.y)
+        return view.updateDropTarget(event, position)
     }
 
     function stopCurrentViewDragScroll() {
-        if (root._folderPage && root._folderPage.currentView)
+        if (root._folderPage && root._folderPage.currentView) {
             root._folderPage.currentView.stopDragScroll()
+            root._folderPage.currentView.clearDropTarget()
+        }
     }
 
     function dropOnCurrentView(source, event, x, y) {
@@ -318,10 +322,12 @@ FishUI.Window {
         z: 1000
 
         onDragEnter: function(event) {
-            root.updateCurrentViewDragPosition(_headerDragArea, event.x, event.y)
+            root.updateCurrentViewDragPosition(_headerDragArea, event)
+            event.accept(Qt.MoveAction)
         }
         onDragMove: function(event) {
-            root.updateCurrentViewDragPosition(_headerDragArea, event.x, event.y)
+            root.updateCurrentViewDragPosition(_headerDragArea, event)
+            event.accept(Qt.MoveAction)
         }
         onDragLeave: root.stopCurrentViewDragScroll()
         onDrop: {
@@ -373,10 +379,12 @@ FishUI.Window {
                 z: 10
 
                 onDragEnter: function(event) {
-                    root.updateCurrentViewDragPosition(_contentDragArea, event.x, event.y)
+                    root.updateCurrentViewDragPosition(_contentDragArea, event)
+                    event.accept(Qt.MoveAction)
                 }
                 onDragMove: function(event) {
-                    root.updateCurrentViewDragPosition(_contentDragArea, event.x, event.y)
+                    root.updateCurrentViewDragPosition(_contentDragArea, event)
+                    event.accept(Qt.MoveAction)
                 }
                 onDragLeave: root.stopCurrentViewDragScroll()
                 onDrop: function(event) {
@@ -442,10 +450,12 @@ FishUI.Window {
             z: 10
 
             onDragEnter: function(event) {
-                root.updateCurrentViewDragPosition(_navigationDragArea, event.x, event.y)
+                root.updateCurrentViewDragPosition(_navigationDragArea, event)
+                event.accept(Qt.MoveAction)
             }
             onDragMove: function(event) {
-                root.updateCurrentViewDragPosition(_navigationDragArea, event.x, event.y)
+                root.updateCurrentViewDragPosition(_navigationDragArea, event)
+                event.accept(Qt.MoveAction)
             }
             onDragLeave: root.stopCurrentViewDragScroll()
             onDrop: {

@@ -38,6 +38,8 @@ GridView {
     property Item rubberBand: null
     property Item hoveredItem: null
     property Item pressedItem: null
+    property Item dropTargetItem: null
+    property bool dropTargetAllowed: false
 
     property alias positions: positioner.positions
     property alias positioner: positioner
@@ -202,10 +204,18 @@ GridView {
         var dropIndex = control.indexAt(dropPos.x, dropPos.y)
         var dragPos = mapToItem(control.contentItem, control.dragX, control.dragY)
         var dragIndex = control.indexAt(dragPos.x, dragPos.y)
+        var row = dropItemAt(dropPos)
 
-        if (control.dragX === -1 || dragIndex !== dropIndex) {
-            dirModel.drop(control, event, dropItemAt(dropPos))
+        if ((control.dragX !== -1 && dragIndex === dropIndex)
+                || !dirModel.canDrop(event.mimeData, row, event.dropAction)) {
+            event.ignore()
+            control.clearDropTarget()
+            return
         }
+
+        event.accept(event.dropAction)
+        dirModel.drop(control, event, row)
+        control.clearDropTarget()
     }
 
     function dropItemAt(pos) {
@@ -227,6 +237,40 @@ GridView {
         }
 
         return -1
+    }
+
+    function updateDropTarget(event, pos) {
+        if (pos.x < 0 || pos.y < 0 || pos.x > control.width || pos.y > control.height) {
+            control.clearDropTarget()
+            return false
+        }
+
+        var dropPos = mapToItem(control.contentItem, pos.x, pos.y)
+        var item = control.itemAt(dropPos.x, dropPos.y)
+        var row = control.dropItemAt(dropPos)
+        var isDraggedItem = dirModel.dragging && item && item.selected
+        control.dropTargetItem = row >= 0 && item && !item.blank && item.isDir && !isDraggedItem
+                ? item : null
+        control.dropTargetAllowed = dirModel.canDrop(event.mimeData, row,
+                                                     control.dropActionForEvent(event))
+        return control.dropTargetAllowed
+    }
+
+    function dropActionForEvent(event) {
+        if (event.modifiers === Qt.NoModifier && event.possibleActions & Qt.MoveAction)
+            return Qt.MoveAction
+        if (event.proposedAction !== Qt.IgnoreAction)
+            return event.proposedAction
+        if (event.possibleActions & Qt.MoveAction)
+            return Qt.MoveAction
+        if (event.possibleActions & Qt.CopyAction)
+            return Qt.CopyAction
+        return Qt.IgnoreAction
+    }
+
+    function clearDropTarget() {
+        control.dropTargetItem = null
+        control.dropTargetAllowed = false
     }
 
     function updateDragScrollPosition(y) {
@@ -558,13 +602,20 @@ GridView {
 
         onDragEnter: function(event) {
             control.updateDragScrollPosition(event.y)
+            control.updateDropTarget(event, Qt.point(event.x, event.y))
+            event.accept(Qt.MoveAction)
         }
 
         onDragMove: function(event) {
             control.updateDragScrollPosition(event.y)
+            control.updateDropTarget(event, Qt.point(event.x, event.y))
+            event.accept(Qt.MoveAction)
         }
 
-        onDragLeave: control.stopDragScroll()
+        onDragLeave: {
+            control.stopDragScroll()
+            control.clearDropTarget()
+        }
 
         onDrop: function(event) {
             control.stopDragScroll()

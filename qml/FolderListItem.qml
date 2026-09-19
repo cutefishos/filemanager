@@ -42,6 +42,9 @@ Item {
     property bool hovered: view && view.hoveredItem === _listItem
     property bool selected: model.selected
     property bool blank: model.blank
+    property bool isDir: model.isDir
+    readonly property bool dropTarget: view && view.dropTargetItem === _listItem
+    readonly property bool dropAllowed: dropTarget && view.dropTargetAllowed
 
     readonly property bool previousSelected: {
         dirModel.selectionCount
@@ -94,6 +97,8 @@ Item {
         rowIndex: _listItem.index
         selected: _listItem.selected
         hovered: _listItem.hovered
+        dropTarget: _listItem.dropTarget
+        dropAllowed: _listItem.dropAllowed
         previousSelected: _listItem.previousSelected
         nextSelected: _listItem.nextSelected
     }

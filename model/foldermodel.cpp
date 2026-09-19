@@ -1546,6 +1546,84 @@ void FolderModel::startPendingDrag()
                               Q_ARG(int, m_pendingDragPos.x()), Q_ARG(int, m_pendingDragPos.y()));
 }
 
+QUrl FolderModel::dropTargetUrl(int row) const
+{
+    Cutefish::IO::FileItem item;
+
+    if (row >= 0) {
+        if (row >= rowCount())
+            return {};
+        item = itemForIndex(index(row, 0));
+        if (!item.isDir())
+            return {};
+    } else {
+        item = rootItem();
+    }
+
+    QUrl targetUrl = item.isNull() ? m_dirModel->dirLister()->url() : item.mostLocalUrl();
+    if (targetUrl.fileName() == QLatin1Char('.'))
+        targetUrl = targetUrl.adjusted(QUrl::RemoveFilename);
+
+    return targetUrl;
+}
+
+bool FolderModel::canDropUrls(const QList<QUrl> &urls, int row, Qt::DropAction action) const
+{
+    if (urls.isEmpty() || action == Qt::IgnoreAction)
+        return false;
+
+    const QUrl targetUrl = dropTargetUrl(row);
+    if (targetUrl.isEmpty())
+        return false;
+
+    if (targetUrl.scheme() != QLatin1String("trash")) {
+        const QString targetPath = targetUrl.toLocalFile();
+        const QFileInfo targetInfo(targetPath);
+        if (targetPath.isEmpty() || !targetInfo.isDir() || !targetInfo.isWritable()
+            || !targetInfo.isExecutable())
+            return false;
+    }
+
+    if (m_isDesktop && m_dragInProgress && row == -1
+        && isDropBetweenSharedViews(urls, targetUrl))
+        return true;
+
+    const QUrl normalizedTarget =
+            targetUrl.adjusted(QUrl::NormalizePathSegments | QUrl::StripTrailingSlash);
+    const QString targetPath = QDir::cleanPath(targetUrl.toLocalFile());
+    const bool moving = action == Qt::MoveAction || action == Qt::TargetMoveAction;
+
+    for (const QUrl &url : urls) {
+        const QUrl normalizedSource =
+                url.adjusted(QUrl::NormalizePathSegments | QUrl::StripTrailingSlash);
+        if (normalizedSource == normalizedTarget)
+            return false;
+
+        if (url.isLocalFile() && targetUrl.isLocalFile()) {
+            const QString sourcePath = QDir::cleanPath(url.toLocalFile());
+            if (QFileInfo(sourcePath).absolutePath() == targetPath || targetPath == sourcePath
+                || targetPath.startsWith(sourcePath + QLatin1Char('/')))
+                return false;
+            if (moving) {
+                const QFileInfo sourceParent(QFileInfo(sourcePath).absolutePath());
+                if (!sourceParent.isWritable() || !sourceParent.isExecutable())
+                    return false;
+            }
+        }
+
+        if (moving && !Cutefish::IO::canMoveStandardFolderTo(url, targetUrl))
+            return false;
+    }
+    return true;
+}
+
+bool FolderModel::canDrop(QObject *mimeDataObject, int row, int action) const
+{
+    const auto *mimeData = qobject_cast<QMimeData *>(mimeDataObject);
+    return mimeData
+            && canDropUrls(mimeData->urls(), row, static_cast<Qt::DropAction>(action));
+}
+
 void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
 {
     QMimeData *mimeData =
@@ -1555,40 +1633,14 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
         return;
     }
 
-    QModelIndex idx;
-    Cutefish::IO::FileItem item;
+    const QVariant acceptedAction = dropEvent->property("dropAction");
+    const auto action = static_cast<Qt::DropAction>(
+            acceptedAction.isValid() ? acceptedAction.toInt()
+                                     : dropEvent->property("proposedAction").toInt());
+    if (!canDropUrls(mimeData->urls(), row, action))
+        return;
 
-    if (row > -1 && row < rowCount()) {
-        idx = index(row, 0);
-        item = itemForIndex(idx);
-    }
-
-    QUrl dropTargetUrl;
-
-    // So we get to run mostLocalUrl() over the current URL.
-    if (item.isNull()) {
-        item = rootItem();
-    }
-
-    if (item.isNull()) {
-        dropTargetUrl = m_dirModel->dirLister()->url();
-    } else {
-        dropTargetUrl = item.mostLocalUrl();
-    }
-
-    auto dropTargetFolderUrl = dropTargetUrl;
-    if (dropTargetFolderUrl.fileName() == QLatin1Char('.')) {
-        // the target URL for desktop:/ is e.g. 'file://home/user/Desktop/.'
-        dropTargetFolderUrl = dropTargetFolderUrl.adjusted(QUrl::RemoveFilename);
-    }
-
-    const QUrl normalizedTarget =
-            dropTargetFolderUrl.adjusted(QUrl::NormalizePathSegments | QUrl::StripTrailingSlash);
-    for (const QUrl &url : mimeData->urls()) {
-        if (url.adjusted(QUrl::NormalizePathSegments | QUrl::StripTrailingSlash)
-            == normalizedTarget)
-            return;
-    }
+    const QUrl targetUrl = dropTargetUrl(row);
 
     const int x = dropEvent->property("x").toInt();
     const int y = dropEvent->property("y").toInt();
@@ -1607,27 +1659,13 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
         return;
     }
 
-    if (idx.isValid() && !(flags(idx) & Qt::ItemIsDropEnabled)) {
-        return;
-    }
-
-    if (!isDropBetweenSharedViews(mimeData->urls(), dropTargetFolderUrl)) {
+    if (!isDropBetweenSharedViews(mimeData->urls(), targetUrl)) {
         if (m_isDesktop && row == -1) {
             for (const QUrl &url : mimeData->urls())
                 m_dropTargetPositions.insert(url.fileName(), QPoint(x, y));
             m_dropTargetPositionsCleanup->start();
         }
-        const QVariant acceptedAction = dropEvent->property("dropAction");
-        const auto action = static_cast<Qt::DropAction>(
-                acceptedAction.isValid() ? acceptedAction.toInt()
-                                         : dropEvent->property("proposedAction").toInt());
-        if (action == Qt::MoveAction) {
-            for (const QUrl &url : mimeData->urls()) {
-                if (Cutefish::IO::isStandardFolder(url))
-                    return;
-            }
-        }
-        Cutefish::IO::Task *job = Cutefish::IO::drop(mimeData, dropTargetUrl, action);
+        Cutefish::IO::Task *job = Cutefish::IO::drop(mimeData, targetUrl, action);
         job->start();
 
         // Add select
@@ -1982,7 +2020,7 @@ void FolderModel::dragSelectedInternal(int x, int y)
     const QUrl currentUrl(m_dirModel->dirLister()->url());
 
     item->grabMouse();
-    drag->exec(supportedDragActions());
+    drag->exec(supportedDragActions(), Qt::MoveAction);
     item->ungrabMouse();
 
     m_dragInProgress = false;
