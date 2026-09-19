@@ -41,6 +41,7 @@ ListView {
     property bool dragScrollActive: false
 
     readonly property real dragScrollEdge: 48
+    readonly property real rubberBandScrollEdge: 24
     readonly property int dragScrollRamp: 180
     readonly property real dragScrollMaxSpeed: 560
     readonly property int dragScrollInterval: 16
@@ -109,8 +110,9 @@ ListView {
         dragPositionY = y
         dragScrollActive = true
 
-        var direction = y < headerHeight + dragScrollEdge ? -1
-                        : y > control.height - dragScrollEdge ? 1 : 0
+        var edge = control.rubberBand ? rubberBandScrollEdge : dragScrollEdge
+        var direction = y < headerHeight + edge ? -1
+                        : y > control.height - edge ? 1 : 0
         if (direction === dragScrollDirection)
             return
 
@@ -134,10 +136,11 @@ ListView {
         dragScrollElapsed += dragScrollInterval
         var minimum = control.originY - control.topMargin
         var maximum = Math.max(minimum, control.contentHeight + control.bottomMargin - control.height + control.originY)
+        var edge = control.rubberBand ? rubberBandScrollEdge : dragScrollEdge
         var distance = dragScrollDirection < 0
-                ? headerHeight + dragScrollEdge - dragPositionY
-                : dragPositionY - (control.height - dragScrollEdge)
-        var edgeProgress = Math.max(0, Math.min(1, distance / dragScrollEdge))
+                ? headerHeight + edge - dragPositionY
+                : dragPositionY - (control.height - edge)
+        var edgeProgress = Math.max(0, Math.min(1, distance / edge))
         var rampProgress = Math.max(0, Math.min(1,
                                                   dragScrollElapsed / dragScrollRamp))
         var ramp = 1 - Math.pow(1 - rampProgress, 3)

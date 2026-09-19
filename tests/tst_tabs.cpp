@@ -68,6 +68,22 @@ private slots:
         const qreal stopped = view->property("contentY").toReal();
         QTest::qWait(100);
         QCOMPARE(view->property("contentY").toReal(), stopped);
+
+        const qreal dragEdge = view->property("dragScrollEdge").toReal();
+        const qreal rubberBandEdge = view->property("rubberBandScrollEdge").toReal();
+        QVERIFY(rubberBandEdge < dragEdge);
+        view->setProperty("rubberBand", QVariant::fromValue(view));
+        const qreal headerHeight = view->property("headerHeight").toReal();
+        QVERIFY(QMetaObject::invokeMethod(
+                view, "updateDragScrollPosition",
+                Q_ARG(QVariant, headerHeight + (dragEdge + rubberBandEdge) / 2)));
+        QCOMPARE(view->property("dragScrollDirection").toInt(), 0);
+        QVERIFY(QMetaObject::invokeMethod(
+                view, "updateDragScrollPosition",
+                Q_ARG(QVariant, headerHeight + rubberBandEdge - 1)));
+        QCOMPARE(view->property("dragScrollDirection").toInt(), -1);
+        QVERIFY(QMetaObject::invokeMethod(view, "stopDragScroll"));
+        view->setProperty("rubberBand", QVariant::fromValue<QQuickItem *>(nullptr));
     }
 
     void navigationAndLifetime()
