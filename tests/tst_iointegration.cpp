@@ -86,6 +86,134 @@ private slots:
         QApplication::clipboard()->clear();
     }
 
+    void destructiveOperationsFollowSelectionAfterReordering()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const QStringList names = {QStringLiteral("a-keep.txt"),
+                                   QStringLiteral("m-target #%.txt"),
+                                   QStringLiteral("z-keep.txt")};
+
+        for (const auto &name : names) {
+            QFile file(directory.filePath(name));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(name.toUtf8()), name.toUtf8().size());
+        }
+
+        FolderModel folder;
+        folder.setUrl(directory.path());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        const auto target = QUrl::fromLocalFile(directory.filePath(names[1]));
+        folder.setSelected(folder.indexForUrl(target).row());
+        QSignalSpy completed(&folder, &FolderModel::listingCompleted);
+        folder.setFilterMimeTypes({QStringLiteral("all/all")});
+        folder.setFilterPattern("a-*");
+        folder.setFilterMode(FolderModel::FilterHideMatches);
+        folder.setSortDesc(true);
+        QTRY_VERIFY(!completed.isEmpty());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QCOMPARE(folder.rowCount(), 2);
+        QCOMPARE(folder.selectedUrls(), QList<QUrl>({target}));
+
+        const auto renamed = QString::fromUtf8("renamed 文件 #%.txt");
+        QList<Cutefish::IO::TaskResult> results;
+        connect(Cutefish::IO::TaskController::instance(),
+                &Cutefish::IO::TaskController::taskFinished, &folder,
+                [&](Cutefish::IO::Task *task) {
+            const auto operation = task->request().operation;
+
+            if (operation == Cutefish::IO::Operation::Rename
+                || operation == Cutefish::IO::Operation::Trash) {
+                results.append(task->outcome());
+            }
+        });
+        folder.rename(folder.indexForUrl(target).row(), renamed);
+        QTRY_COMPARE(results.size(), 1);
+        QCOMPARE(results[0].error.code, 0);
+        QCOMPARE(results[0].completedSources, QList<QUrl>({target}));
+        QVERIFY(!QFileInfo::exists(target.toLocalFile()));
+        const auto renamedUrl = QUrl::fromLocalFile(directory.filePath(renamed));
+        QTRY_VERIFY(folder.indexForUrl(renamedUrl).isValid());
+        folder.clearSelection();
+        folder.setSelected(folder.indexForUrl(renamedUrl).row());
+
+        completed.clear();
+        folder.setSortDesc(false);
+        QTRY_VERIFY(!completed.isEmpty());
+        QCOMPARE(folder.selectedUrls(), QList<QUrl>({renamedUrl}));
+        folder.moveSelectedToTrash();
+        QTRY_COMPARE(results.size(), 2);
+        QCOMPARE(results[1].error.code, 0);
+        QCOMPARE(results[1].completedSources, QList<QUrl>({renamedUrl}));
+        QVERIFY(!QFileInfo::exists(renamedUrl.toLocalFile()));
+        QTRY_COMPARE(folder.rowCount(), 1);
+        QCOMPARE(folder.selectionCount(), 0);
+
+        folder.deleteSelected();
+        QCOMPARE(results.size(), 2);
+
+        for (int i : {0, 2}) {
+            QFile file(directory.filePath(names[i]));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            QCOMPARE(file.readAll(), names[i].toUtf8());
+        }
+
+        FolderModel trash;
+        trash.setUrl("trash:/");
+        QTRY_COMPARE(trash.status(), FolderModel::Ready);
+        QCOMPARE(results[1].outputs.size(), 1);
+        const auto trashed = trash.indexForUrl(results[1].outputs.first());
+        QVERIFY(trashed.isValid());
+        trash.setSelected(trashed.row());
+        trash.restoreFromTrash();
+        QTRY_VERIFY(QFileInfo::exists(renamedUrl.toLocalFile()));
+        QTRY_COMPARE(trash.rowCount(), 0);
+        QFile restored(renamedUrl.toLocalFile());
+        QVERIFY(restored.open(QIODevice::ReadOnly));
+        QCOMPARE(restored.readAll(), names[1].toUtf8());
+    }
+
+    void filteredSelectionCannotDeleteReplacementRow()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+
+        for (const auto &name : {QStringLiteral("a.txt"), QStringLiteral("b.txt")}) {
+            QFile file(directory.filePath(name));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write("keep"), 4);
+        }
+
+        FolderModel folder;
+        folder.setUrl(directory.path());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        folder.setSelected(0);
+        folder.setFilterMimeTypes({QStringLiteral("all/all")});
+        folder.setFilterPattern("b.txt");
+        folder.setFilterMode(FolderModel::FilterShowMatches);
+        QTRY_COMPARE(folder.rowCount(), 1);
+        QCOMPARE(folder.fileItem(0).name(), QStringLiteral("b.txt"));
+        QCOMPARE(folder.selectionCount(), 0);
+        QSignalSpy added(Cutefish::IO::TaskController::instance(),
+                         &Cutefish::IO::TaskController::taskAdded);
+        folder.deleteSelected();
+        folder.moveSelectedToTrash();
+        folder.rename(-1, "invalid.txt");
+        folder.rename(folder.rowCount(), "invalid.txt");
+        folder.rename(0, "../escaped.txt");
+        folder.rename(0, ".");
+        folder.rename(0, "..");
+        folder.rename(0, QString());
+        folder.rename(0, QStringLiteral("null") + QChar(0) + QStringLiteral("name"));
+        QCOMPARE(added.count(), 0);
+
+        for (const auto &name : {QStringLiteral("a.txt"), QStringLiteral("b.txt")}) {
+            QFile file(directory.filePath(name));
+            QVERIFY(file.open(QIODevice::ReadOnly));
+            QCOMPARE(file.readAll(), QByteArray("keep"));
+        }
+    }
+
     void acceptedDropAction_data()
     {
         QTest::addColumn<int>("action");

@@ -2,12 +2,15 @@
 
 #include <QAbstractItemModelTester>
 #include <QFile>
+#include <QMimeData>
 #include <QPersistentModelIndex>
 #include <QScopeGuard>
 #include <QSemaphore>
 #include <QTemporaryDir>
 #include <QThreadPool>
 #include <QtTest>
+
+#include <algorithm>
 
 class FolderContentsTest : public QObject
 {
@@ -22,6 +25,123 @@ private:
     }
 
 private slots:
+    void repeatedRefreshPreservesIdentity()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QMap<QString, QByteArray> expected;
+
+        for (int i = 0; i < 800; ++i) {
+            const auto name = QStringLiteral("%1.txt").arg(i, 4, 10, QLatin1Char('0'));
+            expected.insert(name, QByteArray::number(i));
+            QVERIFY(writeFile(directory.filePath(name), expected.value(name)));
+        }
+
+        FolderModel folder;
+        folder.setIsDesktop(true);
+        QAbstractItemModelTester tester(&folder,
+                QAbstractItemModelTester::FailureReportingMode::QtTest);
+        folder.setUrl(directory.path());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QCOMPARE(folder.rowCount(), expected.size());
+
+        for (int round = 0; round < 3; ++round) {
+            QMap<QString, QPersistentModelIndex> previous;
+
+            for (int row = 0; row < folder.rowCount(); ++row)
+                previous.insert(folder.fileItem(row).name(), folder.index(row, 0));
+
+            folder.sourceModel()->dirLister()->stop();
+            const auto names = expected.keys();
+
+            for (int i = 0; i < names.size(); ++i) {
+                const auto &name = names[i];
+
+                // Cover both removals larger than one batch and separated removal ranges.
+                if ((round == 0 && i < 300) || (round > 0 && i % 3 == 0)) {
+                    QVERIFY(QFile::remove(directory.filePath(name)));
+                    expected.remove(name);
+                } else {
+                    expected[name].append("-updated");
+                    QVERIFY(writeFile(directory.filePath(name), expected.value(name)));
+                }
+            }
+
+            for (int i = 0; i < 270; ++i) {
+                const auto name = QStringLiteral("new-%1-%2.txt")
+                        .arg(round).arg(i, 4, 10, QLatin1Char('0'));
+                expected.insert(name, QByteArray(i % 31 + 1, 'x'));
+                QVERIFY(writeFile(directory.filePath(name), expected.value(name)));
+            }
+
+            QSignalSpy completed(&folder, &FolderModel::listingCompleted);
+            folder.setSortDesc(round % 2 == 0);
+            folder.refresh();
+            QTRY_VERIFY_WITH_TIMEOUT(!completed.isEmpty(), 15000);
+            QTRY_COMPARE(folder.status(), FolderModel::Ready);
+            QCOMPARE(folder.rowCount(), expected.size());
+            auto ordered = expected.keys();
+
+            if (round % 2 == 0)
+                std::reverse(ordered.begin(), ordered.end());
+
+            for (int row = 0; row < ordered.size(); ++row) {
+                const auto item = folder.fileItem(row);
+                const auto url = QUrl::fromLocalFile(directory.filePath(ordered[row]));
+                QCOMPARE(item.url(), url);
+                QCOMPARE(item.size(), quint64(expected.value(ordered[row]).size()));
+                QCOMPARE(folder.indexForUrl(url), folder.index(row, 0));
+                QCOMPARE(folder.mapFromSource(folder.mapToSource(folder.index(row, 0))),
+                         folder.index(row, 0));
+            }
+
+            for (auto it = previous.cbegin(); it != previous.cend(); ++it) {
+                QCOMPARE(it.value().isValid(), expected.contains(it.key()));
+
+                if (it.value().isValid())
+                    QCOMPARE(folder.itemForIndex(it.value()).name(), it.key());
+            }
+        }
+    }
+
+    void dragUrlsPreserveSpecialNamesAndRejectForeignIndexes()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const QStringList names = {QStringLiteral("space # 100%.txt"),
+                                   QString::fromUtf8("文件 🐟.txt"),
+                                   QStringLiteral("line\nbreak.txt")};
+
+        for (const auto &name : names)
+            QVERIFY(writeFile(directory.filePath(name)));
+
+        FolderModel folder;
+        folder.setIsDesktop(true);
+        folder.setUrl(directory.path());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        FolderModel foreign;
+        foreign.setIsDesktop(true);
+        foreign.setUrl(directory.path());
+        QTRY_COMPARE(foreign.status(), FolderModel::Ready);
+        QModelIndexList indexes = {{}, foreign.index(0, 0)};
+        QList<QUrl> expected;
+
+        for (const auto &name : names) {
+            const auto url = QUrl::fromLocalFile(directory.filePath(name));
+            const auto index = folder.indexForUrl(url);
+            QVERIFY(index.isValid());
+            indexes.append(index);
+            indexes.append(index);
+            expected.append(url);
+        }
+
+        QScopedPointer<QMimeData> mime(folder.mimeData(indexes));
+        QCOMPARE(mime->urls(), expected);
+        QMimeData roundTrip;
+        roundTrip.setData("text/uri-list", mime->data("text/uri-list"));
+        QCOMPARE(roundTrip.urls(), expected);
+    }
+
     void largeDirectoryPublishesBetweenEventLoopTurns()
     {
         QTemporaryDir directory;
@@ -183,6 +303,53 @@ private slots:
         QTRY_COMPARE(folder.status(), FolderModel::Ready);
         QCOMPARE(folder.rowCount(), 1);
         QCOMPARE(folder.fileItem(0).name(), QStringLiteral("destination.txt"));
+    }
+
+    void filterDuringRemovalDiscardsObsoletePublication()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+
+        for (int i = 0; i < 800; ++i) {
+            const auto name = QStringLiteral("%1.txt").arg(i, 4, 10, QLatin1Char('0'));
+            QVERIFY(writeFile(directory.filePath(name)));
+        }
+
+        FolderModel folder;
+        folder.setIsDesktop(true);
+        QAbstractItemModelTester tester(&folder,
+                QAbstractItemModelTester::FailureReportingMode::QtTest);
+        folder.setUrl(directory.path());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        const auto selectedUrl = QUrl::fromLocalFile(directory.filePath("0000.txt"));
+        QPersistentModelIndex selected(folder.indexForUrl(selectedUrl));
+        folder.setSelected(selected.row());
+        QSignalSpy completed(&folder, &FolderModel::listingCompleted);
+        bool changedQuery = false;
+
+        connect(&folder, &QAbstractItemModel::rowsRemoved, this,
+                [&](const QModelIndex &, int first, int last) {
+            QVERIFY(last - first + 1 <= 256);
+
+            if (changedQuery)
+                return;
+
+            changedQuery = true;
+            QTimer::singleShot(0, &folder, [&] {
+                folder.setFilterPattern("0000.txt");
+            });
+        });
+
+        folder.setFilterMimeTypes({QStringLiteral("all/all")});
+        folder.setFilterPattern("missing*");
+        folder.setFilterMode(FolderModel::FilterShowMatches);
+        QTRY_VERIFY(changedQuery);
+        QTRY_VERIFY(!completed.isEmpty());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QCOMPARE(folder.rowCount(), 1);
+        QVERIFY(selected.isValid());
+        QCOMPARE(folder.itemForIndex(selected).url(), selectedUrl);
+        QCOMPARE(folder.selectedUrls(), QList<QUrl>({selectedUrl}));
     }
 
     void desktopRolesUsePreparedSnapshot()
