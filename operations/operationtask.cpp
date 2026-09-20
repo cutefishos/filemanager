@@ -53,6 +53,13 @@ bool OperationTask::isFinished() const
     return m_finished;
 }
 
+// Bus name of the process that submitted a daemon task; empty for local ones.
+
+QString OperationTask::owner() const
+{
+    return m_snapshot.value(QStringLiteral("owner")).toString();
+}
+
 QString OperationTask::formattedSize(quint64 bytes) const
 {
     return QLocale().formattedDataSize(bytes, 1, QLocale::DataSizeSIFormat);

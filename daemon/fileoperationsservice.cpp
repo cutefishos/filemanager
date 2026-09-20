@@ -4,6 +4,7 @@
 #include "daemonarchivetask.h"
 
 #include <QDBusConnection>
+#include <QDBusMessage>
 #include <QUrl>
 
 #include <task.h>
@@ -21,6 +22,7 @@ QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStrin
 
     const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
     auto *task = new DaemonArchiveTask(path, operation, sources, outputPath, this);
+    task->setOwner(caller());
     const bool registered = QDBusConnection::sessionBus().registerObject(
             path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
     if (!registered) {
@@ -36,6 +38,15 @@ QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStrin
     return QDBusObjectPath(path);
 }
 
+// The bus name of the client that asked for the task. Clients use it to show
+// progress only for their own tasks, so one paste does not raise a dialog in
+// every process attached to the daemon.
+
+QString FileOperationsService::caller() const
+{
+    return calledFromDBus() ? message().service() : QString();
+}
+
 QStringList FileOperationsService::TaskPaths() const
 {
     return m_taskPaths;
@@ -49,6 +60,7 @@ QDBusObjectPath FileOperationsService::Undo()
 
     const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
     auto *task = new DaemonTask(path, undo, this);
+    task->setOwner(caller());
     const bool registered = QDBusConnection::sessionBus().registerObject(
             path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
     if (!registered) {
@@ -86,6 +98,7 @@ QDBusObjectPath FileOperationsService::Submit(int operation, const QStringList &
         Cutefish::IO::ConflictPolicy(conflictPolicy)};
     const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
     auto *task = new DaemonTask(path, request, this);
+    task->setOwner(caller());
     const bool registered = QDBusConnection::sessionBus().registerObject(
             path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
     if (!registered) {

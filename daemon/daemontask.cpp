@@ -76,6 +76,11 @@ QString DaemonTask::objectPath() const
     return m_objectPath;
 }
 
+void DaemonTask::setOwner(const QString &owner)
+{
+    m_snapshot.insert(QStringLiteral("owner"), owner);
+}
+
 QVariantMap DaemonTask::GetSnapshot() const
 {
     return m_snapshot;

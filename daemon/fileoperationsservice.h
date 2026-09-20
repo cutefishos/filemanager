@@ -1,9 +1,10 @@
 #pragma once
 
 #include <QObject>
+#include <QDBusContext>
 #include <QDBusObjectPath>
 
-class FileOperationsService : public QObject
+class FileOperationsService : public QObject, protected QDBusContext
 {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "com.cutefish.FileOperations.Manager1")
@@ -23,6 +24,8 @@ signals:
     void TaskAdded(const QString &path);
 
 private:
+    QString caller() const;
+
     quint64 m_nextTaskId = 1;
     QStringList m_taskPaths;
 };

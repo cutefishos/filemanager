@@ -26,6 +26,7 @@ public:
     bool waitingForConflict() const;
     QString conflictPath() const;
     bool isFinished() const;
+    QString owner() const;
 
     Q_INVOKABLE virtual void cancel() = 0;
     Q_INVOKABLE virtual void resolveConflict(int policy) = 0;

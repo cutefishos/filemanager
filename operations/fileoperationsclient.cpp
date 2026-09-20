@@ -268,7 +268,16 @@ OperationTask *FileOperationsClient::attachRemoteTask(const QString &path)
 
     auto *task = new RemoteOperationTask(path, snapshot.value(), this);
     m_remoteTasks.insert(path, task);
-    emit taskAdded(task);
+
+    // Another live process asked for this task and presents it itself. A task
+    // whose submitter is gone is adopted, so it does not run unseen.
+    const QString owner = task->owner();
+    auto bus = QDBusConnection::sessionBus();
+    const bool foreign = !owner.isEmpty() && owner != bus.baseService()
+            && bus.interface() && bus.interface()->isServiceRegistered(owner);
+    if (!foreign)
+        emit taskAdded(task);
+
     QTimer::singleShot(0, task, [task] { task->replayFinished(); });
     return task;
 }

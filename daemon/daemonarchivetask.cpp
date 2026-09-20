@@ -65,6 +65,11 @@ QString DaemonArchiveTask::objectPath() const
     return m_objectPath;
 }
 
+void DaemonArchiveTask::setOwner(const QString &owner)
+{
+    m_snapshot.insert(QStringLiteral("owner"), owner);
+}
+
 QVariantMap DaemonArchiveTask::GetSnapshot() const
 {
     return m_snapshot;

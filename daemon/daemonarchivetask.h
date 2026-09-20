@@ -15,6 +15,7 @@ public:
     DaemonArchiveTask(const QString &objectPath, int operation, const QStringList &sources,
                       const QString &outputPath, QObject *parent = nullptr);
     QString objectPath() const;
+    void setOwner(const QString &owner);
 
 public slots:
     QVariantMap GetSnapshot() const;

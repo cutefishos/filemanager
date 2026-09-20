@@ -16,6 +16,7 @@ public:
     DaemonTask(const QString &objectPath, Cutefish::IO::Task *task, QObject *parent = nullptr);
 
     QString objectPath() const;
+    void setOwner(const QString &owner);
 
 public slots:
     QVariantMap GetSnapshot() const;
