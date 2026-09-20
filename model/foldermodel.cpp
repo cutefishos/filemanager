@@ -778,19 +778,19 @@ bool FolderModel::lessThan(const QModelIndex &left, const QModelIndex &right) co
     if (result != 0)
         return result < 0;
 
-    QCollator collator;
-
-    result = collator.compare(leftItem.text(), rightItem.text());
-
-    if (result != 0)
-        return result < 0;
-
-    result = collator.compare(leftItem.name(), rightItem.name());
+    if (m_collator.locale() != QLocale())
+        m_collator.setLocale(QLocale());
+    result = m_collator.compare(leftItem.text(), rightItem.text());
 
     if (result != 0)
         return result < 0;
 
-    return QString::compare(leftItem.url().url(), rightItem.url().url(), Qt::CaseSensitive);
+    result = m_collator.compare(leftItem.name(), rightItem.name());
+
+    if (result != 0)
+        return result < 0;
+
+    return QString::compare(leftItem.url().url(), rightItem.url().url(), Qt::CaseSensitive) < 0;
 }
 
 Qt::DropActions FolderModel::supportedDragActions() const

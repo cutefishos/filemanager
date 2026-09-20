@@ -1,16 +1,25 @@
 #include "model/foldersizecache.h"
+#include "model/foldermodel.h"
 #include "thumbnailer/thumbnailcache.h"
 #include "thumbnailer/thumbnailprovider.h"
 
 #include <directory.h>
+#include <fileenumerator.h>
 #include <QFile>
 #include <QQuickTextureFactory>
 #include <QSemaphore>
+#include <QScopeGuard>
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QThreadPool>
 #include <QtTest>
 #include <memory>
+
+class SortableFolderModel : public FolderModel
+{
+public:
+    using FolderModel::lessThan;
+};
 
 class ResponsivenessTest : public QObject
 {
@@ -104,6 +113,93 @@ private slots:
         QVERIFY(QFile::remove(item.localPath()));
         QCOMPARE(item.mimetype(), QStringLiteral("text/plain"));
         QCOMPARE(item.size(), quint64(11));
+    }
+
+    void navigationStartsWithoutWaitingForPreviousDelivery()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QVERIFY(QDir(directory.path()).mkdir("first"));
+        QVERIFY(QDir(directory.path()).mkdir("second"));
+        QFile file(directory.filePath("second/only.txt"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.close();
+
+        Cutefish::IO::DirectoryLister lister;
+        QSignalSpy started(&lister, &Cutefish::IO::DirectoryLister::started);
+        QSignalSpy completed(&lister, &Cutefish::IO::DirectoryLister::completed);
+        lister.openUrl(QUrl::fromLocalFile(directory.filePath("first")));
+        lister.openUrl(QUrl::fromLocalFile(directory.filePath("second")));
+        QCOMPARE(started.count(), 2);
+        QTRY_COMPARE(completed.count(), 1);
+        QCOMPARE(lister.items().size(), 1);
+        QCOMPARE(lister.items().first().name(), QStringLiteral("only.txt"));
+    }
+
+    void navigationFromItemsChangedDoesNotCompleteOldListing()
+    {
+        QTemporaryDir first;
+        QTemporaryDir second;
+        QVERIFY(first.isValid());
+        QVERIFY(second.isValid());
+        Cutefish::IO::DirectoryLister lister;
+        QSignalSpy completed(&lister, &Cutefish::IO::DirectoryLister::completed);
+        int deliveries = 0;
+        connect(&lister, &Cutefish::IO::DirectoryLister::itemsChanged, this, [&] {
+            if (++deliveries == 1)
+                lister.openUrl(QUrl::fromLocalFile(second.path()));
+        });
+        lister.openUrl(QUrl::fromLocalFile(first.path()));
+        QTRY_COMPARE(deliveries, 2);
+        QCOMPARE(completed.count(), 1);
+        QCOMPARE(lister.url(), QUrl::fromLocalFile(second.path()));
+    }
+
+    void collationTiesHaveStrictOrdering()
+    {
+        const QLocale previousLocale;
+        const auto restoreLocale = qScopeGuard([previousLocale] {
+            QLocale::setDefault(previousLocale);
+        });
+        QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
+        const QString first = QString::fromUtf8("\xc3\xa9.txt");
+        const QString second = QString::fromUtf8("e\xcc\x81.txt");
+        if (QCollator().compare(first, second) != 0)
+            QSKIP("The platform collator does not equate canonical Unicode forms");
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        for (const QString &name : {first, second}) {
+            QFile file(directory.filePath(name));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+        }
+        SortableFolderModel folder;
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.rowCount(), 2);
+        const auto left = folder.sourceModel()->index(0, 0);
+        const auto right = folder.sourceModel()->index(1, 0);
+        QVERIFY(!folder.lessThan(left, left));
+        QVERIFY(folder.lessThan(left, right) != folder.lessThan(right, left));
+    }
+
+    void enumerationChecksCancellationBetweenEntries()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        for (int i = 0; i < 3; ++i) {
+            QFile file(directory.filePath(QString::number(i)));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+        }
+        Cutefish::IO::OperationContext context;
+        int visited = 0;
+        context.currentItem = [&](const QString &) {
+            ++visited;
+            context.canceled.store(true);
+        };
+        QVERIFY_EXCEPTION_THROWN(
+                Cutefish::IO::FileEnumerator::list(QUrl::fromLocalFile(directory.path()),
+                                                   true, &context),
+                Cutefish::IO::Failure);
+        QCOMPARE(visited, 1);
     }
 
     void thumbnailCacheHandlesUrlsAndRepairsCorruption()

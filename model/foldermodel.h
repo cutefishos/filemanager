@@ -40,6 +40,7 @@
 
 #include <QAction>
 #include <QHash>
+#include <QCollator>
 
 class QMenu;
 class QMimeData;
@@ -355,6 +356,7 @@ private:
     int m_sortMode;
     bool m_sortDesc;
     bool m_sortDirsFirst;
+    mutable QCollator m_collator;
 
     bool m_showHiddenFiles;
 
