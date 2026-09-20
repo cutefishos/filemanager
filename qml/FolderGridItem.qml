@@ -198,6 +198,8 @@ Item {
 
     Label {
         id: _label
+        property var selectionLines: []
+
         z: 2
         anchors.top: _iconItem.bottom
         anchors.horizontalCenter: parent.horizontalCenter
@@ -218,22 +220,90 @@ Item {
         // glyphs; the faint 1px edge hides the subpixel fringes instead.
         style: control.desktop && !control.selected ? Text.Raised : Text.Normal
         styleColor: Qt.rgba(0, 0, 0, 0.2)
+
+        onLineLaidOut: function(line) {
+            var lines = selectionLines.slice(0)
+            var naturalWidth = isFinite(line.implicitWidth) ? line.implicitWidth : line.width
+            var lineWidth = Math.max(0, Math.min(width, naturalWidth))
+
+            lines[line.number] = Qt.rect((width - lineWidth) / 2, line.y,
+                                         lineWidth, line.height)
+            if (line.isLast)
+                lines.length = line.number + 1
+            selectionLines = lines
+        }
     }
 
-    Rectangle {
+    Canvas {
+        id: _selectionBackground
+
         readonly property real hPadding: control.desktop ? 4 : FishUI.Units.smallSpacing / 2
-        readonly property real vPadding: control.desktop ? 1 : 0
+        readonly property real vPadding: control.desktop ? 1 : 0.5
+        readonly property color fillColor: FishUI.Theme.highlightColor
+        property var lineGeometry: _label.selectionLines
 
         z: 1
-        x: _label.x + (_label.width - _label.paintedWidth) / 2 - hPadding
+        x: _label.x - hPadding
         y: _label.y - vPadding
-        visible: _label.visible
-        width: _label.paintedWidth + hPadding * 2
-        height: _label.paintedHeight + vPadding * 2
-        radius: 4
-        color: FishUI.Theme.highlightColor
+        visible: control.selected && _label.visible
+        width: _label.width + hPadding * 2
+        height: _label.height + vPadding * 2
+        antialiasing: true
 
-        opacity: control.selected ? 1 : 0
+        onLineGeometryChanged: requestPaint()
+        onFillColorChanged: requestPaint()
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        onVisibleChanged: requestPaint()
+
+        function roundedRect(context, x, y, width, height, radius) {
+            var r = Math.min(radius, width / 2, height / 2)
+
+            context.moveTo(x + r, y)
+            context.lineTo(x + width - r, y)
+            context.quadraticCurveTo(x + width, y, x + width, y + r)
+            context.lineTo(x + width, y + height - r)
+            context.quadraticCurveTo(x + width, y + height,
+                                     x + width - r, y + height)
+            context.lineTo(x + r, y + height)
+            context.quadraticCurveTo(x, y + height, x, y + height - r)
+            context.lineTo(x, y + r)
+            context.quadraticCurveTo(x, y, x + r, y)
+            context.closePath()
+        }
+
+        onPaint: {
+            var context = getContext("2d")
+            context.clearRect(0, 0, width, height)
+            context.fillStyle = fillColor
+            context.beginPath()
+
+            for (var i = 0; i < lineGeometry.length; ++i) {
+                var line = lineGeometry[i]
+                if (!line || line.width <= 0 || line.height <= 0)
+                    continue
+
+                roundedRect(context, line.x, line.y,
+                            line.width + hPadding * 2,
+                            line.height + vPadding * 2, 4)
+
+                if (i > 0) {
+                    var previous = lineGeometry[i - 1]
+                    if (!previous)
+                        continue
+                    var bridgeLeft = Math.max(previous.x, line.x)
+                    var bridgeRight = Math.min(previous.x + previous.width,
+                                               line.x + line.width) + hPadding * 2
+                    var boundary = line.y + vPadding
+
+                    if (bridgeRight > bridgeLeft)
+                        context.rect(bridgeLeft, boundary - 2,
+                                     bridgeRight - bridgeLeft, 4)
+                }
+            }
+
+            context.fill()
+        }
     }
 
     // Soft halo from a blurred black copy; only its alpha survives the blur.
