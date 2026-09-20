@@ -248,7 +248,7 @@ FishUI.Window {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.margins: FishUI.Units.largeSpacing
-                    spacing: FishUI.Units.smallSpacing
+                    spacing: FishUI.Units.smallSpacing / 2
 
                     FileManagerControls.IconButton {
                         Layout.preferredWidth: 30
@@ -259,6 +259,7 @@ FishUI.Window {
                         pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.15)
                                                             : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.16)
                         iconName: "chevron-left"
+                        iconSize: 16
                         enabled: chooser.canGoBack
                         Accessible.name: qsTr("Back")
                         onClicked: chooser.back()
@@ -273,6 +274,7 @@ FishUI.Window {
                         pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.15)
                                                             : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.16)
                         iconName: "chevron-right"
+                        iconSize: 16
                         enabled: chooser.canGoForward
                         Accessible.name: qsTr("Forward")
                         onClicked: chooser.forward()
@@ -284,6 +286,7 @@ FishUI.Window {
                         id: pathBar
                         Layout.fillWidth: true
                         Layout.preferredHeight: 30
+                        Layout.leftMargin: FishUI.Units.smallSpacing / 2
 
                         function openEditor() {
                             pathEditor.text = pathBarModel.url

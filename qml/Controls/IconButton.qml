@@ -28,6 +28,7 @@ Item {
     property alias source: _image.source
     // A FishUI.Icon glyph drawn instead of source.
     property alias iconName: _icon.name
+    property int iconSize: 18
     property color backgroundColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
                                                           : FishUI.Theme.secondBackgroundColor
     property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.7)
@@ -53,7 +54,7 @@ Item {
     Image {
         id: _image
         anchors.centerIn: parent
-        width: 18
+        width: control.iconSize
         height: width
         sourceSize: Qt.size(width, height)
         smooth: false
@@ -65,7 +66,7 @@ Item {
     FishUI.Icon {
         id: _icon
         anchors.centerIn: parent
-        width: 18
+        width: control.iconSize
         height: width
         opacity: control.enabled ? 1 : 0.35
         visible: !!control.iconName

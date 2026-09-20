@@ -320,7 +320,7 @@ FishUI.Window {
             anchors.fill: parent
             anchors.leftMargin: _sideBar.width + FishUI.Units.smallSpacing * 1.5
             anchors.rightMargin: FishUI.Units.smallSpacing
-            spacing: FishUI.Units.smallSpacing
+            spacing: FishUI.Units.smallSpacing / 2
 
             readonly property int buttonSize: 31
 
@@ -339,6 +339,7 @@ FishUI.Window {
                 enabled: _folderPage && _folderPage.canGoBack
                 highlighted: root.dragHoverTarget === "back"
                 iconName: "chevron-left"
+                iconSize: 16
                 onClicked: _folderPage.goBack()
             }
 
@@ -352,6 +353,7 @@ FishUI.Window {
                 enabled: _folderPage && _folderPage.canGoForward
                 highlighted: root.dragHoverTarget === "forward"
                 iconName: "chevron-right"
+                iconSize: 16
                 onClicked: _folderPage.goForward()
             }
 
@@ -359,6 +361,7 @@ FishUI.Window {
                 id: _folderName
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.leftMargin: FishUI.Units.smallSpacing / 2
                 leftPadding: root.windowButtonsTopMargin
                 topPadding: root.windowButtonsTopMargin / 2
                 color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
