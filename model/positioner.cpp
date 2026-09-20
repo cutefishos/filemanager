@@ -652,7 +652,7 @@ void Positioner::sourceDataChanged(const QModelIndex &topLeft, const QModelIndex
             if (m_sourceToProxy.contains(i)) {
                 const QModelIndex &idx = index(m_sourceToProxy.value(i), 0);
 
-                emit dataChanged(idx, idx);
+                emit dataChanged(idx, idx, roles);
             }
         }
     } else {

@@ -1,30 +1,6 @@
-/***************************************************************************
- *   Copyright (C) 2006 David Faure <faure@kde.org>                        *
- *   Copyright (C) 2008 Fredrik Höglund <fredrik@kde.org>                  *
- *   Copyright (C) 2008 Rafael Fernández López <ereslibre@kde.org>         *
- *   Copyright (C) 2011 Marco Martin <mart@kde.org>                        *
- *   Copyright (C) 2014 by Eike Hein <hein@kde.org>                        *
- *   Copyright (C) 2021 Reven Martin <revenmartin@gmail.com>               *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA .        *
- ***************************************************************************/
+#pragma once
 
-#ifndef FOLDERMODEL_H
-#define FOLDERMODEL_H
-
+#include "foldercontentsmodel.h"
 #include "../helper/pathhistory.h"
 #include "../mimetype/mimeappmanager.h"
 #include "../widgets/itemviewadapter.h"
@@ -36,11 +12,9 @@
 #include <QQuickItem>
 #include <QRegularExpression>
 #include <QSet>
-#include <QSortFilterProxyModel>
 
 #include <QAction>
 #include <QHash>
-#include <QCollator>
 
 class QMenu;
 class QMimeData;
@@ -50,7 +24,7 @@ class CFileSizeJob;
 class OperationTask;
 class FolderSizeCache;
 
-class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
+class FolderModel : public FolderContentsModel, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
@@ -179,8 +153,6 @@ public:
     bool canGoBack() const;
     bool canGoForward() const;
 
-    bool isDir(const QModelIndex &index, const Cutefish::IO::DirectoryModel *dirModel) const;
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
     Qt::DropActions supportedDragActions() const override;
     Qt::DropActions supportedDropActions() const override;
@@ -324,8 +296,7 @@ private slots:
 
 private:
     void rememberNewDocumentPosition(const QString &name);
-    void invalidateIfComplete();
-    void invalidateFilterIfComplete();
+    void rebuildContents();
     void createActions();
     void updateActions();
     void addDragImage(QDrag *drag, int x, int y);
@@ -334,11 +305,6 @@ private:
     QUrl dropTargetUrl(int row) const;
 
     bool isSupportThumbnails(const QString &mimeType) const;
-
-protected:
-    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
-    bool matchMimeType(const Cutefish::IO::FileItem &item) const;
-    bool matchPattern(const Cutefish::IO::FileItem &item) const;
 
 private:
     Cutefish::IO::DirectoryModel *m_dirModel;
@@ -356,7 +322,6 @@ private:
     int m_sortMode;
     bool m_sortDesc;
     bool m_sortDirsFirst;
-    mutable QCollator m_collator;
 
     bool m_showHiddenFiles;
 
@@ -372,10 +337,7 @@ private:
 
     QString m_selectedItemSize;
 
-    // The context menu is a window of its own, so opening it takes the focus
-    // away from the view. The desktop reacts to losing focus by clearing the
-    // selection, which would leave every menu entry acting on nothing, so the
-    // selection is held for as long as this menu is up.
+    // Keep the selection while the context menu temporarily owns focus.
     QPointer<QMenu> m_contextMenu;
 
     QHash<QString, QAction *> m_actions;
@@ -412,5 +374,3 @@ private:
 
     QTimer *m_updateNeedSelectTimer;
 };
-
-#endif // FOLDERMODEL_H

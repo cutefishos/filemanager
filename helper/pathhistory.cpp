@@ -31,6 +31,19 @@ void PathHistory::append(const QUrl &path)
     m_prevHistory.append(path);
 }
 
+void PathHistory::replaceCurrent(const QUrl &path)
+{
+    if (m_prevHistory.isEmpty()) {
+        m_prevHistory.append(path);
+        return;
+    }
+
+    m_prevHistory.last() = path;
+
+    if (m_prevHistory.size() > 1 && m_prevHistory[m_prevHistory.size() - 2] == path)
+        m_prevHistory.removeLast();
+}
+
 QUrl PathHistory::first()
 {
     return m_prevHistory.first();
@@ -85,4 +98,3 @@ QUrl PathHistory::previousPath()
     m_postHistory.append(m_prevHistory.takeLast());
     return m_prevHistory.takeLast();
 }
-

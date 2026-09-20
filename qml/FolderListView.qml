@@ -98,9 +98,12 @@ ListView {
     function refreshDragImages() {
         dirModel.setDragHotSpotScrollOffset(control.contentX, control.contentY)
 
-        for (var i = 0; i < control.count; ++i) {
-            var item = control.itemAtIndex(i)
-            if (!item || item.blank || !item.selected)
+        var delegates = control.contentItem.children
+
+        for (var i = 0; i < delegates.length; ++i) {
+            var item = delegates[i]
+
+            if (typeof item.updateDragImage !== "function" || item.blank || !item.selected)
                 continue
 
             if (!dirModel.updateItemDragRect(item.index, item.x, item.y, item.width, item.height))
@@ -625,9 +628,12 @@ ListView {
             control.cachedRectangleSelection = null
             dirModel.unpinSelection()
 
-            for (var i = 0; i < control.count; ++i) {
-                var item = control.itemAtIndex(i)
-                if (item && item.selected)
+            var delegates = control.contentItem.children
+
+            for (var i = 0; i < delegates.length; ++i) {
+                var item = delegates[i]
+
+                if (typeof item.updateDragImage === "function" && item.selected)
                     item.updateDragImage()
             }
         }

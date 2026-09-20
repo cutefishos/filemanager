@@ -31,6 +31,7 @@ public:
     explicit PathHistory(QObject *parent = nullptr);
 
     void append(const QUrl &path);
+    void replaceCurrent(const QUrl &path);
 
     QUrl first();
     QUrl last();

@@ -813,13 +813,15 @@ GridView {
         // The snapshots are in content coordinates, the drag cursor is not.
         dirModel.setDragHotSpotScrollOffset(control.contentX, control.contentY)
 
-        for (var i = 0; i < control.count; ++i) {
-            var item = control.itemAtIndex(i)
+        var delegates = control.contentItem.children
 
-            if (!item || item.blank || !item.selected)
+        for (var i = 0; i < delegates.length; ++i) {
+            var item = delegates[i]
+
+            if (typeof item.updateDragImage !== "function" || item.blank || !item.selected)
                 continue
 
-            if (!dirModel.updateItemDragRect(positioner.map(i), item.x, item.y, item.width, item.height))
+            if (!dirModel.updateItemDragRect(positioner.map(item.index), item.x, item.y, item.width, item.height))
                 item.updateDragImage()
         }
     }
@@ -841,9 +843,12 @@ GridView {
             control.cachedRectangleSelection = null
             dirModel.unpinSelection()
 
-            for (var i = 0; i < control.count; ++i) {
-                var item = control.itemAtIndex(i)
-                if (item && item.selected)
+            var delegates = control.contentItem.children
+
+            for (var i = 0; i < delegates.length; ++i) {
+                var item = delegates[i]
+
+                if (typeof item.updateDragImage === "function" && item.selected)
                     item.updateDragImage()
             }
         }
@@ -855,7 +860,7 @@ GridView {
         var rows = (control.flow === GridView.FlowLeftToRight)
         var axis = rows ? control.width : control.height
         var step = rows ? cellWidth : cellHeight
-        var perStripe = Math.floor(axis / step)
+        var perStripe = Math.max(1, Math.floor(axis / step))
         var stripes = Math.ceil(control.count / perStripe)
         var cWidth = control.cellWidth - (2 * FishUI.Units.smallSpacing)
         var cHeight = control.cellHeight - (2 * FishUI.Units.smallSpacing)
@@ -863,8 +868,24 @@ GridView {
         var midHeight = control.cellHeight / 2
         var indices = []
 
-        for (var s = 0; s < stripes; s++) {
-            for (var i = 0; i < perStripe; i++) {
+        var logicalX = x
+
+        if (control.effectiveLayoutDirection === Qt.RightToLeft) {
+            logicalX = (rows ? control.width : control.contentItem.width)
+                    + (rows ? control.contentX : control.originX) - cWidth - x - width
+        }
+
+        var firstColumn = Math.max(0, Math.floor(logicalX / control.cellWidth) - 1)
+        var lastColumn = Math.floor((logicalX + width) / control.cellWidth) + 1
+        var firstRow = Math.max(0, Math.floor(y / control.cellHeight) - 1)
+        var lastRow = Math.floor((y + height) / control.cellHeight) + 1
+        var firstStripe = rows ? firstRow : firstColumn
+        var lastStripe = Math.min(stripes - 1, rows ? lastRow : lastColumn)
+        var firstCell = rows ? firstColumn : firstRow
+        var lastCell = Math.min(perStripe - 1, rows ? lastColumn : lastRow)
+
+        for (var s = firstStripe; s <= lastStripe; s++) {
+            for (var i = firstCell; i <= lastCell; i++) {
                 var index = (s * perStripe) + i
 
                 if (index >= control.count) {

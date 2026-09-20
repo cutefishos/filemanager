@@ -15,12 +15,6 @@
 #include <QtTest>
 #include <memory>
 
-class SortableFolderModel : public FolderModel
-{
-public:
-    using FolderModel::lessThan;
-};
-
 class ResponsivenessTest : public QObject
 {
     Q_OBJECT
@@ -172,13 +166,19 @@ private slots:
             QFile file(directory.filePath(name));
             QVERIFY(file.open(QIODevice::WriteOnly));
         }
-        SortableFolderModel folder;
+        FolderModel folder;
         folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
         QTRY_COMPARE(folder.rowCount(), 2);
-        const auto left = folder.sourceModel()->index(0, 0);
-        const auto right = folder.sourceModel()->index(1, 0);
-        QVERIFY(!folder.lessThan(left, left));
-        QVERIFY(folder.lessThan(left, right) != folder.lessThan(right, left));
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        const auto left = folder.fileItem(0).url();
+        const auto right = folder.fileItem(1).url();
+        QVERIFY(left.toString() < right.toString());
+
+        QSignalSpy sorted(&folder, &FolderModel::listingCompleted);
+        folder.setSortDesc(true);
+        QTRY_COMPARE(sorted.count(), 1);
+        QCOMPARE(folder.fileItem(0).url(), right);
+        QCOMPARE(folder.fileItem(1).url(), left);
     }
 
     void enumerationChecksCancellationBetweenEntries()

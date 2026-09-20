@@ -57,6 +57,7 @@ void registerQmlTypes()
     const char *dragandrop_uri = "Cutefish.DragDrop";
 
     qmlRegisterType<PlacesModel>(uri, 1, 0, "PlacesModel");
+    qmlRegisterAnonymousType<FolderContentsModel>(uri, 1);
     qmlRegisterType<FolderModel>(uri, 1, 0, "FolderModel");
     qmlRegisterType<PathBarModel>(uri, 1, 0, "PathBarModel");
     qmlRegisterType<Positioner>(uri, 1, 0, "Positioner");
