@@ -11,10 +11,13 @@
 #include <QDBusPendingCall>
 #include <QDBusPendingReply>
 #include <QDBusReply>
+#include <QDBusServiceWatcher>
 #include <QFileInfo>
 #include <QMimeData>
 #include <QPointer>
 #include <QTimer>
+
+#include <cerrno>
 
 namespace {
 constexpr auto serviceName = "com.cutefish.FileOperations";
@@ -128,6 +131,16 @@ public:
         QDBusReply<QVariantMap> current = task.call(QStringLiteral("GetSnapshot"));
         if (current.isValid())
             applySnapshot(current.value());
+
+        // A daemon that dies mid-task never sends Finished; fail the task
+        // instead of leaving its dialog waiting forever.
+        auto *watcher = new QDBusServiceWatcher(serviceName, bus,
+                                                QDBusServiceWatcher::WatchForUnregistration, this);
+        connect(watcher, &QDBusServiceWatcher::serviceUnregistered, this, [this] {
+            finish({{QStringLiteral("finished"), true},
+                    {QStringLiteral("errorCode"), int(ECONNRESET)},
+                    {QStringLiteral("errorString"), tr("The file operations service stopped.")}});
+        });
     }
 
     void cancel() override

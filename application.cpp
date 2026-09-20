@@ -181,8 +181,10 @@ bool Application::parseCommandLineArgs()
             if (!job)
                 return false;
 
+            // Deferred so the progress dialog's deleteLater runs before the
+            // engines and the task go down with the application.
             connect(job, &OperationTask::result, this, [] {
-                QCoreApplication::quit();
+                QTimer::singleShot(0, qApp, &QCoreApplication::quit);
             });
         } else {
             openFiles(formatUriList(parser.positionalArguments()));

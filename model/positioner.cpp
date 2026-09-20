@@ -21,6 +21,7 @@
 #include "foldermodel.h"
 
 #include <QDebug>
+#include <QSet>
 #include <QTimer>
 
 #include <cstdlib>
@@ -694,11 +695,19 @@ void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
             // and the untaken cells before them are inserted as blanks so the
             // announced range matches the row count that follows.
             QHash<int, int> cells;
+            QSet<int> taken;
             int lastNew = -1;
 
             for (int i = start; i <= end; ++i) {
-                cells.insert(i, defaultCell(i - start));
-                lastNew = qMax(lastNew, cells.value(i));
+                int cell = requestedCell(i);
+
+                if (cell == -1 || taken.contains(cell)) {
+                    cell = defaultCell(i - start);
+                }
+
+                cells.insert(i, cell);
+                taken.insert(cell);
+                lastNew = qMax(lastNew, cell);
             }
 
             beginInsertRows(parent, 0, lastNew);
@@ -728,6 +737,21 @@ void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
         int rest = -1;
 
         for (int i = start; i <= end; ++i) {
+            // A cell asked for up front (new folder on the right-clicked cell)
+            // wins over the default order, as long as nothing sits on it.
+            const int wanted = requestedCell(i);
+
+            if (wanted != -1 && !m_proxyToSource.contains(wanted)) {
+                if (wanted <= lastRow()) {
+                    updateMaps(wanted, i);
+                    m_pendingChanges << createIndex(wanted, 0);
+                    continue;
+                }
+
+                rest = i;
+                break;
+            }
+
             free = firstFreeRow();
 
             if (free != -1) {
@@ -751,7 +775,11 @@ void Positioner::sourceRowsAboutToBeInserted(const QModelIndex &parent, int star
             int lastNew = firstNew + remainder;
 
             for (int i = 0; i <= remainder; ++i) {
-                int cell = nextDefaultCell(occupied);
+                int cell = requestedCell(rest + i);
+
+                if (cell < firstNew || occupied.contains(cell)) {
+                    cell = nextDefaultCell(occupied);
+                }
 
                 if (cell < firstNew) {
                     cell = firstNew + i;
@@ -992,6 +1020,27 @@ int Positioner::lastRow() const
     }
 
     return -1;
+}
+
+// The cell the folder model was told a row being inserted should go on, or -1.
+// Only answerable while the source is inside its insertion transaction.
+
+int Positioner::requestedCell(int sourceRow) const
+{
+    if (!m_folderModel) {
+        return -1;
+    }
+
+    const QString name = m_folderModel->pendingItem(sourceRow).url().fileName();
+
+    if (name.isEmpty()) {
+        return -1;
+    }
+
+    const int cell = m_folderModel->newDocumentCell(name);
+    const int cells = (m_perStripe > 0 && m_stripes > 0) ? (m_perStripe * m_stripes) : 0;
+
+    return (cell >= 0 && (cells == 0 || cell < cells)) ? cell : -1;
 }
 
 int Positioner::firstFreeRow() const

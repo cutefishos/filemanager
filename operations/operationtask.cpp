@@ -48,6 +48,11 @@ QString OperationTask::conflictPath() const
     return m_snapshot.value(QStringLiteral("conflictPath")).toString();
 }
 
+bool OperationTask::isFinished() const
+{
+    return m_finished;
+}
+
 QString OperationTask::formattedSize(quint64 bytes) const
 {
     return QLocale().formattedDataSize(bytes, 1, QLocale::DataSizeSIFormat);
@@ -91,5 +96,6 @@ void OperationTask::finish(const QVariantMap &snapshot)
         return;
     m_finished = true;
     applySnapshot(snapshot);
+    emit finishedChanged();
     emit result(this);
 }

@@ -126,16 +126,20 @@ void FolderModel::unpinSelection()
     m_pinnedSelection = QItemSelection();
 }
 
-// The cell a new folder or file should land on, in view coordinates. Consumed
-// by the next newFolder()/newTextFile(); (-1, -1) means "wherever it fits".
+// The cell a new folder or file should land on, in view coordinates plus the
+// grid cell under them. Consumed by the next newFolder()/newTextFile();
+// (-1, -1) means "wherever it fits".
 
-void FolderModel::setNewDocumentPosition(int x, int y)
+void FolderModel::setNewDocumentPosition(int x, int y, int cell)
 {
     m_newDocumentPos = QPoint(x, y);
+    m_newDocumentCell = cell;
 }
 
 // Hands the pending cell over to the drop position map, which places the file
-// on it as soon as the lister reports it.
+// on it as soon as the lister reports it. The cell lets the positioner insert
+// the row there in the first place, so the icon never shows up elsewhere first;
+// the view coordinates remain the fallback should that cell be taken by then.
 
 void FolderModel::rememberNewDocumentPosition(const QString &name)
 {
@@ -143,8 +147,25 @@ void FolderModel::rememberNewDocumentPosition(const QString &name)
         return;
 
     m_dropTargetPositions.insert(name, m_newDocumentPos);
+    if (m_newDocumentCell >= 0)
+        m_newDocumentCells.insert(name, m_newDocumentCell);
     m_dropTargetPositionsCleanup->start();
     m_newDocumentPos = QPoint(-1, -1);
+    m_newDocumentCell = -1;
+}
+
+int FolderModel::newDocumentCell(const QString &name) const
+{
+    return m_newDocumentCells.value(name, -1);
+}
+
+void FolderModel::reserveCell(const QString &name, int cell)
+{
+    if (cell < 0)
+        return;
+
+    m_newDocumentCells.insert(name, cell);
+    m_dropTargetPositionsCleanup->start();
 }
 
 void FolderModel::setDragHotSpotScrollOffset(int x, int y)
@@ -325,6 +346,11 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
     QMimeData *mimeData =
             qobject_cast<QMimeData *>(dropEvent->property("mimeData").value<QObject *>());
 
+    // Consume whatever cell the view set for this drop, whether or not it is used.
+    const int cell = m_newDocumentCell;
+    m_newDocumentPos = QPoint(-1, -1);
+    m_newDocumentCell = -1;
+
     if (!mimeData) {
         return;
     }
@@ -359,6 +385,9 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
         if (m_isDesktop && row == -1) {
             for (const QUrl &url : mimeData->urls())
                 m_dropTargetPositions.insert(url.fileName(), QPoint(x, y));
+            // The first file takes the cell itself; the rest spread out from
+            // it once they arrive, the way they always have.
+            reserveCell(mimeData->urls().first().fileName(), cell);
             m_dropTargetPositionsCleanup->start();
         }
         FileOperationsClient::instance()->drop(mimeData, targetUrl, action);
@@ -501,6 +530,7 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
     for (int i = first; i <= last; ++i) {
         const auto idx = index(i, 0, parent);
         const auto url = itemForIndex(idx).url();
+        m_newDocumentCells.remove(url.fileName());
         auto it = m_dropTargetPositions.find(url.fileName());
         if (it != m_dropTargetPositions.end()) {
             const auto pos = it.value();

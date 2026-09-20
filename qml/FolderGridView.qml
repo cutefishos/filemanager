@@ -178,8 +178,11 @@ GridView {
     // x, y are the click that opened the menu, in view coordinates.
     function openContextMenu(modifiers, x, y) {
         // A new folder or file belongs on the cell that was right-clicked.
-        if (positioner.enabled)
-            dirModel.setNewDocumentPosition(x, y)
+        if (positioner.enabled) {
+            var pos = mapToItem(control.contentItem, x, y)
+            var cell = cellAt(pos.x, pos.y)
+            dirModel.setNewDocumentPosition(x, y, cellIndex(cell.x, cell.y))
+        }
 
         if (control.useCustomContextMenu) {
             dirModel.prepareContextMenu()
@@ -214,6 +217,13 @@ GridView {
         }
 
         event.accept(event.dropAction)
+
+        // Files dropped between icons land on the cell under the cursor.
+        if (positioner.enabled && row === -1) {
+            var cell = cellAt(dropPos.x, dropPos.y)
+            dirModel.setNewDocumentPosition(pos.x, pos.y, cellIndex(cell.x, cell.y))
+        }
+
         dirModel.drop(control, event, row)
         control.clearDropTarget()
     }

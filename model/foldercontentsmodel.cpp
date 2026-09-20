@@ -57,6 +57,7 @@ struct FolderContentsModel::Prepared
     QHash<QUrl, int> rows;
     QList<QPair<int, int>> removals;
     QSet<int> changed;
+    QList<QUrl> consumedRenames;
     bool reorder = false;
 };
 
@@ -84,6 +85,19 @@ FileItem FolderContentsModel::snapshotItem(const QModelIndex &index) const
 {
     return index.model() == this && index.isValid() && index.row() < m_items.size()
             ? m_items.at(index.row()) : FileItem();
+}
+
+// The item a row past the end will hold once the insertion announced by
+// rowsAboutToBeInserted finishes; null outside that window.
+
+FileItem FolderContentsModel::pendingItem(int row) const
+{
+    if (!m_prepared || row < m_items.size())
+        return FileItem();
+
+    const int offset = m_insertOffset + (row - m_items.size());
+
+    return offset < m_prepared->added.size() ? m_prepared->added.at(offset) : FileItem();
 }
 
 QVariant FolderContentsModel::data(const QModelIndex &index, int role) const
@@ -224,8 +238,16 @@ void FolderContentsModel::clear()
     beginResetModel();
     m_items.clear();
     m_rowsByUrl.clear();
+    m_renames.clear();
     m_rowsValid = true;
     endResetModel();
+}
+
+// Lets the next listing treat `from` reappearing as `to` as the same row.
+
+void FolderContentsModel::expectRename(const QUrl &from, const QUrl &to)
+{
+    m_renames.insert(from, to);
 }
 
 void FolderContentsModel::schedulePreparation()
@@ -253,6 +275,8 @@ void FolderContentsModel::prepare()
             return;
 
         m_prepared = watcher->result();
+        for (const QUrl &from : std::as_const(m_prepared->consumedRenames))
+            m_renames.remove(from);
         m_updateOffset = m_prepared->changed.isEmpty() ? m_prepared->retained.size() : 0;
         m_insertOffset = 0;
         m_publishTimer.start();
@@ -260,6 +284,7 @@ void FolderContentsModel::prepare()
 
     watcher->setFuture(Cutefish::IO::Internal::runAsync(
             [incoming = m_source->items(), previous = m_items, query = m_query,
+             renames = m_renames,
              locale = QLocale(), cancelled] {
         auto result = std::make_shared<Prepared>();
         auto checkpoint = [&] {
@@ -318,7 +343,16 @@ void FolderContentsModel::prepare()
             for (int row = 0; row < previous.size(); ++row) {
                 checkpoint();
                 const auto &item = previous[row];
-                const auto found = result->rows.constFind(item.url());
+                auto found = result->rows.constFind(item.url());
+                if (found == result->rows.cend() && renames.contains(item.url())) {
+                    // A rename we made ourselves: the file went away under its old
+                    // name and is back under the new one. Keep the row so the
+                    // view updates the icon in place instead of tearing it down.
+                    result->consumedRenames.append(item.url());
+                    const QUrl renamed = renames.value(item.url());
+                    if (!retainedUrls.contains(renamed))
+                        found = result->rows.constFind(renamed);
+                }
                 if (found == result->rows.cend()) {
                     if (!result->removals.isEmpty() && result->removals.last().second == row - 1)
                         result->removals.last().second = row;
@@ -333,7 +367,7 @@ void FolderContentsModel::prepare()
                     result->changed.insert(result->retained.size());
 
                 result->retained.append(updated);
-                retainedUrls.insert(item.url());
+                retainedUrls.insert(updated.url());
             }
 
             for (const auto &item : std::as_const(result->ordered)) {
@@ -399,6 +433,10 @@ void FolderContentsModel::publishBatch()
         int changedLast = -1;
 
         for (int row = first; row < end; ++row) {
+            if (m_rowsValid && m_items[row].url() != result->retained[row].url()) {
+                m_rowsByUrl.remove(m_items[row].url());
+                m_rowsByUrl.insert(result->retained[row].url(), row);
+            }
             m_items[row] = result->retained[row];
             if (result->changed.contains(row)) {
                 if (changedFirst < 0)

@@ -164,6 +164,8 @@ void FolderModel::rename(int row, const QString &name)
 
     const QUrl destination = QUrl::fromLocalFile(
             QFileInfo(source.toLocalFile()).absolutePath() + '/' + name);
+
+    expectRename(source, destination);
     FileOperationsClient::instance()->rename(source, destination);
 }
 

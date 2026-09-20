@@ -187,7 +187,9 @@ public:
     Q_INVOKABLE void pinSelection();
     Q_INVOKABLE void unpinSelection();
 
-    Q_INVOKABLE void setNewDocumentPosition(int x, int y);
+    Q_INVOKABLE void setNewDocumentPosition(int x, int y, int cell = -1);
+    int newDocumentCell(const QString &name) const;
+    void reserveCell(const QString &name, int cell);
     Q_INVOKABLE void newFolder();
     Q_INVOKABLE void newTextFile();
     Q_INVOKABLE void rename(int row, const QString &name);
@@ -316,6 +318,7 @@ private:
     QString m_url;
     QUrl m_newDocumentUrl;
     QPoint m_newDocumentPos {-1, -1};
+    int m_newDocumentCell = -1;
     QList<QUrl> m_needSelectUrls;
 
     Status m_status;
@@ -352,6 +355,7 @@ private:
     QTimer *m_dragImageTimeout;
 
     QHash<QString, QPoint> m_dropTargetPositions;
+    QHash<QString, int> m_newDocumentCells;
     QTimer *m_dropTargetPositionsCleanup;
 
     QPointer<ItemViewAdapter> m_viewAdapter;

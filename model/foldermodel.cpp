@@ -60,6 +60,7 @@ FolderModel::FolderModel(QObject *parent)
     m_dropTargetPositionsCleanup->setInterval(10000);
     connect(m_dropTargetPositionsCleanup, &QTimer::timeout, this, [this] {
         m_dropTargetPositions.clear();
+        m_newDocumentCells.clear();
     });
 
     m_dirLister = new DirLister(this);

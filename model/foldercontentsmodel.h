@@ -49,9 +49,11 @@ public:
     QModelIndex mapToSource(const QModelIndex &index) const;
     QModelIndex mapFromSource(const QModelIndex &index) const;
     Cutefish::IO::FileItem snapshotItem(const QModelIndex &index) const;
+    Cutefish::IO::FileItem pendingItem(int row) const;
     QModelIndex viewIndexForUrl(const QUrl &url) const;
 
     void setQuery(const FolderQuery &query);
+    void expectRename(const QUrl &from, const QUrl &to);
     void schedulePreparation();
     void cancelPreparation();
 
@@ -68,6 +70,7 @@ private:
     Cutefish::IO::DirectoryModel *m_source = nullptr;
     Cutefish::IO::FileItemList m_items;
     QHash<QUrl, int> m_rowsByUrl;
+    QHash<QUrl, QUrl> m_renames;
     bool m_rowsValid = true;
     FolderQuery m_query;
     QTimer m_prepareTimer;

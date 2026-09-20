@@ -177,6 +177,77 @@ private slots:
         QCOMPARE(cell(0), 11 * 8);
         QCOMPARE(cell(1), 12 * 8 + 2);
     }
+
+    // A new folder appears straight on the right-clicked cell, and a renamed
+    // file comes back on the cell it was on -- neither passes through the
+    // default cell first.
+    void cellsSurviveCreateAndRename()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QFile file(directory.filePath("a"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.close();
+
+        FolderModel folder;
+        folder.setIsDesktop(true);
+        folder.setSortMode(-1);
+        Positioner positioner;
+        positioner.setPerStripe(8);
+        positioner.setStripes(12);
+        positioner.setFolderModel(&folder);
+        positioner.setEnabled(true);
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.rowCount(), 1);
+        QTRY_VERIFY(folder.status() != FolderModel::Listing);
+        QTRY_VERIFY(positioner.positions().size() >= 5);
+
+        const QUrl a = QUrl::fromLocalFile(directory.filePath("a"));
+        QVERIFY(positioner.indexForUrl(a) >= 8);
+
+        // Every cell the row passes through is visible to the view, so record
+        // where the file sits each time the view is told something changed.
+        QUrl watched;
+        QSet<int> seen;
+        auto record = [&] {
+            const int cell = positioner.indexForUrl(watched);
+            if (cell >= 0)
+                seen.insert(cell);
+        };
+        connect(&positioner, &QAbstractItemModel::rowsInserted, this, record);
+        connect(&positioner, &QAbstractItemModel::dataChanged, this, record);
+        connect(&positioner, &QAbstractItemModel::modelReset, this, record);
+
+        watched = QUrl::fromLocalFile(directory.filePath(folder.tr("New Folder")));
+        folder.setNewDocumentPosition(1, 1, 2);
+        folder.newFolder();
+        QTRY_COMPARE(folder.rowCount(), 2);
+        QTRY_COMPARE(positioner.indexForUrl(watched), 2);
+        QCOMPARE(seen, QSet<int>{2});
+        const QUrl created = watched;
+
+        positioner.move({positioner.indexForUrl(a), 1});
+        QCOMPARE(positioner.indexForUrl(a), 1);
+        QTest::qWait(20);
+
+        // The rename is an in-place update: the delegate stays, so the icon
+        // cannot blink out between the old row leaving and the new one arriving.
+        QSignalSpy removed(&positioner, &QAbstractItemModel::rowsRemoved);
+        QSignalSpy inserted(&positioner, &QAbstractItemModel::rowsInserted);
+        watched = QUrl::fromLocalFile(directory.filePath("b"));
+        seen.clear();
+        folder.rename(folder.indexForUrl(a).row(), "b");
+        QTRY_VERIFY(positioner.indexForUrl(watched) >= 0);
+        QCOMPARE(positioner.indexForUrl(watched), 1);
+        QCOMPARE(seen, QSet<int>{1});
+        QCOMPARE(removed.count(), 0);
+        QCOMPARE(inserted.count(), 0);
+        QCOMPARE(folder.rowCount(), 2);
+        QVERIFY(folder.indexForUrl(watched).isValid());
+        QVERIFY(!folder.indexForUrl(a).isValid());
+        QVERIFY(positioner.indexForUrl(a) < 0);
+        QCOMPARE(positioner.indexForUrl(created), 2);
+    }
 };
 
 int main(int argc, char **argv)

@@ -60,7 +60,14 @@ FishUI.Window {
         sourceName = ioTask.sourceName
         sourceCount = ioTask.sourceCount
         destinationName = ioTask.destinationName
-        if (ioTask.waitingForConflict) {
+        if (ioTask.finished) {
+            delay.stop()
+            finished = true
+            if (ioTask.error() && !ioTask.wasCanceled()) {
+                errorMessage = ioTask.errorString()
+                show()
+            }
+        } else if (ioTask.waitingForConflict) {
             conflictPath = ioTask.conflictPath
             conflict = true
             show()

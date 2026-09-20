@@ -113,6 +113,7 @@ private:
     int firstRow() const;
     int lastRow() const;
     int firstFreeRow() const;
+    int requestedCell(int sourceRow) const;
     int defaultCell(int ordinal) const;
     int nextDefaultCell(const QHash<int, int> &occupied) const;
     void applyPositions();
