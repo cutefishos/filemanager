@@ -87,6 +87,14 @@ private slots:
         QTest::keyClick(&window, Qt::Key_Minus, Qt::ControlModifier);
         QTest::keyClick(&window, Qt::Key_Equal, Qt::ControlModifier);
         QCOMPARE(grid->property("iconSize").toInt(), iconSize);
+
+        QTest::mouseMove(&window, QPoint(5, 760));
+        QTest::mousePress(&window, Qt::LeftButton, Qt::NoModifier, QPoint(5, 760));
+        QTest::mouseMove(&window, QPoint(6, 759));
+        QVERIFY(!grid->property("rubberBand").value<QQuickItem *>());
+        QVERIFY(grid->property("pressActive").toBool());
+        QTest::mouseRelease(&window, Qt::LeftButton, Qt::NoModifier, QPoint(6, 759));
+
         QTest::mouseMove(&window, QPoint(5, 760));
         QTest::mousePress(&window, Qt::LeftButton, Qt::NoModifier, QPoint(5, 760));
         QTest::mouseMove(&window, QPoint(10, 750));

@@ -736,6 +736,11 @@ GridView {
                 return
             }
 
+            if (control.pressActive
+                    && Math.abs(pos.x - pressX) < Qt.styleHints.startDragDistance
+                    && Math.abs(pos.y - pressY) < Qt.styleHints.startDragDistance)
+                return
+
             if (control.pressActive) {
                 if (pressedItem != null && dirModel.isSelected(positioner.map(pressedItem.index))) {
                     control.dragX = pos.x
