@@ -464,7 +464,7 @@ void FolderModel::archiveJobFinished(bool success, bool canceled, const QString 
         // Errors are important enough to leave the operation surface and go
         // to the system notification center. Fall back to the existing
         // in-window toast if no notification service is available.
-        if (!sendSystemNotification(tr("File Manager"), message))
+        if (!sendSystemNotification(tr("Files"), message))
             emit notification(message);
     }
 }

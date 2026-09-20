@@ -34,7 +34,7 @@ FishUI.Window {
     minimumWidth: 600
     minimumHeight: 500
     visible: true
-    title: qsTr("File Manager")
+    title: qsTr("Files")
 
     background.opacity: 1
     header.height: 40
@@ -277,23 +277,6 @@ FishUI.Window {
                 onTriggered: root._folderPage.model.selectAll()
             }
         }
-
-        Platform.Menu {
-            title: qsTr("Help")
-
-            Platform.MenuItem {
-                text: qsTr("About")
-                onTriggered: _aboutDialog.show()
-            }
-        }
-    }
-
-    FishUI.AboutDialog {
-        id: _aboutDialog
-        parentWindow: root
-        name: qsTr("File Manager")
-        description: qsTr("A file manager designed for CutefishOS.")
-        iconSource: "image://icontheme/file-system-manager"
     }
 
     OptionsMenu {

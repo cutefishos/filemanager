@@ -151,7 +151,7 @@ QStringList Application::formatUriList(const QStringList &list)
 bool Application::parseCommandLineArgs()
 {
     QCommandLineParser parser;
-    parser.setApplicationDescription(QStringLiteral("File Manager"));
+    parser.setApplicationDescription(QStringLiteral("Files"));
     parser.addHelpOption();
 
     parser.addPositionalArgument("files", "Files", "[FILE1, FILE2,...]");
