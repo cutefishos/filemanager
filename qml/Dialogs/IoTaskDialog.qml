@@ -28,6 +28,7 @@ FishUI.Window {
     property bool conflict: false
     property bool canceling: false
     property string errorMessage: ""
+    property string conflictSource: ""
     property string conflictPath: ""
     property string operation: ""
     property string sourceName: ""
@@ -68,9 +69,7 @@ FishUI.Window {
                 show()
             }
         } else if (ioTask.waitingForConflict) {
-            conflictPath = ioTask.conflictPath
-            conflict = true
-            show()
+            askConflict(ioTask.conflictSource, ioTask.conflictPath)
         }
     }
     onVisibilityChanged: function(visibility) {
@@ -140,11 +139,37 @@ FishUI.Window {
             return
         canceling = true
         conflict = false
+        if (conflictDialog.visible)
+            conflictDialog.close()
         ioTask.cancel()
     }
-    function resolve(policy) {
+    // The conflict dialog stands in for the progress window: the latter is
+    // hidden while the question is open and comes back through the usual
+    // show delay once the task is running again.
+    function askConflict(source, destination) {
+        conflictSource = source
+        conflictPath = destination
+        conflict = true
+        delay.stop()
+        if (visible)
+            hide()
+        conflictDialog.sourcePath = source
+        conflictDialog.destinationPath = destination
+        // A raw IO task (tests) has no fileDetails; the dialog then falls
+        // back to the file name alone.
+        const details = typeof ioTask.fileDetails === "function"
+        conflictDialog.existing = details ? ioTask.fileDetails(destination) : {}
+        conflictDialog.incoming = details ? ioTask.fileDetails(source) : {}
+        conflictDialog.open()
+    }
+    function resolve(policy, applyToAll) {
         conflict = false
-        ioTask.resolveConflict(policy)
+        if (policy < 0)
+            cancelTask()
+        else
+            ioTask.resolveConflict(policy, applyToAll === true)
+        if (!finished)
+            delay.restart()
     }
 
     Shortcut {
@@ -156,25 +181,41 @@ FishUI.Window {
         objectName: "ioShowDelay"
         interval: control.operation === "emptyTrash" ? 300 : 750
         running: true
-        onTriggered: if (!control.finished) control.show()
+        onTriggered: if (!control.finished && !control.conflict) control.show()
     }
     Connections {
         target: ioTask
-        function onConflictRequested(destination) {
-            control.conflictPath = destination
-            control.conflict = true
-            control.show()
+        function onConflictRequested(source, destination) {
+            control.askConflict(source, destination)
+        }
+        // A remote task may announce the conflict through its snapshot
+        // before, or instead of, the signal.
+        function onProgressInfoChanged() {
+            if (ioTask.waitingForConflict && !control.conflict && !control.finished)
+                control.askConflict(ioTask.conflictSource, ioTask.conflictPath)
         }
         function onResult(task) {
             delay.stop()
             control.finished = true
             control.conflict = false
+            if (conflictDialog.visible)
+                conflictDialog.close()
             if (task.error() && !task.wasCanceled()) {
                 control.errorMessage = task.errorString()
                 control.show()
             } else {
                 control.close()
             }
+        }
+    }
+
+    ConflictDialog {
+        id: conflictDialog
+        operation: control.operation
+        sourceCount: control.sourceCount
+        onResolved: function(policy, applyToAll) {
+            if (control.conflict)
+                control.resolve(policy, applyToAll)
         }
     }
 
@@ -259,23 +300,6 @@ FishUI.Window {
                 text: control.finished ? qsTr("Close") : qsTr("Cancel")
                 enabled: control.finished || !control.canceling
                 onClicked: control.finished ? control.close() : control.cancelTask()
-            }
-            FishUI.ConfirmDialogButton {
-                visible: control.conflict
-                text: qsTr("Skip")
-                onClicked: control.resolve(1)
-            }
-            FishUI.ConfirmDialogButton {
-                visible: control.conflict
-                text: qsTr("Keep Both")
-                onClicked: control.resolve(2)
-            }
-            FishUI.ConfirmDialogButton {
-                visible: control.conflict
-                text: qsTr("Replace")
-                primary: true
-                destructive: true
-                onClicked: control.resolve(3)
             }
         }
     }

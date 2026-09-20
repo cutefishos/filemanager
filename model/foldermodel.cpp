@@ -248,14 +248,21 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return item.iconName();
     case ThumbnailRole: {
         if (item.isLocalFile()) {
+            // The modification time makes the URL differ once the file is
+            // replaced in place; an unchanged source is never reloaded by Image.
+            QUrl url = item.url();
+            url.setQuery(QStringLiteral("mtime=")
+                         + QString::number(item.time(Cutefish::IO::FileItem::ModificationTime)
+                                                   .toMSecsSinceEpoch()));
+
             // Svg Image
             if (item.mimetype() == "image/svg" || item.mimetype() == "image/svg+xml") {
-                return item.url();
+                return url;
             }
 
             // Support
             if (isSupportThumbnails(item.mimetype())) {
-                return "image://thumbnailer/" + item.url().toString();
+                return "image://thumbnailer/" + url.toString();
             }
         }
 

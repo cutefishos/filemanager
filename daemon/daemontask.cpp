@@ -40,6 +40,7 @@ void DaemonTask::initialize()
                   {QStringLiteral("progress"), progressMap(m_task->progressInfo())},
                   {QStringLiteral("finished"), false},
                   {QStringLiteral("waitingForConflict"), false},
+                  {QStringLiteral("conflictSource"), QString()},
                   {QStringLiteral("conflictPath"), QString()},
                   {QStringLiteral("canceled"), false},
                   {QStringLiteral("errorCode"), 0},
@@ -51,12 +52,14 @@ void DaemonTask::initialize()
         emit Changed(update);
     });
     connect(m_task, &Cutefish::IO::Task::conflictRequested, this,
-            [this](const QString &destination) {
+            [this](const QString &source, const QString &destination) {
                 m_snapshot.insert(QStringLiteral("waitingForConflict"), true);
+                m_snapshot.insert(QStringLiteral("conflictSource"), source);
                 m_snapshot.insert(QStringLiteral("conflictPath"), destination);
                 emit Changed({{QStringLiteral("waitingForConflict"), true},
+                              {QStringLiteral("conflictSource"), source},
                               {QStringLiteral("conflictPath"), destination}});
-                emit ConflictRequested(destination);
+                emit ConflictRequested(source, destination);
             });
     connect(m_task, &Cutefish::IO::Task::result, this, [this](Cutefish::IO::Task *task) {
         const auto error = task->outcome().error;
@@ -92,12 +95,12 @@ void DaemonTask::Cancel()
         m_task->cancel();
 }
 
-void DaemonTask::ResolveConflict(int policy)
+void DaemonTask::ResolveConflict(int policy, bool applyToAll)
 {
     if (m_task) {
         m_snapshot.insert(QStringLiteral("waitingForConflict"), false);
         emit Changed({{QStringLiteral("waitingForConflict"), false}});
-        m_task->resolveConflict(policy);
+        m_task->resolveConflict(policy, applyToAll);
     }
 }
 

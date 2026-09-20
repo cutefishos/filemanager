@@ -85,10 +85,12 @@ public:
             m_task->cancel();
     }
 
-    void resolveConflict(int policy) override
+    void resolveConflict(int policy, bool applyToAll) override
     {
-        if (m_task)
-            m_task->resolveConflict(policy);
+        if (!m_task)
+            return;
+        applySnapshot({{QStringLiteral("waitingForConflict"), false}});
+        m_task->resolveConflict(policy, applyToAll);
     }
 
 private:
@@ -98,7 +100,12 @@ private:
             applySnapshot({{QStringLiteral("progress"), progressMap(m_task->progressInfo())}});
         });
         connect(m_task, &Cutefish::IO::Task::conflictRequested, this,
-                &OperationTask::conflictRequested);
+                [this](const QString &source, const QString &destination) {
+                    applySnapshot({{QStringLiteral("waitingForConflict"), true},
+                                   {QStringLiteral("conflictSource"), source},
+                                   {QStringLiteral("conflictPath"), destination}});
+                    emit conflictRequested(source, destination);
+                });
         connect(m_task, &Cutefish::IO::Task::result, this, [this](Cutefish::IO::Task *task) {
             const auto error = task->outcome().error;
             finish({{QStringLiteral("progress"), progressMap(task->progressInfo())},
@@ -124,7 +131,7 @@ public:
         bus.connect(serviceName, m_path, taskInterface, QStringLiteral("Changed"), this,
                     SLOT(changed(QVariantMap)));
         bus.connect(serviceName, m_path, taskInterface, QStringLiteral("ConflictRequested"), this,
-                    SIGNAL(conflictRequested(QString)));
+                    SIGNAL(conflictRequested(QString,QString)));
         bus.connect(serviceName, m_path, taskInterface, QStringLiteral("Finished"), this,
                     SLOT(finished(QVariantMap)));
         QDBusInterface task(serviceName, m_path, taskInterface, bus);
@@ -149,10 +156,10 @@ public:
         task.asyncCall(QStringLiteral("Cancel"));
     }
 
-    void resolveConflict(int policy) override
+    void resolveConflict(int policy, bool applyToAll) override
     {
         QDBusInterface task(serviceName, m_path, taskInterface, QDBusConnection::sessionBus());
-        task.asyncCall(QStringLiteral("ResolveConflict"), policy);
+        task.asyncCall(QStringLiteral("ResolveConflict"), policy, applyToAll);
     }
 
 private slots:
@@ -217,7 +224,11 @@ public:
             m_job->cancel();
     }
 
-    void resolveConflict(int policy) override { Q_UNUSED(policy) }
+    void resolveConflict(int policy, bool applyToAll) override
+    {
+        Q_UNUSED(policy)
+        Q_UNUSED(applyToAll)
+    }
 
 private:
     QPointer<ArchiveJob> m_job;
@@ -370,7 +381,7 @@ OperationTask *FileOperationsClient::paste(const QMimeData *data, const QUrl &de
     const bool cut = data && data->hasFormat("application/x-cutefish-cutselection");
     return submit({cut ? Cutefish::IO::Operation::Move : Cutefish::IO::Operation::Copy,
                    data ? data->urls() : QList<QUrl>(), destination,
-                   Cutefish::IO::ConflictPolicy::KeepBoth});
+                   Cutefish::IO::ConflictPolicy::Ask});
 }
 
 OperationTask *FileOperationsClient::drop(const QMimeData *data, const QUrl &destination,

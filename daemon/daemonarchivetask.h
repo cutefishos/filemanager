@@ -20,11 +20,11 @@ public:
 public slots:
     QVariantMap GetSnapshot() const;
     void Cancel();
-    void ResolveConflict(int policy);
+    void ResolveConflict(int policy, bool applyToAll);
 
 signals:
     void Changed(const QVariantMap &snapshot);
-    void ConflictRequested(const QString &destination);
+    void ConflictRequested(const QString &source, const QString &destination);
     void Finished(const QVariantMap &snapshot);
 
 private:

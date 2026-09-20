@@ -24,6 +24,7 @@
         <file>qml/Dialogs/OpenWithDialog.qml</file>
         <file>qml/Dialogs/DeleteDialog.qml</file>
         <file>qml/Dialogs/IoTaskDialog.qml</file>
+        <file>qml/Dialogs/ConflictDialog.qml</file>
         <file>templates/TextFile.txt</file>
     </qresource>
 </RCC>

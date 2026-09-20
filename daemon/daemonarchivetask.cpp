@@ -81,8 +81,9 @@ void DaemonArchiveTask::Cancel()
         m_job->cancel();
 }
 
-void DaemonArchiveTask::ResolveConflict(int policy)
+void DaemonArchiveTask::ResolveConflict(int policy, bool applyToAll)
 {
     Q_UNUSED(policy)
+    Q_UNUSED(applyToAll)
 }
 

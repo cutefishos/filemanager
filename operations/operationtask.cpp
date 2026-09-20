@@ -2,7 +2,10 @@
 
 #include <QDBusArgument>
 #include <QDBusMetaType>
+#include <QFileInfo>
 #include <QLocale>
+
+#include <fileitem.h>
 
 OperationTask::OperationTask(const QVariantMap &snapshot, QObject *parent)
     : QObject(parent)
@@ -43,6 +46,11 @@ bool OperationTask::waitingForConflict() const
     return m_snapshot.value(QStringLiteral("waitingForConflict")).toBool();
 }
 
+QString OperationTask::conflictSource() const
+{
+    return m_snapshot.value(QStringLiteral("conflictSource")).toString();
+}
+
 QString OperationTask::conflictPath() const
 {
     return m_snapshot.value(QStringLiteral("conflictPath")).toString();
@@ -63,6 +71,19 @@ QString OperationTask::owner() const
 QString OperationTask::formattedSize(quint64 bytes) const
 {
     return QLocale().formattedDataSize(bytes, 1, QLocale::DataSizeSIFormat);
+}
+
+// What the conflict dialog shows about either side of a clash.
+
+QVariantMap OperationTask::fileDetails(const QString &path) const
+{
+    const QFileInfo info(path);
+    const Cutefish::IO::FileItem item(QUrl::fromLocalFile(path));
+    return {{QStringLiteral("name"), info.fileName()},
+            {QStringLiteral("exists"), info.exists() || info.isSymLink()},
+            {QStringLiteral("isDir"), info.isDir()},
+            {QStringLiteral("iconName"), item.iconName()},
+            {QStringLiteral("modified"), info.lastModified()}};
 }
 
 bool OperationTask::wasCanceled() const

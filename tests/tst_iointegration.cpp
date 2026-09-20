@@ -1,6 +1,8 @@
 #include "draganddrop/declarativedragdropevent.h"
 #include "draganddrop/declarativedroparea.h"
 #include "model/foldermodel.h"
+#include "operations/fileoperationsclient.h"
+#include "operations/operationtask.h"
 #include "qmltypes.h"
 #include <QApplication>
 #include <QClipboard>
@@ -484,6 +486,48 @@ private slots:
         task.resolveConflict(int(Cutefish::IO::ConflictPolicy::Skip));
         QTRY_VERIFY(dialog->property("finished").toBool());
         QVERIFY(QFileInfo::exists(source.fileName()));
+    }
+
+    void conflictDialogReplacesThroughTheClient()
+    {
+        QTemporaryDir dir;
+        QVERIFY(QDir().mkpath(dir.filePath("target")));
+        QFile source(dir.filePath("photo.svg"));
+        QVERIFY(source.open(QIODevice::WriteOnly));
+        source.write("<svg/>");
+        source.close();
+        QFile target(dir.filePath("target/photo.svg"));
+        QVERIFY(target.open(QIODevice::WriteOnly));
+        target.write("<svg>old</svg>");
+        target.close();
+
+        auto *task = FileOperationsClient::instance()->copy(
+                {QUrl::fromLocalFile(source.fileName())},
+                QUrl::fromLocalFile(dir.filePath("target")));
+        QQmlEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("ioTask", task);
+        QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
+        QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+        QScopedPointer<QObject> dialog(component.create());
+        QVERIFY2(dialog, qPrintable(component.errorString()));
+
+        QTRY_VERIFY(dialog->property("conflict").toBool());
+        auto *conflictDialog = dialog->findChild<QQuickWindow *>("conflictDialog");
+        QVERIFY(conflictDialog);
+        QTRY_VERIFY(conflictDialog->isVisible());
+        QVERIFY(!qobject_cast<QQuickWindow *>(dialog.data())->isVisible());
+        QVERIFY(conflictDialog->property("heading").toString().contains("photo.svg"));
+        QVERIFY(!conflictDialog->findChild<QObject *>("conflictSkipButton")->property("visible").toBool());
+        auto *replace = conflictDialog->findChild<QObject *>("conflictReplaceButton");
+        QVERIFY(replace);
+        QVERIFY(QMetaObject::invokeMethod(replace, "clicked"));
+        QTRY_VERIFY(task->isFinished());
+        QVERIFY(!conflictDialog->isVisible());
+        QCOMPARE(task->error(), 0);
+        QFile replaced(dir.filePath("target/photo.svg"));
+        QVERIFY(replaced.open(QIODevice::ReadOnly));
+        QCOMPARE(replaced.readAll(), QByteArray("<svg/>"));
     }
 
     void closingProgressDialogDoesNotCancelTask()

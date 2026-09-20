@@ -125,7 +125,7 @@ private slots:
         QVERIFY(paths.isValid());
         QVERIFY(paths.value().contains(taskPath));
 
-        task.call(QStringLiteral("ResolveConflict"), 1);
+        task.call(QStringLiteral("ResolveConflict"), 1, false);
         QTRY_VERIFY_WITH_TIMEOUT(([&] {
             const QDBusReply<QVariantMap> reply = task.call(QStringLiteral("GetSnapshot"));
             return reply.isValid() && reply.value().value(QStringLiteral("finished")).toBool();

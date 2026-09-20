@@ -12,6 +12,7 @@ class OperationTask : public QObject
     Q_PROPERTY(QString sourceName READ sourceName CONSTANT)
     Q_PROPERTY(QString destinationName READ destinationName CONSTANT)
     Q_PROPERTY(bool waitingForConflict READ waitingForConflict NOTIFY progressInfoChanged)
+    Q_PROPERTY(QString conflictSource READ conflictSource NOTIFY progressInfoChanged)
     Q_PROPERTY(QString conflictPath READ conflictPath NOTIFY progressInfoChanged)
     Q_PROPERTY(bool finished READ isFinished NOTIFY finishedChanged)
 
@@ -24,12 +25,14 @@ public:
     QString sourceName() const;
     QString destinationName() const;
     bool waitingForConflict() const;
+    QString conflictSource() const;
     QString conflictPath() const;
     bool isFinished() const;
     QString owner() const;
 
     Q_INVOKABLE virtual void cancel() = 0;
-    Q_INVOKABLE virtual void resolveConflict(int policy) = 0;
+    Q_INVOKABLE virtual void resolveConflict(int policy, bool applyToAll = false) = 0;
+    Q_INVOKABLE QVariantMap fileDetails(const QString &path) const;
     Q_INVOKABLE QString formattedSize(quint64 bytes) const;
     Q_INVOKABLE bool wasCanceled() const;
     Q_INVOKABLE int error() const;
@@ -38,7 +41,7 @@ public:
 
 signals:
     void progressInfoChanged();
-    void conflictRequested(const QString &destination);
+    void conflictRequested(const QString &source, const QString &destination);
     void finishedChanged();
     void result(OperationTask *task);
 
