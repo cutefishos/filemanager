@@ -1,7 +1,7 @@
 #include "model/foldersizecache.h"
 #include "model/foldermodel.h"
-#include "thumbnailer/thumbnailcache.h"
-#include "thumbnailer/thumbnailprovider.h"
+#include "thumbnailcache.h"
+#include "thumbnailprovider.h"
 
 #include <directory.h>
 #include <fileenumerator.h>

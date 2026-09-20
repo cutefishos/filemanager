@@ -27,7 +27,7 @@
 #include "helper/fm.h"
 #include "helper/shortcut.h"
 #include "desktopiconprovider.h"
-#include "thumbnailer/thumbnailprovider.h"
+#include "thumbnailprovider.h"
 
 #include "draganddrop/declarativedragdropevent.h"
 #include "draganddrop/declarativedroparea.h"

@@ -98,9 +98,6 @@ add_library(cutefish-filemanager-core STATIC
   mimetype/mimeappmanager.cpp
   mimetype/xdgdesktopfile.cpp
 
-  thumbnailer/thumbnailprovider.cpp
-  thumbnailer/thumbnailcache.cpp
-
   desktopiconprovider.cpp
 
   qml.qrc
