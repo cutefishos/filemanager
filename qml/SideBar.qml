@@ -288,7 +288,7 @@ Item {
                     height: parent.height
                     radius: FishUI.Theme.mediumRadius
                     color: _item.dropRejected ? Qt.alpha("#d94b4b", 0.16) :
-                           _mouseArea.pressed || _item.dropTarget ? Qt.rgba(FishUI.Theme.textColor.r,
+                           _mouseArea.pressed || _item.dropTarget || _menu.visible ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
                                                        FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
                            // Hover still reaches other rows while a favorite is dragged.
@@ -298,7 +298,7 @@ Item {
                            checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                              FishUI.Theme.textColor.g,
                                              FishUI.Theme.textColor.b, 0.05) : "transparent"
-                    border.width: _item.dropTarget || _item.dropRejected ? 2 : 0
+                    border.width: _item.dropTarget || _item.dropRejected || _menu.visible ? 2 : 0
                     border.color: _item.dropRejected ? "#d94b4b" : FishUI.Theme.highlightColor
 
                     smooth: true
