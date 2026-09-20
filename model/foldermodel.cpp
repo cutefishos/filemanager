@@ -24,6 +24,7 @@
  ***************************************************************************/
 
 #include "foldermodel.h"
+#include "foldersizecache.h"
 #include "dirlister.h"
 #include "helper/iojobui.h"
 #include "operations/fileoperationsclient.h"
@@ -196,6 +197,18 @@ FolderModel::FolderModel(QObject *parent)
         emit listingCanceled();
     });
 
+    m_folderSizes = new FolderSizeCache(this);
+    connect(m_dirLister, &Cutefish::IO::DirectoryLister::itemsChanged,
+            m_folderSizes, &FolderSizeCache::clear);
+    connect(m_dirLister, &Cutefish::IO::DirectoryLister::directoryChanged,
+            m_folderSizes, &FolderSizeCache::clear);
+    connect(m_folderSizes, &FolderSizeCache::ready, this, [this](const QString &path) {
+        const QModelIndex source = m_dirModel->indexForUrl(QUrl::fromLocalFile(path));
+        const QModelIndex proxy = mapFromSource(source);
+        if (proxy.isValid())
+            emit dataChanged(proxy, proxy, {FileSizeRole});
+    });
+
     m_dirModel = new Cutefish::IO::DirectoryModel(this);
     m_dirModel->setDirLister(m_dirLister);
     m_dirModel->moveToThread(qApp->thread());
@@ -335,9 +348,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     }
     case FileSizeRole: {
         if (item.isDir()) {
-            QDir dir(item.localPath());
-            dir.setFilter(QDir::Dirs | QDir::AllEntries | QDir::NoDotAndDotDot);
-            uint count = dir.count();
+            const qint64 count = m_folderSizes->count(item.localPath());
+            if (count < 0)
+                return QString();
             return count == 1 ? tr("%1 item").arg(count) : tr("%1 items").arg(count);
         }
 

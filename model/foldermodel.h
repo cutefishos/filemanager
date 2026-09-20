@@ -47,6 +47,7 @@ class QMimeData;
 class QDrag;
 class CFileSizeJob;
 class OperationTask;
+class FolderSizeCache;
 
 class FolderModel : public QSortFilterProxyModel, public QQmlParserStatus
 {
@@ -341,6 +342,7 @@ protected:
 private:
     Cutefish::IO::DirectoryModel *m_dirModel;
     Cutefish::IO::DirectoryLister *m_dirLister;
+    FolderSizeCache *m_folderSizes;
 
     QItemSelectionModel *m_selectionModel;
     QItemSelection m_pinnedSelection;

@@ -1,44 +1,57 @@
-/*
- * Copyright (C) 2021 CutefishOS Team.
- *
- * Author:     Reion Wong <reionwong@gmail.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include "thumbnailprovider.h"
 #include "thumbnailcache.h"
 
-#include <QFile>
 #include <QImage>
-#include <QDebug>
+#include <QQuickTextureFactory>
+#include <QThreadPool>
+#include <atomic>
 
-QImage ThumbnailProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+namespace {
+QThreadPool &thumbnailPool()
 {
-    if (!requestedSize.isValid()) {
-        return QImage();
+    static QThreadPool pool;
+    static const bool configured = [] {
+        pool.setMaxThreadCount(2);
+        return true;
+    }();
+    Q_UNUSED(configured)
+    return pool;
+}
+
+class ThumbnailResponse final : public QQuickImageResponse
+{
+public:
+    ThumbnailResponse(const QString &id, const QSize &requestedSize)
+    {
+        thumbnailPool().start([this, id, requestedSize] {
+            if (!m_cancelled.load() && requestedSize.isValid()) {
+                const QString path = ThumbnailCache::self()->requestThumbnail(id, requestedSize);
+                if (!m_cancelled.load() && !path.isEmpty())
+                    m_image = QImage(path);
+            }
+            // Qt keeps the response alive until finished, including cancelled requests.
+            emit finished();
+        });
     }
 
-    if (size)
-        *size = requestedSize;
-
-    QString f = id;
-    QString thumbnail = ThumbnailCache::self()->requestThumbnail(id, requestedSize);
-
-    if (!thumbnail.isEmpty()) {
-        return QImage(thumbnail);
+    void cancel() override
+    {
+        m_cancelled.store(true);
     }
 
-    return QImage();
+    QQuickTextureFactory *textureFactory() const override
+    {
+        return QQuickTextureFactory::textureFactoryForImage(m_image);
+    }
+
+private:
+    QImage m_image;
+    std::atomic_bool m_cancelled = false;
+};
+}
+
+QQuickImageResponse *ThumbnailProvider::requestImageResponse(const QString &id,
+                                                             const QSize &requestedSize)
+{
+    return new ThumbnailResponse(id, requestedSize);
 }

@@ -64,6 +64,7 @@ add_library(cutefish-filemanager-core STATIC
   draganddrop/declarativemimedata.cpp
 
   model/foldermodel.cpp
+  model/foldersizecache.cpp
   model/placesmodel.cpp
   model/placesitem.cpp
   model/pathbarmodel.cpp
@@ -225,6 +226,10 @@ install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translatio
 
 if(FILEMANAGER_BUILD_TESTS)
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(tst_responsiveness tests/tst_responsiveness.cpp)
+    target_link_libraries(tst_responsiveness PRIVATE cutefish-filemanager-core Qt6::Test)
+    add_test(NAME responsiveness COMMAND tst_responsiveness)
+    set_tests_properties(responsiveness PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_executable(tst_filechooser tests/tst_filechooser.cpp chooser/chooser.qrc)
     target_link_libraries(tst_filechooser PRIVATE cutefish-filechooser-ui Qt6::Test)
     add_test(NAME filechooser COMMAND tst_filechooser)
