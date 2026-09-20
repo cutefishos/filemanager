@@ -150,6 +150,8 @@ Item {
 
             FishUI.DesktopMenu {
                 id: breadcrumbMenu
+                pointerGrabEnabled: true
+
                 FishUI.MenuItem {
                     text: qsTr("Open In New Tab")
                     onTriggered: control.openInNewTab(model.path)

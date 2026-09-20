@@ -25,6 +25,8 @@ import FishUI 1.0 as FishUI
 FishUI.DesktopMenu {
     id: control
 
+    pointerGrabEnabled: true
+
     FishUI.MenuItem {
         text: qsTr("Icons")
         reservesCheckColumn: true

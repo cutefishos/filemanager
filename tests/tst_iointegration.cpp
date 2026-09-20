@@ -164,6 +164,7 @@ private slots:
         QScopedPointer<QObject> menu(menuComponent.createWithInitialProperties(
                 {{"folderModel", QVariant::fromValue(&folder)}}));
         QVERIFY2(menu, qPrintable(menuComponent.errorString()));
+        QVERIFY(menu->property("pointerGrabEnabled").toBool());
         folder.setSelected(folder.indexForKeyboardSearch("item.txt", 0));
         QVERIFY(menu->property("hasSelection").toBool());
         folder.copy();

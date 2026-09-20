@@ -219,6 +219,8 @@ Rectangle {
 
                 FishUI.DesktopMenu {
                     id: menu
+                    pointerGrabEnabled: true
+
                     FishUI.MenuItem {
                         text: qsTr("Open In New Tab")
                         onTriggered: control.duplicateRequested(modelData.currentUrl)

@@ -5,6 +5,8 @@ import FishUI 1.0 as FishUI
 FishUI.DesktopMenu {
     id: control
 
+    pointerGrabEnabled: true
+
     property var folderModel: null
     property bool hasSelection: folderModel ? folderModel.selectionCount > 0 : false
 
@@ -24,6 +26,7 @@ FishUI.DesktopMenu {
 
         childMenu: FishUI.DesktopMenu {
             id: newDocumentsMenu
+            pointerGrabEnabled: true
 
             FishUI.MenuItem {
                 id: newTextFileItem

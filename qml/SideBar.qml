@@ -218,6 +218,7 @@ Item {
 
                 FishUI.DesktopMenu {
                     id: _menu
+                    pointerGrabEnabled: true
 
                     FishUI.MenuItem {
                         text: qsTr("Open")
