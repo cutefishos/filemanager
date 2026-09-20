@@ -161,6 +161,8 @@ Item {
         sortMode: -1
         viewAdapter: viewAdapter
 
+        Component.onCompleted: desktopView.folderModel = dirModel
+
         onCurrentIndexChanged: {
             _folderView.currentIndex = _folderView.positioner.mapFromSource(dirModel.currentIndex)
         }
@@ -283,6 +285,9 @@ Item {
         }
         onUndo: {
             dirModel.undo()
+        }
+        onRedo: {
+            dirModel.redo()
         }
     }
 

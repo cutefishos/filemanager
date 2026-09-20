@@ -87,6 +87,11 @@ void FolderModel::undo()
     FileOperationsClient::instance()->undo();
 }
 
+void FolderModel::redo()
+{
+    FileOperationsClient::instance()->redo();
+}
+
 bool FolderModel::supportSetAsWallpaper(const QString &mimeType)
 {
     if (mimeType == "image/jpeg" || mimeType == "image/png")
@@ -681,7 +686,10 @@ void FolderModel::openDeleteDialog()
 void FolderModel::openInNewWindow(const QString &url)
 {
     if (!url.isEmpty()) {
-        QProcess::startDetached("cutefish-filemanager", QStringList() << url);
+        // Callers pass either a local path or a folder URL.
+        const QUrl target(url);
+        QProcess::startDetached("cutefish-filemanager",
+                                QStringList() << (target.isLocalFile() ? target.toLocalFile() : url));
         return;
     }
 
@@ -785,9 +793,17 @@ void FolderModel::createActions()
     QObject::connect(openInNewWindow, &QAction::triggered, this, [this] {
         this->openInNewWindow();
     });
+    QAction *undo = new QAction(tr("Undo"), this);
+    connect(undo, &QAction::triggered, this, &FolderModel::undo);
+
+    QAction *redo = new QAction(tr("Redo"), this);
+    connect(redo, &QAction::triggered, this, &FolderModel::redo);
+
     QAction *openInNewTab = new QAction(tr("Open In New Tab"), this);
     connect(openInNewTab, &QAction::triggered, this, &FolderModel::openInNewTab);
     m_actions.insert(QStringLiteral("openInNewTab"), openInNewTab);
+    m_actions.insert(QStringLiteral("undo"), undo);
+    m_actions.insert(QStringLiteral("redo"), redo);
 
     m_actions.insert(QStringLiteral("open"), open);
     m_actions.insert(QStringLiteral("openWith"), openWith);
@@ -851,13 +867,16 @@ void FolderModel::updateActions()
         openAction->setVisible(!isTrash && !hasDir);
     }
 
+    // The context menu only lists these with a selection; the desktop menu
+    // bar lists them always.
     if (QAction *copyAction = m_actions.value(QStringLiteral("copy"))) {
         copyAction->setVisible(!isTrash);
+        copyAction->setEnabled(!indexes.isEmpty());
     }
 
     if (QAction *cutAction = m_actions.value(QStringLiteral("cut"))) {
         cutAction->setVisible(!isTrash);
-        cutAction->setEnabled(rootItem().isWritable() && !hasStandardFolder);
+        cutAction->setEnabled(!indexes.isEmpty() && rootItem().isWritable() && !hasStandardFolder);
     }
 
     if (QAction *restoreAction = m_actions.value(QStringLiteral("restore"))) {
@@ -949,5 +968,13 @@ void FolderModel::updateActions()
     }
     if (QAction *openInNewTab = m_actions.value("openInNewTab")) {
         openInNewTab->setVisible(hasDir && !isTrash && !m_isDesktop);
+    }
+
+    if (QAction *undo = m_actions.value("undo")) {
+        undo->setEnabled(FileOperationsClient::instance()->undoAvailable());
+    }
+
+    if (QAction *redo = m_actions.value("redo")) {
+        redo->setEnabled(FileOperationsClient::instance()->redoAvailable());
     }
 }

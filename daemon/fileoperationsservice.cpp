@@ -12,6 +12,10 @@
 FileOperationsService::FileOperationsService(QObject *parent)
     : QObject(parent)
 {
+    auto *controller = Cutefish::IO::TaskController::instance();
+    connect(controller, &Cutefish::IO::TaskController::historyChanged, this, [this, controller] {
+        emit HistoryChanged(controller->isUndoAvailable(), controller->isRedoAvailable());
+    });
 }
 
 QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStringList &sources,
@@ -54,12 +58,31 @@ QStringList FileOperationsService::TaskPaths() const
 
 QDBusObjectPath FileOperationsService::Undo()
 {
-    Cutefish::IO::Task *undo = Cutefish::IO::TaskController::instance()->undo();
-    if (!undo)
+    return publish(Cutefish::IO::TaskController::instance()->undo());
+}
+
+QDBusObjectPath FileOperationsService::Redo()
+{
+    return publish(Cutefish::IO::TaskController::instance()->redo());
+}
+
+bool FileOperationsService::CanUndo() const
+{
+    return Cutefish::IO::TaskController::instance()->isUndoAvailable();
+}
+
+bool FileOperationsService::CanRedo() const
+{
+    return Cutefish::IO::TaskController::instance()->isRedoAvailable();
+}
+
+QDBusObjectPath FileOperationsService::publish(Cutefish::IO::Task *history)
+{
+    if (!history)
         return {};
 
     const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
-    auto *task = new DaemonTask(path, undo, this);
+    auto *task = new DaemonTask(path, history, this);
     task->setOwner(caller());
     const bool registered = QDBusConnection::sessionBus().registerObject(
             path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);

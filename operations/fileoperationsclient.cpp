@@ -249,6 +249,23 @@ FileOperationsClient::FileOperationsClient(QObject *parent)
     auto bus = QDBusConnection::sessionBus();
     bus.connect(serviceName, managerPath, managerInterface, QStringLiteral("TaskAdded"), this,
                 SLOT(remoteTaskAdded(QString)));
+    bus.connect(serviceName, managerPath, managerInterface, QStringLiteral("HistoryChanged"), this,
+                SLOT(remoteHistoryChanged(bool,bool)));
+
+    // The daemon's history is what counts while it runs; its stacks are gone
+    // with it, and the in-process controller takes over.
+    auto *watcher = new QDBusServiceWatcher(serviceName, bus,
+                                            QDBusServiceWatcher::WatchForOwnerChange, this);
+    connect(watcher, &QDBusServiceWatcher::serviceRegistered, this,
+            &FileOperationsClient::queryRemoteHistory);
+    connect(watcher, &QDBusServiceWatcher::serviceUnregistered, this,
+            [this] { setHistory(false, false); });
+
+    auto *controller = Cutefish::IO::TaskController::instance();
+    connect(controller, &Cutefish::IO::TaskController::historyChanged, this, [this, controller] {
+        if (!daemonAvailable())
+            setHistory(controller->isUndoAvailable(), controller->isRedoAvailable());
+    });
 
     QTimer::singleShot(0, this, [this] {
         auto bus = QDBusConnection::sessionBus();
@@ -258,6 +275,7 @@ FileOperationsClient::FileOperationsClient(QObject *parent)
                 QString::fromLatin1(serviceName));
         if (!registered.isValid() || !registered.value())
             return;
+        queryRemoteHistory();
         QDBusInterface manager(serviceName, managerPath, managerInterface, bus);
         const QDBusReply<QStringList> tasks = manager.call(QStringLiteral("TaskPaths"));
         if (!tasks.isValid())
@@ -265,6 +283,29 @@ FileOperationsClient::FileOperationsClient(QObject *parent)
         for (const auto &path : tasks.value())
             remoteTaskAdded(path);
     });
+}
+
+void FileOperationsClient::queryRemoteHistory()
+{
+    QDBusInterface manager(serviceName, managerPath, managerInterface,
+                           QDBusConnection::sessionBus());
+    const QDBusReply<bool> canUndo = manager.call(QStringLiteral("CanUndo"));
+    const QDBusReply<bool> canRedo = manager.call(QStringLiteral("CanRedo"));
+    setHistory(canUndo.isValid() && canUndo.value(), canRedo.isValid() && canRedo.value());
+}
+
+void FileOperationsClient::remoteHistoryChanged(bool canUndo, bool canRedo)
+{
+    setHistory(canUndo, canRedo);
+}
+
+void FileOperationsClient::setHistory(bool canUndo, bool canRedo)
+{
+    if (m_canUndo == canUndo && m_canRedo == canRedo)
+        return;
+    m_canUndo = canUndo;
+    m_canRedo = canRedo;
+    emit historyChanged();
 }
 
 OperationTask *FileOperationsClient::attachRemoteTask(const QString &path)
@@ -431,16 +472,27 @@ OperationTask *FileOperationsClient::extract(const QString &source, const QStrin
 
 OperationTask *FileOperationsClient::undo()
 {
+    return history("Undo", &Cutefish::IO::TaskController::undo);
+}
+
+OperationTask *FileOperationsClient::redo()
+{
+    return history("Redo", &Cutefish::IO::TaskController::redo);
+}
+
+OperationTask *FileOperationsClient::history(const char *method,
+                                             Cutefish::IO::Task *(Cutefish::IO::TaskController::*local)())
+{
     if (daemonAvailable()) {
         QDBusInterface manager(serviceName, managerPath, managerInterface,
                                QDBusConnection::sessionBus());
-        const QDBusReply<QDBusObjectPath> reply = manager.call(QStringLiteral("Undo"));
+        const QDBusReply<QDBusObjectPath> reply = manager.call(QString::fromLatin1(method));
         if (reply.isValid() && !reply.value().path().isEmpty())
             return attachRemoteTask(reply.value().path());
         return nullptr;
     }
 
-    Cutefish::IO::Task *task = Cutefish::IO::TaskController::instance()->undo();
+    Cutefish::IO::Task *task = (Cutefish::IO::TaskController::instance()->*local)();
     if (!task)
         return nullptr;
     auto *operation = new LocalOperationTask(task, this);

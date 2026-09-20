@@ -1,4 +1,5 @@
 #include "foldermodel.h"
+#include "operations/fileoperationsclient.h"
 #include "dirlister.h"
 #include "foldersizecache.h"
 #include "helper/datehelper.h"
@@ -141,6 +142,8 @@ FolderModel::FolderModel(QObject *parent)
 
     createActions();
     connect(QApplication::clipboard(), &QClipboard::dataChanged, this, &FolderModel::updateActions);
+    connect(FileOperationsClient::instance(), &FileOperationsClient::historyChanged, this,
+            &FolderModel::updateActions);
     connect(this, &FolderModel::listingCompleted, this, &FolderModel::updateActions);
 }
 

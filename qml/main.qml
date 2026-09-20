@@ -223,22 +223,9 @@ FishUI.Window {
             title: qsTr("File")
 
             Platform.MenuItem {
-                text: qsTr("New Tab")
-                onTriggered: root.openTab(root._folderPage.currentUrl)
+                text: qsTr("New Window")
+                onTriggered: root._folderPage.model.openInNewWindow(root._folderPage.currentUrl)
             }
-
-            Platform.MenuItem {
-                text: qsTr("Open In New Tab")
-                enabled: root._folderPage && root._folderPage.model.action("openInNewTab").visible
-                onTriggered: root._folderPage.model.openInNewTab()
-            }
-
-            Platform.MenuItem {
-                text: qsTr("Close Tab")
-                onTriggered: root.closeTab(root.currentTab)
-            }
-
-            Platform.MenuSeparator {}
 
             Platform.MenuItem {
                 text: qsTr("New Folder")
@@ -251,21 +238,21 @@ FishUI.Window {
                 text: qsTr("Properties")
                 onTriggered: root._folderPage.model.openPropertiesDialog()
             }
-
-            Platform.MenuSeparator {}
-
-            Platform.MenuItem {
-                text: qsTr("Quit")
-                onTriggered: root.close()
-            }
         }
 
         Platform.Menu {
             title: qsTr("Edit")
 
             Platform.MenuItem {
-                text: qsTr("Select All")
-                onTriggered: root._folderPage.model.selectAll()
+                text: qsTr("Undo")
+                enabled: root._folderPage && root._folderPage.model.action("undo").enabled
+                onTriggered: root._folderPage.model.undo()
+            }
+
+            Platform.MenuItem {
+                text: qsTr("Redo")
+                enabled: root._folderPage && root._folderPage.model.action("redo").enabled
+                onTriggered: root._folderPage.model.redo()
             }
 
             Platform.MenuSeparator {}
@@ -283,6 +270,11 @@ FishUI.Window {
             Platform.MenuItem {
                 text: qsTr("Paste")
                 onTriggered: root._folderPage.model.paste()
+            }
+
+            Platform.MenuItem {
+                text: qsTr("Select All")
+                onTriggered: root._folderPage.model.selectAll()
             }
         }
 

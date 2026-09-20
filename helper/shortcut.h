@@ -48,6 +48,7 @@ signals:
     void keyPressed(const QString &text);
     void close();
     void undo();
+    void redo();
 
 protected:
     bool eventFilter(QObject *obj, QEvent *e) override;

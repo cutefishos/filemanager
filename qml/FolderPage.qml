@@ -292,6 +292,9 @@ Item {
         onUndo: {
             dirModel.undo()
         }
+        onRedo: {
+            dirModel.redo()
+        }
     }
 
     function openUrl(url) {

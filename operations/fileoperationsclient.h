@@ -31,17 +31,29 @@ public:
     OperationTask *compress(const QStringList &sources, const QString &outputPath);
     OperationTask *extract(const QString &source, const QString &outputPath);
     OperationTask *undo();
+    OperationTask *redo();
+
+    bool undoAvailable() const { return m_canUndo; }
+    bool redoAvailable() const { return m_canRedo; }
 
 signals:
     void taskAdded(OperationTask *task);
+    void historyChanged();
 
 private:
     explicit FileOperationsClient(QObject *parent = nullptr);
     OperationTask *attachRemoteTask(const QString &path);
+    OperationTask *history(const char *method, Cutefish::IO::Task *(Cutefish::IO::TaskController::*local)());
 
 private slots:
     void remoteTaskAdded(const QString &path);
+    void remoteHistoryChanged(bool canUndo, bool canRedo);
 
 private:
+    void setHistory(bool canUndo, bool canRedo);
+    void queryRemoteHistory();
+
     QHash<QString, QPointer<OperationTask>> m_remoteTasks;
+    bool m_canUndo = false;
+    bool m_canRedo = false;
 };

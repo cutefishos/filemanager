@@ -17,9 +17,12 @@
 
 #include "desktopview.h"
 
+#include "model/foldermodel.h"
 #include "qmltypes.h"
 
+#include <QAction>
 #include <QDebug>
+#include <QMenu>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -32,12 +35,28 @@ DesktopView::DesktopView(QQuickItem *parent)
     , m_component(nullptr)
     , m_context(nullptr)
     , m_content(nullptr)
+    , m_menuBar(new QMenu)
+    , m_fileMenu(m_menuBar->addMenu(tr("File")))
+    , m_editMenu(m_menuBar->addMenu(tr("Edit")))
+    , m_newWindowAction(new QAction(tr("New Window"), this))
+    , m_selectAllAction(new QAction(tr("Select All"), this))
 {
     setFlag(ItemHasContents, false);
     CutefishFM::initResources();
+
+    // Same refresh the context menu asks for before it opens.
+    for (QMenu *menu : {m_fileMenu, m_editMenu}) {
+        connect(menu, &QMenu::aboutToShow, this, [this] {
+            if (m_folderModel)
+                m_folderModel->prepareContextMenu();
+        });
+    }
 }
 
-DesktopView::~DesktopView() = default;
+DesktopView::~DesktopView()
+{
+    delete m_menuBar;
+}
 
 QScreen *DesktopView::screen() const
 {
@@ -71,6 +90,67 @@ QString DesktopView::screenName() const
 QRect DesktopView::screenRect() const
 {
     return m_screenRect;
+}
+
+QObject *DesktopView::folderModel() const
+{
+    return m_folderModel.data();
+}
+
+void DesktopView::setFolderModel(QObject *model)
+{
+    FolderModel *folderModel = qobject_cast<FolderModel *>(model);
+
+    if (m_folderModel == folderModel)
+        return;
+
+    if (m_folderModel) {
+        disconnect(m_newWindowAction, nullptr, m_folderModel, nullptr);
+        disconnect(m_selectAllAction, nullptr, m_folderModel, nullptr);
+    }
+
+    m_folderModel = folderModel;
+
+    if (m_folderModel) {
+        // A window opened from the desktop starts at home, not at ~/Desktop.
+        connect(m_newWindowAction, &QAction::triggered, m_folderModel, [this] {
+            m_folderModel->openInNewWindow(m_folderModel->homePath());
+        });
+        connect(m_selectAllAction, &QAction::triggered, m_folderModel, &FolderModel::selectAll);
+    }
+
+    rebuildMenuBar();
+    emit folderModelChanged();
+}
+
+QMenu *DesktopView::menuBar() const
+{
+    return m_menuBar;
+}
+
+// The model's own actions are shared with the context menu, so their enabled
+// state (writable folder, clipboard contents, selection) is already kept up
+// to date there.
+void DesktopView::rebuildMenuBar()
+{
+    m_fileMenu->clear();
+    m_editMenu->clear();
+
+    if (!m_folderModel)
+        return;
+
+    m_fileMenu->addAction(m_newWindowAction);
+    m_fileMenu->addAction(m_folderModel->action(QStringLiteral("newFolder")));
+    m_fileMenu->addSeparator();
+    m_fileMenu->addAction(m_folderModel->action(QStringLiteral("properties")));
+
+    m_editMenu->addAction(m_folderModel->action(QStringLiteral("undo")));
+    m_editMenu->addAction(m_folderModel->action(QStringLiteral("redo")));
+    m_editMenu->addSeparator();
+    m_editMenu->addAction(m_folderModel->action(QStringLiteral("cut")));
+    m_editMenu->addAction(m_folderModel->action(QStringLiteral("copy")));
+    m_editMenu->addAction(m_folderModel->action(QStringLiteral("paste")));
+    m_editMenu->addAction(m_selectAllAction);
 }
 
 void DesktopView::updateScreenRect()

@@ -16,6 +16,7 @@ target_link_libraries(${PLUGIN_TARGET} PRIVATE
     Qt6::Core
     Qt6::Qml
     Qt6::Quick
+    Qt6::Widgets
     cutefish-filemanager-core
 )
 
