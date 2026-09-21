@@ -477,9 +477,17 @@ Item {
         selectedPath = path
         listView.currentIndex = -1
 
+        var selectedUrl = path.toString()
+        if (selectedUrl.indexOf("trash:/") === 0)
+            selectedUrl = "trash:/"
+
         for (var i = 0; i < listView.count; ++i) {
-            if (path === listView.model.get(i).path ||
-                    path === listView.model.get(i).url) {
+            var place = listView.model.get(i)
+            var placeUrl = place.url.toString()
+            if (placeUrl.indexOf("trash:/") === 0)
+                placeUrl = "trash:/"
+
+            if (selectedUrl === place.path || selectedUrl === placeUrl) {
                 listView.currentIndex = i
                 break
             }
