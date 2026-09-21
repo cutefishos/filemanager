@@ -1,9 +1,9 @@
 #include "foldercontentsmodel.h"
 
-#include <async.h>
 #include <QCollator>
 #include <QFutureWatcher>
 #include <QLocale>
+#include <QtConcurrent/QtConcurrentRun>
 #include <algorithm>
 #include <cerrno>
 
@@ -282,7 +282,7 @@ void FolderContentsModel::prepare()
         m_publishTimer.start();
     });
 
-    watcher->setFuture(Cutefish::IO::Internal::runAsync(
+    watcher->setFuture(QtConcurrent::run(
             [incoming = m_source->items(), previous = m_items, query = m_query,
              renames = m_renames,
              locale = QLocale(), cancelled] {

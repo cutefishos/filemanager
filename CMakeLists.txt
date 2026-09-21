@@ -17,15 +17,8 @@ option(FILEMANAGER_BUILD_TESTS "Build file manager integration tests" OFF)
 if(FILEMANAGER_BUILD_TESTS)
     enable_testing()
 endif()
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/io
-                 ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-io-build)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/application
-                 ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-application-build)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cutefish-framework/applications
-                 ${CMAKE_CURRENT_BINARY_DIR}/cutefish-framework-applications-build)
-
-find_package(Qt6 COMPONENTS Core DBus Quick QuickControls2 Widgets LinguistTools REQUIRED)
+find_package(Qt6 COMPONENTS Core Concurrent DBus Quick QuickControls2 Widgets LinguistTools REQUIRED)
+find_package(CutefishFramework REQUIRED COMPONENTS IO Application Applications)
 
 find_path(LIBZIP_INCLUDE_DIR zip.h)
 find_library(LIBZIP_LIBRARY NAMES zip)
@@ -115,6 +108,7 @@ target_link_libraries(cutefish-filemanager-core
   PUBLIC
   Cutefish::Application
   Cutefish::Applications
+  Qt6::Concurrent
   Qt6::Core
   Qt6::DBus
   Qt6::Quick
