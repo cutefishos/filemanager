@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import FishUI 1.0 as FishUI
+import Cutefish.Application
 import Cutefish.FileManager 1.0
 import "../qml/Controls" as FileManagerControls
 import "../qml/FileList" as FileList
@@ -10,6 +11,7 @@ import "../qml" as FileManager
 
 FishUI.Window {
     id: root
+    WindowHints.skipTaskbar: true
     objectName: "fileChooserWindow"
     width: 860
     height: 520

@@ -3,9 +3,11 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import FishUI 1.0 as FishUI
+import Cutefish.Application
 
 FishUI.Window {
     id: preview
+    WindowHints.skipTaskbar: true
     objectName: "quickLookWindow"
 
     required property var controller
