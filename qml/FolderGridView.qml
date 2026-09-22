@@ -608,17 +608,21 @@ GridView {
 
     DragDrop.DropArea {
         id: dropArea
+        parent: control.interactionSurface
         anchors.fill: parent
+        visible: control.visible
 
         onDragEnter: function(event) {
-            control.updateDragScrollPosition(event.y)
-            control.updateDropTarget(event, Qt.point(event.x, event.y))
+            var pos = mapToItem(control, event.x, event.y)
+            control.updateDragScrollPosition(pos.y)
+            control.updateDropTarget(event, pos)
             event.accept(Qt.MoveAction)
         }
 
         onDragMove: function(event) {
-            control.updateDragScrollPosition(event.y)
-            control.updateDropTarget(event, Qt.point(event.x, event.y))
+            var pos = mapToItem(control, event.x, event.y)
+            control.updateDragScrollPosition(pos.y)
+            control.updateDropTarget(event, pos)
             event.accept(Qt.MoveAction)
         }
 

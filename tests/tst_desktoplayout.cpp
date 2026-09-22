@@ -3,7 +3,10 @@
 #include "qmltypes.h"
 
 #include <QApplication>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QFile>
+#include <QMimeData>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -14,11 +17,93 @@
 #include <QTemporaryDir>
 #include <QtTest>
 
+#include <cmath>
+
 class DesktopLayoutTest : public QObject
 {
     Q_OBJECT
 
 private slots:
+
+    void dropOutsideGrid_data()
+    {
+        QTest::addColumn<QPoint>("point");
+        QTest::newRow("bottom-left") << QPoint(5, 760);
+        QTest::newRow("bottom-right") << QPoint(1360, 760);
+        QTest::newRow("left-margin") << QPoint(5, 300);
+        QTest::newRow("right-margin") << QPoint(1360, 300);
+    }
+
+    void dropOutsideGrid()
+    {
+        QFETCH(QPoint, point);
+        QTemporaryDir source;
+        QTemporaryDir destination;
+        QVERIFY(source.isValid());
+        QVERIFY(destination.isValid());
+        QFile file(source.filePath("dropped.txt"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("desktop drop");
+        file.close();
+
+        QQmlEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        QQmlPropertyMap desktopView;
+        desktopView.insert("leftMargin", 80);
+        desktopView.insert("topMargin", 28);
+        desktopView.insert("rightMargin", 80);
+        desktopView.insert("bottomMargin", 64);
+        engine.rootContext()->setContextProperty("desktopView", &desktopView);
+        QQmlComponent component(&engine, QUrl("qrc:/qml/Desktop/Main.qml"));
+        QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+        QScopedPointer<QObject> object(
+                component.createWithInitialProperties({{"width", 1366}, {"height", 768}}));
+        QVERIFY2(object, qPrintable(component.errorString()));
+        auto *root = qobject_cast<QQuickItem *>(object.data());
+        QVERIFY(root);
+        auto *grid = root->findChild<QQuickItem *>("FolderGridView");
+        auto *folder = root->findChild<FolderModel *>();
+        QVERIFY(grid);
+        QVERIFY(folder);
+        folder->setUrl(QUrl::fromLocalFile(destination.path()).toString());
+        QTRY_VERIFY(folder->status() != FolderModel::Listing);
+        QQuickWindow window;
+        window.resize(1366, 768);
+        root->setParentItem(window.contentItem());
+        window.show();
+        QTest::qWait(200);
+
+        const QPointF local = grid->mapFromItem(root, point);
+        QVERIFY(!grid->contains(local));
+        const int column = qBound(0, int(std::floor(local.x() / grid->property("cellWidth").toReal())),
+                                  grid->property("gridColumns").toInt() - 1);
+        const int row = qBound(0, int(std::floor(local.y() / grid->property("cellHeight").toReal())),
+                               grid->property("gridRows").toInt() - 1);
+        const int expectedCell = column * grid->property("gridRows").toInt() + row;
+
+        QMimeData mime;
+        mime.setUrls({QUrl::fromLocalFile(file.fileName())});
+        QDragEnterEvent enter(point, Qt::CopyAction, &mime, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(&window, &enter);
+        QVERIFY(enter.isAccepted());
+        QDragMoveEvent move(point, Qt::CopyAction, &mime, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(&window, &move);
+        QVERIFY(move.isAccepted());
+        QSignalSpy positioned(folder, &FolderModel::move);
+        QDropEvent drop(point, Qt::CopyAction, &mime, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(&window, &drop);
+        QVERIFY(drop.isAccepted());
+        QTRY_COMPARE(positioned.count(), 1);
+        QCOMPARE(positioned.first().at(0).toInt(), qRound(local.x()));
+        QCOMPARE(positioned.first().at(1).toInt(), qRound(local.y()));
+        auto *positioner = grid->property("positioner").value<Positioner *>();
+        QVERIFY(positioner);
+        const QUrl copied = QUrl::fromLocalFile(destination.filePath("dropped.txt"));
+        QTRY_COMPARE(positioner->indexForUrl(copied), expectedCell);
+        QVERIFY(QFile::exists(file.fileName()));
+        QVERIFY(!grid->property("dragScrollActive").toBool());
+        object.reset();
+    }
 
     void desktopGeometry()
     {

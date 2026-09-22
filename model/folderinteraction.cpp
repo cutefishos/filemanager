@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QPersistentModelIndex>
+#include <QQuickItem>
 
 static bool isDropBetweenSharedViews(const QList<QUrl> &urls, const QUrl &folderUrl)
 {
@@ -364,8 +365,12 @@ void FolderModel::drop(QQuickItem *target, QObject *dropEvent, int row)
 
     const QUrl targetUrl = dropTargetUrl(row);
 
-    const int x = dropEvent->property("x").toInt();
-    const int y = dropEvent->property("y").toInt();
+    QPointF position(dropEvent->property("x").toInt(), dropEvent->property("y").toInt());
+    // The desktop drop area covers margins outside the icon grid.
+    if (auto *area = qobject_cast<QQuickItem *>(dropEvent->parent()); area && target)
+        position = area->mapToItem(target, position);
+    const int x = qRound(position.x());
+    const int y = qRound(position.y());
 
     if (m_dragInProgress && row == -1) {
         if (mimeData->urls().isEmpty())
