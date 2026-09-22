@@ -4,7 +4,7 @@
 `xdg-desktop-portal-cutefish`. It is a separate process built by File Manager and
 shares `FolderModel`, `PlacesModel`, icons, and FishUI with the browser. The portal
 backend itself has no UI and does not embed the shell or file browser.
-The helper selects the Fish control style explicitly. Dialog actions use
+The helper uses FishUI controls explicitly. Dialog actions use
 `FishUI.ConfirmDialogButton`, and the chooser has a fixed size without maximization.
 
 The dialog has no title bar or window buttons; dragging the path bar moves it and

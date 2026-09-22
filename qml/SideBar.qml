@@ -87,7 +87,7 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        Label {
+        FishUI.Label {
             id: titleLabel
             text: sideBar.title
             color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
@@ -110,7 +110,7 @@ Item {
             Layout.topMargin: FishUI.Units.smallSpacing
             clip: true
             model: placesModel
-            header: Label {
+            header: FishUI.Label {
                 width: listView.width
                 height: listView.snap(32)
                 leftPadding: listView.sideInset + FishUI.Units.smallSpacing
@@ -141,12 +141,12 @@ Item {
             bottomMargin: listView.snap(FishUI.Units.smallSpacing)
             spacing: listView.snap(3)
 
-            ScrollBar.vertical: ScrollBar {
+            FishUI.ScrollBar.vertical: FishUI.ScrollBar {
                 bottomPadding: FishUI.Units.smallSpacing
             }
 
             section.property: "category"
-            section.delegate: Label {
+            section.delegate: FishUI.Label {
                 width: ListView.view.width
                 height: !section || section === qsTr("Favorites") ? 0 : listView.snap(36)
                 // ListView controls delegate visibility, including zero-height sections.
@@ -318,7 +318,7 @@ Item {
                     color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 }
 
-                Label {
+                FishUI.Label {
                     id: _label
                     x: listView.snap(_icon.x + _icon.width + FishUI.Units.smallSpacing)
                     y: listView.snap((_item.height - height) / 2)

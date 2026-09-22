@@ -79,7 +79,7 @@ FishUI.Window {
         anchors.margins: 16
         spacing: 16
 
-        Label {
+        FishUI.Label {
             Layout.fillWidth: true
             Layout.rightMargin: 32
             text: control.title
@@ -94,13 +94,13 @@ FishUI.Window {
             Layout.preferredHeight: 250
             model: ListModel {}
             clip: true
-            ScrollBar.vertical: ScrollBar {}
+            FishUI.ScrollBar.vertical: FishUI.ScrollBar {}
 
             spacing: 4
             boundsBehavior: Flickable.StopAtBounds
             keyNavigationEnabled: true
 
-            Label {
+            FishUI.Label {
                 anchors.centerIn: parent
                 text: qsTr("No applications")
                 visible: listView.count === 0
@@ -148,7 +148,7 @@ FishUI.Window {
                         source: model.icon
                     }
 
-                    Label {
+                    FishUI.Label {
                         text: model.name
                         Layout.fillWidth: true
                         elide: Text.ElideMiddle
@@ -160,7 +160,7 @@ FishUI.Window {
             }
         }
 
-        CheckBox {
+        FishUI.CheckBox {
             id: defaultCheckBox
             focusPolicy: Qt.NoFocus
             text: qsTr("Set as default")

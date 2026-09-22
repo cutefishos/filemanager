@@ -176,7 +176,7 @@ Item {
                 smooth: true
             }
 
-            Label {
+            FishUI.Label {
                 id: _name
                 text: model.name
                 anchors.centerIn: parent
@@ -185,7 +185,7 @@ Item {
         }
     }
 
-    TextField {
+    FishUI.TextField {
         id: _pathEditor
         anchors.fill: parent
         visible: false

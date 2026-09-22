@@ -482,7 +482,7 @@ GridView {
     // like a touch interface. WheelHandler and the scroll bar do the scrolling.
     interactive: false
     currentIndex: -1
-    ScrollBar.vertical: ScrollBar { }
+    FishUI.ScrollBar.vertical: FishUI.ScrollBar { }
 
     FishUI.WheelHandler {
         target: control

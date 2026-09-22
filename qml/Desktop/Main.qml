@@ -218,7 +218,7 @@ Item {
         focus: true
         model: _folderView.positioner
 
-        ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+        FishUI.ScrollBar.vertical.policy: FishUI.ScrollBar.AlwaysOff
 
         flow: GridView.FlowTopToBottom
 

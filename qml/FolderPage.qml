@@ -67,7 +67,7 @@ Item {
         color: FishUI.Theme.secondBackgroundColor
     }
 
-    Label {
+    FishUI.Label {
         id: _fileTips
         text: qsTr("Empty folder")
         font.pointSize: 15

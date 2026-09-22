@@ -46,7 +46,7 @@ FishUI.Window {
     background.color: FishUI.Theme.secondBackgroundColor
 
     headerItem: Item {
-        Label {
+        FishUI.Label {
             anchors.left: parent.left
             anchors.leftMargin: 16
             anchors.verticalCenter: parent.verticalCenter
@@ -63,7 +63,7 @@ FishUI.Window {
         anchors.margins: 16
         spacing: 16
 
-        Label {
+        FishUI.Label {
             Layout.fillWidth: true
             text: control.archiveModel === null ? ""
                                                   : control.archiveModel.archiveCurrentFile
@@ -86,7 +86,7 @@ FishUI.Window {
                 running: visible
             }
 
-            ProgressBar {
+            FishUI.ProgressBar {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter

@@ -42,7 +42,7 @@ MouseArea {
                : _cell.columns.cellPadding
             width: Math.min(implicitWidth, _cell.width - _cell.columns.cellPadding * 2)
 
-            Label {
+            FishUI.Label {
                 id: _titleLabel
                 anchors.verticalCenter: parent.verticalCenter
                 width: Math.min(implicitWidth, _cell.width - _cell.columns.cellPadding * 2

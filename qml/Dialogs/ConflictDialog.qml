@@ -143,7 +143,7 @@ FishUI.Window {
                 Layout.rightMargin: 32
                 spacing: 4
 
-                Label {
+                FishUI.Label {
                     objectName: "conflictHeading"
                     width: control.textWidth
                     text: control.heading
@@ -152,7 +152,7 @@ FishUI.Window {
                     color: FishUI.Theme.textColor
                     wrapMode: Text.Wrap
                 }
-                Label {
+                FishUI.Label {
                     width: control.textWidth
                     text: control.question
                     textFormat: Text.PlainText
@@ -168,7 +168,7 @@ FishUI.Window {
             Layout.fillWidth: true
             spacing: 8
 
-            CheckBox {
+            FishUI.CheckBox {
                 id: applyToAll
                 objectName: "conflictApplyToAll"
                 visible: control.sourceCount > 1

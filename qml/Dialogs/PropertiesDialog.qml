@@ -73,7 +73,7 @@ FishUI.Window {
                 Component.onCompleted: updateIcon()
             }
 
-            Label {
+            FishUI.Label {
                 text: main.fileName
                 Layout.fillWidth: true
                 elide: Text.ElideMiddle
@@ -87,77 +87,77 @@ FishUI.Window {
             rowSpacing: FishUI.Units.largeSpacing
             Layout.alignment: Qt.AlignTop
 
-            Label {
+            FishUI.Label {
                 text: qsTr("Type:")
                 Layout.alignment: Qt.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: mimeType.visible
             }
 
-            Label {
+            FishUI.Label {
                 id: mimeType
                 text: main.mimeType
                 visible: text
             }
 
-            Label {
+            FishUI.Label {
                 text: qsTr("Location:")
                 Layout.alignment: Qt.AlignRight
                 color: FishUI.Theme.disabledTextColor
             }
 
-            Label {
+            FishUI.Label {
                 id: location
                 text: main.location
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
             }
 
-            Label {
+            FishUI.Label {
                 text: qsTr("Size:")
                 Layout.alignment: Qt.AlignRight
                 color: FishUI.Theme.disabledTextColor
             }
 
-            Label {
+            FishUI.Label {
                 id: size
                 text: main.fileSize ? main.fileSize : qsTr("Calculating...")
             }
 
-            Label {
+            FishUI.Label {
                 text: qsTr("Created:")
                 Layout.alignment: Qt.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: creationTime.visible
             }
 
-            Label {
+            FishUI.Label {
                 id: creationTime
                 text: main.creationTime
                 visible: text
             }
 
-            Label {
+            FishUI.Label {
                 text: qsTr("Modified:")
                 Layout.alignment: Qt.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: modifiedTime.visible
             }
 
-            Label {
+            FishUI.Label {
                 id: modifiedTime
                 text: main.modifiedTime
                 visible: text
             }
 
-            Label {
+            FishUI.Label {
                 text: qsTr("Accessed:")
                 Layout.alignment: Qt.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: accessTime.visible
             }
 
-            Label {
+            FishUI.Label {
                 id: accessTime
                 text: main.accessedTime
                 visible: text

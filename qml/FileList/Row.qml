@@ -125,7 +125,7 @@ Item {
             }
         }
 
-        Label {
+        FishUI.Label {
             id: _label
             anchors.left: _iconItem.right
             anchors.leftMargin: FishUI.Units.smallSpacing + 2
@@ -140,7 +140,7 @@ Item {
         }
     }
 
-    Label {
+    FishUI.Label {
         x: row.columns.sizeColumnX + row.columns.cellPadding
         width: row.columns.sizeColumnWidth - row.columns.cellPadding * 2
         anchors.verticalCenter: parent.verticalCenter
@@ -153,7 +153,7 @@ Item {
         elide: Text.ElideRight
     }
 
-    Label {
+    FishUI.Label {
         x: row.columns.typeColumnX + row.columns.cellPadding
         width: row.columns.typeColumnWidth - row.columns.cellPadding * 2
         anchors.verticalCenter: parent.verticalCenter
@@ -165,7 +165,7 @@ Item {
         elide: Text.ElideRight
     }
 
-    Label {
+    FishUI.Label {
         x: row.columns.dateColumnX + row.columns.cellPadding
         width: row.columns.dateColumnWidth - row.columns.cellPadding * 2
         anchors.verticalCenter: parent.verticalCenter

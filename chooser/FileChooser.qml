@@ -140,9 +140,9 @@ FishUI.Window {
                 readonly property real rowHeight: Math.max(34, FishUI.Units.fontMetrics.height + 12)
 
                 FishUI.WheelHandler { target: placesView }
-                ScrollBar.vertical: ScrollBar {}
+                FishUI.ScrollBar.vertical: FishUI.ScrollBar {}
 
-                header: Label {
+                header: FishUI.Label {
                     width: placesView.width
                     height: 32
                     leftPadding: placesView.sideInset + FishUI.Units.smallSpacing
@@ -154,7 +154,7 @@ FishUI.Window {
                 }
 
                 section.property: "category"
-                section.delegate: Label {
+                section.delegate: FishUI.Label {
                     width: ListView.view.width
                     height: !section || section === qsTr("Favorites") ? 0 : 36
                     text: section === qsTr("Favorites") ? "" : section
@@ -220,7 +220,7 @@ FishUI.Window {
                             color: place.checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                         }
 
-                        Label {
+                        FishUI.Label {
                             Layout.fillWidth: true
                             text: place.model.name
                             textFormat: Text.PlainText
@@ -381,7 +381,7 @@ FishUI.Window {
                                     smooth: true
                                 }
 
-                                Label {
+                                FishUI.Label {
                                     id: crumbLabel
                                     anchors.centerIn: parent
                                     text: crumb.model.name
@@ -391,7 +391,7 @@ FishUI.Window {
                             }
                         }
 
-                        TextField {
+                        FishUI.TextField {
                             id: pathEditor
                             objectName: "locationField"
                             anchors.fill: parent
@@ -432,7 +432,7 @@ FishUI.Window {
                         }
 
                         FishUI.WheelHandler { target: files }
-                        ScrollBar.vertical: ScrollBar {
+                        FishUI.ScrollBar.vertical: FishUI.ScrollBar {
                             topPadding: files.columns.headerHeight
                         }
 
@@ -530,7 +530,7 @@ FishUI.Window {
                         }
                     }
 
-                    Label {
+                    FishUI.Label {
                         anchors.centerIn: parent
                         visible: !chooser.busy && files.count === 0
                         text: qsTr("Empty folder")
@@ -558,14 +558,14 @@ FishUI.Window {
                         visible: chooser.saveMode
                         spacing: FishUI.Units.smallSpacing
 
-                        Label {
+                        FishUI.Label {
                             id: saveAsLabel
                             Layout.preferredWidth: fieldsBand.labelWidth
                             text: qsTr("Save As:")
                             color: FishUI.Theme.textColor
                         }
 
-                        TextField {
+                        FishUI.TextField {
                             id: nameField
                             objectName: "fileNameField"
                             Layout.fillWidth: true
@@ -582,7 +582,7 @@ FishUI.Window {
                         visible: chooser.filters.length > 0
                         spacing: FishUI.Units.smallSpacing
 
-                        Label {
+                        FishUI.Label {
                             id: filterLabel
                             Layout.preferredWidth: fieldsBand.labelWidth
                             text: qsTr("File Type:")
@@ -611,7 +611,7 @@ FishUI.Window {
                             Layout.fillWidth: true
                             spacing: FishUI.Units.smallSpacing
 
-                            Label {
+                            FishUI.Label {
                                 visible: !parent.isToggle
                                 text: parent.modelData.label
                                 textFormat: Text.PlainText
@@ -629,7 +629,7 @@ FishUI.Window {
                                 onActivated: chooser.setChoice(parent.modelData.id, currentValue)
                             }
 
-                            CheckBox {
+                            FishUI.CheckBox {
                                 visible: parent.isToggle
                                 text: parent.modelData.label
                                 checked: parent.modelData.selected === "true"
@@ -639,7 +639,7 @@ FishUI.Window {
                     }
                 }
 
-                Label {
+                FishUI.Label {
                     Layout.fillWidth: true
                     Layout.topMargin: FishUI.Units.largeSpacing
                     Layout.leftMargin: FishUI.Units.largeSpacing
@@ -665,7 +665,7 @@ FishUI.Window {
                         onClicked: newFolderDialog.begin()
                     }
 
-                    Label {
+                    FishUI.Label {
                         Layout.fillWidth: true
                         Layout.leftMargin: FishUI.Units.smallSpacing
                         visible: chooser.multiple
@@ -753,7 +753,7 @@ FishUI.Window {
             anchors.margins: 16
             spacing: 16
 
-            Label {
+            FishUI.Label {
                 Layout.fillWidth: true
                 Layout.rightMargin: 32
                 text: newFolderDialog.title
@@ -763,7 +763,7 @@ FishUI.Window {
                 color: FishUI.Theme.textColor
             }
 
-            TextField {
+            FishUI.TextField {
                 id: folderName
                 Layout.fillWidth: true
                 placeholderText: qsTr("Folder name")

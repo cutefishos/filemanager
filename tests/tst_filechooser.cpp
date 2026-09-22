@@ -7,7 +7,6 @@
 #include <QJsonDocument>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QQuickStyle>
 #include <QQuickWindow>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -191,7 +190,6 @@ int main(int argc, char **argv)
     qputenv("XDG_CACHE_HOME", environment.filePath("cache").toUtf8());
     qputenv("XDG_DATA_HOME", environment.filePath("data").toUtf8());
     QApplication app(argc, argv);
-    QQuickStyle::setStyle(QStringLiteral("Fish"));
     QIcon::setThemeName(QStringLiteral("Cutefish-Light"));
     CutefishFM::registerQmlTypes();
     CutefishFM::initResources();

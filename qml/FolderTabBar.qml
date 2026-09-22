@@ -169,7 +169,7 @@ Rectangle {
                     }
                 }
 
-                Label {
+                FishUI.Label {
                     anchors.fill: parent
                     anchors.leftMargin: 28
                     anchors.rightMargin: 28

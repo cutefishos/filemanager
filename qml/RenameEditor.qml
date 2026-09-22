@@ -2,7 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.12
 import FishUI 1.0 as FishUI
 
-TextArea {
+FishUI.TextArea {
     id: editor
 
     required property Item view
@@ -67,7 +67,7 @@ TextArea {
         }
     }
 
-    ToolTip {
+    FishUI.ToolTip {
         visible: editor.errorMessage.length > 0
         text: editor.errorMessage
         delay: 0

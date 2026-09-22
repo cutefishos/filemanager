@@ -196,7 +196,7 @@ Item {
         }
     }
 
-    Label {
+    FishUI.Label {
         id: _label
         property var selectionLines: []
 

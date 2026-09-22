@@ -243,7 +243,7 @@ FishUI.Window {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Label {
+                FishUI.Label {
                     objectName: "ioOperationHeading"
                     Layout.fillWidth: true
                     text: control.heading
@@ -254,7 +254,7 @@ FishUI.Window {
                     maximumLineCount: 2
                     elide: Text.ElideMiddle
                 }
-                Label {
+                FishUI.Label {
                     Layout.fillWidth: true
                     text: control.errorMessage.length ? control.errorMessage
                           : control.conflict ? qsTr("“%1” already exists in this location.").arg(control.fileName(control.conflictPath))
@@ -267,7 +267,7 @@ FishUI.Window {
                     elide: Text.ElideMiddle
                     visible: text.length > 0
                 }
-                ProgressBar {
+                FishUI.ProgressBar {
                     id: progressBar
                     objectName: "ioProgressBar"
                     Layout.fillWidth: true
@@ -279,7 +279,7 @@ FishUI.Window {
                     indeterminate: !control.canceling && !control.conflict
                                    && (!control.info || control.info.preparing || !control.info.totalsKnown)
                 }
-                Label {
+                FishUI.Label {
                     objectName: "ioProgressSummary"
                     Layout.fillWidth: true
                     visible: !control.finished

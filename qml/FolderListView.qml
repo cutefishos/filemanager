@@ -83,7 +83,7 @@ ListView {
     cacheBuffer: width
     reuseItems: true
 
-    ScrollBar.vertical: ScrollBar {
+    FishUI.ScrollBar.vertical: FishUI.ScrollBar {
         topPadding: control.headerHeight
     }
     boundsBehavior: Flickable.StopAtBounds

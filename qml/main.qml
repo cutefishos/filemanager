@@ -332,7 +332,7 @@ FishUI.Window {
                 onClicked: _folderPage.goForward()
             }
 
-            Label {
+            FishUI.Label {
                 id: _folderName
                 Layout.fillWidth: true
                 Layout.fillHeight: true
