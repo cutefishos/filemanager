@@ -157,7 +157,7 @@ Item {
                     onTriggered: control.openInNewTab(model.path)
                 }
                 FishUI.MenuItem {
-                    text: qsTr("Open in new window")
+                    text: qsTr("Open In New Window")
                     onTriggered: control.openInNewWindow(model.path)
                 }
             }

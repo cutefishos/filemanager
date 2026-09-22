@@ -794,7 +794,7 @@ void FolderModel::createActions()
         setShowHiddenFiles(!m_showHiddenFiles);
     });
 
-    QAction *openInNewWindow = new QAction(tr("Open in new window"), this);
+    QAction *openInNewWindow = new QAction(tr("Open In New Window"), this);
     QObject::connect(openInNewWindow, &QAction::triggered, this, [this] {
         this->openInNewWindow();
     });

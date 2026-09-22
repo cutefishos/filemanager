@@ -221,28 +221,17 @@ Item {
                     pointerGrabEnabled: true
 
                     FishUI.MenuItem {
-                        text: qsTr("Open")
-
-                        onTriggered: {
-                            if (model.isDevice && model.setupNeeded)
-                                placesModel.requestSetup(index)
-                            else
-                                sideBar.clicked(model.path ? model.path : model.url)
-                        }
+                        text: qsTr("Open In New Tab")
+                        enabled: !model.isDevice || !model.setupNeeded
+                        onTriggered: sideBar.openInNewTab(model.path ? model.path : model.url)
                     }
 
                     FishUI.MenuItem {
-                        text: qsTr("Open in new window")
+                        text: qsTr("Open In New Window")
 
                         onTriggered: {
                             sideBar.openInNewWindow(model.path ? model.path : model.url)
                         }
-                    }
-
-                    FishUI.MenuItem {
-                        text: qsTr("Open In New Tab")
-                        enabled: !model.isDevice || !model.setupNeeded
-                        onTriggered: sideBar.openInNewTab(model.path ? model.path : model.url)
                     }
 
                     FishUI.MenuSeparator {
