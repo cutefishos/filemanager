@@ -13,6 +13,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQuickWindow>
+#include <QScopeGuard>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTemporaryDir>
@@ -39,6 +40,60 @@ private slots:
         qputenv("XDG_DATA_HOME", m_data.path().toUtf8());
         CutefishFM::registerQmlTypes();
         CutefishFM::initResources();
+    }
+
+    void desktopFoldersUseCutefish()
+    {
+        QTemporaryDir directory;
+        QTemporaryDir launcher;
+        QTemporaryDir config;
+        QVERIFY(directory.isValid());
+        QVERIFY(launcher.isValid());
+        QVERIFY(config.isValid());
+        QVERIFY(QDir(directory.path()).mkdir("folder with spaces"));
+
+        QFile executable(launcher.filePath("cutefish-filemanager"));
+        QVERIFY(executable.open(QIODevice::WriteOnly));
+        executable.write("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"${0%/*}/arguments\"\n");
+        executable.close();
+        QVERIFY(executable.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
+
+        QVERIFY(QDir().mkpath(m_data.filePath("applications")));
+        QFile other(m_data.filePath("applications/other-manager.desktop"));
+        QVERIFY(other.open(QIODevice::WriteOnly));
+        other.write("[Desktop Entry]\nType=Application\nName=Other Manager\n"
+                    "Exec=/bin/false\nMimeType=inode/directory;\n");
+        other.close();
+        QFile defaults(config.filePath("mimeapps.list"));
+        QVERIFY(defaults.open(QIODevice::WriteOnly));
+        defaults.write("[Default Applications]\ninode/directory=other-manager.desktop;\n");
+        defaults.close();
+
+        const QByteArray originalPath = qgetenv("PATH");
+        const QByteArray originalConfig = qgetenv("XDG_CONFIG_HOME");
+        const auto restore = qScopeGuard([&] {
+            qputenv("PATH", originalPath);
+            if (originalConfig.isNull())
+                qunsetenv("XDG_CONFIG_HOME");
+            else
+                qputenv("XDG_CONFIG_HOME", originalConfig);
+            other.remove();
+        });
+        qputenv("PATH", launcher.path().toUtf8() + ':' + originalPath);
+        qputenv("XDG_CONFIG_HOME", config.path().toUtf8());
+
+        FolderModel folder;
+        folder.setIsDesktop(true);
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.count(), 1);
+        folder.setSelected(0);
+        folder.openSelected();
+        const auto arguments = [&] {
+            QFile file(launcher.filePath("arguments"));
+            return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+        };
+        QTRY_COMPARE(arguments(), directory.filePath("folder with spaces").toUtf8() + '\n');
+        QCOMPARE(folder.url(), directory.path());
     }
 
     void folderOperations()

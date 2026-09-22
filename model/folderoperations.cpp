@@ -270,6 +270,11 @@ void FolderModel::openSelected()
 
     for (const QUrl &url : urls) {
         Cutefish::IO::FileItem item(url);
+        if (m_isDesktop && item.isDir()) {
+            openInNewWindow(url.toString());
+            continue;
+        }
+
         QString mimeType = item.mimetype();
 
         // Desktop file.
