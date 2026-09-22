@@ -26,6 +26,8 @@
 #include "helper/datehelper.h"
 #include "helper/fm.h"
 #include "helper/shortcut.h"
+#include "helper/previewcontroller.h"
+#include "helper/previewclient.h"
 #include "desktopiconprovider.h"
 #include "thumbnailprovider.h"
 
@@ -64,6 +66,8 @@ void registerQmlTypes()
     qmlRegisterType<RubberBand>(uri, 1, 0, "RubberBand");
     qmlRegisterType<ItemViewAdapter>(uri, 1, 0, "ItemViewAdapter");
     qmlRegisterType<Fm>(uri, 1, 0, "Fm");
+    qmlRegisterType<PreviewClient>(uri, 1, 0, "PreviewClient");
+    qmlRegisterType<PreviewController>(uri, 1, 0, "PreviewController");
     qmlRegisterType<ShortCut>(uri, 1, 0, "ShortCut");
 
     qmlRegisterAnonymousType<QAction>(uri, 1);
@@ -90,6 +94,10 @@ void registerImageProviders(QQmlEngine *engine)
 
     if (!engine->imageProvider(QStringLiteral("thumbnailer")))
         engine->addImageProvider(QStringLiteral("thumbnailer"), new ThumbnailProvider);
+
+    // FishUI registers its own icontheme provider when the module is imported.
+    if (!engine->imageProvider(QStringLiteral("fileicon")))
+        engine->addImageProvider(QStringLiteral("fileicon"), new DesktopIconProvider);
 
     if (!engine->imageProvider(QStringLiteral("icontheme")))
         engine->addImageProvider(QStringLiteral("icontheme"), new DesktopIconProvider);

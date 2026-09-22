@@ -27,6 +27,7 @@
 class ShortCut : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool previewEnabled MEMBER m_previewEnabled)
 
 public:
     explicit ShortCut(QObject *parent = nullptr);
@@ -34,6 +35,7 @@ public:
     Q_INVOKABLE void install(QObject *target = nullptr);
 
 signals:
+    void preview();
     void open();
     void copy();
     void cut();
@@ -55,6 +57,7 @@ protected:
 
 private:
     QObject *m_object;
+    bool m_previewEnabled = false;
 };
 
 #endif // SHORTCUT_H

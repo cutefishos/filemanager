@@ -80,6 +80,8 @@ add_library(cutefish-filemanager-core STATIC
   helper/pathhistory.cpp
   helper/fm.cpp
   helper/iojobui.cpp
+  helper/previewcontroller.cpp
+  helper/previewclient.cpp
   helper/shortcut.cpp
   helper/filelauncher.cpp
   helper/keyboardsearchmanager.cpp
@@ -136,6 +138,13 @@ add_executable(cutefish-filemanager
 )
 
 target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
+
+add_executable(cutefish-filepreview preview/main.cpp preview/previewservice.cpp)
+target_link_libraries(cutefish-filepreview PRIVATE cutefish-filemanager-core)
+configure_file(preview/com.cutefish.FilePreview.service.in com.cutefish.FilePreview.service @ONLY)
+install(TARGETS cutefish-filepreview RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FilePreview.service
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 
 add_executable(cutefish-filemanager-daemon
   daemon/main.cpp

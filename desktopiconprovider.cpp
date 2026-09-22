@@ -19,6 +19,7 @@
 
 #include "desktopiconprovider.h"
 #include <QIcon>
+#include <QCommonStyle>
 
 DesktopIconProvider::DesktopIconProvider()
     : QQuickImageProvider(QQuickImageProvider::Pixmap)
@@ -31,9 +32,9 @@ QPixmap DesktopIconProvider::requestPixmap(const QString &id, QSize *realSize,
 {
     QSize size(requestedSize);
     if (size.width() < 1)
-        size.setWidth(1);
+        size.setWidth(128);
     if (size.height() < 1)
-        size.setHeight(1);
+        size.setHeight(128);
 
     if (realSize)
         *realSize = size;
@@ -42,8 +43,11 @@ QPixmap DesktopIconProvider::requestPixmap(const QString &id, QSize *realSize,
         return QPixmap(id).scaled(size);
 
     QIcon icon = QIcon::fromTheme(id);
-    if (icon.isNull())
-        icon = QIcon::fromTheme(QLatin1String("application-x-desktop"));
+    if (icon.isNull()) {
+        QCommonStyle fallback;
+        const bool folder = id == QLatin1String("inode-directory") || id.startsWith(QLatin1String("folder"));
+        icon = fallback.standardIcon(folder ? QStyle::SP_DirIcon : QStyle::SP_FileIcon);
+    }
 
     return icon.pixmap(size);
 }

@@ -20,6 +20,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
+import QtQuick.Window 2.12
 
 import Cutefish.FileManager 1.0 as FM
 import FishUI 1.0 as FishUI
@@ -46,6 +47,11 @@ Item {
         path = path.replace(/\/+$/, "")
         var name = path.substring(path.lastIndexOf("/") + 1)
         try { return decodeURIComponent(name) || "/" } catch (error) { return name || "/" }
+    }
+
+    FM.PreviewClient {
+        id: previewClient
+        objectName: "previewClient"
     }
 
     signal requestPathEditor()
@@ -156,6 +162,7 @@ Item {
             onLoaded: {
                 folderPage.focusView()
                 shortCut.install(_viewLoader.item)
+                previewClient.attach(dirModel, _viewLoader.item)
             }
         }
     }
@@ -249,6 +256,8 @@ Item {
 
     FM.ShortCut {
         id: shortCut
+        previewEnabled: true
+        onPreview: previewClient.toggle()
 
         onOpen: {
             dirModel.openSelected()

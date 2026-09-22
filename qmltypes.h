@@ -40,7 +40,7 @@ void registerQmlTypes();
 void initResources();
 
 /**
- * Installs the image providers the shared QML expects ("thumbnailer" and
+ * Installs the image providers the shared QML expects ("thumbnailer", "fileicon", and
  * "icontheme") on @p engine, unless they are already present.
  *
  * Qt 6 only calls QQmlExtensionPlugin::initializeEngine() for the first engine

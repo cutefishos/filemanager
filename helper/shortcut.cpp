@@ -49,6 +49,13 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
         // int keyInt = keyEvent->modifiers() + keyEvent->key();
 
+        if (m_previewEnabled && keyEvent->key() == Qt::Key_Space
+            && keyEvent->modifiers() == Qt::NoModifier) {
+            if (!keyEvent->isAutoRepeat())
+                emit preview();
+            return true;
+        }
+
         if (keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
             emit open();
         } else if (keyEvent->key() == Qt::Key_C && keyEvent->modifiers() & Qt::ControlModifier) {

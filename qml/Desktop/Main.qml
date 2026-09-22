@@ -235,7 +235,7 @@ Item {
             // The context menu is a separate popup window. Opening it moves
             // focus away from the desktop, but the selected item must remain
             // selected while the menu builds and handles its actions.
-            if (!activeFocus && !desktopMenu.visible) {
+            if (!activeFocus && !desktopMenu.visible && !previewClient.previewVisible) {
                 _folderView.cancelRename()
                 dirModel.clearSelection()
             }
@@ -246,11 +246,19 @@ Item {
         }
     }
 
+    FM.PreviewClient {
+        id: previewClient
+        objectName: "previewClient"
+    }
+
     FM.ShortCut {
         id: shortCut
+        previewEnabled: true
+        onPreview: previewClient.toggle()
 
         Component.onCompleted: {
             shortCut.install(_folderView)
+            previewClient.attach(dirModel, _folderView)
         }
 
         onOpen: {
