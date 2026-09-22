@@ -299,11 +299,6 @@ FishUI.Window {
 
             readonly property int buttonSize: 31
 
-            FontMetrics {
-                id: _nameMetrics
-                font: _folderName.font
-            }
-
             IconButton {
                 id: _backButton
                 objectName: "backButton"
@@ -456,7 +451,7 @@ FishUI.Window {
             visible: root._folderPage === this
             enabled: visible
             headerHeight: root.header.height + tabBar.height
-            bottomNavigationHeight: root.header.height
+            bottomNavigationHeight: _navigationBar.height
             onOpenInNewTab: function(path) { root.openTab(path) }
             onCloseRequested: root.closeTab(root.currentTab)
             onCurrentUrlChanged: {
@@ -496,8 +491,7 @@ FishUI.Window {
             }
         }
 
-        // Keep the path bar part of the file view's drag-scroll edge, but do
-        // not treat releasing a file on the navigation bar as a file drop.
+        // Include the bottom bar in drag scrolling without accepting file drops.
         DragDrop.DropArea {
             id: _navigationDragArea
             anchors.fill: parent

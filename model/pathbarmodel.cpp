@@ -62,7 +62,7 @@ void PathBarModel::setUrl(const QString &url)
             do {
                 if (dir.isRoot()) {
                     PathBarItem *item = new PathBarItem;
-                    item->name = "/";
+                    item->name = tr("Computer");
                     item->url = "/";
                     m_pathList.append(item);
                     break;

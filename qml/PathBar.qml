@@ -28,6 +28,9 @@ Item {
 
     property string url: ""
     property string currentName: nameForUrl(url)
+    readonly property color ancestorColor: Qt.rgba(FishUI.Theme.textColor.r,
+                                                  FishUI.Theme.textColor.g,
+                                                  FishUI.Theme.textColor.b, 0.6)
 
     signal itemClicked(string path)
     signal editorAccepted(string path)
@@ -47,6 +50,9 @@ Item {
 
         while (path.length > 1 && path.endsWith("/"))
             path = path.substring(0, path.length - 1)
+
+        if (path === "/")
+            return qsTr("Computer")
 
         var separator = path.lastIndexOf("/")
         return separator >= 0 ? (path.substring(separator + 1) || "/") : path
@@ -98,20 +104,16 @@ Item {
 
         leftMargin: 3
         rightMargin: 3
-        spacing: FishUI.Units.smallSpacing
+        spacing: 10 + FishUI.Units.smallSpacing
+
+        onWidthChanged: Qt.callLater(function() { _pathView.positionViewAtEnd() })
 
         onCountChanged: {
             _pathView.currentIndex = _pathView.count - 1
             _pathView.positionViewAtEnd()
         }
 
-        highlight: Rectangle {
-            radius: FishUI.Theme.smallRadius
-            color: Qt.rgba(FishUI.Theme.highlightColor.r,
-                           FishUI.Theme.highlightColor.g,
-                           FishUI.Theme.highlightColor.b, FishUI.Theme.darkMode ? 0.3 : 0.1)
-            smooth: true
-        }
+        highlight: null
 
         delegate: MouseArea {
             id: _item
@@ -180,7 +182,18 @@ Item {
                 id: _name
                 text: model.name
                 anchors.centerIn: parent
-                color: selected ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                color: selected ? FishUI.Theme.textColor : control.ancestorColor
+            }
+
+            FishUI.Icon {
+                anchors.left: parent.right
+                anchors.leftMargin: FishUI.Units.smallSpacing / 2
+                anchors.verticalCenter: parent.verticalCenter
+                width: 10
+                height: 10
+                visible: !_item.selected
+                name: "chevron-right"
+                color: control.ancestorColor
             }
         }
     }
