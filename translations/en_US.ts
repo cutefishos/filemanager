@@ -424,7 +424,7 @@
 <context>
     <name>FolderContextMenu</name>
     <message>
-        <location filename="../qml/FolderContextMenu.qml" line="+16"/>
+        <location filename="../qml/FolderContextMenu.qml" line="+17"/>
         <source>New Folder</source>
         <translation type="unfinished">New Folder</translation>
     </message>
@@ -434,7 +434,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>New Text</source>
         <translation type="unfinished"></translation>
     </message>
@@ -450,12 +450,12 @@
     </message>
     <message>
         <location line="+13"/>
-        <location line="+160"/>
+        <location line="+189"/>
         <source>Open in Terminal</source>
         <translation type="unfinished">Open in Terminal</translation>
     </message>
     <message>
-        <location line="-151"/>
+        <location line="-180"/>
         <source>Change background</source>
         <translation type="unfinished">Change background</translation>
     </message>
@@ -490,12 +490,17 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+10"/>
         <source>Open with</source>
         <translation type="unfinished">Open with</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+23"/>
+        <source>Other</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
         <source>Compress</source>
         <translation type="unfinished"></translation>
     </message>
@@ -557,7 +562,7 @@
         <translation type="vanished">The file or folder %1 does not exist.</translation>
     </message>
     <message>
-        <location filename="../model/folderoperations.cpp" line="+566"/>
+        <location filename="../model/folderoperations.cpp" line="+586"/>
         <source>Select All</source>
         <translation>Select All</translation>
     </message>
@@ -591,19 +596,19 @@
         <translation>Paste</translation>
     </message>
     <message>
-        <location line="-647"/>
-        <location line="+650"/>
+        <location line="-667"/>
+        <location line="+670"/>
         <source>New Folder</source>
         <translation>New Folder</translation>
     </message>
     <message>
-        <location line="-626"/>
-        <location line="+630"/>
+        <location line="-646"/>
+        <location line="+650"/>
         <source>New Text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-374"/>
+        <location line="-394"/>
         <source>Only local files can be compressed.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -633,7 +638,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+100"/>
+        <location line="+120"/>
         <location line="+187"/>
         <source>New Documents</source>
         <translation type="unfinished"></translation>

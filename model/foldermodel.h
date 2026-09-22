@@ -175,6 +175,8 @@ public:
 
     Q_INVOKABLE bool supportSetAsWallpaper(const QString &mimeType);
     Q_INVOKABLE int fileExtensionBoundary(int row);
+    Q_INVOKABLE QVariantList openWithApplications() const;
+    Q_INVOKABLE bool openWithApplication(const QString &desktopFile) const;
 
     Q_INVOKABLE bool hasSelection() const;
     Q_INVOKABLE bool isSelected(int row) const;

@@ -485,6 +485,26 @@ void FolderModel::showOpenWithDialog()
     dlg->show();
 }
 
+QVariantList FolderModel::openWithApplications() const
+{
+    const QList<QUrl> urls = selectedUrls();
+    if (urls.count() != 1)
+        return {};
+
+    return m_mimeAppManager->recommendedApps(urls.first());
+}
+
+bool FolderModel::openWithApplication(const QString &desktopFile) const
+{
+    const QList<QUrl> urls = selectedUrls();
+    if (urls.count() != 1 || desktopFile.isEmpty())
+        return false;
+
+    const QUrl url = urls.first();
+    const QString fileName = url.isLocalFile() ? url.toLocalFile() : url.toString();
+    return FileLauncher::self()->launchApp(desktopFile, fileName);
+}
+
 void FolderModel::deleteSelected()
 {
     if (!m_selectionModel->hasSelection()) {

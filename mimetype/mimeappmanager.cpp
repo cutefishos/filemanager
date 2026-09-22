@@ -346,9 +346,24 @@ QVariantList MimeAppManager::recommendedApps(const QUrl &url)
     QVariantList list;
 
     if (url.isValid()) {
-        const QString &filePath = url.toString();
+        const QString filePath = url.isLocalFile() ? url.toLocalFile() : url.toString();
+        QStringList applications = getRecommendedAppsByFilePath(filePath);
+        QString defaultApp = getDefaultAppByFilePath(filePath);
 
-        for (const QString &path : getRecommendedAppsByFilePath(filePath)) {
+        // Match openSelected(): without an explicit association, Open uses
+        // the first recommended application.
+        if (defaultApp.isEmpty() && !applications.isEmpty())
+            defaultApp = applications.first();
+
+        const QString canonicalDefaultApp = QFileInfo(defaultApp).canonicalFilePath();
+        if (!canonicalDefaultApp.isEmpty()) {
+            applications.removeIf([&canonicalDefaultApp](const QString &path) {
+                return QFileInfo(path).canonicalFilePath() == canonicalDefaultApp;
+            });
+            applications.prepend(defaultApp);
+        }
+
+        for (const QString &path : applications) {
             XdgDesktopFile desktop(path);
 
             if (!desktop.valid())

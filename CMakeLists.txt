@@ -220,6 +220,15 @@ install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translatio
 
 if(FILEMANAGER_BUILD_TESTS)
     find_package(Qt6 REQUIRED COMPONENTS Test)
+    find_package(Qt6 REQUIRED COMPONENTS QuickTest)
+    add_executable(tst_contextmenu tests/tst_contextmenu.cpp)
+    target_link_libraries(tst_contextmenu PRIVATE Qt6::QuickTest Qt6::Quick)
+    add_test(NAME contextmenu COMMAND tst_contextmenu -input ${CMAKE_CURRENT_SOURCE_DIR}/tests/menu)
+    set_tests_properties(contextmenu PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    add_executable(tst_openwith tests/tst_openwith.cpp)
+    target_link_libraries(tst_openwith PRIVATE cutefish-filemanager-core Qt6::Test)
+    add_test(NAME openwith COMMAND tst_openwith)
     add_executable(tst_foldercontents tests/tst_foldercontents.cpp)
     target_link_libraries(tst_foldercontents PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME foldercontents COMMAND tst_foldercontents)

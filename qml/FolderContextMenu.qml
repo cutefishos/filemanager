@@ -5,7 +5,8 @@ import FishUI 1.0 as FishUI
 FishUI.DesktopMenu {
     id: control
 
-    pointerGrabEnabled: true
+    // Let the compositor deliver pointer events to the submenu under the cursor.
+    pointerGrabEnabled: false
 
     property var folderModel: null
     property bool hasSelection: folderModel ? folderModel.selectionCount > 0 : false
@@ -26,7 +27,6 @@ FishUI.DesktopMenu {
 
         childMenu: FishUI.DesktopMenu {
             id: newDocumentsMenu
-            pointerGrabEnabled: true
 
             FishUI.MenuItem {
                 id: newTextFileItem
@@ -147,10 +147,39 @@ FishUI.DesktopMenu {
     FishUI.MenuItem {
         id: openWithItem
         property var modelAction: control.folderModel ? control.folderModel.action("openWith") : null
+        property var applications: []
         text: modelAction ? modelAction.text : qsTr("Open with")
         visible: control.hasSelection && modelAction && modelAction.visible
         enabled: modelAction ? modelAction.enabled : false
-        onTriggered: modelAction.trigger()
+        hasChildMenu: applications.length > 0
+
+        childMenu: FishUI.DesktopMenu {
+            Repeater {
+                model: openWithItem.applications
+
+                FishUI.MenuItem {
+                    required property var modelData
+                    readonly property string iconValue: modelData.icon || ""
+
+                    text: modelData.name
+                    icon.name: iconValue.startsWith("/") ? "" : iconValue
+                    icon.source: iconValue.startsWith("/") ? "file://" + iconValue : ""
+                    onTriggered: control.folderModel.openWithApplication(modelData.desktopFile)
+                }
+            }
+
+            FishUI.MenuSeparator {}
+
+            FishUI.MenuItem {
+                text: qsTr("Other")
+                onTriggered: openWithItem.modelAction.trigger()
+            }
+        }
+
+        onTriggered: {
+            if (!hasChildMenu)
+                modelAction.trigger()
+        }
     }
 
     FishUI.MenuItem {
@@ -257,7 +286,9 @@ FishUI.DesktopMenu {
     }
 
     onVisibleChanged: {
-        if (visible && folderModel)
+        if (visible && folderModel) {
             folderModel.prepareContextMenu()
+            openWithItem.applications = folderModel.openWithApplications()
+        }
     }
 }
