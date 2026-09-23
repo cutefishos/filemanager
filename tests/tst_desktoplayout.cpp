@@ -311,6 +311,9 @@ private slots:
         QCOMPARE(seen, QSet<int>{2});
         const QUrl created = watched;
 
+        // The new row is prepared asynchronously, and a move during listing is
+        // deferred until it ends.
+        QTRY_VERIFY(folder.status() != FolderModel::Listing);
         positioner.move({positioner.indexForUrl(a), 1});
         QCOMPARE(positioner.indexForUrl(a), 1);
         QTest::qWait(20);
