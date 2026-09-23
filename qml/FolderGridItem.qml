@@ -142,7 +142,7 @@ Item {
             height: control.GridView.view.iconSize
             anchors.centerIn: parent
             sourceSize: Qt.size(width, height)
-            source: "image://icontheme/" + model.iconName
+            source: "image://icontheme/" + model.iconName + FishUI.Theme.iconThemeQuery
             visible: !_image.visible
             smooth: true
             antialiasing: true
@@ -198,7 +198,7 @@ Item {
         Image {
             anchors.right: _icon.visible ? _icon.right : _image.right
             anchors.bottom: _icon.visible ? _icon.bottom : _image.bottom
-            source: "image://icontheme/emblem-symbolic-link"
+            source: "image://icontheme/emblem-symbolic-link" + FishUI.Theme.iconThemeQuery
             width: control.desktop ? Math.max(16, Math.round(control.GridView.view.iconSize / 4)) : 16
             height: width
             visible: model.isLink

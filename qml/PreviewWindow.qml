@@ -224,6 +224,7 @@ FishUI.Window {
                 objectName: "previewFileIcon"
                 sourceSize: Qt.size(128, 128)
                 source: "image://fileicon/" + (file.icon || "application-octet-stream")
+                        + FishUI.Theme.iconThemeQuery
                 fillMode: Image.PreserveAspectFit
             }
 

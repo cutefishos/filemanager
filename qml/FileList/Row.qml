@@ -77,7 +77,7 @@ Item {
                 anchors.fill: parent
                 // Small sizes resolve to the flat symbolic variants in the theme.
                 sourceSize: Qt.size(96, 96)
-                source: "image://icontheme/" + row.itemModel.iconName
+                source: "image://icontheme/" + row.itemModel.iconName + FishUI.Theme.iconThemeQuery
                 visible: !_image.visible
                 asynchronous: true
                 smooth: true
@@ -116,7 +116,8 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.rightMargin: -2
                 anchors.bottomMargin: -2
-                source: row.itemModel.isLink ? "image://icontheme/emblem-symbolic-link" : ""
+                source: row.itemModel.isLink
+                        ? "image://icontheme/emblem-symbolic-link" + FishUI.Theme.iconThemeQuery : ""
                 width: 12
                 height: 12
                 visible: row.itemModel.isLink

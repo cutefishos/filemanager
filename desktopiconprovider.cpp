@@ -27,9 +27,12 @@ DesktopIconProvider::DesktopIconProvider()
 
 }
 
-QPixmap DesktopIconProvider::requestPixmap(const QString &id, QSize *realSize,
+QPixmap DesktopIconProvider::requestPixmap(const QString &fullId, QSize *realSize,
                                            const QSize &requestedSize)
 {
+    // Theme.iconThemeQuery only exists to make the URL unique per theme.
+    const QString id = fullId.section(QLatin1Char('?'), 0, 0);
+
     QSize size(requestedSize);
     if (size.width() < 1)
         size.setWidth(128);
