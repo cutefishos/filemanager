@@ -671,7 +671,7 @@ GridView {
         height: control.topInset
         active: control.topInset > 0
 
-        sourceComponent: HeaderBackdrop {
+        sourceComponent: FishUI.HeaderBackdrop {
             view: control
         }
     }

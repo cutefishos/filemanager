@@ -431,7 +431,7 @@ ListView {
         active: control.topInset > 0
 
         // The column header draws its own separator.
-        sourceComponent: HeaderBackdrop {
+        sourceComponent: FishUI.HeaderBackdrop {
             view: control
             separatorVisible: false
         }

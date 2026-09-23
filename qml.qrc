@@ -5,7 +5,6 @@
         <file>qml/PreviewWindow.qml</file>
         <file>qml/RenameEditor.qml</file>
         <file>qml/FolderTabBar.qml</file>
-        <file>qml/HeaderBackdrop.qml</file>
         <file>qml/FolderContextMenu.qml</file>
         <file>qml/ArchiveProgressDialog.qml</file>
         <file>qml/SideBar.qml</file>

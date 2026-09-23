@@ -29,12 +29,13 @@ Item {
     // A FishUI.Icon glyph drawn instead of source.
     property alias iconName: _icon.name
     property int iconSize: 18
-    property color backgroundColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
-                                                          : FishUI.Theme.secondBackgroundColor
-    property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.7)
-                                                   : Qt.darker(FishUI.Theme.secondBackgroundColor, 1.2)
-    property color pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.4)
-                                                     : Qt.darker(FishUI.Theme.secondBackgroundColor, 1.3)
+    // Translucent, so the buttons sit on the frosted header without a solid
+    // patch. Over the plain window background they match the old opaque tones.
+    property color backgroundColor: FishUI.Theme.darkMode ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.6)
+    property color hoveredColor: Qt.rgba(FishUI.Theme.textColor.r, FishUI.Theme.textColor.g,
+                                         FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.21 : 0.17)
+    property color pressedColor: Qt.rgba(FishUI.Theme.textColor.r, FishUI.Theme.textColor.g,
+                                         FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.15 : 0.26)
     property bool highlighted: false
 
     signal clicked()
