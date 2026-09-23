@@ -5,6 +5,7 @@
 
 #include <directory.h>
 #include <fileenumerator.h>
+#include <QCryptographicHash>
 #include <QFile>
 #include <QQuickTextureFactory>
 #include <QSemaphore>
@@ -212,18 +213,87 @@ private slots:
         QVERIFY(image.save(source));
         auto *cache = ThumbnailCache::self();
         const QString url = QUrl::fromLocalFile(source).toString(QUrl::FullyEncoded);
-        const QString first = cache->requestThumbnail(url, QSize(80, 80));
+        const Thumbnail generated = cache->requestThumbnail(url, QSize(80, 80));
+        const QString first = generated.path;
         QVERIFY(!first.isEmpty());
+        QCOMPARE(generated.image.size(), QSize(128, 64));
         QCOMPARE(QImage(first).size(), QSize(128, 64));
-        QCOMPARE(cache->requestThumbnail(url, QSize(100, 100)), first);
+        const Thumbnail hit = cache->requestThumbnail(url, QSize(100, 100));
+        QCOMPARE(hit.path, first);
+        QCOMPARE(hit.image.size(), QSize(128, 64));
         QFile damaged(first);
         QVERIFY(damaged.open(QIODevice::WriteOnly | QIODevice::Truncate));
         damaged.write("incomplete");
         damaged.close();
-        QCOMPARE(cache->requestThumbnail(url, QSize(80, 80)), first);
+        const Thumbnail repaired = cache->requestThumbnail(url, QSize(80, 80));
+        QCOMPARE(repaired.path, first);
+        QCOMPARE(repaired.image.size(), QSize(128, 64));
         QVERIFY(!QImage(first).isNull());
         QVERIFY(cache->writeCacheFile(directory.filePath("invalid.png"), QImage()).isEmpty());
         QVERIFY(QFile::remove(first));
+    }
+
+    void thumbnailCacheFollowsFreedesktopSpec()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const QString source = directory.filePath("photo.png");
+        QImage image(400, 400, QImage::Format_RGB32);
+        image.fill(Qt::green);
+        QVERIFY(image.save(source));
+
+        auto *cache = ThumbnailCache::self();
+        const QString uri = QString::fromLatin1(QUrl::fromLocalFile(source).toEncoded());
+        const QString name = QString::fromLatin1(
+                QCryptographicHash::hash(uri.toLatin1(), QCryptographicHash::Md5).toHex());
+        const QString root = m_cacheDirectory.filePath("thumbnails");
+        const Thumbnail large = cache->requestThumbnail(source, QSize(200, 200));
+        QCOMPARE(large.path, root + "/large/" + name + ".png");
+        QCOMPARE(QFileInfo(root).permissions() & 0x0077, QFileDevice::Permissions());
+        QCOMPARE(QFileInfo(large.path).permissions(),
+                 QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ReadUser
+                         | QFileDevice::WriteUser);
+
+        QCOMPARE(large.image.size(), QSize(256, 256));
+        const QImage stored(large.path);
+        QCOMPARE(stored.text("Thumb::URI"), uri);
+        QCOMPARE(stored.text("Thumb::MTime").toLongLong(),
+                 QFileInfo(source).lastModified().toSecsSinceEpoch());
+        QCOMPARE(stored.text("Thumb::Size").toLongLong(), QFileInfo(source).size());
+
+        // A stale entry is replaced in place instead of piling up next to the new one.
+        QFile file(source);
+        QVERIFY(file.open(QIODevice::ReadWrite));
+        QVERIFY(file.setFileTime(QDateTime::currentDateTime().addSecs(-3600),
+                                 QFileDevice::FileModificationTime));
+        file.close();
+        QCOMPARE(cache->requestThumbnail(source, QSize(200, 200)).path, large.path);
+        QCOMPARE(QImage(large.path).text("Thumb::MTime").toLongLong(),
+                 QFileInfo(source).lastModified().toSecsSinceEpoch());
+        QCOMPARE(QDir(root + "/large").entryList(QDir::Files).size(), 1);
+        QCOMPARE(cache->requestThumbnail(source, QSize(1000, 1000)).path,
+                 root + "/xx-large/" + name + ".png");
+
+        // Nothing under the cache root is thumbnailed back into it.
+        const Thumbnail nested = cache->requestThumbnail(large.path, QSize(64, 64));
+        QVERIFY(nested.path.isEmpty());
+        QVERIFY(!nested.image.isNull());
+
+        const QString broken = directory.filePath("broken.png");
+        QFile brokenFile(broken);
+        QVERIFY(brokenFile.open(QIODevice::WriteOnly));
+        brokenFile.write("not an image");
+        brokenFile.close();
+        QVERIFY(cache->requestThumbnail(broken, QSize(64, 64)).image.isNull());
+        const QString brokenUri = QString::fromLatin1(QUrl::fromLocalFile(broken).toEncoded());
+        const QString marker = root + "/fail/cutefish/"
+                + QString::fromLatin1(QCryptographicHash::hash(brokenUri.toLatin1(),
+                                                               QCryptographicHash::Md5)
+                                              .toHex())
+                + ".png";
+        QCOMPARE(QImage(marker).text("Thumb::URI"), brokenUri);
+        QVERIFY(cache->requestThumbnail(broken, QSize(64, 64)).image.isNull());
+        QVERIFY(QDir(root).removeRecursively());
     }
 
     void asynchronousThumbnailsSurviveProviderDestruction()
@@ -249,7 +319,7 @@ private slots:
         std::unique_ptr<QQuickTextureFactory> texture(response->textureFactory());
         QVERIFY(texture);
         QCOMPARE(texture->image().pixelColor(0, 0), QColor(Qt::blue));
-        QVERIFY(QFile::remove(ThumbnailCache::self()->requestThumbnail(source, QSize(64, 64))));
+        QVERIFY(QFile::remove(ThumbnailCache::self()->requestThumbnail(source, QSize(64, 64)).path));
     }
 private:
     QTemporaryDir m_cacheDirectory;
