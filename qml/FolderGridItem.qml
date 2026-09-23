@@ -212,39 +212,37 @@ Item {
     //
     // A blurred black silhouette rather than a shadow on the icon itself, so
     // the selection tint below colours only the icon.
-    MultiEffect {
+    //
+    // The effects are loaded only while shown: instantiating them in every
+    // delegate made up over a third of the cost of scrolling a large folder.
+    Loader {
         z: 1
         x: _iconItem.x
         y: _iconItem.y + 1
         width: _iconItem.width
         height: _iconItem.height
-        source: _iconItem
-        visible: control.desktop
-        opacity: 0.15 * _iconItem.opacity
-        brightness: -1.0
-        blurEnabled: true
-        blurMax: 16
-        blur: 0.5
+        active: control.desktop
+
+        sourceComponent: MultiEffect {
+            source: _iconItem
+            opacity: 0.15 * _iconItem.opacity
+            brightness: -1.0
+            blurEnabled: true
+            blurMax: 16
+            blur: 0.5
+        }
     }
 
-    ColorOverlay {
-        id: _selectedColorOverlay
+    Loader {
         anchors.fill: _iconItem
         z: 2
-        source: _iconItem
-        color: FishUI.Theme.highlightColor
-        opacity: 0.5 * _iconItem.opacity
-        visible: control.selected
-    }
+        active: control.selected || control.hovered
 
-    ColorOverlay {
-        id: _hoveredColorOverlay
-        anchors.fill: _iconItem
-        z: 2
-        source: _iconItem
-        color: "white"
-        opacity: 0.1 * _iconItem.opacity
-        visible: control.hovered && !control.selected
+        sourceComponent: ColorOverlay {
+            source: _iconItem
+            color: control.selected ? FishUI.Theme.highlightColor : "white"
+            opacity: (control.selected ? 0.5 : 0.1) * _iconItem.opacity
+        }
     }
 
     FishUI.Label {
