@@ -328,10 +328,30 @@ OperationTask *FileOperationsClient::attachRemoteTask(const QString &path)
     const bool foreign = !owner.isEmpty() && owner != bus.baseService()
             && bus.interface() && bus.interface()->isServiceRegistered(owner);
     if (!foreign)
-        emit taskAdded(task);
+        announce(task);
 
     QTimer::singleShot(0, task, [task] { task->replayFinished(); });
     return task;
+}
+
+void FileOperationsClient::announce(OperationTask *task)
+{
+    // Counted before taskAdded so a presenter reacting to it, or an application
+    // deciding whether it may quit, never sees the task missing.
+    if (!task->isFinished() && !m_activeTasks.contains(task)) {
+        m_activeTasks.insert(task);
+        connect(task, &OperationTask::result, this, [this, task] { retire(task); });
+        connect(task, &QObject::destroyed, this, [this, task] { retire(task); });
+        emit activeTaskCountChanged(m_activeTasks.size());
+    }
+
+    emit taskAdded(task);
+}
+
+void FileOperationsClient::retire(OperationTask *task)
+{
+    if (m_activeTasks.remove(task))
+        emit activeTaskCountChanged(m_activeTasks.size());
 }
 
 void FileOperationsClient::remoteTaskAdded(const QString &path)
@@ -363,7 +383,7 @@ OperationTask *FileOperationsClient::submit(const Cutefish::IO::TaskRequest &req
         task = new LocalOperationTask(request, this);
 
     if (!usingRemoteTask)
-        emit taskAdded(task);
+        announce(task);
     return task;
 }
 
@@ -448,7 +468,7 @@ OperationTask *FileOperationsClient::compress(const QStringList &sources, const 
     if (!task)
         task = new LocalArchiveOperationTask(0, sources, outputPath, this);
     if (!usingRemoteTask)
-        emit taskAdded(task);
+        announce(task);
     return task;
 }
 
@@ -466,7 +486,7 @@ OperationTask *FileOperationsClient::extract(const QString &source, const QStrin
     if (!task)
         task = new LocalArchiveOperationTask(1, sources, outputPath, this);
     if (!usingRemoteTask)
-        emit taskAdded(task);
+        announce(task);
     return task;
 }
 
@@ -496,6 +516,6 @@ OperationTask *FileOperationsClient::history(const char *method,
     if (!task)
         return nullptr;
     auto *operation = new LocalOperationTask(task, this);
-    emit taskAdded(operation);
+    announce(operation);
     return operation;
 }

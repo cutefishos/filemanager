@@ -585,6 +585,30 @@ private slots:
         QCOMPARE(replaced.readAll(), QByteArray("<svg/>"));
     }
 
+    void activeTaskCountFollowsOwnTasks()
+    {
+        QTemporaryDir dir;
+        auto *client = FileOperationsClient::instance();
+        QCOMPARE(client->activeTaskCount(), 0);
+        QSignalSpy changes(client, &FileOperationsClient::activeTaskCountChanged);
+        QSignalSpy added(client, &FileOperationsClient::taskAdded);
+        int countWhenAdded = -1;
+        const auto connection = connect(client, &FileOperationsClient::taskAdded, this,
+                                        [&] { countWhenAdded = client->activeTaskCount(); });
+        const auto disconnect = qScopeGuard([&] { QObject::disconnect(connection); });
+
+        auto *task = client->mkdir(QUrl::fromLocalFile(dir.filePath("created")));
+        QVERIFY(task);
+        QCOMPARE(added.size(), 1);
+        QCOMPARE(countWhenAdded, 1);
+        QCOMPARE(client->activeTaskCount(), 1);
+        QTRY_VERIFY(task->isFinished());
+        QCOMPARE(client->activeTaskCount(), 0);
+        QCOMPARE(changes.size(), 2);
+        QCOMPARE(changes.last().first().toInt(), 0);
+        QVERIFY(QFileInfo(dir.filePath("created")).isDir());
+    }
+
     void closingProgressDialogDoesNotCancelTask()
     {
         QTemporaryDir sourceDirectory;

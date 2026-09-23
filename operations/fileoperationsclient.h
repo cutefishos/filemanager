@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QHash>
 #include <QPointer>
+#include <QSet>
 #include <QUrl>
 
 #include <task.h>
@@ -36,9 +37,13 @@ public:
     bool undoAvailable() const { return m_canUndo; }
     bool redoAvailable() const { return m_canRedo; }
 
+    /** Tasks this process presents (see taskAdded) that have not finished yet. */
+    int activeTaskCount() const { return m_activeTasks.size(); }
+
 signals:
     void taskAdded(OperationTask *task);
     void historyChanged();
+    void activeTaskCountChanged(int count);
 
 private:
     explicit FileOperationsClient(QObject *parent = nullptr);
@@ -52,8 +57,11 @@ private slots:
 private:
     void setHistory(bool canUndo, bool canRedo);
     void queryRemoteHistory();
+    void announce(OperationTask *task);
+    void retire(OperationTask *task);
 
     QHash<QString, QPointer<OperationTask>> m_remoteTasks;
+    QSet<OperationTask *> m_activeTasks;
     bool m_canUndo = false;
     bool m_canRedo = false;
 };
