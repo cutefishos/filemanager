@@ -440,7 +440,8 @@ GridView {
     // 32px of icon so labels stay at roughly a fifth of the icon, as on macOS.
     readonly property int desktopLabelPixelSize: Math.min(14, 12 + Math.floor(Math.max(0, iconSize - 64) / 32))
     readonly property font desktopLabelFont: Qt.font({ family: FishUI.Theme.fontFamily,
-                                                       pixelSize: desktopLabelPixelSize })
+                                                       pixelSize: desktopLabelPixelSize,
+                                                       weight: Font.DemiBold })
     readonly property int desktopIconTopMargin: 6
     readonly property int desktopLabelSpacing: 5
     readonly property int desktopLabelInset: 6
@@ -450,6 +451,58 @@ GridView {
     FontMetrics {
         id: desktopLabelMetrics
         font: control.desktopLabelFont
+    }
+
+    // Lays a name out on at most two lines and elides the middle of the second,
+    // so a long name keeps both how it starts and its extension. Text itself
+    // can only elide the end of a wrapped paragraph.
+    function desktopLabelText(name, width) {
+        // Method calls are not tracked; reading the font makes a binding that
+        // calls this lay the name out again when the label size steps.
+        void desktopLabelMetrics.font
+
+        // Measured advances can round below what the label lays out.
+        var room = width - 2
+
+        if (room <= 0 || desktopLabelMetrics.advanceWidth(name) <= room)
+            return name
+
+        var fit = 0
+        var low = 1
+        var high = name.length
+
+        while (low <= high) {
+            var middle = Math.floor((low + high) / 2)
+
+            if (desktopLabelMetrics.advanceWidth(name.substring(0, middle)) <= room) {
+                fit = middle
+                low = middle + 1
+            } else {
+                high = middle - 1
+            }
+        }
+
+        if (fit === 0)
+            return desktopLabelMetrics.elidedText(name, Qt.ElideMiddle, room)
+
+        // Break after a word, as wrapping would, unless a single word fills the line.
+        var breakAt = fit
+        if (name[fit] !== " ") {
+            for (var i = fit; i > 0; --i) {
+                if (name[i - 1] === " " || name[i - 1] === "-" || name[i - 1] === "_") {
+                    breakAt = i
+                    break
+                }
+            }
+        }
+
+        var first = name.substring(0, breakAt).replace(/\s+$/, "")
+        var rest = name.substring(breakAt).replace(/^\s+/, "")
+
+        if (desktopLabelMetrics.advanceWidth(rest) > room)
+            rest = desktopLabelMetrics.elidedText(rest, Qt.ElideMiddle, room)
+
+        return first + "\n" + rest
     }
 
     cellHeight: {

@@ -20,6 +20,7 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
+import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
 
 import Cutefish.FileManager 1.0
@@ -181,6 +182,20 @@ Item {
             }
         }
 
+        // A faint light rim keeps a thumbnail's edge readable on a wallpaper
+        // of the same tone.
+        Rectangle {
+            anchors.centerIn: _image
+            width: Math.min(_image.width, _image.paintedWidth)
+            height: Math.min(_image.height, _image.paintedHeight)
+            radius: height * 0.1
+            visible: control.desktop && _image.visible
+            antialiasing: true
+            color: "transparent"
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.45)
+        }
+
         Image {
             anchors.right: _icon.visible ? _icon.right : _image.right
             anchors.bottom: _icon.visible ? _icon.bottom : _image.bottom
@@ -194,6 +209,24 @@ Item {
 
     // Keep these outside _iconItem: an effect nested in its own source holds a
     // window ref that is never dropped, which crashes once the window is gone.
+    //
+    // A blurred black silhouette rather than a shadow on the icon itself, so
+    // the selection tint below colours only the icon.
+    MultiEffect {
+        z: 1
+        x: _iconItem.x
+        y: _iconItem.y + 1
+        width: _iconItem.width
+        height: _iconItem.height
+        source: _iconItem
+        visible: control.desktop
+        opacity: 0.15 * _iconItem.opacity
+        brightness: -1.0
+        blurEnabled: true
+        blurMax: 16
+        blur: 0.5
+    }
+
     ColorOverlay {
         id: _selectedColorOverlay
         anchors.fill: _iconItem
@@ -230,7 +263,8 @@ Item {
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
-        text: control.fileName
+        text: control.desktop ? control.GridView.view.desktopLabelText(control.fileName, width)
+                              : control.fileName
         color: selected ? control.selectedTextColor
                         : control.GridView.view.isDesktopView ? "white" : FishUI.Theme.textColor
         opacity: model.isHidden ? 0.8 : 1.0
@@ -332,7 +366,7 @@ Item {
         width: _label.width + 16
         height: _label.height + 16
         visible: control.desktop && _label.visible && !control.selected
-        opacity: model.isHidden ? 0.25 : 0.45
+        opacity: model.isHidden ? 0.35 : 0.65
 
         Text {
             x: 8
@@ -350,7 +384,7 @@ Item {
 
         layer.enabled: visible
         layer.effect: FastBlur {
-            radius: 8
+            radius: 6
         }
     }
 }
