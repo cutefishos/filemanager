@@ -22,11 +22,12 @@ import QtQuick.Controls 2.4
 import QtQuick.Window 2.12
 import QtQuick.Layouts 1.3
 import FishUI 1.0 as FishUI
+import Cutefish.FileManager 1.0 as FM
 
 FishUI.Window {
     id: control
 
-    property string url: main.url
+    required property string url
     property int contentWidth: 400 + FishUI.Units.largeSpacing * 2
     property int contentHeight: _mainLayout.implicitHeight + 32
 
@@ -50,7 +51,7 @@ FishUI.Window {
     background.color: FishUI.Theme.secondBackgroundColor
 
     Component.onCompleted: {
-        var items = mimeAppManager.recommendedApps(control.url)
+        var items = FM.MimeAppManager.recommendedApps(control.url)
 
         for (var i in items) {
             listView.model.append(items[i])
@@ -62,9 +63,9 @@ FishUI.Window {
 
     function openApp() {
         if (defaultCheckBox.checked)
-            mimeAppManager.setDefaultAppForFile(control.url, listView.model.get(listView.currentIndex).desktopFile)
+            FM.MimeAppManager.setDefaultAppForFile(control.url, listView.model.get(listView.currentIndex).desktopFile)
 
-        launcher.launchApp(listView.model.get(listView.currentIndex).desktopFile, control.url)
+        FM.FileLauncher.launchApp(listView.model.get(listView.currentIndex).desktopFile, control.url)
         control.close()
     }
 

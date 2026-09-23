@@ -1,11 +1,12 @@
 #include "model/foldermodel.h"
 #include "qmltypes.h"
+#include "windowmanager.h"
 
 #include <QApplication>
 #include <QDragEnterEvent>
 #include <QMimeData>
-#include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlEngine>
 #include <QQmlExpression>
 #include <QQuickItem>
 #include <QQuickWindow>
@@ -33,12 +34,11 @@ private slots:
         QVERIFY(folders.isValid());
         for (int i = 0; i < 120; ++i)
             QVERIFY(QDir(folders.path()).mkdir(QString::number(i)));
-        QQmlApplicationEngine engine;
-        CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("arg", folders.path());
-        engine.load(QUrl("qrc:/qml/main.qml"));
-        QVERIFY(!engine.rootObjects().isEmpty());
-        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QQmlEngine engine;
+        WindowManager windows(&engine);
+        windows.installIncubationController();
+        QQuickWindow *window = windows.create(QUrl("qrc:/qml/main.qml"),
+                                              {{"startPath", folders.path()}});
         QVERIFY(window);
         auto *settings = window->property("settings").value<QObject *>();
         QVERIFY(settings);
@@ -94,12 +94,11 @@ private slots:
         QVERIFY(dir.mkdir("first"));
         QVERIFY(dir.mkdir("second"));
 
-        QQmlApplicationEngine engine;
-        CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("arg", folders.path());
-        engine.load(QUrl("qrc:/qml/main.qml"));
-        QVERIFY(!engine.rootObjects().isEmpty());
-        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QQmlEngine engine;
+        WindowManager windows(&engine);
+        windows.installIncubationController();
+        QQuickWindow *window = windows.create(QUrl("qrc:/qml/main.qml"),
+                                              {{"startPath", folders.path()}});
         QVERIFY(window);
         window->resize(900, 600);
 
@@ -172,12 +171,12 @@ private slots:
         QVERIFY(dir.mkdir("first"));
         QVERIFY(dir.mkdir("second"));
 
-        QQmlApplicationEngine engine;
-        CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("arg", folders.path());
-        engine.load(QUrl("qrc:/qml/main.qml"));
-        QVERIFY(!engine.rootObjects().isEmpty());
-        QObject *window = engine.rootObjects().first();
+        QQmlEngine engine;
+        WindowManager windows(&engine);
+        windows.installIncubationController();
+        QObject *window = windows.create(QUrl("qrc:/qml/main.qml"),
+                                         {{"startPath", folders.path()}});
+        QVERIFY(window);
         QObject *menuBar = window->findChild<QObject *>("applicationMenuBar");
         QVERIFY(menuBar);
         QObject *sideBar = window->findChild<QObject *>("sideBar");

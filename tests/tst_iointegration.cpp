@@ -1,5 +1,6 @@
 #include "draganddrop/declarativedragdropevent.h"
 #include "draganddrop/declarativedroparea.h"
+#include "helper/dialogs.h"
 #include "model/foldermodel.h"
 #include "operations/fileoperationsclient.h"
 #include "operations/operationtask.h"
@@ -45,18 +46,10 @@ private slots:
     void desktopFoldersUseCutefish()
     {
         QTemporaryDir directory;
-        QTemporaryDir launcher;
         QTemporaryDir config;
         QVERIFY(directory.isValid());
-        QVERIFY(launcher.isValid());
         QVERIFY(config.isValid());
         QVERIFY(QDir(directory.path()).mkdir("folder with spaces"));
-
-        QFile executable(launcher.filePath("cutefish-filemanager"));
-        QVERIFY(executable.open(QIODevice::WriteOnly));
-        executable.write("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"${0%/*}/arguments\"\n");
-        executable.close();
-        QVERIFY(executable.setPermissions(QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
 
         QVERIFY(QDir().mkpath(m_data.filePath("applications")));
         QFile other(m_data.filePath("applications/other-manager.desktop"));
@@ -69,30 +62,31 @@ private slots:
         defaults.write("[Default Applications]\ninode/directory=other-manager.desktop;\n");
         defaults.close();
 
-        const QByteArray originalPath = qgetenv("PATH");
+        QStringList opened;
+        CutefishFM::setFolderOpener([&](const QStringList &paths, const QStringList &) {
+            opened += paths;
+        });
+
         const QByteArray originalConfig = qgetenv("XDG_CONFIG_HOME");
         const auto restore = qScopeGuard([&] {
-            qputenv("PATH", originalPath);
+            CutefishFM::setFolderOpener(nullptr);
             if (originalConfig.isNull())
                 qunsetenv("XDG_CONFIG_HOME");
             else
                 qputenv("XDG_CONFIG_HOME", originalConfig);
             other.remove();
         });
-        qputenv("PATH", launcher.path().toUtf8() + ':' + originalPath);
         qputenv("XDG_CONFIG_HOME", config.path().toUtf8());
 
+        // A folder opened from the desktop goes to the file manager, not to the
+        // default inode/directory handler.
         FolderModel folder;
         folder.setIsDesktop(true);
         folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
         QTRY_COMPARE(folder.count(), 1);
         folder.setSelected(0);
         folder.openSelected();
-        const auto arguments = [&] {
-            QFile file(launcher.filePath("arguments"));
-            return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
-        };
-        QTRY_COMPARE(arguments(), directory.filePath("folder with spaces").toUtf8() + '\n');
+        QCOMPARE(opened, QStringList {directory.filePath("folder with spaces")});
         QCOMPARE(folder.url(), directory.path());
     }
 
@@ -467,10 +461,10 @@ private slots:
                                  QUrl::fromLocalFile("/example/Documents")});
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("ioTask", &task);
         QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
-        QScopedPointer<QObject> dialog(component.create());
+        QScopedPointer<QObject> dialog(component.createWithInitialProperties(
+                {{"ioTask", QVariant::fromValue<QObject *>(&task)}}));
         QVERIFY2(dialog, qPrintable(component.errorString()));
         auto *window = qobject_cast<QQuickWindow *>(dialog.data());
         QVERIFY(window);
@@ -531,10 +525,10 @@ private slots:
                                  Cutefish::IO::ConflictPolicy::Ask});
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("ioTask", &task);
         QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
-        QScopedPointer<QObject> dialog(component.create());
+        QScopedPointer<QObject> dialog(component.createWithInitialProperties(
+                {{"ioTask", QVariant::fromValue<QObject *>(&task)}}));
         QVERIFY2(dialog, qPrintable(component.errorString()));
         task.start();
         QTRY_VERIFY(dialog->property("conflict").toBool());
@@ -561,10 +555,10 @@ private slots:
                 QUrl::fromLocalFile(dir.filePath("target")));
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("ioTask", task);
         QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
-        QScopedPointer<QObject> dialog(component.create());
+        QScopedPointer<QObject> dialog(component.createWithInitialProperties(
+                {{"ioTask", QVariant::fromValue<QObject *>(task)}}));
         QVERIFY2(dialog, qPrintable(component.errorString()));
 
         QTRY_VERIFY(dialog->property("conflict").toBool());
@@ -623,9 +617,9 @@ private slots:
                                  QUrl::fromLocalFile(destinationDirectory.path())});
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("ioTask", &task);
         QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
-        QScopedPointer<QObject> dialog(component.create());
+        QScopedPointer<QObject> dialog(component.createWithInitialProperties(
+                {{"ioTask", QVariant::fromValue<QObject *>(&task)}}));
         QVERIFY2(dialog, qPrintable(component.errorString()));
         auto *window = qobject_cast<QQuickWindow *>(dialog.data());
         QVERIFY(window);
@@ -633,10 +627,17 @@ private slots:
         window->show();
         QSignalSpy done(&task, &Cutefish::IO::Task::result);
         window->close();
+        // Hidden, not closed: a conflict or an error later still needs it.
+        QVERIFY(!window->isVisible());
+        QVERIFY(window->handle());
+        QVERIFY(dialog->property("dismissed").toBool());
         task.start();
         QTRY_COMPARE(done.size(), 1);
         QVERIFY(!task.wasCanceled());
         QVERIFY(QFileInfo::exists(destinationDirectory.filePath("payload")));
+        // Nothing to show any more: now a close goes through.
+        QTest::qWait(800);
+        QVERIFY(!window->isVisible());
     }
 
     void emptyTrashProgressUsesShortDelay()
@@ -644,9 +645,9 @@ private slots:
         Cutefish::IO::Task task({Cutefish::IO::Operation::EmptyTrash});
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("ioTask", &task);
         QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
-        QScopedPointer<QObject> dialog(component.create());
+        QScopedPointer<QObject> dialog(component.createWithInitialProperties(
+                {{"ioTask", QVariant::fromValue<QObject *>(&task)}}));
         QVERIFY2(dialog, qPrintable(component.errorString()));
 
         auto *delay = dialog->findChild<QObject *>("ioShowDelay");

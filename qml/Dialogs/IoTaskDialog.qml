@@ -24,8 +24,13 @@ FishUI.Window {
     minimumHeight: dialogHeight
     maximumHeight: dialogHeight
 
+    // The OperationTask (or, in tests, the Cutefish::IO::Task) this dialog presents.
+    required property QtObject ioTask
+
     property bool finished: false
     property bool conflict: false
+    // Closed by the user while the task runs: stay out of sight until it ends.
+    property bool dismissed: false
     property bool canceling: false
     property string errorMessage: ""
     property string conflictSource: ""
@@ -172,6 +177,16 @@ FishUI.Window {
             delay.restart()
     }
 
+    // Closing does not cancel: the dialog only hides, so a later conflict or
+    // error still has somewhere to appear, and it goes away with the task.
+    onClosing: function(close) {
+        if (!control.finished) {
+            close.accepted = false
+            control.dismissed = true
+            control.hide()
+        }
+    }
+
     Shortcut {
         sequence: "Escape"
         onActivated: control.close()
@@ -181,7 +196,10 @@ FishUI.Window {
         objectName: "ioShowDelay"
         interval: control.operation === "emptyTrash" ? 300 : 750
         running: true
-        onTriggered: if (!control.finished && !control.conflict) control.show()
+        onTriggered: {
+            if (!control.finished && !control.conflict && !control.dismissed)
+                control.show()
+        }
     }
     Connections {
         target: ioTask

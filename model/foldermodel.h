@@ -23,6 +23,8 @@ class QDrag;
 class CFileSizeJob;
 class OperationTask;
 class FolderSizeCache;
+class QWindow;
+class WindowManager;
 
 class FolderModel : public FolderContentsModel, public QQmlParserStatus
 {
@@ -235,6 +237,9 @@ public:
     Q_INVOKABLE void updateSelectedItemsSize();
     Q_INVOKABLE void keyboardSearch(const QString &text);
 
+    /** Selects @p urls once the current folder has been listed completely. */
+    Q_INVOKABLE void selectUrlsWhenListed(const QStringList &urls);
+
     Q_INVOKABLE void clearPixmapCache();
 
     void restoreFromTrash();
@@ -294,6 +299,9 @@ private slots:
     void onRowsInserted(const QModelIndex &parent, int first, int last);
     void delayUpdateNeedSelectUrls();
     void updateNeedSelectUrls();
+    void applyPendingSelection();
+    WindowManager *windowManager() const;
+    QWindow *dialogOwner() const;
     void startArchiveJob(OperationTask *job, const QString &operation,
                          const QString &outputPath);
     void archiveJobFinished(bool success, bool canceled, const QString &error,
@@ -323,6 +331,7 @@ private:
     QPoint m_newDocumentPos {-1, -1};
     int m_newDocumentCell = -1;
     QList<QUrl> m_needSelectUrls;
+    QList<QUrl> m_pendingSelection;
 
     Status m_status;
     int m_sortMode;

@@ -17,35 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "filepropertiesdialog.h"
+#include "fileproperties.h"
 
 #include <QDir>
 #include <QFileInfo>
-#include <QQmlContext>
 
-FilePropertiesDialog::FilePropertiesDialog(const Cutefish::IO::FileItem &item, QObject *parent)
-    : Window(parent)
-{
-    m_items.append(item);
-    init();
-}
-
-FilePropertiesDialog::FilePropertiesDialog(const Cutefish::IO::FileItemList &items, QObject *parent)
-    : Window(parent)
+FileProperties::FileProperties(const Cutefish::IO::FileItemList &items, QObject *parent)
+    : QObject(parent)
     , m_items(items)
 {
     init();
 }
 
-FilePropertiesDialog::FilePropertiesDialog(const QUrl &url, QObject *parent)
-    : Window(parent)
-{
-    m_items.append(Cutefish::IO::FileItem(url));
-
-    init();
-}
-
-FilePropertiesDialog::~FilePropertiesDialog()
+FileProperties::~FileProperties()
 {
     if (m_sizeJob) {
         m_sizeJob->stop();
@@ -53,52 +37,52 @@ FilePropertiesDialog::~FilePropertiesDialog()
     }
 }
 
-bool FilePropertiesDialog::multiple() const
+bool FileProperties::multiple() const
 {
     return m_multiple;
 }
 
-QString FilePropertiesDialog::location() const
+QString FileProperties::location() const
 {
     return m_location;
 }
 
-QString FilePropertiesDialog::fileName() const
+QString FileProperties::fileName() const
 {
     return m_fileName;
 }
 
-QString FilePropertiesDialog::iconName() const
+QString FileProperties::iconName() const
 {
     return m_iconName;
 }
 
-QString FilePropertiesDialog::mimeType() const
+QString FileProperties::mimeType() const
 {
     return m_mimeType;
 }
 
-QString FilePropertiesDialog::fileSize() const
+QString FileProperties::fileSize() const
 {
     return m_size;
 }
 
-QString FilePropertiesDialog::creationTime() const
+QString FileProperties::creationTime() const
 {
     return m_creationTime;
 }
 
-QString FilePropertiesDialog::modifiedTime() const
+QString FileProperties::modifiedTime() const
 {
     return m_modifiedTime;
 }
 
-QString FilePropertiesDialog::accessedTime() const
+QString FileProperties::accessedTime() const
 {
     return m_accessedTime;
 }
 
-void FilePropertiesDialog::init()
+void FileProperties::init()
 {
     m_multiple = m_items.count() > 1;
 
@@ -145,20 +129,14 @@ void FilePropertiesDialog::init()
         emit iconNameChanged();
     }
 
-    // Populate the properties before loading the QML window. Its size is
-    // derived from the content, so changing these values after load can
-    // resize the window during its first expose.
-    rootContext()->setContextProperty("main", this);
-    load(QUrl("qrc:/qml/Dialogs/PropertiesDialog.qml"));
-
     m_sizeJob = std::shared_ptr<CFileSizeJob>(new CFileSizeJob);
     connect(m_sizeJob.get(), &CFileSizeJob::sizeChanged, this,
-            &FilePropertiesDialog::updateTotalSize);
-    connect(m_sizeJob.get(), &CFileSizeJob::result, this, &FilePropertiesDialog::updateTotalSize);
+            &FileProperties::updateTotalSize);
+    connect(m_sizeJob.get(), &CFileSizeJob::result, this, &FileProperties::updateTotalSize);
     m_sizeJob->start(list);
 }
 
-void FilePropertiesDialog::updateTotalSize()
+void FileProperties::updateTotalSize()
 {
     if (!m_sizeJob)
         return;

@@ -43,6 +43,10 @@ FishUI.Window {
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
+    // The folder the first tab opens, and items in it to select once listed.
+    required property string startPath
+    property var initialSelection: []
+
     property QtObject settings: GlobalSettings { }
     property var tabs: []
     property int currentTab: 0
@@ -52,7 +56,14 @@ FishUI.Window {
     readonly property int springLoadDelay: 650
 
     function openTab(path) {
-        var page = folderComponent.createObject(_content, { initialUrl: path || "" })
+        openTabSelecting(path, [])
+    }
+
+    function openTabSelecting(path, selection) {
+        var page = folderComponent.createObject(_content, {
+            initialUrl: path || "",
+            initialSelection: selection
+        })
         if (!page)
             return
         tabs = tabs.concat([page])
@@ -180,7 +191,7 @@ FishUI.Window {
     }
 
     onCurrentTabChanged: syncNavigation()
-    Component.onCompleted: openTab(arg)
+    Component.onCompleted: openTabSelecting(startPath, initialSelection)
 
     Timer {
         id: springLoadTimer

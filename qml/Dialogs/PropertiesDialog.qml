@@ -26,6 +26,9 @@ import FishUI 1.0 as FishUI
 FishUI.Window {
     id: control
 
+    // The FileProperties backend describing the selected items.
+    required property QtObject details
+
     property int widthValue: _mainLayout.implicitWidth + FishUI.Units.largeSpacing * 3
     property int heightValue: _mainLayout.implicitHeight + control.header.height + FishUI.Units.largeSpacing * 2
 
@@ -65,7 +68,7 @@ FishUI.Window {
                 height: 48
                 Layout.preferredWidth: 48
                 Layout.preferredHeight: 48
-                source: main.iconName
+                source: control.details.iconName
 
                 // The source is available while the item is being created.
                 // Refresh after completion so IconItem can load it once its
@@ -74,7 +77,7 @@ FishUI.Window {
             }
 
             FishUI.Label {
-                text: main.fileName
+                text: control.details.fileName
                 Layout.fillWidth: true
                 elide: Text.ElideMiddle
             }
@@ -96,7 +99,7 @@ FishUI.Window {
 
             FishUI.Label {
                 id: mimeType
-                text: main.mimeType
+                text: control.details.mimeType
                 visible: text
             }
 
@@ -108,7 +111,7 @@ FishUI.Window {
 
             FishUI.Label {
                 id: location
-                text: main.location
+                text: control.details.location
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
             }
@@ -121,7 +124,7 @@ FishUI.Window {
 
             FishUI.Label {
                 id: size
-                text: main.fileSize ? main.fileSize : qsTr("Calculating...")
+                text: control.details.fileSize ? control.details.fileSize : qsTr("Calculating...")
             }
 
             FishUI.Label {
@@ -133,7 +136,7 @@ FishUI.Window {
 
             FishUI.Label {
                 id: creationTime
-                text: main.creationTime
+                text: control.details.creationTime
                 visible: text
             }
 
@@ -146,7 +149,7 @@ FishUI.Window {
 
             FishUI.Label {
                 id: modifiedTime
-                text: main.modifiedTime
+                text: control.details.modifiedTime
                 visible: text
             }
 
@@ -159,7 +162,7 @@ FishUI.Window {
 
             FishUI.Label {
                 id: accessTime
-                text: main.accessedTime
+                text: control.details.accessedTime
                 visible: text
             }
         }

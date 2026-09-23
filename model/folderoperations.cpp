@@ -1,12 +1,12 @@
 #include "foldermodel.h"
-#include "dialogs/filepropertiesdialog.h"
-#include "dialogs/openwithdialog.h"
+#include "helper/dialogs.h"
 #include "helper/filelauncher.h"
 #include "helper/fm.h"
 #include "mimetype/xdgdesktopfile.h"
 #include "operations/fileoperationsclient.h"
 #include "operations/operationtask.h"
-#include "window.h"
+#include "widgets/itemviewadapter.h"
+#include "windowmanager.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -17,7 +17,8 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QProcess>
-#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQuickWindow>
 #include <QTextStream>
 #include <sys/stat.h>
 
@@ -480,9 +481,7 @@ void FolderModel::showOpenWithDialog()
         return;
 
     const QList<QUrl> urls = selectedUrls();
-
-    OpenWithDialog *dlg = new OpenWithDialog(urls.first());
-    dlg->show();
+    CutefishFM::Dialogs::openWith(windowManager(), urls.first(), dialogOwner());
 }
 
 QVariantList FolderModel::openWithApplications() const
@@ -538,7 +537,7 @@ void FolderModel::moveSelectedToTrash()
 
 void FolderModel::emptyTrash()
 {
-    QProcess::startDetached("cutefish-filemanager", QStringList() << "-e");
+    CutefishFM::Dialogs::confirmEmptyTrash(windowManager(), dialogOwner());
 }
 
 void FolderModel::keyDeletePress()
@@ -662,23 +661,19 @@ void FolderModel::openPropertiesDialog()
 {
     const QModelIndexList indexes = m_selectionModel->selectedIndexes();
 
-    if (indexes.isEmpty()) {
-        FilePropertiesDialog *dlg = new FilePropertiesDialog(QUrl::fromLocalFile(url()));
-        dlg->show();
-        return;
-    }
-
     Cutefish::IO::FileItemList items;
-    items.reserve(indexes.count());
-    for (const QModelIndex &index : indexes) {
-        Cutefish::IO::FileItem item = itemForIndex(index);
-        if (!item.isNull()) {
-            items.append(item);
+    if (indexes.isEmpty()) {
+        items.append(Cutefish::IO::FileItem(resolvedUrl()));
+    } else {
+        items.reserve(indexes.count());
+        for (const QModelIndex &index : indexes) {
+            Cutefish::IO::FileItem item = itemForIndex(index);
+            if (!item.isNull())
+                items.append(item);
         }
     }
 
-    FilePropertiesDialog *dlg = new FilePropertiesDialog(items);
-    dlg->show();
+    CutefishFM::Dialogs::properties(windowManager(), items, dialogOwner());
 }
 
 void FolderModel::openInTerminal()
@@ -703,9 +698,7 @@ void FolderModel::openChangeWallpaperDialog()
 
 void FolderModel::openDeleteDialog()
 {
-    Window *w = new Window;
-    w->rootContext()->setContextProperty("model", this);
-    w->load(QUrl("qrc:/qml/Dialogs/DeleteDialog.qml"));
+    CutefishFM::Dialogs::confirmDelete(windowManager(), this, dialogOwner());
 }
 
 void FolderModel::openInNewWindow(const QString &url)
@@ -713,22 +706,37 @@ void FolderModel::openInNewWindow(const QString &url)
     if (!url.isEmpty()) {
         // Callers pass either a local path or a folder URL.
         const QUrl target(url);
-        QProcess::startDetached("cutefish-filemanager",
-                                QStringList() << (target.isLocalFile() ? target.toLocalFile() : url));
+        CutefishFM::openFolders({target.isLocalFile() ? target.toLocalFile() : url});
         return;
     }
 
-    // url 为空则打开已选择的 items.
-    if (!m_selectionModel->hasSelection())
-        return;
-
+    // Without a URL, open every selected folder.
+    QStringList folders;
     for (const QModelIndex &index : m_selectionModel->selectedIndexes()) {
         Cutefish::IO::FileItem item = itemForIndex(index);
-        if (item.isDir()) {
-            QProcess::startDetached("cutefish-filemanager",
-                                    QStringList() << item.url().toLocalFile());
-        }
+        if (item.isDir())
+            folders.append(item.url().toLocalFile());
     }
+    CutefishFM::openFolders(folders);
+}
+
+WindowManager *FolderModel::windowManager() const
+{
+    // The engine that created this model hosts its dialogs: the file manager's,
+    // or cutefish-shell's for the desktop. A model built in C++ has none.
+    if (QQmlEngine *engine = qmlEngine(this))
+        return WindowManager::ensure(engine);
+    return WindowManager::defaultManager();
+}
+
+QWindow *FolderModel::dialogOwner() const
+{
+    // The desktop surface must not be blocked by, or stack, a modal dialog.
+    if (m_isDesktop || !m_viewAdapter)
+        return nullptr;
+
+    auto *view = qobject_cast<QQuickItem *>(m_viewAdapter->adapterView());
+    return view ? view->window() : nullptr;
 }
 
 void FolderModel::openInNewTab()

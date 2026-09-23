@@ -28,6 +28,8 @@
 #include "helper/shortcut.h"
 #include "helper/previewcontroller.h"
 #include "helper/previewclient.h"
+#include "helper/filelauncher.h"
+#include "mimetype/mimeappmanager.h"
 #include "desktopiconprovider.h"
 #include "thumbnailprovider.h"
 
@@ -70,6 +72,18 @@ void registerQmlTypes()
     qmlRegisterType<PreviewController>(uri, 1, 0, "PreviewController");
     qmlRegisterType<ShortCut>(uri, 1, 0, "ShortCut");
 
+    // Process-wide objects shared by every engine; the engines must not own them.
+    qmlRegisterSingletonType<MimeAppManager>(uri, 1, 0, "MimeAppManager",
+                                             [](QQmlEngine *, QJSEngine *) -> QObject * {
+        QQmlEngine::setObjectOwnership(MimeAppManager::self(), QQmlEngine::CppOwnership);
+        return MimeAppManager::self();
+    });
+    qmlRegisterSingletonType<FileLauncher>(uri, 1, 0, "FileLauncher",
+                                           [](QQmlEngine *, QJSEngine *) -> QObject * {
+        QQmlEngine::setObjectOwnership(FileLauncher::self(), QQmlEngine::CppOwnership);
+        return FileLauncher::self();
+    });
+
     qmlRegisterAnonymousType<QAction>(uri, 1);
     qmlRegisterAnonymousType<QMimeData>(dragandrop_uri, 1);
 
@@ -95,7 +109,6 @@ void registerImageProviders(QQmlEngine *engine)
     if (!engine->imageProvider(QStringLiteral("thumbnailer")))
         engine->addImageProvider(QStringLiteral("thumbnailer"), new ThumbnailProvider);
 
-    // FishUI registers its own icontheme provider when the module is imported.
     if (!engine->imageProvider(QStringLiteral("fileicon")))
         engine->addImageProvider(QStringLiteral("fileicon"), new DesktopIconProvider);
 

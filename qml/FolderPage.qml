@@ -38,6 +38,7 @@ Item {
     property int headerHeight: 0
     property int bottomNavigationHeight: 0
     property string initialUrl: ""
+    property var initialSelection: []
     readonly property string tabTitle: {
         var path = currentUrl.toString()
         if (path.indexOf("trash:/") === 0)
@@ -103,6 +104,9 @@ Item {
                 dirModel.url = folderPage.initialUrl
             else
                 dirModel.url = dirModel.homePath()
+
+            if (folderPage.initialSelection.length > 0)
+                dirModel.selectUrlsWhenListed(folderPage.initialSelection)
         }
 
         onOpenTabRequested: function(path) { folderPage.openInNewTab(path) }

@@ -1,3 +1,8 @@
+#include "dialogs/fileproperties.h"
+#include "helper/dialogs.h"
+#include "model/foldermodel.h"
+#include "operations/fileoperationsclient.h"
+#include "operations/operationtask.h"
 #include "qmltypes.h"
 #include "windowmanager.h"
 
@@ -8,11 +13,15 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QSignalSpy>
+#include <QTemporaryDir>
 #include <QtTest>
+#include <task.h>
 
 class WindowManagerTest : public QObject
 {
     Q_OBJECT
+
+    QTemporaryDir m_config;
 
     static QUrl fixture(const char *name)
     {
@@ -22,6 +31,8 @@ class WindowManagerTest : public QObject
 private slots:
     void initTestCase()
     {
+        QVERIFY(m_config.isValid());
+        qputenv("XDG_CONFIG_HOME", m_config.path().toUtf8());
         CutefishFM::registerQmlTypes();
         CutefishFM::initResources();
     }
@@ -338,6 +349,160 @@ private slots:
             QCOMPARE(window->property("loaderStatus").toInt(), 2); // Loader.Loading
             QTRY_COMPARE(window->property("loaderStatus").toInt(), 1);
         }
+    }
+
+    void browserWindowsLeaveNothingBehind()
+    {
+        QTemporaryDir folder;
+        for (const char *name : {"a.txt", "b.txt", "c"}) {
+            QFile file(folder.filePath(name));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+        }
+
+        QQmlEngine engine;
+        WindowManager manager(&engine);
+        manager.installIncubationController();
+        const int windowsBefore = QGuiApplication::allWindows().size();
+
+        for (int i = 0; i < 20; ++i) {
+            QPointer<QQuickWindow> window = manager.create(
+                    QUrl("qrc:/qml/main.qml"), {{"startPath", folder.path()}});
+            QVERIFY(window);
+            // The grid, with a selected item, is where effects reference items.
+            window->property("settings").value<QObject *>()->setProperty("viewMethod", 1);
+            auto *page = window->property("_folderPage").value<QObject *>();
+            QVERIFY(page);
+            auto *model = page->property("model").value<FolderModel *>();
+            QVERIFY(model);
+            QTRY_COMPARE(model->count(), 3);
+            QTRY_VERIFY(page->property("currentView").value<QQuickItem *>());
+            model->setSelected(i % 3);
+
+            // The last tab closes the window from inside QML.
+            QVERIFY(QMetaObject::invokeMethod(window, "closeTab", Q_ARG(QVariant, 0)));
+            QTRY_VERIFY(!window);
+        }
+
+        QCOMPARE(manager.windowCount(), 0);
+        QCOMPARE(QGuiApplication::allWindows().size(), windowsBefore);
+    }
+
+    void releasesProgressOfQuickTasks()
+    {
+        QQmlEngine engine;
+        WindowManager manager(&engine);
+        QTemporaryDir dir;
+
+        OperationTask *task = FileOperationsClient::instance()->mkdir(
+                QUrl::fromLocalFile(dir.filePath("created")));
+        QPointer<QQuickWindow> window = CutefishFM::Dialogs::ioTask(&manager, task);
+        QVERIFY(window);
+        QTRY_VERIFY(task->isFinished());
+        QTRY_VERIFY(!window);
+        QCOMPARE(manager.windowCount(), 0);
+    }
+
+    void keepsProgressOfFailedTasks()
+    {
+        QQmlEngine engine;
+        WindowManager manager(&engine);
+        QTemporaryDir dir;
+
+        OperationTask *task = FileOperationsClient::instance()->mkdir(
+                QUrl::fromLocalFile(dir.filePath("missing/created")));
+        QPointer<QQuickWindow> window = CutefishFM::Dialogs::ioTask(&manager, task);
+        QVERIFY(window);
+        QTRY_VERIFY(task->isFinished());
+        QVERIFY(task->error());
+        QTRY_VERIFY(window->isVisible());
+        QTest::qWait(50);
+        QVERIFY(window);
+
+        window->close();
+        QTRY_VERIFY(!window);
+    }
+
+    void deleteConfirmationOutlivesItsModel()
+    {
+        QQmlEngine engine;
+        WindowManager manager(&engine);
+        auto *model = new FolderModel;
+        QPointer<QQuickWindow> dialog = CutefishFM::Dialogs::confirmDelete(&manager, model, nullptr);
+        QVERIFY(dialog);
+        QTRY_VERIFY(dialog->isVisible());
+
+        delete model;
+        QVERIFY(QMetaObject::invokeMethod(dialog, "accept"));
+        QTRY_VERIFY(!dialog);
+    }
+
+    void confirmationClosesWithOwner()
+    {
+        QQmlEngine engine;
+        WindowManager manager(&engine);
+        FolderModel model;
+        QPointer<QQuickWindow> owner = manager.create(fixture("Visible.qml"));
+        QPointer<QQuickWindow> dialog = CutefishFM::Dialogs::confirmDelete(&manager, &model, owner);
+        QVERIFY(dialog);
+        QCOMPARE(dialog->transientParent(), owner.data());
+        QTRY_VERIFY(dialog->isVisible());
+        QSignalSpy rejected(dialog.data(), SIGNAL(rejected()));
+
+        owner->close();
+        QTRY_VERIFY(!owner);
+        QTRY_VERIFY(!dialog);
+        QCOMPARE(rejected.size(), 1);
+    }
+
+    void teardownDoesNotCancelConflicts()
+    {
+        QTemporaryDir dir;
+        QVERIFY(QDir(dir.path()).mkdir("target"));
+        for (const QString &path : {dir.filePath("photo.svg"), dir.filePath("target/photo.svg")}) {
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            file.write("<svg/>");
+        }
+
+        OperationTask *task = FileOperationsClient::instance()->copy(
+                {QUrl::fromLocalFile(dir.filePath("photo.svg"))},
+                QUrl::fromLocalFile(dir.filePath("target")));
+        {
+            QQmlEngine engine;
+            WindowManager manager(&engine);
+            QQuickWindow *window = CutefishFM::Dialogs::ioTask(&manager, task);
+            QVERIFY(window);
+            QTRY_VERIFY(window->property("conflict").toBool());
+            auto *conflict = window->findChild<QQuickWindow *>("conflictDialog");
+            QVERIFY(conflict);
+            QTRY_VERIFY(conflict->isVisible());
+            manager.destroyAll();
+        }
+        QTest::qWait(100);
+        QVERIFY(!task->isFinished());
+
+        task->resolveConflict(int(Cutefish::IO::ConflictPolicy::Skip));
+        QTRY_VERIFY(task->isFinished());
+        QVERIFY(!task->wasCanceled());
+    }
+
+    void propertiesOwnTheirDetails()
+    {
+        QQmlEngine engine;
+        WindowManager manager(&engine);
+        QTemporaryDir dir;
+
+        QPointer<QQuickWindow> window = CutefishFM::Dialogs::properties(
+                &manager, {Cutefish::IO::FileItem(QUrl::fromLocalFile(dir.path()))}, nullptr);
+        QVERIFY(window);
+        QPointer<FileProperties> details = window->findChild<FileProperties *>();
+        QVERIFY(details);
+        QCOMPARE(window->property("details").value<QObject *>(), details.data());
+        QTRY_VERIFY(window->isVisible());
+
+        window->close();
+        QTRY_VERIFY(!window);
+        QVERIFY(!details);
     }
 };
 

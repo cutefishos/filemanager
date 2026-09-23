@@ -19,6 +19,7 @@
 
 #include "model/foldermodel.h"
 #include "qmltypes.h"
+#include "windowmanager.h"
 
 #include <QAction>
 #include <QDebug>
@@ -182,7 +183,9 @@ void DesktopView::createContent()
     }
 
     CutefishFM::registerQmlTypes();
-    CutefishFM::registerImageProviders(engine);
+
+    // Dialogs opened from the desktop live in the host's engine as well.
+    WindowManager::setDefaultIfUnset(WindowManager::ensure(engine));
 
     // A dedicated child context keeps the desktop's context properties out of
     // the host's root context, so several desktops (one per screen) can live in

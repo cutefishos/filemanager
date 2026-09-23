@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILEPROPERTIESDIALOG_H
-#define FILEPROPERTIESDIALOG_H
+#ifndef FILEPROPERTIES_H
+#define FILEPROPERTIES_H
 
-#include "../window.h"
+#include <QObject>
 #include <QSharedPointer>
 #include <QTimer>
 #include <QUrl>
@@ -28,7 +28,11 @@
 
 #include "cio/cfilesizejob.h"
 
-class FilePropertiesDialog : public Window
+/**
+ * What the properties dialog shows about one or more items. The total size is
+ * computed in the background and updates fileSize as it grows.
+ */
+class FileProperties : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString location READ location NOTIFY locationChanged)
@@ -42,11 +46,8 @@ class FilePropertiesDialog : public Window
     Q_PROPERTY(bool multiple READ multiple CONSTANT)
 
 public:
-    explicit FilePropertiesDialog(const Cutefish::IO::FileItem &item, QObject *parent = nullptr);
-    explicit FilePropertiesDialog(const Cutefish::IO::FileItemList &items,
-                                  QObject *parent = nullptr);
-    explicit FilePropertiesDialog(const QUrl &url, QObject *parent = nullptr);
-    ~FilePropertiesDialog();
+    explicit FileProperties(const Cutefish::IO::FileItemList &items, QObject *parent = nullptr);
+    ~FileProperties() override;
 
     bool multiple() const;
 
@@ -93,4 +94,4 @@ private:
     bool m_multiple = false;
 };
 
-#endif // FILEPROPERTIESDIALOG_H
+#endif // FILEPROPERTIES_H

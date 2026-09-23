@@ -2,6 +2,7 @@
 #include "filechooser.h"
 #include "qmltypes.h"
 #include "waylandparent.h"
+#include "windowmanager.h"
 
 #include <QApplication>
 #include <QFile>
@@ -48,7 +49,9 @@ int main(int argc, char **argv)
     CutefishFM::initResources();
     FileChooser chooser(request);
     QQmlApplicationEngine engine;
-    CutefishFM::registerImageProviders(&engine);
+    // Declared after the engine so its windows are destroyed first.
+    WindowManager windows(&engine);
+    WindowManager::setDefault(&windows);
     engine.rootContext()->setContextProperty(QStringLiteral("chooser"), &chooser);
     QObject::connect(&chooser, &FileChooser::finished, &app, [](const QJsonObject &result) {
         QFile output;

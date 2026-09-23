@@ -1,10 +1,9 @@
 #include "iojobui.h"
+#include "dialogs.h"
 #include "operations/fileoperationsclient.h"
 #include "operations/operationtask.h"
-#include "window.h"
-#include <QCoreApplication>
-#include <QQmlContext>
-#include <QQuickWindow>
+#include "windowmanager.h"
+
 #include <QTimer>
 
 namespace CutefishFM {
@@ -26,18 +25,14 @@ void installIoJobUi()
                              if (task->isFinished() && (!task->error() || task->wasCanceled()))
                                  return;
 
-                             auto *window = new Window;
-                             window->rootContext()->setContextProperty("ioTask", task);
-                             window->load(QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
-
-                             // QWindow::close() is a no-op for a window that was never
-                             // shown, so a dialog that finishes inside its show delay
-                             // would otherwise outlive the task and keep bindings on it.
-                             QObject::connect(task, &OperationTask::result, window, [window] {
-                                 QQuickWindow *quickWindow = window->quickWindow();
-                                 if (!quickWindow || !quickWindow->isVisible())
-                                     window->deleteLater();
-                             });
+                             WindowManager *manager = WindowManager::defaultManager();
+                             if (!manager) {
+                                 static bool warned = false;
+                                 if (!std::exchange(warned, true))
+                                     qWarning("installIoJobUi: no window manager to show progress in");
+                                 return;
+                             }
+                             Dialogs::ioTask(manager, task);
                          });
                      });
 }

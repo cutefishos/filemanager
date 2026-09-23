@@ -21,72 +21,151 @@
 #include "cutefishapplication.h"
 #include "dbusinterface.h"
 #include "filemanageradaptor.h"
+#include "helper/dialogs.h"
 #include "helper/iojobui.h"
 #include "operations/fileoperationsclient.h"
 #include "operations/operationtask.h"
-#include "window.h"
+#include "windowmanager.h"
 
 #include <QCommandLineParser>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDBusInterface>
 #include <QDir>
 #include <QFileInfo>
 #include <QIcon>
+#include <QMap>
 #include <QPixmapCache>
+#include <QQmlEngine>
+#include <QQuickWindow>
 #include <QTimer>
 #include <QTranslator>
 
+namespace {
+const QString serviceName = QStringLiteral("com.cutefish.FileManager");
+const QString freedesktopServiceName = QStringLiteral("org.freedesktop.FileManager1");
+const QUrl browserWindow(QStringLiteral("qrc:/qml/main.qml"));
+}
+
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
-    , m_instance(false)
 {
     Cutefish::Application::prepare();
     CutefishFM::installIoJobUi();
-    setQuitOnLastWindowClosed(true);
-    if (QDBusConnection::sessionBus().registerService("com.cutefish.FileManager")) {
-        setWindowIcon(QIcon::fromTheme("file-manager"));
+    setWindowIcon(QIcon::fromTheme("file-manager"));
 
-        new FileManagerAdaptor(this);
-        new DBusInterface;
-        QDBusConnection::sessionBus().registerObject("/FileManager", this);
+    // Quitting is decided by quitIfIdle(): Qt's own rule would quit on the last
+    // window while a file operation it presents is still running.
+    setQuitOnLastWindowClosed(false);
+}
 
-        // Translations
-        QLocale locale;
-        QString qmFilePath = QString("%1/%2.qm")
-                                     .arg("/usr/share/cutefish-filemanager/translations/")
-                                     .arg(locale.name());
-        if (QFile::exists(qmFilePath)) {
-            QTranslator *translator = new QTranslator(this);
-            if (translator->load(qmFilePath)) {
-                installTranslator(translator);
-            } else {
-                translator->deleteLater();
-            }
-        }
+Application::~Application()
+{
+    CutefishFM::setFolderOpener(nullptr);
 
-        m_instance = true;
-    }
+    // Windows and components go before the engine they were created in.
+    delete m_windows;
+    delete m_engine;
 }
 
 int Application::run()
 {
     if (!parseCommandLineArgs())
-        return 0;
+        return m_exitCode;
 
+    scheduleIdleCheck();
     return QApplication::exec();
+}
+
+bool Application::registerServices()
+{
+    if (m_servicesRegistered)
+        return true;
+
+    auto bus = QDBusConnection::sessionBus();
+
+    // Objects first, so a call arriving as soon as the name is ours finds them.
+    if (!findChild<FileManagerAdaptor *>()) {
+        new FileManagerAdaptor(this);
+        new DBusInterface(this);
+    }
+    bus.registerObject(QStringLiteral("/FileManager"), this);
+
+    if (!bus.registerService(serviceName)) {
+        bus.unregisterObject(QStringLiteral("/FileManager"));
+        return false;
+    }
+
+    if (bus.interface())
+        bus.interface()->registerService(freedesktopServiceName,
+                                         QDBusConnectionInterface::QueueService);
+    m_servicesRegistered = true;
+    return true;
+}
+
+WindowManager *Application::ensureWindows()
+{
+    if (m_windows)
+        return m_windows;
+
+    // Before any QML exists, so every window is translated.
+    QLocale locale;
+    const QString qmFilePath = QString("%1/%2.qm")
+                                       .arg("/usr/share/cutefish-filemanager/translations/")
+                                       .arg(locale.name());
+    if (QFile::exists(qmFilePath)) {
+        auto *translator = new QTranslator(this);
+        if (translator->load(qmFilePath))
+            installTranslator(translator);
+        else
+            delete translator;
+    }
+
+    QPixmapCache::setCacheLimit(2048);
+
+    m_engine = new QQmlEngine;
+    m_windows = new WindowManager(m_engine);
+    m_windows->installIncubationController();
+    WindowManager::setDefault(m_windows);
+
+    CutefishFM::setFolderOpener([this](const QStringList &paths, const QStringList &selection) {
+        for (const QString &path : paths)
+            openWindow(path, selection);
+    });
+
+    connect(m_windows, &WindowManager::windowCountChanged, this, &Application::scheduleIdleCheck);
+    connect(FileOperationsClient::instance(), &FileOperationsClient::activeTaskCountChanged, this,
+            &Application::scheduleIdleCheck);
+    return m_windows;
+}
+
+void Application::unregisterServices()
+{
+    if (!m_servicesRegistered)
+        return;
+
+    auto bus = QDBusConnection::sessionBus();
+    bus.unregisterService(serviceName);
+    if (bus.interface())
+        bus.interface()->unregisterService(freedesktopServiceName);
+    m_servicesRegistered = false;
+}
+
+WindowManager *Application::windowManager() const
+{
+    return m_windows;
 }
 
 void Application::openFiles(const QStringList &paths)
 {
-    for (const QString &path : paths) {
+    for (const QString &path : paths)
         openWindow(path);
-    }
 }
 
 void Application::moveToTrash(const QStringList &paths)
 {
+    // Its progress dialog needs the window manager.
+    ensureWindows();
     startTrashJob(paths);
 }
 
@@ -106,31 +185,42 @@ OperationTask *Application::startTrashJob(const QStringList &paths)
 
 void Application::emptyTrash()
 {
-    Window *w = new Window;
-    w->load(QUrl("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
-    trackWindow(w);
+    if (!CutefishFM::Dialogs::confirmEmptyTrash(ensureWindows(), nullptr))
+        m_exitCode = EXIT_FAILURE;
 }
 
-void Application::openWindow(const QString &path)
+void Application::showItems(const QList<QUrl> &items)
 {
-    Window *w = new Window;
-    w->rootContext()->setContextProperty("arg", path);
-    w->load(QUrl("qrc:/qml/main.qml"));
-    trackWindow(w);
+    // One window per folder, with every item asked for in it selected.
+    QMap<QString, QStringList> folders;
+    for (const QUrl &item : items) {
+        const QString folder = item.isLocalFile()
+                ? QFileInfo(item.toLocalFile()).absolutePath()
+                : item.adjusted(QUrl::StripTrailingSlash | QUrl::RemoveFilename).toString();
+        folders[folder].append(item.toString());
+    }
+
+    for (auto it = folders.cbegin(); it != folders.cend(); ++it)
+        openWindow(it.key(), it.value());
 }
 
-void Application::trackWindow(Window *window)
+void Application::showItemProperties(const QList<QUrl> &items)
 {
-    ++m_windowCount;
-    const int exitCode = window->quickWindow() ? EXIT_SUCCESS : EXIT_FAILURE;
-    connect(window, &QObject::destroyed, this, [this, exitCode] {
-        --m_windowCount;
-        // Hidden helper windows must not keep the browser's D-Bus service alive.
-        QTimer::singleShot(0, this, [this, exitCode] {
-            if (m_windowCount == 0)
-                QCoreApplication::exit(exitCode);
-        });
-    });
+    Cutefish::IO::FileItemList fileItems;
+    for (const QUrl &url : items)
+        fileItems.append(Cutefish::IO::FileItem(url));
+
+    CutefishFM::Dialogs::properties(ensureWindows(), fileItems, nullptr);
+}
+
+QQuickWindow *Application::openWindow(const QString &path, const QStringList &selection)
+{
+    QQuickWindow *window = ensureWindows()->create(
+            browserWindow, {{QStringLiteral("startPath"), path},
+                            {QStringLiteral("initialSelection"), selection}});
+    if (!window)
+        m_exitCode = EXIT_FAILURE;
+    return window;
 }
 
 QStringList Application::formatUriList(const QStringList &list)
@@ -165,43 +255,65 @@ bool Application::parseCommandLineArgs()
 
     parser.process(arguments());
 
-    // Pick the action first, then decide who performs it. The trash options used
-    // to be handled only when another instance was already running, which was
-    // always true while the desktop was a file manager process of its own. It no
-    // longer is -- the desktop moved into cutefish-shell -- so these options
-    // have to work in the first instance too.
-    if (m_instance) {
-        QPixmapCache::setCacheLimit(2048);
+    if (!registerServices()) {
+        QDBusInterface iface(serviceName, QStringLiteral("/FileManager"), serviceName,
+                             QDBusConnection::sessionBus());
+        QDBusMessage reply;
+        if (parser.isSet(emptyTrashOption))
+            reply = iface.call("emptyTrash");
+        else if (parser.isSet(moveToTrashOption))
+            reply = iface.call("moveToTrash", parser.positionalArguments());
+        else
+            reply = iface.call("openFiles", formatUriList(parser.positionalArguments()));
 
-        if (parser.isSet(emptyTrashOption)) {
-            emptyTrash();
-        } else if (parser.isSet(moveToTrashOption)) {
-            OperationTask *job = startTrashJob(parser.positionalArguments());
-
-            if (!job)
-                return false;
-
-            // Deferred so the progress dialog's deleteLater runs before the
-            // engines and the task go down with the application.
-            connect(job, &OperationTask::result, this, [] {
-                QTimer::singleShot(0, qApp, &QCoreApplication::quit);
-            });
-        } else {
-            openFiles(formatUriList(parser.positionalArguments()));
-        }
-    } else {
-        QDBusInterface iface("com.cutefish.FileManager", "/FileManager", "com.cutefish.FileManager",
-                             QDBusConnection::sessionBus(), this);
-
-        if (parser.isSet(emptyTrashOption)) {
-            // Empty Dialog
-            iface.call("emptyTrash");
-        } else if (parser.isSet(moveToTrashOption)) {
-            iface.call("moveToTrash", parser.positionalArguments());
-        } else {
-            iface.call("openFiles", formatUriList(parser.positionalArguments()));
-        }
+        // The running instance may have been quitting just now: take over.
+        if (reply.type() != QDBusMessage::ErrorMessage || !registerServices())
+            return false;
     }
 
-    return m_instance;
+    // Each action leaves a window or a task behind, or nothing: then the
+    // idle check ends the process.
+    if (parser.isSet(emptyTrashOption))
+        emptyTrash();
+    else if (parser.isSet(moveToTrashOption))
+        moveToTrash(parser.positionalArguments());
+    else
+        openFiles(formatUriList(parser.positionalArguments()));
+
+    return true;
+}
+
+bool Application::isIdle() const
+{
+    return (!m_windows || m_windows->windowCount() == 0)
+            && FileOperationsClient::instance()->activeTaskCount() == 0;
+}
+
+void Application::scheduleIdleCheck()
+{
+    if (m_idleCheckScheduled)
+        return;
+
+    m_idleCheckScheduled = true;
+    QTimer::singleShot(0, this, [this] {
+        m_idleCheckScheduled = false;
+        quitIfIdle();
+    });
+}
+
+void Application::quitIfIdle()
+{
+    if (!isIdle())
+        return;
+
+    // Give up the names first, then look again: a request that was already on
+    // its way is delivered in between and keeps the process alive.
+    unregisterServices();
+    QTimer::singleShot(0, this, [this] {
+        if (isIdle()) {
+            exit(m_exitCode);
+            return;
+        }
+        registerServices();
+    });
 }

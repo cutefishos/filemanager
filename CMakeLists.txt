@@ -48,9 +48,8 @@ endif ()
 add_library(cutefish-filemanager-core STATIC
   qmltypes.cpp
 
-  # FolderModel opens its delete dialog through Window, so the shared code
-  # cannot live in the executable alone -- the desktop plugin needs it too.
-  window.cpp
+  # Every host of the shared QML (the file manager, the desktop plugin, the
+  # file chooser) opens the dialogs through its own engine's manager.
   windowmanager.cpp
 
   draganddrop/declarativedroparea.cpp
@@ -71,13 +70,13 @@ add_library(cutefish-filemanager-core STATIC
   cio/cfilesizejob.cpp
   cio/archivejob.cpp
 
-  dialogs/filepropertiesdialog.cpp
-  dialogs/openwithdialog.cpp
+  dialogs/fileproperties.cpp
 
   widgets/rubberband.cpp
   widgets/itemviewadapter.cpp
 
   helper/datehelper.cpp
+  helper/dialogs.cpp
   helper/pathhistory.cpp
   helper/fm.cpp
   helper/iojobui.cpp
@@ -283,14 +282,18 @@ if(FILEMANAGER_BUILD_TESTS)
     set_tests_properties(windowmanager PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_lifecycle tests/tst_lifecycle.cpp application.cpp dbusinterface.cpp ${DBUS_SOURCES})
     target_link_libraries(tst_lifecycle PRIVATE cutefish-filemanager-core Qt6::Test)
-    add_test(NAME lifecycle COMMAND tst_lifecycle)
-    set_tests_properties(lifecycle PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    add_test(NAME lifecycle COMMAND tst_lifecycle windows)
+    add_test(NAME lifecycle-task COMMAND tst_lifecycle task)
+    add_test(NAME lifecycle-emptytrash COMMAND tst_lifecycle emptytrash)
+    set_tests_properties(lifecycle lifecycle-task lifecycle-emptytrash PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_fileoperationsdaemon tests/tst_fileoperationsdaemon.cpp)
     target_link_libraries(tst_fileoperationsdaemon PRIVATE Qt6::Core Qt6::DBus Qt6::Test)
     add_dependencies(tst_fileoperationsdaemon cutefish-filemanager-daemon)
     find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
     add_test(NAME fileoperationsdaemon
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_fileoperationsdaemon>)
-    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs windowmanager lifecycle
+    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs windowmanager
+                 lifecycle lifecycle-task lifecycle-emptytrash
                  APPEND PROPERTY ENVIRONMENT "CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
 endif()

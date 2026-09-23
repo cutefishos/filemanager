@@ -486,6 +486,9 @@ void FolderModel::dragSelectedInternal(int x, int y)
 
     QQuickItem *item = qobject_cast<QQuickItem *>(m_viewAdapter->adapterView());
     QDrag *drag = new QDrag(item);
+    // Qt deletes the drag once exec() returns; as the view's child it could be
+    // deleted inside exec() instead, when the tab closes mid-drag.
+    drag->setParent(nullptr);
     addDragImage(drag, x, y);
 
     m_dragIndexes = m_selectionModel->selectedIndexes();
@@ -508,9 +511,17 @@ void FolderModel::dragSelectedInternal(int x, int y)
     // after it ends.
     const QUrl currentUrl(m_dirModel->dirLister()->url());
 
+    // exec() runs a nested event loop: the tab (and with it this model and the
+    // view) can be closed before it returns.
+    QPointer<FolderModel> self(this);
+    QPointer<QQuickItem> view(item);
+
     item->grabMouse();
     drag->exec(supportedDragActions(), Qt::MoveAction);
-    item->ungrabMouse();
+    if (view)
+        view->ungrabMouse();
+    if (!self)
+        return;
 
     m_dragInProgress = false;
     emit draggingChanged();
@@ -597,6 +608,38 @@ void FolderModel::updateNeedSelectUrls()
     for (const QModelIndex &idx : needSelectList) {
         setSelected(idx.row());
     }
+}
+
+void FolderModel::selectUrlsWhenListed(const QStringList &urls)
+{
+    m_pendingSelection.clear();
+    for (const QString &url : urls)
+        m_pendingSelection.append(resolve(url));
+
+    if (m_status == Ready)
+        applyPendingSelection();
+}
+
+void FolderModel::applyPendingSelection()
+{
+    if (m_pendingSelection.isEmpty())
+        return;
+
+    const QList<QUrl> urls = std::exchange(m_pendingSelection, {});
+    int first = -1;
+    for (const QUrl &url : urls) {
+        const QModelIndex index = indexForUrl(url);
+        if (!index.isValid())
+            continue;
+        if (first < 0) {
+            clearSelection();
+            first = index.row();
+        }
+        setSelected(index.row());
+    }
+
+    if (first >= 0)
+        emit scrollToItem(first);
 }
 
 void FolderModel::addDragImage(QDrag *drag, int x, int y)

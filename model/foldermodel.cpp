@@ -115,6 +115,7 @@ FolderModel::FolderModel(QObject *parent)
     });
     connect(this, &FolderContentsModel::preparationFinished, this, [this] {
         setStatus(Ready);
+        applyPendingSelection();
         emit listingCompleted();
     });
 
@@ -370,6 +371,7 @@ void FolderModel::setUrl(const QString &url)
     }
 
     setStatus(Status::Listing);
+    m_pendingSelection.clear();
 
     if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl)
         m_pathHistory.append(resolvedNewUrl);
