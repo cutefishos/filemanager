@@ -30,6 +30,9 @@ GridView {
     objectName: "FolderGridView"
 
     property bool isDesktopView: false
+    // Bars floating over the top of the view; the content scrolls beneath them.
+    property real topInset: 0
+    readonly property real headerHeight: topInset
     property bool useCustomContextMenu: false
     // Desktop input extends beyond the cells reserved for icons.
     property Item interactionSurface: control
@@ -108,6 +111,15 @@ GridView {
     onCountChanged: {
         if (!positioner.enabled)
             positioner.reset()
+    }
+
+    // GridView scrolls the current item into view but knows nothing of the
+    // bars over its top, so an item it scrolls up to would end up beneath them.
+    onCurrentIndexChanged: Qt.callLater(revealCurrentItem)
+
+    function revealCurrentItem() {
+        if (currentItem && currentItem.y < contentY + headerHeight)
+            contentY = currentItem.y - headerHeight
     }
 
     function effectiveNavDirection(flow, layoutDirection, direction) {
@@ -280,7 +292,7 @@ GridView {
         dragScrollActive = true
 
         var edge = control.rubberBand ? rubberBandScrollEdge : dragScrollEdge
-        var direction = y < edge ? -1
+        var direction = y < headerHeight + edge ? -1
                         : y > control.height - edge ? 1 : 0
         if (direction === dragScrollDirection)
             return
@@ -303,11 +315,11 @@ GridView {
             return
 
         dragScrollElapsed += dragScrollInterval
-        var minimum = control.originY
+        var minimum = control.originY - control.topMargin
         var maximum = Math.max(minimum, control.contentHeight - control.height + control.originY)
         var edge = control.rubberBand ? rubberBandScrollEdge : dragScrollEdge
         var distance = dragScrollDirection < 0
-                ? edge - dragPositionY
+                ? headerHeight + edge - dragPositionY
                 : dragPositionY - (control.height - edge)
         var edgeProgress = Math.max(0, Math.min(1, distance / edge))
         var rampProgress = Math.max(0, Math.min(1,
@@ -527,7 +539,9 @@ GridView {
     // like a touch interface. WheelHandler and the scroll bar do the scrolling.
     interactive: false
     currentIndex: -1
-    FishUI.ScrollBar.vertical: FishUI.ScrollBar { }
+    FishUI.ScrollBar.vertical: FishUI.ScrollBar {
+        topPadding: control.headerHeight
+    }
 
     FishUI.WheelHandler {
         target: control
@@ -648,6 +662,17 @@ GridView {
             control.moveToCell(x, y, urls,
                                dirModel.dragging ? control.dragAnchorIndex : -1,
                                control.dragGrabOffset)
+        }
+    }
+
+    Loader {
+        z: 1
+        width: control.width
+        height: control.topInset
+        active: control.topInset > 0
+
+        sourceComponent: HeaderBackdrop {
+            view: control
         }
     }
 

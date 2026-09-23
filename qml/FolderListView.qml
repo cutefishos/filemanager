@@ -69,7 +69,10 @@ ListView {
         availableWidth: Math.max(0, control.width - control.leftMargin - control.rightMargin)
     }
     readonly property real rowHeight: columns.rowHeight
-    readonly property real headerHeight: columns.headerHeight
+    // Bars floating over the top of the view; the column header sits below them
+    // and the rows scroll beneath both.
+    property real topInset: 0
+    readonly property real headerHeight: topInset + columns.headerHeight
 
     property real lastMouseX: -1
     property real lastMouseY: -1
@@ -421,10 +424,25 @@ ListView {
         cPress = mapToItem(control.contentItem, pressX, pressY)
     }
 
+    Loader {
+        z: 1
+        width: control.width
+        height: control.headerHeight
+        active: control.topInset > 0
+
+        // The column header draws its own separator.
+        sourceComponent: HeaderBackdrop {
+            view: control
+            separatorVisible: false
+        }
+    }
+
     // Rows scroll beneath the header, so it blocks input over itself.
     FileList.Header {
         z: 2
+        y: control.topInset
         width: control.width
+        backgroundColor: control.topInset > 0 ? "transparent" : FishUI.Theme.secondBackgroundColor
         columns: control.columns
         leftInset: control.leftMargin
         rightInset: control.rightMargin

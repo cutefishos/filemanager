@@ -146,10 +146,9 @@ Item {
         folderModel: dirModel
     }
 
+    // The view runs up under the window header, which floats over it.
     ColumnLayout {
         anchors.fill: parent
-        // Same breathing room the sidebar leaves between its title and its list.
-        anchors.topMargin: folderPage.headerHeight
         anchors.bottomMargin: 2 + folderPage.bottomNavigationHeight
         spacing: 0
 
@@ -190,9 +189,10 @@ Item {
 
             onContextMenuRequested: folderMenu.popup()
 
+            topInset: folderPage.headerHeight
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
-            topMargin: 0
+            topMargin: topInset
             bottomMargin: FishUI.Units.smallSpacing
 
             onIconSizeChanged: {
@@ -213,6 +213,7 @@ Item {
 
             onContextMenuRequested: folderMenu.popup()
 
+            topInset: folderPage.headerHeight
             topMargin: _folderListView.headerHeight + 2
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing

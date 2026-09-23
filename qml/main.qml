@@ -412,9 +412,20 @@ FishUI.Window {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
+            // The folder view runs up under the header and the tab bar, so their
+            // empty parts must not reach it. Wheel events still pass through.
+            MouseArea {
+                z: 1
+                width: parent.width
+                height: root.header.height + tabBar.height
+                acceptedButtons: Qt.AllButtons
+                hoverEnabled: true
+            }
+
             FolderTabBar {
                 id: tabBar
-                color: FishUI.Theme.secondBackgroundColor
+                // The folder view's frosted backdrop shows through.
+                color: "transparent"
                 objectName: "folderTabBar"
                 y: root.header.height
                 width: parent.width

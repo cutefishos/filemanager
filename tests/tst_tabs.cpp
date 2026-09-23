@@ -12,7 +12,6 @@
 #include <QQuickWindow>
 #include <QTemporaryDir>
 #include <QtTest>
-#include <functional>
 
 class TabsTest : public QObject
 {
@@ -50,7 +49,28 @@ private slots:
         QTRY_COMPARE(view->objectName(),
                      viewMethod == 0 ? QString("FolderListView") : QString("FolderGridView"));
         QTRY_VERIFY(view->property("contentHeight").toReal() > view->height() + 600);
+
+        // At rest the header reads as part of the content; its backdrop appears
+        // only once content scrolls beneath it.
+        auto *backdrop = view->findChild<QQuickItem *>("headerBackdrop");
+        QVERIFY(backdrop);
+        QVERIFY(!backdrop->isVisible());
+
+        // The view runs up under the header, but a click on the header must not
+        // reach it and clear the selection.
+        auto *model = page->property("model").value<QObject *>();
+        QVERIFY(model);
+        QVERIFY(QMetaObject::invokeMethod(model, "selectAll"));
+        const int selected = model->property("selectionCount").toInt();
+        QVERIFY(selected > 0);
+        // The folder name label takes left clicks, but nothing else over the view did.
+        QTest::mouseClick(window, Qt::RightButton, {}, QPoint(window->width() / 2, 20));
+        QCOMPARE(model->property("selectionCount").toInt(), selected);
+        QVERIFY(QMetaObject::invokeMethod(model, "clearSelection"));
+
         view->setProperty("contentY", 500);
+        QTRY_VERIFY(backdrop->isVisible());
+        QCOMPARE(backdrop->opacity(), 1.0);
         QMimeData mime;
         mime.setUrls({QUrl::fromLocalFile(folders.filePath("0"))});
         const QPoint headerPoint(window->width() / 2, 20);
@@ -60,7 +80,8 @@ private slots:
         QDragMoveEvent move(headerPoint, Qt::CopyAction, &mime, Qt::LeftButton, Qt::NoModifier);
         QCoreApplication::sendEvent(window, &move);
         QTRY_VERIFY(view->property("dragScrollActive").toBool());
-        QVERIFY(view->property("dragPositionY").toReal() < 0);
+        // The view runs up under the header, so the point lands in its top inset.
+        QVERIFY(view->property("dragPositionY").toReal() < view->property("topInset").toReal());
         QTRY_VERIFY(view->property("contentY").toReal() < 480);
         QDragLeaveEvent leave;
         QCoreApplication::sendEvent(window, &leave);
