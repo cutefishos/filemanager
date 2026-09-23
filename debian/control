@@ -24,7 +24,6 @@ Depends: udisks2,
          qml6-module-qtqml,
          qml6-module-qtquick-window,
          qml6-module-qtquick-dialogs,
-         qml6-module-qt5compat-graphicaleffects,
          fishui,
          ${misc:Depends},
          ${shlibs:Depends}

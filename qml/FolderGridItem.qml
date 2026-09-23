@@ -21,7 +21,6 @@ import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Effects
-import Qt5Compat.GraphicalEffects
 
 import Cutefish.FileManager 1.0
 import FishUI 1.0 as FishUI
@@ -167,7 +166,7 @@ Item {
             antialiasing: true
 
             layer.enabled: _image.visible
-            layer.effect: OpacityMask {
+            layer.effect: FishUI.OpacityMask {
                 maskSource: Item {
                     width: _image.width
                     height: _image.height
@@ -238,7 +237,7 @@ Item {
         z: 2
         active: control.selected || control.hovered
 
-        sourceComponent: ColorOverlay {
+        sourceComponent: FishUI.ColorOverlay {
             source: _iconItem
             color: control.selected ? FishUI.Theme.highlightColor : "white"
             opacity: (control.selected ? 0.5 : 0.1) * _iconItem.opacity
@@ -381,7 +380,7 @@ Item {
         }
 
         layer.enabled: visible
-        layer.effect: FastBlur {
+        layer.effect: FishUI.FastBlur {
             radius: 6
         }
     }

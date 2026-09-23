@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
 import FishUI 1.0 as FishUI
 
 // The look of one file list row; views own the input handling.
@@ -97,7 +96,7 @@ Item {
                 smooth: true
 
                 layer.enabled: visible
-                layer.effect: OpacityMask {
+                layer.effect: FishUI.OpacityMask {
                     maskSource: Item {
                         width: _image.width
                         height: _image.height
