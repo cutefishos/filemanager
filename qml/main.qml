@@ -357,6 +357,7 @@ FishUI.Window {
                 Layout.preferredHeight: _headerRow.buttonSize
 
                 iconName: settings.viewMethod === 0 ? "list" : "grid"
+                iconSize: 16
 
                 onClicked: {
                     optionsMenu.popup()
