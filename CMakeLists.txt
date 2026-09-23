@@ -51,6 +51,7 @@ add_library(cutefish-filemanager-core STATIC
   # FolderModel opens its delete dialog through Window, so the shared code
   # cannot live in the executable alone -- the desktop plugin needs it too.
   window.cpp
+  windowmanager.cpp
 
   draganddrop/declarativedroparea.cpp
   draganddrop/declarativedragdropevent.cpp
@@ -274,6 +275,12 @@ if(FILEMANAGER_BUILD_TESTS)
     target_link_libraries(tst_tabs PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME tabs COMMAND tst_tabs)
     set_tests_properties(tabs PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    add_executable(tst_windowmanager tests/tst_windowmanager.cpp)
+    target_link_libraries(tst_windowmanager PRIVATE cutefish-filemanager-core Qt6::Test)
+    target_compile_definitions(tst_windowmanager PRIVATE
+        TEST_QML_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/windowmanager")
+    add_test(NAME windowmanager COMMAND tst_windowmanager)
+    set_tests_properties(windowmanager PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_lifecycle tests/tst_lifecycle.cpp application.cpp dbusinterface.cpp ${DBUS_SOURCES})
     target_link_libraries(tst_lifecycle PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME lifecycle COMMAND tst_lifecycle)
@@ -284,6 +291,6 @@ if(FILEMANAGER_BUILD_TESTS)
     find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
     add_test(NAME fileoperationsdaemon
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_fileoperationsdaemon>)
-    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs lifecycle
+    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs windowmanager lifecycle
                  APPEND PROPERTY ENVIRONMENT "CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
 endif()
