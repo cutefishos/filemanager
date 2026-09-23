@@ -46,7 +46,10 @@ void DeclarativeDropArea::temporaryInhibitParent(bool inhibit)
 
 void DeclarativeDropArea::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (!m_enabled || m_temporaryInhibition) {
+    // Only files are dropped here; anything else (a dock icon) is not ours to
+    // highlight, scroll for or refuse.
+    if (!m_enabled || m_temporaryInhibition || !event->mimeData()->hasUrls()) {
+        event->ignore();
         return;
     }
 
@@ -81,7 +84,7 @@ void DeclarativeDropArea::dragLeaveEvent(QDragLeaveEvent *event)
 
 void DeclarativeDropArea::dragMoveEvent(QDragMoveEvent *event)
 {
-    if (!m_enabled || m_temporaryInhibition) {
+    if (!m_enabled || m_temporaryInhibition || !event->mimeData()->hasUrls()) {
         event->ignore();
         return;
     }
@@ -106,7 +109,8 @@ void DeclarativeDropArea::dropEvent(QDropEvent *event)
 
     m_oldDragMovePos = QPoint(-1, -1);
 
-    if (!m_enabled || m_temporaryInhibition) {
+    if (!m_enabled || m_temporaryInhibition || !event->mimeData()->hasUrls()) {
+        event->ignore();
         return;
     }
 
