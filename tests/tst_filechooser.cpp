@@ -190,7 +190,7 @@ int main(int argc, char **argv)
     qputenv("XDG_CACHE_HOME", environment.filePath("cache").toUtf8());
     qputenv("XDG_DATA_HOME", environment.filePath("data").toUtf8());
     QApplication app(argc, argv);
-    QIcon::setThemeName(QStringLiteral("Cutefish-Light"));
+    QIcon::setThemeName(QStringLiteral("Cutefish"));
     CutefishFM::registerQmlTypes();
     CutefishFM::initResources();
     FileChooserTest test;
