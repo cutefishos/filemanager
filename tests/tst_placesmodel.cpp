@@ -19,8 +19,8 @@ private slots:
         QVERIFY(config.isValid());
         QVERIFY(folders.isValid());
         qputenv("XDG_CONFIG_HOME", config.path().toUtf8());
-        QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager-sidebar"));
-        settings.setValue(QStringLiteral("favorites"), QStringList());
+        QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager"));
+        settings.setValue(QStringLiteral("Sidebar/favorites"), QStringList());
         settings.sync();
 
         QDir dir(folders.path());

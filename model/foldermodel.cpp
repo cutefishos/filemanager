@@ -46,7 +46,8 @@ FolderModel::FolderModel(QObject *parent)
 {
     CutefishFM::installIoJobUi();
 
-    QSettings settings("cutefish", qApp->applicationName());
+    // Not the application name: cutefish-shell's desktop and the file chooser load this model too.
+    QSettings settings("cutefish", "filemanager");
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
 
     m_dragImageTimeout->setSingleShot(true);
@@ -714,7 +715,7 @@ void FolderModel::setShowHiddenFiles(bool showHiddenFiles)
         m_dirLister->setShowHiddenFiles(m_showHiddenFiles);
         m_dirLister->emitChanges();
 
-        QSettings settings("cutefish", qApp->applicationName());
+        QSettings settings("cutefish", "filemanager");
         settings.setValue("showHiddenFiles", m_showHiddenFiles);
 
         emit showHiddenFilesChanged();

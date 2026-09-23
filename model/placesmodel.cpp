@@ -93,7 +93,8 @@ PlacesModel::PlacesModel(QObject *parent)
         m_items.append(item);
     }
 
-    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager-sidebar"));
+    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager"));
+    settings.beginGroup(QStringLiteral("Sidebar"));
     if (settings.contains(QStringLiteral("favorites"))) {
         const auto defaults = m_items;
         m_items.clear();
@@ -276,7 +277,8 @@ void PlacesModel::saveFavorites()
     QStringList urls;
     for (int row = 0; row < favoriteCount(); ++row)
         urls.append(m_items.at(row)->url().toString());
-    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager-sidebar"));
+    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager"));
+    settings.beginGroup(QStringLiteral("Sidebar"));
     settings.setValue(QStringLiteral("favorites"), urls);
     emit favoritesChanged();
 }
