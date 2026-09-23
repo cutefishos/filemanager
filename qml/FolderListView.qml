@@ -280,11 +280,13 @@ ListView {
         control.clearDropTarget()
     }
 
+    // The row of the folder a drop at pos goes into, or -1 for the folder
+    // shown; a file's row passes the drop on to the folder around it.
     function dropItemAt(pos) {
         var item = control.itemAt(pos.x, pos.y)
 
         if (item) {
-            if (item.blank) {
+            if (item.blank || !item.isDir) {
                 return -1
             }
 

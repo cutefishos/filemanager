@@ -86,6 +86,78 @@ private slots:
         view->setProperty("rubberBand", QVariant::fromValue<QQuickItem *>(nullptr));
     }
 
+    void dropTargets()
+    {
+        QTemporaryDir folders;
+        QTemporaryDir elsewhere;
+        QVERIFY(folders.isValid());
+        QVERIFY(elsewhere.isValid());
+        for (int i = 0; i < 60; ++i)
+            QVERIFY(QDir(folders.path()).mkdir(QString("folder %1").arg(i, 2, 10, QChar('0'))));
+        QFile file(elsewhere.filePath("note.txt"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.close();
+
+        QQmlEngine engine;
+        WindowManager windows(&engine);
+        windows.installIncubationController();
+        QQuickWindow *window = windows.create(QUrl("qrc:/qml/main.qml"),
+                                              {{"startPath", folders.path()}});
+        QVERIFY(window);
+        window->resize(900, 600);
+        window->property("settings").value<QObject *>()->setProperty("viewMethod", 1);
+        auto *page = window->property("_folderPage").value<QObject *>();
+        QVERIFY(page);
+        QQuickItem *view = nullptr;
+        QTRY_VERIFY((view = page->property("currentView").value<QQuickItem *>()));
+        QTRY_COMPARE(view->objectName(), QString("FolderGridView"));
+        QQuickItem *item = nullptr;
+        QTRY_VERIFY(QMetaObject::invokeMethod(view, "itemAtIndex", Q_RETURN_ARG(QQuickItem *, item),
+                                              Q_ARG(int, 0))
+                    && item);
+        QTest::qWait(100);
+
+        auto *icon = item->property("iconArea").value<QQuickItem *>();
+        QVERIFY(icon);
+        const QPoint onIcon = icon->mapToScene(QPointF(icon->width() / 2, icon->height() / 2))
+                                      .toPoint();
+        // Inside the folder's cell, but beside its icon and above its name.
+        const QPoint besideIcon = item->mapToScene(QPointF(2, 2)).toPoint();
+        auto dropTarget = [&] { return view->property("dropTargetItem").value<QQuickItem *>(); };
+
+        // Something that is not a file (a dock icon) is ignored: no frame at all.
+        QMimeData dockIcon;
+        dockIcon.setData("application/x-cutefish-dock-app-id", "org.example.app");
+        QDragEnterEvent ignoredEnter(onIcon, Qt::MoveAction, &dockIcon, Qt::LeftButton, Qt::NoModifier);
+        QCoreApplication::sendEvent(window, &ignoredEnter);
+        QVERIFY(!ignoredEnter.isAccepted());
+        QVERIFY(!dropTarget());
+        QVERIFY(!view->property("dropTargetAllowed").toBool());
+        QDragLeaveEvent ignoredLeave;
+        QCoreApplication::sendEvent(window, &ignoredLeave);
+
+        QMimeData files;
+        files.setUrls({QUrl::fromLocalFile(file.fileName())});
+        QDragEnterEvent enter(onIcon, Qt::CopyAction, &files, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(window, &enter);
+        QVERIFY(enter.isAccepted());
+        QDragMoveEvent overIcon(onIcon, Qt::CopyAction, &files, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(window, &overIcon);
+        QCOMPARE(dropTarget(), item);
+        QVERIFY(view->property("dropTargetAllowed").toBool());
+
+        // The rest of the cell belongs to the folder shown.
+        QDragMoveEvent overCell(besideIcon, Qt::CopyAction, &files, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(window, &overCell);
+        QVERIFY(!dropTarget());
+        QVERIFY(view->property("dropTargetAllowed").toBool());
+        QDropEvent drop(besideIcon, Qt::CopyAction, &files, Qt::LeftButton, Qt::ControlModifier);
+        QCoreApplication::sendEvent(window, &drop);
+        QVERIFY(drop.isAccepted());
+        QTRY_VERIFY(QFileInfo::exists(folders.filePath("note.txt")));
+        QVERIFY(!QFileInfo::exists(folders.filePath("folder 00/note.txt")));
+    }
+
     void springLoadedNavigation()
     {
         QTemporaryDir folders;

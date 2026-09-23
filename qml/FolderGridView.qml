@@ -228,25 +228,17 @@ GridView {
         control.clearDropTarget()
     }
 
+    // The row of the folder a drop at pos (content coordinates) goes into, or
+    // -1 for the folder shown. Only a folder's icon and name take the drop, so
+    // the rest of every cell still reaches the folder shown when icons fill it.
     function dropItemAt(pos) {
         var item = control.itemAt(pos.x, pos.y)
 
-        if (item) {
-            if (item.blank) {
-                return -1
-            }
+        if (!item || item.blank || !item.isDir)
+            return -1
 
-            var hOffset = Math.abs(Math.min(control.contentX, control.originX))
-            var hPos = mapToItem(item, pos.x + hOffset, pos.y)
-
-            if ((hPos.x < 0 || hPos.y < 0 || hPos.x > item.width || hPos.y > item.height)) {
-                return -1
-            } else {
-                return positioner.map(item.index)
-            }
-        }
-
-        return -1
+        var local = control.contentItem.mapToItem(item, pos.x, pos.y)
+        return item.containsDropPoint(local.x, local.y) ? positioner.map(item.index) : -1
     }
 
     function updateDropTarget(event, pos) {

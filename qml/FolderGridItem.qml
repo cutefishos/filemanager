@@ -67,6 +67,20 @@ Item {
     onHeightChanged: updateDragImage()
     Component.onCompleted: updateDragImage()
 
+    // True when a drop at (x, y) lands on this item's icon or name rather than
+    // on the empty rest of its cell.
+    function containsDropPoint(x, y) {
+        var icon = control.mapToItem(control.iconArea, x, y)
+        if (icon.x >= 0 && icon.y >= 0
+                && icon.x <= control.iconArea.width && icon.y <= control.iconArea.height)
+            return true
+
+        var text = control.mapToItem(_label, x, y)
+        var left = (_label.width - _label.paintedWidth) / 2
+        return text.x >= left && text.x <= left + _label.paintedWidth
+                && text.y >= 0 && text.y <= _label.paintedHeight
+    }
+
     function updateDragImage() {
         if (!GridView.view || !selected || blank || control.width <= 0 || control.height <= 0)
             return
