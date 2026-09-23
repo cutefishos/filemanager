@@ -176,24 +176,28 @@ Item {
             visible: model.isLink
             sourceSize: Qt.size(width, height)
         }
+    }
 
-        ColorOverlay {
-            id: _selectedColorOverlay
-            anchors.fill: _iconItem
-            source: _iconItem
-            color: FishUI.Theme.highlightColor
-            opacity: 0.5
-            visible: control.selected
-        }
+    // Keep these outside _iconItem: an effect nested in its own source holds a
+    // window ref that is never dropped, which crashes once the window is gone.
+    ColorOverlay {
+        id: _selectedColorOverlay
+        anchors.fill: _iconItem
+        z: 2
+        source: _iconItem
+        color: FishUI.Theme.highlightColor
+        opacity: 0.5 * _iconItem.opacity
+        visible: control.selected
+    }
 
-        ColorOverlay {
-            id: _hoveredColorOverlay
-            anchors.fill: _iconItem
-            source: _iconItem
-            color: "white"
-            opacity: 0.1
-            visible: control.hovered && !control.selected
-        }
+    ColorOverlay {
+        id: _hoveredColorOverlay
+        anchors.fill: _iconItem
+        z: 2
+        source: _iconItem
+        color: "white"
+        opacity: 0.1 * _iconItem.opacity
+        visible: control.hovered && !control.selected
     }
 
     FishUI.Label {
