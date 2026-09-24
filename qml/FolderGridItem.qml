@@ -67,9 +67,9 @@ Item {
     onHeightChanged: updateDragImage()
     Component.onCompleted: updateDragImage()
 
-    // True when a drop at (x, y) lands on this item's icon or name rather than
-    // on the empty rest of its cell.
-    function containsDropPoint(x, y) {
+    // True when (x, y) lands on this item's icon or name rather than on the
+    // empty rest of its cell; hover, presses and drops all hit test this way.
+    function containsPoint(x, y) {
         var icon = iconRect()
         if (x >= icon.x && y >= icon.y
                 && x <= icon.x + icon.width && y <= icon.y + icon.height)

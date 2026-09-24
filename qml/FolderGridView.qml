@@ -250,7 +250,7 @@ GridView {
             return -1
 
         var local = control.contentItem.mapToItem(item, pos.x, pos.y)
-        return item.containsDropPoint(local.x, local.y) ? positioner.map(item.index) : -1
+        return item.containsPoint(local.x, local.y) ? positioner.map(item.index) : -1
     }
 
     function updateDropTarget(event, pos) {
@@ -828,14 +828,12 @@ GridView {
 
             // Set hoveredItem.
             if (indexItem) {
-                var fPos = control.mapToItem(indexItem.background, pos.x, pos.y)
+                var fPos = control.mapToItem(indexItem, pos.x, pos.y)
 
-                if (fPos.x < 0 || fPos.y < 0
-                        || fPos.x > indexItem.background.width
-                        || fPos.y > indexItem.background.height) {
-                    control.hoveredItem = null
-                } else {
+                if (indexItem.containsPoint(fPos.x, fPos.y)) {
                     control.hoveredItem = indexItem
+                } else {
+                    control.hoveredItem = null
                 }
             } else {
                 control.hoveredItem = null
