@@ -195,19 +195,15 @@ Rectangle {
                     Accessible.name: qsTr("Close Tab")
                     onClicked: control.closeRequested(index)
                     contentItem: Item {
-                        Rectangle {
+                        // The window buttons' artwork, at its own 24px grid.
+                        Image {
                             anchors.centerIn: parent
-                            width: 10
-                            height: 1.2
-                            rotation: 45
-                            color: FishUI.Theme.textColor
-                        }
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 10
-                            height: 1.2
-                            rotation: -45
-                            color: FishUI.Theme.textColor
+                            width: 24
+                            height: 24
+                            sourceSize: Qt.size(24, 24)
+                            source: "qrc:/fishui/kit/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + "close.svg"
+                            smooth: false
+                            antialiasing: true
                         }
                     }
                     background: Rectangle {
@@ -262,10 +258,19 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 28
         height: 28
-        text: "+"
-        font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 20 })
         Accessible.name: qsTr("New Tab")
         onClicked: control.newRequested()
+        contentItem: Item {
+            Image {
+                anchors.centerIn: parent
+                width: 24
+                height: 24
+                sourceSize: Qt.size(24, 24)
+                source: "qrc:/fishui/kit/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + "add.svg"
+                smooth: false
+                antialiasing: true
+            }
+        }
         background: Rectangle {
             radius: height / 2
             color: addButton.hovered ? control.hoverColor : "transparent"
