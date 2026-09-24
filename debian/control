@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Reion Wong <reionwong@gmail.com>
 Build-Depends: cmake,
                debhelper (>= 9),
-               libcutefish,
                libzip-dev,
                qt6-base-dev,
                qt6-declarative-dev,
