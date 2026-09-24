@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.15
+import QtQuick
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import FishUI 1.0 as FishUI
@@ -46,10 +46,9 @@ ListView {
     readonly property real rubberBandScrollEdge: 24
     readonly property int dragScrollRamp: 180
     readonly property real dragScrollMaxSpeed: 560
-    readonly property int dragScrollInterval: 16
 
-    property int pressX: -1
-    property int pressY: -1
+    property real pressX: -1
+    property real pressY: -1
 
     property int dragX: -1
     property int dragY: -1
@@ -78,6 +77,7 @@ ListView {
     property real lastMouseY: -1
 
     property variant cachedRectangleSelection: null
+    property string cachedRectangleSelectionMode: ""
 
     signal keyPress(var event)
     signal contextMenuRequested()
@@ -137,11 +137,13 @@ ListView {
         dragScrollActive = false
     }
 
-    function autoScrollDuringDrag() {
+    // frameTime is in seconds; a stalled frame must not jump the view.
+    function autoScrollDuringDrag(frameTime) {
         if (!dragScrollActive || dragScrollDirection === 0)
             return
 
-        dragScrollElapsed += dragScrollInterval
+        var interval = Math.min(50, frameTime * 1000)
+        dragScrollElapsed += interval
         var minimum = control.originY - control.topMargin
         var maximum = Math.max(minimum, control.contentHeight + control.bottomMargin - control.height + control.originY)
         var edge = control.rubberBand ? rubberBandScrollEdge : dragScrollEdge
@@ -154,13 +156,11 @@ ListView {
         var ramp = 1 - Math.pow(1 - rampProgress, 3)
         var targetVelocity = dragScrollMaxSpeed * Math.pow(edgeProgress, 1.5) * ramp
 
-        dragScrollVelocity += (targetVelocity - dragScrollVelocity) * 0.25
-        var next = control.contentY + dragScrollDirection * dragScrollVelocity * dragScrollInterval / 1000
+        // Eases a quarter of the way per 16 ms frame at any refresh rate.
+        dragScrollVelocity += (targetVelocity - dragScrollVelocity) * (1 - Math.pow(0.75, interval / 16))
+        var next = control.contentY + dragScrollDirection * dragScrollVelocity * interval / 1000
 
         control.contentY = Math.max(minimum, Math.min(maximum, next))
-
-        if (control.rubberBand)
-            control.updateRubberBand(control.lastMouseX, control.lastMouseY)
     }
 
     function ensureIndexVisible(index) {
@@ -209,7 +209,7 @@ ListView {
 
         var bottom = Math.max(control.count * control.rowHeight, control.contentY + control.height)
         if (cPos.y < cPress.y) {
-            rB.y = Math.max(control.originY - control.topMargin, cPos.y)
+            rB.y = Math.max(control.originY, cPos.y)
             rB.height = Math.abs(rB.y - cPress.y)
         } else {
             rB.y = cPress.y
@@ -393,22 +393,38 @@ ListView {
         moveCurrentIndex(currentIndex + 1, event.modifiers)
     }
 
-    onCachedRectangleSelectionChanged: {
-        if (cachedRectangleSelection === null)
+    // Ctrl toggles what the band covers against the selection it started
+    // from, Shift adds to it.
+    function applyRectangleSelection(indices) {
+        var mode = control.ctrlPressed ? "toggle" : control.shiftPressed ? "extend" : "replace"
+        var previous = control.cachedRectangleSelection
+
+        // Pointer moves far outnumber changes to what the band covers.
+        if (previous && mode === control.cachedRectangleSelectionMode
+                && previous.length === indices.length
+                && previous.every(function(index, i) { return index === indices[i] }))
             return
 
-        if (cachedRectangleSelection.length)
-            control.currentIndex[0]
+        control.cachedRectangleSelection = indices
+        control.cachedRectangleSelectionMode = mode
 
-        dirModel.updateSelection(cachedRectangleSelection, control.ctrlPressed)
+        dirModel.updateSelection(indices, mode === "toggle", mode === "extend")
     }
 
+    // The band's far corner stays under the pointer while the view scrolls
+    // beneath it, whether by autoscroll or the wheel.
     onContentXChanged: {
         cancelRename()
+
+        if (rubberBand)
+            updateRubberBand(lastMouseX, lastMouseY)
     }
 
     onContentYChanged: {
         cancelRename()
+
+        if (rubberBand)
+            updateRubberBand(lastMouseX, lastMouseY)
 
         if (_mouseArea.containsMouse && !rubberBand && lastMouseY >= control.headerHeight) {
             var item = control.itemAt(lastMouseX - control.leftMargin, lastMouseY + control.contentY)
@@ -476,12 +492,11 @@ ListView {
     }
 
     // Drag move events stop when the pointer stays at an edge, so keep scrolling
-    // from the last position until the drag leaves the view.
-    Timer {
-        interval: control.dragScrollInterval
-        repeat: true
-        running: control.dragScrollActive
-        onTriggered: control.autoScrollDuringDrag()
+    // from the last position until the drag leaves the view. Stepping once per
+    // frame keeps the scroll from juddering against the display.
+    FrameAnimation {
+        running: control.dragScrollActive && control.dragScrollDirection !== 0
+        onTriggered: control.autoScrollDuringDrag(frameTime)
     }
 
     MouseArea {
@@ -511,11 +526,16 @@ ListView {
             var pressed = control.itemAt(mouse.x - control.leftMargin, mouse.y + control.contentY)
             hoveredItem = pressed && !pressed.blank ? pressed : null
 
+            // Modifiers pressed while another window had focus never reach Keys.
+            control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
+            control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
+
             pressX = mouse.x
             pressY = mouse.y
 
             if (!hoveredItem || hoveredItem.blank) {
-                if (!control.ctrlPressed) {
+                // A band started with a modifier builds on the selection.
+                if (!control.ctrlPressed && !control.shiftPressed) {
                     control.currentIndex = -1
                     dirModel.clearSelection()
                 }
@@ -570,6 +590,13 @@ ListView {
             control.lastMouseX = mouse.x
             control.lastMouseY = mouse.y
 
+            // No hover highlight follows the pointer while the band is out.
+            if (control.rubberBand) {
+                control.updateRubberBand(mouse.x, mouse.y)
+                control.updateDragScrollPosition(mouse.y)
+                return
+            }
+
             var item = mouse.y < control.headerHeight
                     ? null : control.itemAt(mouse.x - control.leftMargin, mouse.y + control.contentY)
 
@@ -579,12 +606,6 @@ ListView {
                 }
             } else {
                 control.hoveredItem = item
-            }
-
-            if (control.rubberBand) {
-                control.updateRubberBand(mouse.x, mouse.y)
-                control.updateDragScrollPosition(mouse.y)
-                return
             }
 
             if (pressX != -1 && Math.abs(mouse.x - pressX) < Qt.styleHints.startDragDistance
@@ -607,7 +628,11 @@ ListView {
                         return;
 
                     dirModel.pinSelection()
+                    control.hoveredItem = null
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
+                    // Otherwise the band first shows on the next move, a step behind.
+                    control.updateRubberBand(mouse.x, mouse.y)
+                    control.updateDragScrollPosition(mouse.y)
                 }
             }
         }
@@ -646,6 +671,7 @@ ListView {
             control.rubberBand = null
 
             control.cachedRectangleSelection = null
+            control.cachedRectangleSelectionMode = ""
             dirModel.unpinSelection()
 
             var delegates = control.contentItem.children
@@ -674,7 +700,7 @@ ListView {
         var last = Math.min(control.count - 1, Math.floor((y + height) / control.rowHeight))
         for (var i = first; i <= last; ++i)
             indexes.push(i)
-        cachedRectangleSelection = indexes
+        applyRectangleSelection(indexes)
     }
 
     function updateSelection(modifier) {

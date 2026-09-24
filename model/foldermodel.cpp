@@ -656,10 +656,6 @@ int FolderModel::fileExtensionBoundary(int row)
     return boundary;
 }
 
-void FolderModel::updateSelectedItemsSize()
-{
-}
-
 void FolderModel::keyboardSearch(const QString &text)
 {
     if (rowCount() == 0)

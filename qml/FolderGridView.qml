@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.15
+import QtQuick
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
@@ -67,10 +67,9 @@ GridView {
     readonly property real rubberBandScrollEdge: 24
     readonly property int dragScrollRamp: 180
     readonly property real dragScrollMaxSpeed: 560
-    readonly property int dragScrollInterval: 16
 
-    property int pressX: -1
-    property int pressY: -1
+    property real pressX: -1
+    property real pressY: -1
 
     property int dragX: -1
     property int dragY: -1
@@ -89,6 +88,7 @@ GridView {
     property var minimumIconSize: 22 //settings.minimumIconSize
 
     property variant cachedRectangleSelection: null
+    property string cachedRectangleSelectionMode: ""
 
     property bool scrollLeft: false
     property bool scrollRight: false
@@ -102,8 +102,8 @@ GridView {
     reuseItems: true
 
     onIconSizeChanged: {
-        // 图标大小改变时需要重置状态，否则选中定位不准确
-        // 桌面有自己的位置记忆，重置会丢弃用户摆放的位置
+        // Stale positions misplace the selection after a resize; the desktop keeps
+        // its own positions, which a reset would throw away.
         if (!positioner.enabled)
             positioner.reset()
     }
@@ -310,11 +310,13 @@ GridView {
         dragScrollActive = false
     }
 
-    function autoScrollDuringDrag() {
+    // frameTime is in seconds; a stalled frame must not jump the view.
+    function autoScrollDuringDrag(frameTime) {
         if (!dragScrollActive || dragScrollDirection === 0 || control.isDesktopView)
             return
 
-        dragScrollElapsed += dragScrollInterval
+        var interval = Math.min(50, frameTime * 1000)
+        dragScrollElapsed += interval
         var minimum = control.originY - control.topMargin
         var maximum = Math.max(minimum, control.contentHeight - control.height + control.originY)
         var edge = control.rubberBand ? rubberBandScrollEdge : dragScrollEdge
@@ -327,13 +329,11 @@ GridView {
         var ramp = 1 - Math.pow(1 - rampProgress, 3)
         var targetVelocity = dragScrollMaxSpeed * Math.pow(edgeProgress, 1.5) * ramp
 
-        dragScrollVelocity += (targetVelocity - dragScrollVelocity) * 0.25
-        var next = control.contentY + dragScrollDirection * dragScrollVelocity * dragScrollInterval / 1000
+        // Eases a quarter of the way per 16 ms frame at any refresh rate.
+        dragScrollVelocity += (targetVelocity - dragScrollVelocity) * (1 - Math.pow(0.75, interval / 16))
+        var next = control.contentY + dragScrollDirection * dragScrollVelocity * interval / 1000
 
         control.contentY = Math.max(minimum, Math.min(maximum, next))
-
-        if (control.rubberBand)
-            control.updateRubberBand(control.lastMouseX, control.lastMouseY)
     }
 
     function updateRubberBand(mouseX, mouseY) {
@@ -357,12 +357,13 @@ GridView {
         }
 
         if (cPos.y < cPress.y) {
-            rB.y = Math.max(control.isDesktopView ? bounds.y : 0, cPos.y)
+            rB.y = Math.max(control.isDesktopView ? bounds.y : control.originY, cPos.y)
             rB.height = Math.abs(rB.y - cPress.y)
         } else {
             rB.y = cPress.y
             const ceil = control.isDesktopView ? bounds.y + bounds.height
-                                              : Math.max(control.height, control.contentItem.height)
+                                              : Math.max(control.originY + control.contentHeight,
+                                                         control.contentY + control.height)
             rB.height = Math.min(ceil - rB.y, Math.abs(rB.y - cPos.y))
         }
 
@@ -555,24 +556,40 @@ GridView {
         cPress = mapToItem(control.contentItem, pressX, pressY)
     }
 
+    // The band's far corner stays under the pointer while the view scrolls
+    // beneath it, whether by autoscroll or the wheel.
     onContentXChanged: {
         cancelRename()
+
+        if (rubberBand)
+            updateRubberBand(lastMouseX, lastMouseY)
     }
 
     onContentYChanged: {
         cancelRename()
+
+        if (rubberBand)
+            updateRubberBand(lastMouseX, lastMouseY)
     }
 
-    onCachedRectangleSelectionChanged: {
-        if (cachedRectangleSelection === null)
+    // Ctrl toggles what the band covers against the selection it started
+    // from, Shift adds to it.
+    function applyRectangleSelection(indices) {
+        var mode = control.ctrlPressed ? "toggle" : control.shiftPressed ? "extend" : "replace"
+        var previous = control.cachedRectangleSelection
+
+        // Pointer moves far outnumber changes to what the band covers.
+        if (previous && mode === control.cachedRectangleSelectionMode
+                && previous.length === indices.length
+                && previous.every(function(index, i) { return index === indices[i] }))
             return
 
-        if (cachedRectangleSelection.length)
-            control.currentIndex[0]
+        control.cachedRectangleSelection = indices
+        control.cachedRectangleSelectionMode = mode
 
-        dirModel.updateSelection(cachedRectangleSelection.map(function(index) {
+        dirModel.updateSelection(indices.map(function(index) {
             return positioner.map(index)
-        }), control.ctrlPressed)
+        }), mode === "toggle", mode === "extend")
     }
 
     Positioner {
@@ -708,12 +725,12 @@ GridView {
     }
 
     // Drag move events stop when the pointer stays at an edge, so keep scrolling
-    // from the last position until the drag leaves the view.
-    Timer {
-        interval: control.dragScrollInterval
-        repeat: true
-        running: control.dragScrollActive && !control.isDesktopView
-        onTriggered: control.autoScrollDuringDrag()
+    // from the last position until the drag leaves the view. Stepping once per
+    // frame keeps the scroll from juddering against the display.
+    FrameAnimation {
+        running: control.dragScrollActive && control.dragScrollDirection !== 0
+                 && !control.isDesktopView
+        onTriggered: control.autoScrollDuringDrag(frameTime)
     }
 
     MouseArea {
@@ -736,28 +753,31 @@ GridView {
                 return
             }
 
+            // Modifiers pressed while another window had focus never reach Keys.
+            control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
+            control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
+
             control.pressActive = true
             pressX = pos.x
             pressY = pos.y
 
-            // 如果找到 hoveredItem 则点击后设置成为 pressedItem
+            // A press on a hovered item makes it the pressed item.
             if (hoveredItem) {
                 pressedItem = hoveredItem
 
-                // 这里更改 currentIndex 会影响到范围选择
+                // Moving currentIndex here would move the anchor of a Shift range.
                 if (!control.shiftPressed)
                     currentIndex = pressedItem.index
 
-                // Shift 处理, 选择区域
+                // Shift selects a range.
                 if (control.shiftPressed && control.currentIndex !== -1) {
                     positioner.setRangeSelected(control.anchorIndex, hoveredItem.index)
                 } else {
-                    // Ctrl 处理
+                    // Ctrl keeps the rest of the selection.
                     if (!control.ctrlPressed && !dirModel.isSelected(positioner.map(hoveredItem.index))) {
                         dirModel.clearSelection()
                     }
 
-                    // Item 选择
                     if (control.ctrlPressed) {
                         dirModel.toggleSelected(positioner.map(hoveredItem.index))
                     } else {
@@ -765,20 +785,21 @@ GridView {
                     }
                 }
 
-                // 弹出 Item 菜单
+                // Item context menu.
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
                     control.openContextMenu(mouse.modifiers, pos.x, pos.y)
                     mouse.accepted = true
                 }
             } else {
-                // 处理空白区域点击
-                if (!control.ctrlPressed) {
+                // A press on empty space clears the selection, unless a band
+                // started with a modifier is to build on it.
+                if (!control.ctrlPressed && !control.shiftPressed) {
                     control.currentIndex = -1
                     dirModel.clearSelection()
                 }
 
-                // 弹出文件夹菜单
+                // Folder context menu.
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
                     control.openContextMenu(mouse.modifiers, pos.x, pos.y)
@@ -793,6 +814,13 @@ GridView {
             control.lastMouseY = pos.y
             control.ctrlPressed = (mouse.modifiers & Qt.ControlModifier)
             control.shiftPressed = (mouse.modifiers & Qt.ShiftModifier)
+
+            // No hover highlight follows the pointer while the band is out.
+            if (control.rubberBand) {
+                control.updateRubberBand(pos.x, pos.y)
+                control.updateDragScrollPosition(pos.y)
+                return
+            }
 
             var index = control.indexAt(pos.x + control.contentX,
                                         pos.y + control.contentY)
@@ -811,13 +839,6 @@ GridView {
                 }
             } else {
                 control.hoveredItem = null
-            }
-
-            // Update rubberband geometry.
-            if (control.rubberBand) {
-                control.updateRubberBand(pos.x, pos.y)
-                control.updateDragScrollPosition(pos.y)
-                return
             }
 
             if (control.pressActive
@@ -845,7 +866,11 @@ GridView {
                         return
 
                     dirModel.pinSelection()
+                    control.hoveredItem = null
                     control.rubberBand = rubberBandObject.createObject(control.contentItem, {x: cPress.x, y: cPress.y})
+                    // Otherwise the band first shows on the next move, a step behind.
+                    control.updateRubberBand(pos.x, pos.y)
+                    control.updateDragScrollPosition(pos.y)
                 }
             }
         }
@@ -860,7 +885,7 @@ GridView {
         }
 
         onReleased: {
-            // 当选择多个文件的时候，在这选择里的文件中点击
+            // A plain click inside a multiple selection narrows it to that item.
             if (pressedItem != null &&
                     !control.rubberBand &&
                     !control.shiftPressed &&
@@ -869,8 +894,6 @@ GridView {
                 dirModel.clearSelection()
                 dirModel.setSelected(positioner.map(pressedItem.index))
             }
-
-            dirModel.updateSelectedItemsSize()
 
             pressCanceled()
         }
@@ -925,6 +948,7 @@ GridView {
             control.rubberBand = null
 
             control.cachedRectangleSelection = null
+            control.cachedRectangleSelectionMode = ""
             dirModel.unpinSelection()
 
             var delegates = control.contentItem.children
@@ -948,8 +972,6 @@ GridView {
         var stripes = Math.ceil(control.count / perStripe)
         var cWidth = control.cellWidth - (2 * FishUI.Units.smallSpacing)
         var cHeight = control.cellHeight - (2 * FishUI.Units.smallSpacing)
-        var midWidth = control.cellWidth / 2
-        var midHeight = control.cellHeight / 2
         var indices = []
 
         var logicalX = x
@@ -989,39 +1011,26 @@ GridView {
                     itemX = (rows ? control.width : control.contentItem.width) - itemX
                 }
 
-                // Check if the rubberband intersects this cell first to avoid doing more
-                // expensive work.
-                if (control.rubberBand.intersects(Qt.rect(itemX + FishUI.Units.smallSpacing, itemY + FishUI.Units.smallSpacing,
-                    cWidth, cHeight))) {
-                    var item = control.contentItem.childAt(itemX + midWidth, itemY + midHeight)
+                // Check the cell first to avoid doing more expensive work.
+                var cellX = itemX + FishUI.Units.smallSpacing
+                var cellY = itemY + FishUI.Units.smallSpacing
 
-                    // If this is a visible item, check for intersection with the actual
-                    // icon or label rects for better feel.
-                    if (item && item.iconArea) {
-                        var iconRect = Qt.rect(itemX + item.iconArea.x, itemY + item.iconArea.y,
-                            item.iconArea.width, item.iconArea.height)
+                if (cellX >= x + width || x >= cellX + cWidth
+                        || cellY >= y + height || y >= cellY + cHeight) {
+                    continue
+                }
 
-                        if (control.rubberBand.intersects(iconRect)) {
-                            indices.push(index)
-                            continue
-                        }
+                // A delegate answers for its icon and name, which feels better
+                // than the whole cell; one outside the cache only has its cell.
+                var item = control.itemAtIndex(index)
 
-                        var labelRect = Qt.rect(itemX + item.labelArea.x, itemY + item.labelArea.y,
-                            item.labelArea.width, item.labelArea.height)
-
-                        if (control.rubberBand.intersects(labelRect)) {
-                            indices.push(index)
-                            continue
-                        }
-                    } else {
-                        // Otherwise be content with the cell intersection.
-                        indices.push(index)
-                    }
+                if (!item || item.intersectsRect(x - item.x, y - item.y, width, height)) {
+                    indices.push(index)
                 }
             }
         }
 
-        control.cachedRectangleSelection = indices
+        control.applyRectangleSelection(indices)
     }
 
     function calcExtraSpacing(cellSize, containerSize) {

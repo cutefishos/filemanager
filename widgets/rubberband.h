@@ -13,8 +13,6 @@ public:
     explicit RubberBand(QQuickItem *parent = nullptr);
     ~RubberBand() override;
 
-    Q_INVOKABLE bool intersects(const QRectF &rect) const;
-
     QColor color() const;
     void setColor(QColor color);
 
@@ -26,7 +24,6 @@ protected:
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
 private:
-    QRectF m_geometry;
     QColor m_color;
 };
 

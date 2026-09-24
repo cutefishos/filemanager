@@ -179,6 +179,49 @@ private slots:
         QCOMPARE(folder.fileItem(2047).name(), QStringLiteral("02047.txt"));
     }
 
+    void rubberBandSelectionModes()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+
+        for (const QString &name : {"a.txt", "b.txt", "c.txt", "d.txt", "e.txt"})
+            QVERIFY(writeFile(directory.filePath(name), "x"));
+
+        FolderModel folder;
+        folder.setIsDesktop(true);
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QCOMPARE(folder.rowCount(), 5);
+
+        const auto selectedRows = [&folder] {
+            QList<int> rows;
+            for (int row = 0; row < folder.rowCount(); ++row) {
+                if (folder.isSelected(row))
+                    rows.append(row);
+            }
+            return rows;
+        };
+
+        folder.setSelected(0);
+        folder.pinSelection();
+
+        folder.updateSelection({3, 2, 4, 99}, false);
+        QCOMPARE(selectedRows(), QList<int>({2, 3, 4}));
+
+        folder.updateSelection({2, 3}, false, true);
+        QCOMPARE(selectedRows(), QList<int>({0, 2, 3}));
+
+        folder.updateSelection({0, 1}, true);
+        QCOMPARE(selectedRows(), QList<int>({1}));
+
+        folder.updateSelection({}, false, true);
+        QCOMPARE(selectedRows(), QList<int>({0}));
+
+        folder.unpinSelection();
+        folder.updateSelection({1}, true);
+        QCOMPARE(selectedRows(), QList<int>({1}));
+    }
+
     void sortingIsDeferredAndPreservesSelection()
     {
         QTemporaryDir directory;

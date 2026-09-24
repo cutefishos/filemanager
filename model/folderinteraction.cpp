@@ -78,26 +78,45 @@ void FolderModel::setRangeSelected(int anchor, int to)
     m_selectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
 }
 
-void FolderModel::updateSelection(const QVariantList &rows, bool toggle)
+void FolderModel::updateSelection(const QVariantList &rows, bool toggle, bool extend)
 {
-    QItemSelection newSelection;
+    QList<int> sortedRows;
+    sortedRows.reserve(rows.size());
 
-    int iRow = -1;
-
-    foreach (const QVariant &row, rows) {
-        iRow = row.toInt();
+    for (const QVariant &row : rows) {
+        const int iRow = row.toInt();
 
         if (iRow < 0) {
             return;
         }
 
-        const QModelIndex &idx = index(iRow, 0);
-        newSelection.select(idx, idx);
+        if (iRow < rowCount()) {
+            sortedRows.append(iRow);
+        }
     }
 
-    if (toggle) {
+    std::sort(sortedRows.begin(), sortedRows.end());
+
+    // One range per run of rows: the selection model diffs range by range, and
+    // a rubber band over a large folder sends hundreds of rows per move.
+    QItemSelection newSelection;
+
+    for (int first = 0; first < sortedRows.size();) {
+        int last = first;
+
+        while (last + 1 < sortedRows.size() && sortedRows.at(last + 1) <= sortedRows.at(last) + 1) {
+            ++last;
+        }
+
+        newSelection.append(QItemSelectionRange(index(sortedRows.at(first), 0),
+                                                index(sortedRows.at(last), 0)));
+        first = last + 1;
+    }
+
+    if (toggle || extend) {
         QItemSelection pinnedSelection = m_pinnedSelection;
-        pinnedSelection.merge(newSelection, QItemSelectionModel::Toggle);
+        pinnedSelection.merge(newSelection, toggle ? QItemSelectionModel::Toggle
+                                                   : QItemSelectionModel::Select);
         m_selectionModel->select(pinnedSelection, QItemSelectionModel::ClearAndSelect);
     } else {
         m_selectionModel->select(newSelection, QItemSelectionModel::ClearAndSelect);
@@ -120,11 +139,19 @@ void FolderModel::clearSelection()
 void FolderModel::pinSelection()
 {
     m_pinnedSelection = m_selectionModel->selection();
+    m_selectionPinned = true;
+    m_pinnedSelectionChanged = false;
 }
 
 void FolderModel::unpinSelection()
 {
     m_pinnedSelection = QItemSelection();
+    m_selectionPinned = false;
+
+    if (m_pinnedSelectionChanged) {
+        m_pinnedSelectionChanged = false;
+        updateSelectedItemsSize();
+    }
 }
 
 // The cell a new folder or file should land on, in view coordinates plus the
@@ -426,6 +453,18 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
 
     emit selectionCountChanged();
 
+    // A rubber band changes the selection on every pointer move; sizing it
+    // waits until the band closes.
+    if (m_selectionPinned) {
+        m_pinnedSelectionChanged = true;
+        return;
+    }
+
+    updateSelectedItemsSize();
+}
+
+void FolderModel::updateSelectedItemsSize()
+{
     // The desktop does not need to calculate the selected file size.
     if (m_isDesktop)
         return;
@@ -567,7 +606,7 @@ void FolderModel::onRowsInserted(const QModelIndex &parent, int first, int last)
         }
     }
 
-    // 新建文件夹需要先选择后再发送请求
+    // A new folder is selected before the rename is requested.
     QTimer::singleShot(m_updateNeedSelectTimer->interval() + 10, this, [this, changeIdx] {
         if (changeIdx.isValid()) {
             setSelected(changeIdx.row());

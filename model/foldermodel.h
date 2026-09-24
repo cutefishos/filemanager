@@ -187,7 +187,7 @@ public:
     Q_INVOKABLE void selectAll();
     Q_INVOKABLE void toggleSelected(int row);
     Q_INVOKABLE void setRangeSelected(int anchor, int to);
-    Q_INVOKABLE void updateSelection(const QVariantList &rows, bool toggle);
+    Q_INVOKABLE void updateSelection(const QVariantList &rows, bool toggle, bool extend = false);
     Q_INVOKABLE void clearSelection();
     Q_INVOKABLE void pinSelection();
     Q_INVOKABLE void unpinSelection();
@@ -234,7 +234,6 @@ public:
     Q_INVOKABLE void extractSelectedArchive();
     Q_INVOKABLE void cancelArchive();
 
-    Q_INVOKABLE void updateSelectedItemsSize();
     Q_INVOKABLE void keyboardSearch(const QString &text);
 
     /** Selects @p urls once the current folder has been listed completely. */
@@ -312,6 +311,7 @@ private:
     void rebuildContents();
     void createActions();
     void updateActions();
+    void updateSelectedItemsSize();
     void addDragImage(QDrag *drag, int x, int y);
     void startPendingDrag();
     bool canDropUrls(const QList<QUrl> &urls, int row, Qt::DropAction action) const;
@@ -326,6 +326,8 @@ private:
 
     QItemSelectionModel *m_selectionModel;
     QItemSelection m_pinnedSelection;
+    bool m_selectionPinned = false;
+    bool m_pinnedSelectionChanged = false;
     QString m_url;
     QUrl m_newDocumentUrl;
     QPoint m_newDocumentPos {-1, -1};

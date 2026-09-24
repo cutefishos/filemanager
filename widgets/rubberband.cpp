@@ -42,7 +42,11 @@ QSGNode *RubberBand::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     QColor borderColor = m_color;
     borderColor.setAlphaF(0.7);
 
-    const qreal border = qMin<qreal>(1.0, qMin(rect.width(), rect.height()) / 2);
+    // A whole number of device pixels, or the edge alternates between one and
+    // two pixels as the band moves at a fractional scale.
+    const qreal dpr = window()->effectiveDevicePixelRatio();
+    const qreal hairline = qMax<qreal>(1.0, qRound(dpr)) / dpr;
+    const qreal border = qMin(hairline, qMin(rect.width(), rect.height()) / 2);
     const QRectF rects[5] = {
             rect.adjusted(border, border, -border, -border),
             QRectF(rect.left(), rect.top(), rect.width(), border),
@@ -61,11 +65,6 @@ QSGNode *RubberBand::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data
     return root;
 }
 
-bool RubberBand::intersects(const QRectF &rect) const
-{
-    return m_geometry.intersects(rect);
-}
-
 QColor RubberBand::color() const
 {
     return m_color;
@@ -82,10 +81,6 @@ void RubberBand::setColor(QColor color)
 
 void RubberBand::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
-    Q_UNUSED(oldGeometry);
-
-    m_geometry = newGeometry;
-
     update();
 
     QQuickItem::geometryChange(newGeometry, oldGeometry);

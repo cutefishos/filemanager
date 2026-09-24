@@ -70,15 +70,44 @@ Item {
     // True when a drop at (x, y) lands on this item's icon or name rather than
     // on the empty rest of its cell.
     function containsDropPoint(x, y) {
-        var icon = control.mapToItem(control.iconArea, x, y)
-        if (icon.x >= 0 && icon.y >= 0
-                && icon.x <= control.iconArea.width && icon.y <= control.iconArea.height)
+        var icon = iconRect()
+        if (x >= icon.x && y >= icon.y
+                && x <= icon.x + icon.width && y <= icon.y + icon.height)
             return true
 
-        var text = control.mapToItem(_label, x, y)
-        var left = (_label.width - _label.paintedWidth) / 2
-        return text.x >= left && text.x <= left + _label.paintedWidth
-                && text.y >= 0 && text.y <= _label.paintedHeight
+        var text = labelRect()
+        return x >= text.x && x <= text.x + text.width
+                && y >= text.y && y <= text.y + text.height
+    }
+
+    // True when a rubber band over x, y, width, height (item coordinates)
+    // touches the icon or name rather than only the empty rest of the cell.
+    function intersectsRect(x, y, width, height) {
+        var icon = iconRect()
+        if (icon.x < x + width && x < icon.x + icon.width
+                && icon.y < y + height && y < icon.y + icon.height)
+            return true
+
+        var text = labelRect()
+        return text.x < x + width && x < text.x + text.width
+                && text.y < y + height && y < text.y + text.height
+    }
+
+    // The icon as drawn, in item coordinates; a thumbnail keeps its aspect
+    // ratio inside the icon box.
+    function iconRect() {
+        var area = control.iconArea
+        var width = area === _image ? Math.min(_image.width, _image.paintedWidth) : area.width
+        var height = area === _image ? Math.min(_image.height, _image.paintedHeight) : area.height
+
+        return area.mapToItem(control, (area.width - width) / 2, (area.height - height) / 2,
+                              width, height)
+    }
+
+    // The name as drawn, narrower than its box when it is short.
+    function labelRect() {
+        return Qt.rect(_label.x + (_label.width - _label.paintedWidth) / 2, _label.y,
+                       _label.paintedWidth, _label.paintedHeight)
     }
 
     function updateDragImage() {
