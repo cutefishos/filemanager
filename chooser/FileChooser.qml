@@ -67,20 +67,20 @@ FishUI.Window {
         }
     }
 
-    // The editor keeps focus until something takes it away, so a click outside
-    // has to close it explicitly; the press that does so is consumed.
-    MouseArea {
-        id: editorDismissArea
+    // The editor keeps focus until something takes it away, so a press outside
+    // has to close it explicitly. A PointHandler only watches: the press still
+    // reaches its target, and without a cursorShape it leaves the cursor alone.
+    Item {
         anchors.fill: parent
         z: 100
-        enabled: pathEditor.visible
-        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-        onPressed: function(mouse) {
-            var inside = pathBar.mapFromItem(editorDismissArea, mouse.x, mouse.y)
-            mouse.accepted = inside.x < 0 || inside.y < 0
-                    || inside.x > pathBar.width || inside.y > pathBar.height
-            if (mouse.accepted)
-                pathBar.closeEditor()
+
+        PointHandler {
+            enabled: pathEditor.visible
+            acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+            onActiveChanged: {
+                if (active && !pathBar.contains(pathBar.mapFromItem(null, point.scenePressPosition)))
+                    pathBar.closeEditor()
+            }
         }
     }
 

@@ -226,6 +226,45 @@ private slots:
         QCOMPARE(result.value("uris").toArray().first().toString(),
                  QUrl::fromLocalFile(directory.filePath("photo.jpeg")).toString());
     }
+
+    void pathEditorClosesOnOutsidePress()
+    {
+        QTemporaryDir directory;
+        writeFile(directory.filePath("Notes.txt"));
+        FileChooser chooser({{"mode", "OpenFile"}, {"current_folder", directory.path()}});
+        QQmlApplicationEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
+        QVERIFY(!engine.rootObjects().isEmpty());
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QVERIFY(window);
+        window->show();
+        window->requestActivate();
+        QVERIFY(QTest::qWaitForWindowActive(window));
+        QTRY_COMPARE(chooser.rowCount(), 1);
+
+        auto *editor = window->findChild<QQuickItem *>("locationField");
+        QVERIFY(editor);
+        QTest::keyClick(window, Qt::Key_L, Qt::ControlModifier);
+        QTRY_VERIFY(editor->hasActiveFocus());
+
+        // Whatever watches for the outside press must not take the cursor from the editor.
+        const QPoint inEditor = editor->mapToScene(QPointF(editor->width() / 2, editor->height() / 2)).toPoint();
+        QTest::mouseMove(window, inEditor);
+        QTRY_COMPARE(window->cursor().shape(), Qt::IBeamCursor);
+
+        // Nor swallow the press: it closes the editor and still selects the row under it.
+        auto *list = window->findChild<QQuickItem *>("fileList");
+        QVERIFY(list);
+        QQuickItem *row = nullptr;
+        QVERIFY(QMetaObject::invokeMethod(list, "itemAtIndex", Q_RETURN_ARG(QQuickItem *, row), Q_ARG(int, 0)));
+        QVERIFY(row);
+        const QPoint inRow = row->mapToScene(QPointF(row->width() / 2, row->height() / 2)).toPoint();
+        QTest::mouseClick(window, Qt::LeftButton, {}, inRow);
+        QTRY_VERIFY(!editor->isVisible());
+        QVERIFY(chooser.isSelected(0));
+    }
 };
 
 int main(int argc, char **argv)
