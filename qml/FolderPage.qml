@@ -288,6 +288,18 @@ Item {
         onBackspace: {
             dirModel.up()
         }
+        onUp: {
+            dirModel.up()
+        }
+        onBack: {
+            dirModel.goBack()
+        }
+        onForward: {
+            dirModel.goForward()
+        }
+        onProperties: {
+            dirModel.openPropertiesDialog()
+        }
         onDeleteFile: {
             dirModel.keyDeletePress()
         }

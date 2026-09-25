@@ -45,6 +45,10 @@ signals:
     void openPathEditor();
     void selectAll();
     void backspace();
+    void up();
+    void back();
+    void forward();
+    void properties();
     void deleteFile();
     void showHidden();
     void keyPressed(const QString &text);

@@ -56,6 +56,27 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             return true;
         }
 
+        // Alt+Up, Alt+Left, Alt+Right and Alt+Enter, as in other file managers.
+        if (keyEvent->modifiers() == Qt::AltModifier) {
+            switch (keyEvent->key()) {
+            case Qt::Key_Up:
+                emit up();
+                return true;
+            case Qt::Key_Left:
+                emit back();
+                return true;
+            case Qt::Key_Right:
+                emit forward();
+                return true;
+            case Qt::Key_Enter:
+            case Qt::Key_Return:
+                emit properties();
+                return true;
+            default:
+                break;
+            }
+        }
+
         if (keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
             emit open();
         } else if (keyEvent->key() == Qt::Key_C && keyEvent->modifiers() & Qt::ControlModifier) {
