@@ -78,6 +78,20 @@ private slots:
         QVERIFY(rowFor(chooser, "photo.png") >= 0);
     }
 
+    void globIgnoresCase()
+    {
+        QTemporaryDir directory;
+        writeFile(directory.filePath("IMG_0001.JPG"));
+        writeFile(directory.filePath("notes.txt"));
+        auto request = QJsonDocument::fromJson(R"({"mode":"OpenFile",
+            "filters":[{"name":"Images", "rules":[{"type":0,"value":"*.jpg"}]}]})")
+                               .object();
+        request.insert("current_folder", directory.path());
+        FileChooser chooser(request);
+        QTRY_COMPARE(chooser.rowCount(), 1);
+        QVERIFY(rowFor(chooser, "IMG_0001.JPG") >= 0);
+    }
+
     void selectCurrentFolder()
     {
         QTemporaryDir directory;

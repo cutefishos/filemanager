@@ -432,8 +432,9 @@ bool FileChooser::filterAcceptsRow(int row, const QModelIndex &parent) const
         const auto rule = entry.toObject();
         const QString value = rule.value("value").toString();
         if (rule.value("type").toInt() == 0) {
+            // Apps list "*.jpg" and expect camera files named "IMG_0001.JPG" to show up.
             const auto expression = QRegularExpression::fromWildcard(
-                    value, Qt::CaseSensitive, QRegularExpression::NonPathWildcardConversion);
+                    value, Qt::CaseInsensitive, QRegularExpression::NonPathWildcardConversion);
             if (expression.match(name).hasMatch())
                 return true;
         } else if (rule.value("type").toInt() == 1) {
