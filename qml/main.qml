@@ -40,6 +40,10 @@ FishUI.Window {
     header.height: 40
     contentTopMargin: 0
 
+    // Room for the header buttons with as much space below them as above;
+    // content starts under it and its frosted backdrop covers it.
+    readonly property real headerInset: windowButtonsTopMargin * 2 + _headerRow.buttonSize
+
     LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
@@ -418,7 +422,7 @@ FishUI.Window {
             MouseArea {
                 z: 1
                 width: parent.width
-                height: root.header.height + tabBar.height
+                height: root.headerInset + tabBar.height
                 acceptedButtons: Qt.AllButtons
                 hoverEnabled: true
             }
@@ -428,7 +432,7 @@ FishUI.Window {
                 // The folder view's frosted backdrop shows through.
                 color: "transparent"
                 objectName: "folderTabBar"
-                y: root.header.height
+                y: root.headerInset
                 width: parent.width
                 z: 2
                 visible: root.tabs.length > 1
@@ -473,7 +477,7 @@ FishUI.Window {
             anchors.fill: parent
             visible: root._folderPage === this
             enabled: visible
-            headerHeight: root.header.height + tabBar.height
+            headerHeight: root.headerInset + tabBar.height
             bottomNavigationHeight: _navigationBar.height
             onOpenInNewTab: function(path) { root.openTab(path) }
             onCloseRequested: root.closeTab(root.currentTab)
