@@ -449,6 +449,7 @@ ListView {
         // The column header draws its own separator.
         sourceComponent: FishUI.HeaderBackdrop {
             view: control
+            baseColor: FishUI.Theme.secondBackgroundColor
             separatorVisible: false
         }
     }

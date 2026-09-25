@@ -690,6 +690,7 @@ GridView {
 
         sourceComponent: FishUI.HeaderBackdrop {
             view: control
+            baseColor: FishUI.Theme.secondBackgroundColor
         }
     }
 
