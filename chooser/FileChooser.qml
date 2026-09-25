@@ -467,7 +467,7 @@ FishUI.Window {
                             } else if (event.key === Qt.Key_PageDown) {
                                 moveCurrentIndex(currentIndex + page, event.modifiers)
                             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                if (chooser.multiple)
+                                if (chooser.multiple || currentIndex < 0)
                                     chooser.accept()
                                 else
                                     chooser.activate(currentIndex)
@@ -576,6 +576,15 @@ FishUI.Window {
                             selectByMouse: true
                             onTextEdited: chooser.fileName = text
                             onAccepted: chooser.accept()
+
+                            // Saving starts here with the stem selected, so typing renames and Enter saves.
+                            Component.onCompleted: {
+                                if (!chooser.saveMode)
+                                    return
+                                forceActiveFocus()
+                                const dot = text.lastIndexOf(".")
+                                select(0, dot > 0 ? dot : text.length)
+                            }
                         }
                     }
 

@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickItem>
 #include <QQuickWindow>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -194,6 +195,36 @@ private slots:
         QSignalSpy completed(&chooser, &FileChooser::finished);
         QVERIFY(QMetaObject::invokeMethod(button, "clicked"));
         QCOMPARE(completed.size(), 1);
+    }
+
+    void saveDialogAcceptsEnter()
+    {
+        QTemporaryDir directory;
+        FileChooser chooser({{"mode", "SaveFile"},
+                             {"current_folder", directory.path()},
+                             {"current_name", "photo.jpeg"}});
+        QQmlApplicationEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
+        QVERIFY(!engine.rootObjects().isEmpty());
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QVERIFY(window);
+        window->show();
+        window->requestActivate();
+        QVERIFY(QTest::qWaitForWindowActive(window));
+        auto *field = window->findChild<QQuickItem *>("fileNameField");
+        QVERIFY(field);
+        QTRY_VERIFY(field->hasActiveFocus());
+        QCOMPARE(field->property("selectedText").toString(), QStringLiteral("photo"));
+
+        QSignalSpy completed(&chooser, &FileChooser::finished);
+        QTest::keyClick(window, Qt::Key_Return);
+        QCOMPARE(completed.size(), 1);
+        const auto result = completed.first().first().toJsonObject();
+        QCOMPARE(result.value("response").toInt(), 0);
+        QCOMPARE(result.value("uris").toArray().first().toString(),
+                 QUrl::fromLocalFile(directory.filePath("photo.jpeg")).toString());
     }
 };
 
