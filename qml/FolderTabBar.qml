@@ -251,29 +251,16 @@ Rectangle {
         }
     }
 
-    ToolButton {
+    FishUI.HeaderButton {
         id: addButton
         anchors.right: parent.right
         anchors.rightMargin: 6
         anchors.verticalCenter: parent.verticalCenter
-        width: 28
-        height: 28
+        size: 28
+        artwork: "add"
+        hoveredColor: control.hoverColor
+        pressedColor: control.pressedColor
         Accessible.name: qsTr("New Tab")
         onClicked: control.newRequested()
-        contentItem: Item {
-            Image {
-                anchors.centerIn: parent
-                width: 24
-                height: 24
-                sourceSize: Qt.size(24, 24)
-                source: "qrc:/fishui/kit/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + "add.svg"
-                smooth: false
-                antialiasing: true
-            }
-        }
-        background: Rectangle {
-            radius: height / 2
-            color: addButton.hovered ? control.hoverColor : "transparent"
-        }
     }
 }

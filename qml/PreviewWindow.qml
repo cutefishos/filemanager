@@ -81,25 +81,23 @@ FishUI.Window {
             anchors.rightMargin: 8
             spacing: 0
 
-            FishUI.RoundImageButton {
+            FishUI.HeaderButton {
                 size: 32
                 iconSize: 16
                 Layout.preferredWidth: size
                 Layout.preferredHeight: size
                 Layout.alignment: Qt.AlignVCenter
-                opacity: enabled ? 1 : 0.35
                 iconName: "chevron-left"
                 Accessible.name: qsTr("Previous item")
                 enabled: controller.currentIndex > 0
                 onClicked: controller.step(-1)
             }
-            FishUI.RoundImageButton {
+            FishUI.HeaderButton {
                 size: 32
                 iconSize: 16
                 Layout.preferredWidth: size
                 Layout.preferredHeight: size
                 Layout.alignment: Qt.AlignVCenter
-                opacity: enabled ? 1 : 0.35
                 iconName: "chevron-right"
                 Accessible.name: qsTr("Next item")
                 enabled: controller.currentIndex + 1 < controller.items.length
