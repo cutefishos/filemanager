@@ -36,6 +36,7 @@ FishUI.Window {
     visible: true
     title: qsTr("Files")
 
+    blurEnabled: active
     background.opacity: 1
     header.height: 40
     contentTopMargin: 0
