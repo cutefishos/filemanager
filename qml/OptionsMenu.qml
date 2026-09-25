@@ -29,14 +29,12 @@ FishUI.DesktopMenu {
 
     FishUI.MenuItem {
         text: qsTr("Icons")
-        reservesCheckColumn: true
         checked: settings.viewMethod === 1
         onTriggered: settings.viewMethod = 1
     }
 
     FishUI.MenuItem {
         text: qsTr("List")
-        reservesCheckColumn: true
         checked: settings.viewMethod === 0
         onTriggered: settings.viewMethod = 0
     }
@@ -45,28 +43,24 @@ FishUI.DesktopMenu {
 
     FishUI.MenuItem {
         text: qsTr("Name")
-        reservesCheckColumn: true
         checked: settings.sortMode === 0
         onTriggered: settings.sortMode = 0
     }
 
     FishUI.MenuItem {
         text: qsTr("Date")
-        reservesCheckColumn: true
         checked: settings.sortMode === 2
         onTriggered: settings.sortMode = 2
     }
 
     FishUI.MenuItem {
         text: qsTr("Type")
-        reservesCheckColumn: true
         checked: settings.sortMode === 3
         onTriggered: settings.sortMode = 3
     }
 
     FishUI.MenuItem {
         text: qsTr("Size")
-        reservesCheckColumn: true
         checked: settings.sortMode === 1
         onTriggered: settings.sortMode = 1
     }
