@@ -304,7 +304,8 @@ Item {
 
                     themeSize: 20
                     source: model.iconName
-                    color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                    color: !root.active ? FishUI.Theme.disabledTextColor
+                         : checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                 }
 
                 FishUI.Label {
@@ -313,7 +314,8 @@ Item {
                     y: listView.snap((_item.height - height) / 2)
                     width: _item.width - x - listView.snap(FishUI.Units.smallSpacing)
                     text: model.name
-                    color: checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                    color: !root.active ? FishUI.Theme.disabledTextColor
+                         : checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                     elide: Text.ElideRight
                 }
             }
