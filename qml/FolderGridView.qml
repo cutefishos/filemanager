@@ -53,8 +53,8 @@ GridView {
     // on every pixel of a resize.
     readonly property int gridColumns: isDesktopView
             ? Math.max(1, Math.floor((width - leftMargin - rightMargin) / cellWidth))
-            : Math.max(1, Math.floor((width - leftMargin - rightMargin)
-                                     / (iconSize + FishUI.Units.largeSpacing * 4)))
+            : Math.max(1, Math.floor((width - leftMargin - rightMargin) / minimumCellWidth))
+    readonly property real minimumCellWidth: iconSize + FishUI.Units.largeSpacing * 4
     readonly property int gridRows: Math.max(1, Math.floor((height - topMargin - bottomMargin) / cellHeight))
     readonly property bool columnFlow: control.flow === GridView.FlowTopToBottom
 
@@ -571,9 +571,8 @@ GridView {
         // last column several pixels at once every few pixels of resize.
         // Rounded down a 64th of a pixel: GridView counts the columns itself,
         // and a cell a hair wider than the share would lose one.
-        var iconWidth = iconSize + FishUI.Units.largeSpacing * 4
         var available = control.width - leftMargin - rightMargin
-        return Math.max(iconWidth, Math.floor(available / gridColumns * 64) / 64)
+        return Math.max(minimumCellWidth, Math.floor(available / gridColumns * 64) / 64)
     }
 
     clip: !isDesktopView

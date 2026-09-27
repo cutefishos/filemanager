@@ -38,6 +38,9 @@ Item {
     property Item background: _background
 
     readonly property bool desktop: GridView.view.isDesktopView
+    // The window grid stretches its cells to share the width; only the gap
+    // between items grows, the icon and label keep the narrowest cell's width.
+    readonly property real layoutWidth: desktop ? width : GridView.view.minimumCellWidth
 
     property int index: model.index
     property bool hovered: GridView.view.hoveredItem === control
@@ -177,7 +180,7 @@ Item {
         anchors.bottomMargin: FishUI.Units.smallSpacing
         z: 2
 
-        width: parent.width - FishUI.Units.largeSpacing * 2
+        width: control.layoutWidth - FishUI.Units.largeSpacing * 2
         height: control.GridView.view.iconSize
 
         opacity: model.isHidden ? 0.5 : 1.0
@@ -301,8 +304,8 @@ Item {
         maximumLineCount: control.desktop ? 2 : (control.selected ? 3 : 2)
         font: control.desktop ? control.GridView.view.desktopLabelFont : FishUI.Theme.defaultFont
         horizontalAlignment: Text.AlignHCenter
-        width: control.desktop ? parent.width - control.GridView.view.desktopLabelInset * 2
-                               : parent.width - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
+        width: control.desktop ? control.layoutWidth - control.GridView.view.desktopLabelInset * 2
+                               : control.layoutWidth - FishUI.Units.largeSpacing * 2 - FishUI.Units.smallSpacing
         textFormat: Text.PlainText
         elide: Qt.ElideRight
         wrapMode: Text.Wrap
