@@ -24,6 +24,15 @@ Rectangle {
     // How far above or below the bar a dragged tab comes off it into a window of its own.
     readonly property real detachDistance: 16
 
+    // A tab dragged over the bar from another window: drawn under the pointer
+    // at `incomingX`, with the others making room where it would drop.
+    property bool incoming: false
+    property string incomingTitle: ""
+    property real incomingX: 0
+    readonly property int incomingIndex: incoming
+            ? Math.max(0, Math.min(tabs.length, Math.round((incomingX - list.x + list.contentX) / list.tabWidth - 0.5)))
+            : -1
+
     color: FishUI.Theme.secondBackgroundColor
     readonly property color pressedColor: Qt.rgba(FishUI.Theme.textColor.r,
         FishUI.Theme.textColor.g, FishUI.Theme.textColor.b, 0.10)
@@ -33,6 +42,8 @@ Rectangle {
     // Where a tab sits while a drag is in progress: the dragged one is taken
     // out of the order and put back at dropIndex, so the rest slide aside.
     function slotFor(index) {
+        if (incoming)
+            return index + (index >= incomingIndex ? 1 : 0)
         if (dragIndex < 0 || index === dragIndex)
             return index
         var without = index - (index > dragIndex ? 1 : 0)
@@ -46,9 +57,17 @@ Rectangle {
         dropIndex = Math.max(0, Math.min(tabs.length - 1, Math.round(dragPos / list.tabWidth)))
     }
 
-    // The slot a tab dropped at `x` goes into.
-    function insertionIndexAt(x) {
-        return Math.max(0, Math.min(tabs.length, Math.round((x - list.x + list.contentX) / list.tabWidth)))
+    // Dropped, the tab takes the slot it was shown in at once; gone, the
+    // others slide back.
+    function endIncoming(dropped) {
+        incoming = false
+        if (!dropped)
+            settle.restart()
+    }
+
+    Timer {
+        id: settle
+        interval: 150
     }
 
     function indexAtPosition(x, y) {
@@ -82,7 +101,8 @@ Rectangle {
         contentWidth: tabWidth * count
         contentHeight: height
 
-        readonly property int count: control.tabs.length
+        // A tab dragged in from another window takes a slot of its own.
+        readonly property int count: control.tabs.length + (control.incoming ? 1 : 0)
         readonly property real tabWidth: Math.max(140, width / Math.max(1, count))
 
         function ensureVisible(index) {
@@ -113,7 +133,8 @@ Rectangle {
                 // Only the shuffling aside during a drag animates; opening or
                 // closing a tab must place the rest at once.
                 Behavior on x {
-                    enabled: control.dragIndex >= 0 && control.dragIndex !== index
+                    enabled: control.dragIndex !== index
+                             && (control.dragIndex >= 0 || control.incoming || settle.running)
                     NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
                 }
 
@@ -157,7 +178,9 @@ Rectangle {
                             control.dragIndex = index
                             control.dropIndex = index
                         }
-                        if (didDrag && (position.y < -control.detachDistance
+                        // Upwards the title bar above takes tabs back in, so the
+                        // tab comes off only past the top of the window.
+                        if (didDrag && (position.y < -control.y - control.detachDistance
                                         || position.y > control.height + control.detachDistance)) {
                             didDrag = false
                             detached = true
@@ -251,6 +274,35 @@ Rectangle {
                         onTriggered: control.closeRequested(index)
                     }
                 }
+            }
+        }
+
+        Item {
+            visible: control.incoming
+            x: Math.max(0, Math.min(list.contentWidth - width,
+                                    control.incomingX - list.x + list.contentX - width / 2))
+            z: 2
+            width: list.tabWidth
+            height: list.height
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: 2
+                radius: height / 2
+                color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 2)
+                                             : FishUI.Theme.secondBackgroundColor
+            }
+
+            FishUI.Label {
+                anchors.fill: parent
+                anchors.leftMargin: 28
+                anchors.rightMargin: 28
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                text: control.incomingTitle
+                font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 12, weight: Font.Medium })
+                elide: Text.ElideMiddle
+                color: FishUI.Theme.textColor
             }
         }
     }
