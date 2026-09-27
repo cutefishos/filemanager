@@ -18,6 +18,7 @@
  */
 
 import QtQuick 2.12
+import QtQuick.Window 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtQuick.Effects
@@ -61,11 +62,26 @@ Item {
 
     // The drag pixmap is built from these snapshots, so one taken at the icon's
     // old cell would drag the wrong picture at the wrong offset from the cursor.
-    onXChanged: updateDragImage()
-    onYChanged: updateDragImage()
-    onWidthChanged: updateDragImage()
-    onHeightChanged: updateDragImage()
+    // A resize moves every cell each frame; the snapshot waits for it to stop.
+    onXChanged: dragImageTimer.restart()
+    onYChanged: dragImageTimer.restart()
+    onWidthChanged: dragImageTimer.restart()
+    onHeightChanged: dragImageTimer.restart()
     Component.onCompleted: updateDragImage()
+
+    Timer {
+        id: dragImageTimer
+        interval: 150
+        onTriggered: control.updateDragImage()
+    }
+
+    // Cells are a fraction of a pixel wide; the drawing sits on whole device
+    // pixels so icons and names stay sharp while the columns spread.
+    readonly property real devicePixelRatio: Screen.devicePixelRatio > 0 ? Screen.devicePixelRatio : 1
+    transform: Translate {
+        x: desktop ? 0 : Math.round(control.x * control.devicePixelRatio)
+                         / control.devicePixelRatio - control.x
+    }
 
     // True when (x, y) lands on this item's icon or name rather than on the
     // empty rest of its cell; hover, presses and drops all hit test this way.

@@ -47,7 +47,14 @@ GridView {
     property alias positions: positioner.positions
     property alias positioner: positioner
 
-    readonly property int gridColumns: Math.max(1, Math.floor((width - leftMargin - rightMargin) / cellWidth))
+    // The window grid counts its columns from the width alone and shares the
+    // width between them. Counting from cellWidth, a binding on the width too,
+    // saw the old cell with the new width and dropped a column for an instant
+    // on every pixel of a resize.
+    readonly property int gridColumns: isDesktopView
+            ? Math.max(1, Math.floor((width - leftMargin - rightMargin) / cellWidth))
+            : Math.max(1, Math.floor((width - leftMargin - rightMargin)
+                                     / (iconSize + FishUI.Units.largeSpacing * 4)))
     readonly property int gridRows: Math.max(1, Math.floor((height - topMargin - bottomMargin) / cellHeight))
     readonly property bool columnFlow: control.flow === GridView.FlowTopToBottom
 
@@ -111,6 +118,35 @@ GridView {
     onCountChanged: {
         if (!positioner.enabled)
             positioner.reset()
+    }
+
+    property int laidColumns: 0
+    property real laidCellHeight: 0
+
+    onGridColumnsChanged: reflow()
+    onCellHeightChanged: reflow()
+    Component.onCompleted: {
+        laidColumns = gridColumns
+        laidCellHeight = cellHeight
+    }
+
+    // A new column count or icon size moves every row; the one at the top of
+    // the view stays there instead of whatever lands under it.
+    function reflow() {
+        var fromColumns = laidColumns
+        var fromRowHeight = laidCellHeight
+        laidColumns = gridColumns
+        laidCellHeight = cellHeight
+        if (isDesktopView || fromColumns <= 0 || fromRowHeight <= 0
+                || (fromColumns === gridColumns && fromRowHeight === cellHeight))
+            return
+
+        var top = contentY + headerHeight
+        if (top <= 0)
+            return
+        var row = Math.floor(top / fromRowHeight)
+        var within = (top - row * fromRowHeight) * cellHeight / fromRowHeight
+        contentY = Math.floor(row * fromColumns / gridColumns) * cellHeight + within - headerHeight
     }
 
     // GridView scrolls the current item into view but knows nothing of the
@@ -530,9 +566,14 @@ GridView {
     cellWidth: {
         if (isDesktopView)
             return Math.ceil(Math.max(88, iconSize + 44))
+        // The columns share the width evenly and follow it smoothly; each item
+        // snaps its own drawing to the pixel grid. Whole-pixel cells moved the
+        // last column several pixels at once every few pixels of resize.
+        // Rounded down a 64th of a pixel: GridView counts the columns itself,
+        // and a cell a hair wider than the share would lose one.
         var iconWidth = iconSize + FishUI.Units.largeSpacing * 4
-        var extraWidth = calcExtraSpacing(iconWidth, control.width - leftMargin - rightMargin)
-        return iconWidth + extraWidth
+        var available = control.width - leftMargin - rightMargin
+        return Math.max(iconWidth, Math.floor(available / gridColumns * 64) / 64)
     }
 
     clip: !isDesktopView
@@ -1030,17 +1071,6 @@ GridView {
         }
 
         control.applyRectangleSelection(indices)
-    }
-
-    function calcExtraSpacing(cellSize, containerSize) {
-        var availableColumns = Math.floor(containerSize / cellSize)
-        var extraSpacing = 0
-        if (availableColumns > 0) {
-            var allColumnSize = availableColumns * cellSize
-            var extraSpace = Math.max(containerSize - allColumnSize, 0)
-            extraSpacing = extraSpace / availableColumns
-        }
-        return Math.floor(extraSpacing)
     }
 
     function increaseIconSize() {

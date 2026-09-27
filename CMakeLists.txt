@@ -274,6 +274,10 @@ if(FILEMANAGER_BUILD_TESTS)
     target_link_libraries(tst_tabs PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME tabs COMMAND tst_tabs)
     set_tests_properties(tabs PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+    add_executable(tst_gridresize tests/tst_gridresize.cpp)
+    target_link_libraries(tst_gridresize PRIVATE cutefish-filemanager-core Qt6::Test)
+    add_test(NAME gridresize COMMAND tst_gridresize)
+    set_tests_properties(gridresize PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_windowmanager tests/tst_windowmanager.cpp)
     target_link_libraries(tst_windowmanager PRIVATE cutefish-filemanager-core Qt6::Test)
     target_compile_definitions(tst_windowmanager PRIVATE
@@ -293,7 +297,7 @@ if(FILEMANAGER_BUILD_TESTS)
     find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
     add_test(NAME fileoperationsdaemon
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_fileoperationsdaemon>)
-    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs windowmanager
+    set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs gridresize windowmanager
                  lifecycle lifecycle-task lifecycle-emptytrash
                  APPEND PROPERTY ENVIRONMENT "CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
 endif()
