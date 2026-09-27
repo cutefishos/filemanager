@@ -29,8 +29,8 @@ import "./Controls"
 
 FishUI.Window {
     id: root
-    width: settings.width
-    height: settings.height
+    width: 900
+    height: 580
     minimumWidth: 600
     minimumHeight: 500
     visible: true
@@ -221,14 +221,6 @@ FishUI.Window {
     Shortcut { sequence: "Ctrl+W"; onActivated: root.closeTab(root.currentTab) }
     Shortcut { sequence: "Ctrl+Tab"; onActivated: root.currentTab = (root.currentTab + 1) % root.tabs.length }
     Shortcut { sequence: "Ctrl+Shift+Tab"; onActivated: root.currentTab = (root.currentTab + root.tabs.length - 1) % root.tabs.length }
-
-    onClosing: {
-        if (root.visibility !== Window.Maximized &&
-                root.visibility !== Window.FullScreen) {
-            settings.width = root.width
-            settings.height = root.height
-        }
-    }
 
     Platform.MenuBar {
         id: appMenu

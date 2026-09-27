@@ -99,7 +99,7 @@ FishUI.Window {
             grabPermissions: PointerHandler.CanTakeOverFromItems
                              | PointerHandler.CanTakeOverFromHandlersOfDifferentType
                              | PointerHandler.ApprovesTakeOverByAnything
-            onActiveChanged: if (active && root.helper) root.helper.startSystemMove(root)
+            onActiveChanged: if (active && root.controller) root.controller.startSystemMove()
         }
     }
 
@@ -337,8 +337,8 @@ FishUI.Window {
                                 if (!active)
                                     return
                                 pathBar.dragging = true
-                                if (root.helper)
-                                    root.helper.startSystemMove(root)
+                                if (root.controller)
+                                    root.controller.startSystemMove()
                             }
                         }
 

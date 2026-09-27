@@ -104,7 +104,7 @@ FishUI.Window {
         grabPermissions: PointerHandler.CanTakeOverFromItems
                          | PointerHandler.CanTakeOverFromHandlersOfDifferentType
                          | PointerHandler.ApprovesTakeOverByAnything
-        onActiveChanged: if (active) control.helper.startSystemMove(control)
+        onActiveChanged: if (active) control.controller.startSystemMove()
     }
 
     // Dismissing the window is the same as Stop: the task must not stay

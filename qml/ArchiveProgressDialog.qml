@@ -35,7 +35,7 @@ FishUI.Window {
         grabPermissions: PointerHandler.CanTakeOverFromItems
                          | PointerHandler.CanTakeOverFromHandlersOfDifferentType
                          | PointerHandler.ApprovesTakeOverByAnything
-        onActiveChanged: if (active) control.helper.startSystemMove(control)
+        onActiveChanged: if (active) control.controller.startSystemMove()
     }
 
     x: hostWindow ? hostWindow.x + Math.round((hostWindow.width - width) / 2) : 0
