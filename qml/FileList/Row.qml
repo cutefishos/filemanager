@@ -40,12 +40,10 @@ Item {
         topRightRadius: row.previousSelected ? 0 : cornerRadius
         bottomLeftRadius: row.nextSelected ? 0 : cornerRadius
         bottomRightRadius: row.nextSelected ? 0 : cornerRadius
-        border.width: row.dropTarget ? 2 : 0
-        border.color: row.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b"
 
         color: {
             if (row.dropTarget)
-                return Qt.alpha(row.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b", 0.16)
+                return "transparent"
             if (row.selected)
                 return FishUI.Theme.highlightColor
             if (row.hovered)
@@ -56,6 +54,18 @@ Item {
                                FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.03 : 0.025)
             return "transparent"
         }
+    }
+
+    // The drop highlight, snapped: a Rectangle border at 150% came out heavier
+    // on one side, and an unsnapped fill showed a faint row outside it.
+    FishUI.RoundedRectangle {
+        anchors.fill: parent
+        visible: row.dropTarget
+        radius: _background.cornerRadius
+        continuousCorners: false
+        color: Qt.alpha(row.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b", 0.16)
+        border.width: 2
+        border.color: row.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b"
     }
 
     Item {

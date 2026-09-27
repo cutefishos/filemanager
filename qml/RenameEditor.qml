@@ -50,16 +50,20 @@ FishUI.TextArea {
         font: editor.font
     }
 
-    background: Rectangle {
+    background: FishUI.RoundedRectangle {
         radius: 4
+        continuousCorners: false
         color: FishUI.Theme.backgroundColor
         border.width: 1
         border.color: editor.errorMessage ? "#d94b4b" : FishUI.Theme.highlightColor
 
-        Rectangle {
+        // A parallel curve of the field, so the ring snaps where the field does.
+        FishUI.RoundedRectangle {
             anchors.fill: parent
             anchors.margins: -2
-            radius: 6
+            radius: 4
+            inset: -2
+            continuousCorners: false
             color: "transparent"
             border.width: 2
             border.color: parent.border.color

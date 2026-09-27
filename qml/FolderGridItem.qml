@@ -137,7 +137,7 @@ Item {
             dirModel.cancelItemDragImage(row)
     }
 
-    Rectangle {
+    FishUI.RoundedRectangle {
         id: _background
         width: Math.max(_iconItem.width, _label.paintedWidth)
         height: _iconItem.height + _label.paintedHeight + FishUI.Units.largeSpacing
@@ -148,6 +148,7 @@ Item {
                 ? Qt.alpha(control.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b", 0.16)
                 : "transparent"
         radius: FishUI.Theme.mediumRadius
+        continuousCorners: false
         border.width: control.dropTarget ? 2 : 0
         border.color: control.dropAllowed ? FishUI.Theme.highlightColor : "#d94b4b"
     }
@@ -212,13 +213,13 @@ Item {
 
         // A faint light rim keeps a thumbnail's edge readable on a wallpaper
         // of the same tone.
-        Rectangle {
+        FishUI.RoundedRectangle {
             anchors.centerIn: _image
             width: Math.min(_image.width, _image.paintedWidth)
             height: Math.min(_image.height, _image.paintedHeight)
             radius: height * 0.1
             visible: control.desktop && _image.visible
-            antialiasing: true
+            continuousCorners: false
             color: "transparent"
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, 0.45)

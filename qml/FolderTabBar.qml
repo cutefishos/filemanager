@@ -48,12 +48,13 @@ Rectangle {
                                    Math.floor((x - list.x + list.contentX) / list.tabWidth)))
     }
 
-    Rectangle {
+    FishUI.RoundedRectangle {
         x: list.x
         y: list.y
         width: list.width
         height: list.height
         radius: height / 2
+        continuousCorners: false
         color: FishUI.Theme.alternateBackgroundColor
     }
 

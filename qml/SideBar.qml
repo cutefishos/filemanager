@@ -60,7 +60,7 @@ Item {
             deviceError.open()
         }
         onFavoritesChanged: sideBar.updateSelection(sideBar.selectedPath)
-        onDeviceSetupDone: sideBar.clicked(filePath)    // 设备挂载上后，模拟点击了该设备以打开该页面
+        onDeviceSetupDone: sideBar.clicked(filePath)    // Once the device is mounted, act as if it was clicked to open its page
     }
 
     FishUI.ConfirmDialog {
@@ -272,11 +272,12 @@ Item {
                     }
                 }
 
-                Rectangle {
+                FishUI.RoundedRectangle {
                     x: listView.sideInset
                     width: _item.width - listView.sideInset * 2
                     height: parent.height
                     radius: FishUI.Theme.mediumRadius
+                    continuousCorners: false
                     color: _item.dropRejected ? Qt.alpha("#d94b4b", 0.16) :
                            _mouseArea.pressed || _item.dropTarget || _menu.visible ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
@@ -290,8 +291,6 @@ Item {
                                              FishUI.Theme.textColor.b, 0.05) : "transparent"
                     border.width: _item.dropTarget || _item.dropRejected || _menu.visible ? 2 : 0
                     border.color: _item.dropRejected ? "#d94b4b" : FishUI.Theme.highlightColor
-
-                    smooth: true
                 }
 
                 // Snap icon coordinates as well as size for fractional display scales.
@@ -376,21 +375,23 @@ Item {
         }
     }
 
-    Rectangle {
+    FishUI.RoundedRectangle {
         z: 11
         visible: sideBar.dropIndex >= 0
         x: listView.sideInset + FishUI.Units.smallSpacing
         y: sideBar.dropY - height / 2
         width: sideBar.width - x - listView.sideInset
-        height: listView.snap(2)
+        height: 2
         color: FishUI.Theme.highlightColor
         radius: height / 2
-        Rectangle {
+        continuousCorners: false
+        FishUI.RoundedRectangle {
             x: -3
             anchors.verticalCenter: parent.verticalCenter
             width: 6
             height: 6
             radius: 3
+            continuousCorners: false
             color: FishUI.Theme.highlightColor
         }
     }

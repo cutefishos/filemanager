@@ -105,7 +105,8 @@ MouseArea {
             columns.saveColumnWidth(settingsProperty, defaultWidth)
         }
 
-        Rectangle {
+        // Snapped, so every divider is the same width wherever its column ends.
+        FishUI.RoundedRectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             width: 1
@@ -120,7 +121,7 @@ MouseArea {
         color: header.backgroundColor
     }
 
-    Rectangle {
+    FishUI.RoundedRectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

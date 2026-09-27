@@ -208,8 +208,9 @@ Item {
         text: _pathBarModel.url
         color: FishUI.Theme.darkMode ? "white" : "black"
 
-        background: Rectangle {
+        background: FishUI.RoundedRectangle {
             radius: FishUI.Theme.smallRadius
+            continuousCorners: false
             color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.7)
                                          : FishUI.Theme.secondBackgroundColor
             border.width: 1
