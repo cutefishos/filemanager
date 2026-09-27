@@ -21,6 +21,7 @@
 
 #include "shortcut.h"
 #include "keyboardsearchmanager.h"
+#include "shortcutconvention.h"
 
 #include <QKeyEvent>
 
@@ -55,6 +56,9 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
                 emit preview();
             return true;
         }
+
+        if (ShortcutConvention::self()->commandKeys() && commandKey(keyEvent))
+            return true;
 
         // Alt+Up, Alt+Left, Alt+Right and Alt+Enter, as in other file managers.
         if (keyEvent->modifiers() == Qt::AltModifier) {
@@ -115,4 +119,45 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
     }
 
     return QObject::eventFilter(obj, e);
+}
+
+// Command reaches us as Ctrl; outside text fields the compositor leaves these
+// keys to the file view.
+bool ShortCut::commandKey(const QKeyEvent *event)
+{
+    const Qt::KeyboardModifiers modifiers = event->modifiers() & ~Qt::KeypadModifier;
+
+    if (modifiers == Qt::ControlModifier) {
+        switch (event->key()) {
+        case Qt::Key_Backspace:
+            emit deleteFile();
+            return true;
+        case Qt::Key_Up:
+            emit up();
+            return true;
+        case Qt::Key_Down:
+            emit open();
+            return true;
+        case Qt::Key_BracketLeft:
+            emit back();
+            return true;
+        case Qt::Key_BracketRight:
+            emit forward();
+            return true;
+        case Qt::Key_I:
+            emit properties();
+            return true;
+        default:
+            break;
+        }
+    }
+
+    // Command+Shift+.; Shift makes the key ">" on most layouts.
+    if (modifiers == (Qt::ControlModifier | Qt::ShiftModifier)
+        && (event->key() == Qt::Key_Period || event->key() == Qt::Key_Greater)) {
+        emit showHidden();
+        return true;
+    }
+
+    return false;
 }

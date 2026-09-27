@@ -24,6 +24,8 @@
 
 #include <QObject>
 
+class QKeyEvent;
+
 class ShortCut : public QObject
 {
     Q_OBJECT
@@ -60,6 +62,8 @@ protected:
     bool eventFilter(QObject *obj, QEvent *e) override;
 
 private:
+    bool commandKey(const QKeyEvent *event);
+
     QObject *m_object;
     bool m_previewEnabled = false;
 };

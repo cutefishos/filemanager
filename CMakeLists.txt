@@ -83,6 +83,7 @@ add_library(cutefish-filemanager-core STATIC
   helper/previewcontroller.cpp
   helper/previewclient.cpp
   helper/shortcut.cpp
+  helper/shortcutconvention.cpp
   helper/filelauncher.cpp
   helper/keyboardsearchmanager.cpp
 
@@ -259,6 +260,10 @@ if(FILEMANAGER_BUILD_TESTS)
     target_include_directories(tst_mimeapps PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(tst_mimeapps PRIVATE Qt6::Core Qt6::Test)
     add_test(NAME mimeapps COMMAND tst_mimeapps)
+    add_executable(tst_shortcut tests/tst_shortcut.cpp)
+    target_link_libraries(tst_shortcut PRIVATE cutefish-filemanager-core Qt6::Test)
+    add_test(NAME shortcut COMMAND tst_shortcut)
+    set_tests_properties(shortcut PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_executable(tst_placesmodel tests/tst_placesmodel.cpp)
     target_link_libraries(tst_placesmodel PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME placesmodel COMMAND tst_placesmodel)
