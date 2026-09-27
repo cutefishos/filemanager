@@ -39,7 +39,7 @@ FishUI.Window {
 
     blurEnabled: active
     background.opacity: 1
-    header.height: 40
+    header.height: headerInset
     contentTopMargin: 0
 
     // Room for the header buttons with as much space below them as above;
@@ -389,9 +389,9 @@ FishUI.Window {
             anchors.fill: parent
             anchors.leftMargin: _sideBar.width + FishUI.Units.smallSpacing * 1.5
             anchors.rightMargin: FishUI.Units.smallSpacing
-            spacing: FishUI.Units.smallSpacing / 2
+            spacing: root.windowButtonsSpacing
 
-            readonly property int buttonSize: 31
+            readonly property int buttonSize: root.header.buttonSize
 
             IconButton {
                 id: _backButton
@@ -425,9 +425,11 @@ FishUI.Window {
                 id: _folderName
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.leftMargin: FishUI.Units.smallSpacing / 2
-                leftPadding: root.windowButtonsTopMargin
-                topPadding: root.windowButtonsTopMargin / 2
+                Layout.leftMargin: FishUI.Units.smallSpacing
+                leftPadding: 0
+                topPadding: 0
+                bottomPadding: 0
+                verticalAlignment: Text.AlignVCenter
                 color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
                 font.pointSize: 11
                 text: _pathBar.currentName

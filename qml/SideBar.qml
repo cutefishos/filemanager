@@ -96,7 +96,7 @@ Item {
             Layout.minimumHeight: root.header.height
             Layout.maximumHeight: root.header.height
             elide: Text.ElideRight
-            leftPadding: FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
+            leftPadding: listView.sideInset + FishUI.Units.smallSpacing
             rightPadding: FishUI.Units.largeSpacing + FishUI.Units.smallSpacing
             topPadding: FishUI.Units.smallSpacing
             bottomPadding: 0
