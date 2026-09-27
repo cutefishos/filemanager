@@ -47,6 +47,12 @@ public:
     QUrl posteriorPath();
     QUrl previousPath();
 
+    // The folders before and after the current one, oldest first.
+    QList<QUrl> backward() const;
+    QList<QUrl> forward() const;
+    // Puts them around the current folder, as a tab carried to another window had them.
+    void restore(const QList<QUrl> &backward, const QList<QUrl> &forward);
+
 private:
     QVector<QUrl> m_prevHistory;
     QVector<QUrl> m_postHistory;

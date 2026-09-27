@@ -239,6 +239,13 @@ public:
     /** Selects @p urls once the current folder has been listed completely. */
     Q_INVOKABLE void selectUrlsWhenListed(const QStringList &urls);
 
+    /**
+     * What a tab needs to reopen as it is in another window: "back" and
+     * "forward" history and the "selection", all as URL strings.
+     */
+    Q_INVOKABLE QVariantMap tabState() const;
+    Q_INVOKABLE void restoreHistory(const QStringList &back, const QStringList &forward);
+
     Q_INVOKABLE void clearPixmapCache();
 
     void restoreFromTrash();

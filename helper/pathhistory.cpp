@@ -87,6 +87,25 @@ QUrl PathHistory::posteriorPath()
     return m_postHistory.takeLast();
 }
 
+QList<QUrl> PathHistory::backward() const
+{
+    return m_prevHistory.isEmpty() ? QList<QUrl>() : m_prevHistory.first(m_prevHistory.size() - 1);
+}
+
+QList<QUrl> PathHistory::forward() const
+{
+    return m_postHistory;
+}
+
+void PathHistory::restore(const QList<QUrl> &backward, const QList<QUrl> &forward)
+{
+    const QUrl current = m_prevHistory.isEmpty() ? QUrl() : m_prevHistory.last();
+    m_prevHistory = backward;
+    if (!current.isEmpty())
+        m_prevHistory.append(current);
+    m_postHistory = forward;
+}
+
 QUrl PathHistory::previousPath()
 {
     if (m_prevHistory.isEmpty())

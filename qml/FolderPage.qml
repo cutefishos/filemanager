@@ -39,6 +39,8 @@ Item {
     property int bottomNavigationHeight: 0
     property string initialUrl: ""
     property var initialSelection: []
+    // Back and forward history carried over from a tab in another window.
+    property var initialHistory: null
     readonly property string tabTitle: {
         var path = currentUrl.toString()
         if (path.indexOf("trash:/") === 0)
@@ -104,6 +106,9 @@ Item {
                 dirModel.url = folderPage.initialUrl
             else
                 dirModel.url = dirModel.homePath()
+
+            if (folderPage.initialHistory)
+                dirModel.restoreHistory(folderPage.initialHistory.back, folderPage.initialHistory.forward)
 
             if (folderPage.initialSelection.length > 0)
                 dirModel.selectUrlsWhenListed(folderPage.initialSelection)

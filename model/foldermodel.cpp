@@ -331,6 +331,34 @@ Cutefish::IO::FileItem FolderModel::fileItem(int index) const
     return Cutefish::IO::FileItem();
 }
 
+QVariantMap FolderModel::tabState() const
+{
+    const auto strings = [](const QList<QUrl> &urls) {
+        QStringList list;
+        for (const QUrl &url : urls)
+            list.append(url.toString());
+        return list;
+    };
+
+    return {{QStringLiteral("back"), strings(m_pathHistory.backward())},
+            {QStringLiteral("forward"), strings(m_pathHistory.forward())},
+            {QStringLiteral("selection"), strings(selectedUrls())}};
+}
+
+void FolderModel::restoreHistory(const QStringList &back, const QStringList &forward)
+{
+    const auto urls = [](const QStringList &strings) {
+        QList<QUrl> list;
+        for (const QString &string : strings)
+            list.append(QUrl(string));
+        return list;
+    };
+
+    m_pathHistory.restore(urls(back), urls(forward));
+    emit canGoBackChanged();
+    emit canGoForwardChanged();
+}
+
 QList<QUrl> FolderModel::selectedUrls() const
 {
     const auto indexes = m_selectionModel->selectedIndexes();

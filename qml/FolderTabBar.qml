@@ -18,6 +18,11 @@ Rectangle {
     signal newRequested()
     signal duplicateRequested(string path)
     signal moveRequested(int from, int to)
+    // `position` is the pointer, in the window.
+    signal detachRequested(int index, point position)
+
+    // How far above or below the bar a dragged tab comes off it into a window of its own.
+    readonly property real detachDistance: 16
 
     color: FishUI.Theme.secondBackgroundColor
     readonly property color pressedColor: Qt.rgba(FishUI.Theme.textColor.r,
@@ -39,6 +44,11 @@ Rectangle {
         var limit = Math.max(0, list.contentWidth - list.tabWidth)
         dragPos = Math.max(0, Math.min(limit, x - list.x + list.contentX - dragOffset))
         dropIndex = Math.max(0, Math.min(tabs.length - 1, Math.round(dragPos / list.tabWidth)))
+    }
+
+    // The slot a tab dropped at `x` goes into.
+    function insertionIndexAt(x) {
+        return Math.max(0, Math.min(tabs.length, Math.round((x - list.x + list.contentX) / list.tabWidth)))
     }
 
     function indexAtPosition(x, y) {
@@ -124,26 +134,40 @@ Rectangle {
                     preventStealing: true
                     acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
                     property real pressX: 0
+                    property real pressY: 0
                     property bool didDrag: false
+                    // Off the bar: the rest of the press belongs to the window drag.
+                    property bool detached: false
                     onPressed: function(event) {
                         didDrag = false
+                        detached = false
                         pressX = mapToItem(control, event.x, event.y).x
+                        pressY = mapToItem(control, event.x, event.y).y
                         if (event.button === Qt.LeftButton) {
                             control.dragOffset = event.x
                             control.selected(index)
                         }
                     }
                     onPositionChanged: function(event) {
-                        if (!(pressedButtons & Qt.LeftButton))
+                        if (!(pressedButtons & Qt.LeftButton) || detached)
                             return
-                        var x = mapToItem(control, event.x, event.y).x
-                        if (!didDrag && Math.abs(x - pressX) > 8) {
+                        var position = mapToItem(control, event.x, event.y)
+                        if (!didDrag && (Math.abs(position.x - pressX) > 8 || Math.abs(position.y - pressY) > 8)) {
                             didDrag = true
                             control.dragIndex = index
                             control.dropIndex = index
                         }
+                        if (didDrag && (position.y < -control.detachDistance
+                                        || position.y > control.height + control.detachDistance)) {
+                            didDrag = false
+                            detached = true
+                            control.dragIndex = -1
+                            control.dropIndex = -1
+                            control.detachRequested(index, mapToItem(null, event.x, event.y))
+                            return
+                        }
                         if (didDrag)
-                            control.updateDrag(x)
+                            control.updateDrag(position.x)
                     }
                     onReleased: {
                         if (!didDrag)
@@ -161,7 +185,7 @@ Rectangle {
                         control.dropIndex = -1
                     }
                     onClicked: function(event) {
-                        if (didDrag)
+                        if (didDrag || detached)
                             return
                         if (event.button === Qt.MiddleButton)
                             control.closeRequested(index)

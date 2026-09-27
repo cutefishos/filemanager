@@ -24,6 +24,7 @@ import QtQuick.Window 2.12
 import Qt.labs.platform 1.0 as Platform
 import FishUI 1.0 as FishUI
 import Cutefish.DragDrop 1.0 as DragDrop
+import Cutefish.FileManager 1.0
 
 import "./Controls"
 
@@ -51,8 +52,15 @@ FishUI.Window {
     // The folder the first tab opens, and items in it to select once listed.
     required property string startPath
     property var initialSelection: []
+    // Back and forward history for the first tab, when it was pulled out of another window.
+    property var initialHistory: null
+
+    // What a tab dragged between windows carries.
+    readonly property string tabMimeType: "application/x-cutefish-filemanager-tab"
 
     property QtObject settings: GlobalSettings { }
+
+    Fm { id: _fm }
     property var tabs: []
     property int currentTab: 0
     readonly property var _folderPage: tabs.length ? tabs[currentTab] : null
@@ -64,16 +72,88 @@ FishUI.Window {
         openTabSelecting(path, [])
     }
 
-    function openTabSelecting(path, selection) {
+    function openTabSelecting(path, selection, history, index) {
         var page = folderComponent.createObject(_content, {
             initialUrl: path || "",
-            initialSelection: selection
+            initialSelection: selection,
+            initialHistory: history || null
         })
         if (!page)
             return
-        tabs = tabs.concat([page])
-        currentTab = tabs.length - 1
+        insertPage(page, index === undefined ? tabs.length : index)
+    }
+
+    function insertPage(page, index) {
+        var reordered = tabs.slice()
+        reordered.splice(index, 0, page)
+        tabs = reordered
+        currentTab = index
         syncNavigation()
+    }
+
+    // The first tab as a window pulled out of another hands it on: where it
+    // is, how it got there and what is selected.
+    function tabState() {
+        var page = tabs[0]
+        var state = page.model.tabState()
+        state.url = page.currentUrl
+        return state
+    }
+
+    // Takes the tab of a window pulled out of another, which goes once the
+    // drag it is carried by ends.
+    function adoptTab(window, index) {
+        var state = window.tabState()
+        openTabSelecting(state.url, state.selection, { back: state.back, forward: state.forward }, index)
+        window.close()
+        root.requestActivate()
+    }
+
+    // Opens the tab in a window of its own, which follows the pointer until
+    // it is dropped. Escape puts the tab back. `position` is where the
+    // pointer is in this window.
+    function detachTab(index, position) {
+        if (index < 0 || index >= tabs.length || tabs.length < 2)
+            return
+
+        // Out of the bar but alive, so Escape puts it back as it was.
+        var page = tabs[index]
+        var state = page.model.tabState()
+        var remaining = tabs.slice()
+        remaining.splice(index, 1)
+        // The index first: it only ever moves down, so it stays in range of
+        // both lists and the current page is never undefined in between.
+        currentTab = Math.max(0, currentTab - (index <= currentTab ? 1 : 0))
+        tabs = remaining
+        syncNavigation()
+
+        var window = _fm.openWindow({
+            startPath: page.currentUrl,
+            initialSelection: state.selection,
+            initialHistory: { back: state.back, forward: state.forward },
+            width: root.width,
+            height: root.height,
+            restorationBehavior: FishUI.Window.Disabled
+        })
+        if (!window) {
+            insertPage(page, index)
+            return
+        }
+
+        // The pointer stays over the new window's title bar, as far across
+        // as it is over this one.
+        var offset = Qt.point(Math.min(position.x, window.width - 1), window.header.height / 2)
+        var action = FishUI.TabTransfer.drag(window, offset, tabMimeType)
+
+        // A window that took the tab has closed this one already.
+        if (action === Qt.IgnoreAction && window.visible) {
+            window.close()
+            insertPage(page, index)
+        } else {
+            page.destroy()
+            if (window.visible)
+                window.requestActivate()
+        }
     }
 
     function closeTab(index) {
@@ -196,7 +276,7 @@ FishUI.Window {
     }
 
     onCurrentTabChanged: syncNavigation()
-    Component.onCompleted: openTabSelecting(startPath, initialSelection)
+    Component.onCompleted: openTabSelecting(startPath, initialSelection, initialHistory)
 
     Timer {
         id: springLoadTimer
@@ -391,6 +471,26 @@ FishUI.Window {
         }
     }
 
+    // Takes a tab dragged out of another window over the title bar or the tabs.
+    DropArea {
+        parent: root.contentItem
+        width: parent.width
+        height: root.headerInset + tabBar.height
+        z: 10000
+        keys: [root.tabMimeType]
+
+        onEntered: function(drag) {
+            drag.accepted = drag.source && drag.source !== root
+                    && drag.source.tabMimeType === root.tabMimeType
+        }
+        onDropped: function(drop) {
+            var index = tabBar.visible ? tabBar.insertionIndexAt(mapToItem(tabBar, drop.x, drop.y).x)
+                                       : root.tabs.length
+            root.adoptTab(drop.source, index)
+            drop.accept(Qt.MoveAction)
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
@@ -438,6 +538,11 @@ FishUI.Window {
                 onNewRequested: root.openTab(_folderPage.currentUrl)
                 onDuplicateRequested: function(path) { root.openTab(path) }
                 onMoveRequested: function(from, to) { root.moveTab(from, to) }
+                // Later, not from inside the tab's own handler: taking the tab
+                // out destroys the delegate that is running it.
+                onDetachRequested: function(index, position) {
+                    Qt.callLater(root.detachTab, index, position)
+                }
             }
 
             DragDrop.DropArea {

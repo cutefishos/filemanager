@@ -21,6 +21,9 @@
 #define FM_H
 
 #include <QObject>
+#include <QVariantMap>
+
+class QQuickWindow;
 
 class Fm : public QObject
 {
@@ -30,6 +33,10 @@ public:
     explicit Fm(QObject *parent = nullptr);
 
     Q_INVOKABLE QString rootPath();
+
+    // A folder window of this engine's application, with `properties` as its
+    // initial properties, shown at once.
+    Q_INVOKABLE QQuickWindow *openWindow(const QVariantMap &properties);
     Q_INVOKABLE static void emptyTrash();
     static bool isFixedFolder(const QUrl &folderUrl);
 };
