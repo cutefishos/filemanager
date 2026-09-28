@@ -346,26 +346,19 @@ Rectangle {
                 ToolButton {
                     id: closeButton
                     objectName: "tabCloseButton"
-                    width: 20
-                    height: 20
+                    width: 16
+                    height: 16
+                    padding: 0
                     anchors.right: parent.right
-                    anchors.rightMargin: 6
+                    anchors.rightMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
                     visible: control.dragIndex < 0
                     opacity: tab.selected || mouse.containsMouse || hovered ? 1 : 0
                     Accessible.name: qsTr("Close Tab")
                     onClicked: control.closeRequested(index)
-                    contentItem: Item {
-                        // The window buttons' artwork, at its own 24px grid.
-                        Image {
-                            anchors.centerIn: parent
-                            width: 24
-                            height: 24
-                            sourceSize: Qt.size(24, 24)
-                            source: "qrc:/fishui/kit/images/" + (FishUI.Theme.darkMode ? "dark/" : "light/") + "close.svg"
-                            smooth: false
-                            antialiasing: true
-                        }
+                    contentItem: FishUI.Icon {
+                        name: "close"
+                        opacity: closeButton.hovered ? 1 : 0.6
                     }
                     background: Rectangle {
                         radius: height / 2
