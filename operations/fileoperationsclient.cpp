@@ -318,8 +318,9 @@ OperationTask *FileOperationsClient::attachRemoteTask(const QString &path)
     if (!snapshot.isValid())
         return nullptr;
 
-    auto *task = new RemoteOperationTask(path, snapshot.value(), this);
+    auto *task = deleteWhenFinished(new RemoteOperationTask(path, snapshot.value(), this));
     m_remoteTasks.insert(path, task);
+    connect(task, &QObject::destroyed, this, [this, path] { m_remoteTasks.remove(path); });
 
     // Another live process asked for this task and presents it itself. A task
     // whose submitter is gone is adopted, so it does not run unseen.
@@ -354,6 +355,15 @@ void FileOperationsClient::retire(OperationTask *task)
         emit activeTaskCountChanged(m_activeTasks.size());
 }
 
+// Deferred, so every handler of the result, and whatever was queued before it,
+// still sees the task.
+
+OperationTask *FileOperationsClient::deleteWhenFinished(OperationTask *task)
+{
+    connect(task, &OperationTask::result, task, &QObject::deleteLater);
+    return task;
+}
+
 void FileOperationsClient::remoteTaskAdded(const QString &path)
 {
     attachRemoteTask(path);
@@ -380,7 +390,7 @@ OperationTask *FileOperationsClient::submit(const Cutefish::IO::TaskRequest &req
 
     const bool usingRemoteTask = task != nullptr;
     if (!task)
-        task = new LocalOperationTask(request, this);
+        task = deleteWhenFinished(new LocalOperationTask(request, this));
 
     if (!usingRemoteTask)
         announce(task);
@@ -466,7 +476,7 @@ OperationTask *FileOperationsClient::compress(const QStringList &sources, const 
     OperationTask *task = reply.isValid() ? attachRemoteTask(reply.value().path()) : nullptr;
     const bool usingRemoteTask = task != nullptr;
     if (!task)
-        task = new LocalArchiveOperationTask(0, sources, outputPath, this);
+        task = deleteWhenFinished(new LocalArchiveOperationTask(0, sources, outputPath, this));
     if (!usingRemoteTask)
         announce(task);
     return task;
@@ -484,7 +494,7 @@ OperationTask *FileOperationsClient::extract(const QString &source, const QStrin
     OperationTask *task = reply.isValid() ? attachRemoteTask(reply.value().path()) : nullptr;
     const bool usingRemoteTask = task != nullptr;
     if (!task)
-        task = new LocalArchiveOperationTask(1, sources, outputPath, this);
+        task = deleteWhenFinished(new LocalArchiveOperationTask(1, sources, outputPath, this));
     if (!usingRemoteTask)
         announce(task);
     return task;
@@ -515,7 +525,7 @@ OperationTask *FileOperationsClient::history(const char *method,
     Cutefish::IO::Task *task = (Cutefish::IO::TaskController::instance()->*local)();
     if (!task)
         return nullptr;
-    auto *operation = new LocalOperationTask(task, this);
+    auto *operation = deleteWhenFinished(new LocalOperationTask(task, this));
     announce(operation);
     return operation;
 }

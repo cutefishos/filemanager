@@ -17,6 +17,10 @@ class FileOperationsClient : public QObject
 public:
     static FileOperationsClient *instance();
 
+    /**
+     * Every task returned below or announced through taskAdded is deleted once
+     * its result has been emitted; keep a QPointer to use one after that.
+     */
     OperationTask *submit(const Cutefish::IO::TaskRequest &request);
     OperationTask *copy(const QList<QUrl> &sources, const QUrl &destination);
     OperationTask *move(const QList<QUrl> &sources, const QUrl &destination);
@@ -59,6 +63,7 @@ private:
     void queryRemoteHistory();
     void announce(OperationTask *task);
     void retire(OperationTask *task);
+    OperationTask *deleteWhenFinished(OperationTask *task);
 
     QHash<QString, QPointer<OperationTask>> m_remoteTasks;
     QSet<OperationTask *> m_activeTasks;

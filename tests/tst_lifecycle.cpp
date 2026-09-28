@@ -126,13 +126,13 @@ int runningTaskKeepsApplication(Application &app, const QString &folder)
         }
 
         // Stops on the existing target and waits for an answer.
-        OperationTask *task = FileOperationsClient::instance()->copy(
+        QPointer<OperationTask> task = FileOperationsClient::instance()->copy(
                 {QUrl::fromLocalFile(folder + "/photo.svg")},
                 QUrl::fromLocalFile(folder + "/target"));
         windows.first()->close();
 
         QTimer::singleShot(500, &app, [&, task] {
-            if (!browserWindows().isEmpty() || task->isFinished()) {
+            if (!browserWindows().isEmpty() || !task || task->isFinished()) {
                 app.exit(3);
                 return;
             }

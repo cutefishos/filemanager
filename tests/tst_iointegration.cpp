@@ -550,7 +550,7 @@ private slots:
         target.write("<svg>old</svg>");
         target.close();
 
-        auto *task = FileOperationsClient::instance()->copy(
+        QPointer<OperationTask> task = FileOperationsClient::instance()->copy(
                 {QUrl::fromLocalFile(source.fileName())},
                 QUrl::fromLocalFile(dir.filePath("target")));
         QQmlEngine engine;
@@ -558,7 +558,7 @@ private slots:
         QQmlComponent component(&engine, QUrl("qrc:/qml/Dialogs/IoTaskDialog.qml"));
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
         QScopedPointer<QObject> dialog(component.createWithInitialProperties(
-                {{"ioTask", QVariant::fromValue<QObject *>(task)}}));
+                {{"ioTask", QVariant::fromValue<QObject *>(task.data())}}));
         QVERIFY2(dialog, qPrintable(component.errorString()));
 
         QTRY_VERIFY(dialog->property("conflict").toBool());
@@ -571,9 +571,9 @@ private slots:
         auto *replace = conflictDialog->findChild<QObject *>("conflictReplaceButton");
         QVERIFY(replace);
         QVERIFY(QMetaObject::invokeMethod(replace, "clicked"));
-        QTRY_VERIFY(task->isFinished());
+        QTRY_VERIFY(!task);
         QVERIFY(!conflictDialog->isVisible());
-        QCOMPARE(task->error(), 0);
+        QVERIFY(dialog->property("errorMessage").toString().isEmpty());
         QFile replaced(dir.filePath("target/photo.svg"));
         QVERIFY(replaced.open(QIODevice::ReadOnly));
         QCOMPARE(replaced.readAll(), QByteArray("<svg/>"));
@@ -591,16 +591,36 @@ private slots:
                                         [&] { countWhenAdded = client->activeTaskCount(); });
         const auto disconnect = qScopeGuard([&] { QObject::disconnect(connection); });
 
-        auto *task = client->mkdir(QUrl::fromLocalFile(dir.filePath("created")));
+        QPointer<OperationTask> task = client->mkdir(QUrl::fromLocalFile(dir.filePath("created")));
         QVERIFY(task);
         QCOMPARE(added.size(), 1);
         QCOMPARE(countWhenAdded, 1);
         QCOMPARE(client->activeTaskCount(), 1);
-        QTRY_VERIFY(task->isFinished());
+        QTRY_VERIFY(!task);
         QCOMPARE(client->activeTaskCount(), 0);
         QCOMPARE(changes.size(), 2);
         QCOMPARE(changes.last().first().toInt(), 0);
         QVERIFY(QFileInfo(dir.filePath("created")).isDir());
+    }
+
+    void finishedTasksAreDeleted()
+    {
+        QTemporaryDir dir;
+        QFile source(dir.filePath("notes.txt"));
+        QVERIFY(source.open(QIODevice::WriteOnly));
+        source.write("notes");
+        source.close();
+
+        auto *client = FileOperationsClient::instance();
+        QPointer<OperationTask> created = client->mkdir(QUrl::fromLocalFile(dir.filePath("created")));
+        QPointer<OperationTask> compressed = client->compress({source.fileName()},
+                                                              dir.filePath("notes.zip"));
+        QVERIFY(created);
+        QVERIFY(compressed);
+        QTRY_VERIFY(!created);
+        QTRY_VERIFY(!compressed);
+        QVERIFY(QFileInfo(dir.filePath("created")).isDir());
+        QVERIFY(QFileInfo(dir.filePath("notes.zip")).isFile());
     }
 
     void closingProgressDialogDoesNotCancelTask()

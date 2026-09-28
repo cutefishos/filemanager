@@ -393,11 +393,13 @@ private slots:
         WindowManager manager(&engine);
         QTemporaryDir dir;
 
-        OperationTask *task = FileOperationsClient::instance()->mkdir(
+        QPointer<OperationTask> task = FileOperationsClient::instance()->mkdir(
                 QUrl::fromLocalFile(dir.filePath("created")));
+        QSignalSpy finished(task.data(), &OperationTask::result);
         QPointer<QQuickWindow> window = CutefishFM::Dialogs::ioTask(&manager, task);
         QVERIFY(window);
-        QTRY_VERIFY(task->isFinished());
+        QTRY_COMPARE(finished.size(), 1);
+        QTRY_VERIFY(!task);
         QTRY_VERIFY(!window);
         QCOMPARE(manager.windowCount(), 0);
     }
@@ -408,12 +410,13 @@ private slots:
         WindowManager manager(&engine);
         QTemporaryDir dir;
 
-        OperationTask *task = FileOperationsClient::instance()->mkdir(
+        QPointer<OperationTask> task = FileOperationsClient::instance()->mkdir(
                 QUrl::fromLocalFile(dir.filePath("missing/created")));
         QPointer<QQuickWindow> window = CutefishFM::Dialogs::ioTask(&manager, task);
         QVERIFY(window);
-        QTRY_VERIFY(task->isFinished());
-        QVERIFY(task->error());
+        // The error stays on screen after the finished task is deleted.
+        QTRY_VERIFY(!task);
+        QVERIFY(!window->property("errorMessage").toString().isEmpty());
         QTRY_VERIFY(window->isVisible());
         QTest::qWait(50);
         QVERIFY(window);
@@ -464,9 +467,13 @@ private slots:
             file.write("<svg/>");
         }
 
-        OperationTask *task = FileOperationsClient::instance()->copy(
+        QPointer<OperationTask> task = FileOperationsClient::instance()->copy(
                 {QUrl::fromLocalFile(dir.filePath("photo.svg"))},
                 QUrl::fromLocalFile(dir.filePath("target")));
+        bool canceled = true;
+        QObject receiver;
+        connect(task.data(), &OperationTask::result, &receiver,
+                [&canceled](OperationTask *finished) { canceled = finished->wasCanceled(); });
         {
             QQmlEngine engine;
             WindowManager manager(&engine);
@@ -479,11 +486,12 @@ private slots:
             manager.destroyAll();
         }
         QTest::qWait(100);
+        QVERIFY(task);
         QVERIFY(!task->isFinished());
 
         task->resolveConflict(int(Cutefish::IO::ConflictPolicy::Skip));
-        QTRY_VERIFY(task->isFinished());
-        QVERIFY(!task->wasCanceled());
+        QTRY_VERIFY(!task);
+        QVERIFY(!canceled);
     }
 
     void propertiesOwnTheirDetails()

@@ -4,6 +4,8 @@
 #include <QDBusContext>
 #include <QDBusObjectPath>
 
+class QDBusServiceWatcher;
+
 namespace Cutefish::IO {
 class Task;
 }
@@ -34,7 +36,11 @@ signals:
 private:
     QString caller() const;
     QDBusObjectPath publish(Cutefish::IO::Task *task);
+    void watchOwner(const QString &owner);
+    void ownerLost(const QString &owner);
+    void retire(const QString &path, QObject *task);
 
     quint64 m_nextTaskId = 1;
     QStringList m_taskPaths;
+    QDBusServiceWatcher *m_owners;
 };

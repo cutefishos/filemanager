@@ -5,17 +5,25 @@
 
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QDBusServiceWatcher>
+#include <QTimer>
 #include <QUrl>
 
 #include <task.h>
 
 FileOperationsService::FileOperationsService(QObject *parent)
     : QObject(parent)
+    , m_owners(new QDBusServiceWatcher(this))
 {
     auto *controller = Cutefish::IO::TaskController::instance();
     connect(controller, &Cutefish::IO::TaskController::historyChanged, this, [this, controller] {
         emit HistoryChanged(controller->isUndoAvailable(), controller->isRedoAvailable());
     });
+
+    m_owners->setConnection(QDBusConnection::sessionBus());
+    m_owners->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
+    connect(m_owners, &QDBusServiceWatcher::serviceUnregistered, this,
+            &FileOperationsService::ownerLost);
 }
 
 QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStringList &sources,
@@ -37,7 +45,7 @@ QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStrin
 
     m_taskPaths.append(path);
     connect(task, &DaemonArchiveTask::Finished, this,
-            [this, path] { m_taskPaths.removeAll(path); });
+            [this, path, task] { retire(path, task); });
     emit TaskAdded(path);
     return QDBusObjectPath(path);
 }
@@ -49,6 +57,40 @@ QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStrin
 QString FileOperationsService::caller() const
 {
     return calledFromDBus() ? message().service() : QString();
+}
+
+void FileOperationsService::watchOwner(const QString &owner)
+{
+    if (!owner.isEmpty())
+        m_owners->addWatchedService(owner);
+}
+
+// Live clients leave a task to its submitter, so a submitter that leaves the bus
+// mid-question would keep the worker waiting for good; stop the task instead.
+
+void FileOperationsService::ownerLost(const QString &owner)
+{
+    m_owners->removeWatchedService(owner);
+    const auto tasks = findChildren<DaemonTask *>(QString(), Qt::FindDirectChildrenOnly);
+    for (auto *task : tasks) {
+        const QVariantMap snapshot = task->GetSnapshot();
+        if (snapshot.value(QStringLiteral("owner")).toString() == owner
+            && snapshot.value(QStringLiteral("waitingForConflict")).toBool()) {
+            task->Cancel();
+        }
+    }
+}
+
+// A client reads the snapshot of a task right after it is announced and runs the
+// operation itself if that fails, so a finished task stays on the bus a while.
+
+void FileOperationsService::retire(const QString &path, QObject *task)
+{
+    m_taskPaths.removeAll(path);
+    QTimer::singleShot(10000, task, [path, task] {
+        QDBusConnection::sessionBus().unregisterObject(path);
+        task->deleteLater();
+    });
 }
 
 QStringList FileOperationsService::TaskPaths() const
@@ -93,7 +135,8 @@ QDBusObjectPath FileOperationsService::publish(Cutefish::IO::Task *history)
     }
 
     m_taskPaths.append(path);
-    connect(task, &DaemonTask::Finished, this, [this, path] { m_taskPaths.removeAll(path); });
+    watchOwner(caller());
+    connect(task, &DaemonTask::Finished, this, [this, path, task] { retire(path, task); });
     emit TaskAdded(path);
     return QDBusObjectPath(path);
 }
@@ -130,7 +173,8 @@ QDBusObjectPath FileOperationsService::Submit(int operation, const QStringList &
     }
 
     m_taskPaths.append(path);
-    connect(task, &DaemonTask::Finished, this, [this, path] { m_taskPaths.removeAll(path); });
+    watchOwner(caller());
+    connect(task, &DaemonTask::Finished, this, [this, path, task] { retire(path, task); });
     emit TaskAdded(path);
     return QDBusObjectPath(path);
 }
