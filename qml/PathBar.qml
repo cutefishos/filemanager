@@ -102,8 +102,9 @@ Item {
         layoutDirection: Qt.LeftToRight
         clip: true
 
-        leftMargin: 3
-        rightMargin: 3
+        // With the crumb's own half-largeSpacing, text starts where the editor's does.
+        leftMargin: FishUI.Units.smallSpacing
+        rightMargin: FishUI.Units.smallSpacing
         spacing: 10 + FishUI.Units.smallSpacing
 
         onWidthChanged: Qt.callLater(function() { _pathView.positionViewAtEnd() })
