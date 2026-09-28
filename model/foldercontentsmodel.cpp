@@ -268,14 +268,16 @@ void FolderContentsModel::prepare()
 
     auto *watcher = new QFutureWatcher<std::shared_ptr<Prepared>>(this);
     connect(watcher, &QFutureWatcher<std::shared_ptr<Prepared>>::finished, this,
-            [this, watcher, cancelled] {
+            [this, watcher, cancelled, offered = m_renames.keys()] {
         watcher->deleteLater();
 
         if (cancelled->load())
             return;
 
         m_prepared = watcher->result();
-        for (const QUrl &from : std::as_const(m_prepared->consumedRenames))
+        // A rename this listing did not match had its chance; only ones
+        // expected since it started stay.
+        for (const QUrl &from : offered)
             m_renames.remove(from);
         m_updateOffset = m_prepared->changed.isEmpty() ? m_prepared->retained.size() : 0;
         m_insertOffset = 0;

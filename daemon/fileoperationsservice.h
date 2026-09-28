@@ -10,6 +10,8 @@ namespace Cutefish::IO {
 class Task;
 }
 
+class DaemonTask;
+
 class FileOperationsService : public QObject, protected QDBusContext
 {
     Q_OBJECT
@@ -25,6 +27,10 @@ public slots:
                                   const QString &outputPath);
     QDBusObjectPath Undo();
     QDBusObjectPath Redo();
+    // Takes over a task whose submitter left the bus, so its conflicts are
+    // answered by the caller instead of cancelling it. False when the task is
+    // unknown or still has its owner.
+    bool Adopt(const QDBusObjectPath &path);
     bool CanUndo() const;
     bool CanRedo() const;
     QStringList TaskPaths() const;
@@ -38,7 +44,9 @@ private:
     QDBusObjectPath publish(Cutefish::IO::Task *task);
     void watchOwner(const QString &owner);
     void ownerLost(const QString &owner);
-    void retire(const QString &path, QObject *task);
+    void retire(const QString &path, DaemonTask *task);
+    void retireArchive(const QString &path, QObject *task);
+    void announce(const QString &path, DaemonTask *task);
 
     quint64 m_nextTaskId = 1;
     QStringList m_taskPaths;

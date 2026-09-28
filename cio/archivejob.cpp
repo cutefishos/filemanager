@@ -120,7 +120,13 @@ void ArchiveJob::emitProgress(quint64 processed, quint64 total)
     }
 
     const double ratio = static_cast<double>(processed) / static_cast<double>(total);
-    emit progressChanged(qBound(0, static_cast<int>(ratio * 100.0), 100));
+    const int percent = qBound(0, static_cast<int>(ratio * 100.0), 100);
+    // Extraction reports every 64 KiB, and each report becomes a D-Bus
+    // broadcast in the daemon; only a changed percentage is worth one.
+    if (percent == m_lastPercent)
+        return;
+    m_lastPercent = percent;
+    emit progressChanged(percent);
 }
 
 bool ArchiveJob::collectCompressionEntries(const QString &sourcePath,

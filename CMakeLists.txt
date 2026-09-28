@@ -304,9 +304,13 @@ if(FILEMANAGER_BUILD_TESTS)
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-grid)
     add_test(NAME lifecycle-activation-folders
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-folders)
+    add_test(NAME lifecycle-remote-task
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE}
+                     --config-file=${CMAKE_CURRENT_SOURCE_DIR}/tests/dbus-session.conf
+                     -- $<TARGET_FILE:tst_lifecycle> remote-task)
     set_tests_properties(lifecycle lifecycle-task lifecycle-emptytrash
                          lifecycle-activation-list lifecycle-activation-grid
-                         lifecycle-activation-folders PROPERTIES
+                         lifecycle-activation-folders lifecycle-remote-task PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 
     find_program(DBUS_DAEMON_EXECUTABLE dbus-daemon REQUIRED)
@@ -323,8 +327,13 @@ if(FILEMANAGER_BUILD_TESTS)
     add_executable(tst_fileoperationsdaemon tests/tst_fileoperationsdaemon.cpp)
     target_link_libraries(tst_fileoperationsdaemon PRIVATE Qt6::Core Qt6::DBus Qt6::Test)
     add_dependencies(tst_fileoperationsdaemon cutefish-filemanager-daemon)
+    add_dependencies(tst_lifecycle cutefish-filemanager-daemon)
+    # A bus without service directories, so the installed daemon cannot be
+    # activated before the build-tree one owns the name.
     add_test(NAME fileoperationsdaemon
-             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_fileoperationsdaemon>)
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE}
+                     --config-file=${CMAKE_CURRENT_SOURCE_DIR}/tests/dbus-session.conf
+                     -- $<TARGET_FILE:tst_fileoperationsdaemon>)
     set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs gridresize windowmanager
                  lifecycle lifecycle-task lifecycle-emptytrash
                  lifecycle-activation-list lifecycle-activation-grid lifecycle-activation-folders

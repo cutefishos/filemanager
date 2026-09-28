@@ -70,6 +70,7 @@ private:
     QStringList m_inputs;
     QString m_outputPath;
     std::atomic_bool m_cancelRequested;
+    int m_lastPercent = -1;
 };
 
 #endif // ARCHIVEJOB_H

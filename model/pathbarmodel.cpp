@@ -29,6 +29,7 @@ PathBarModel::PathBarModel(QObject *parent)
 
 PathBarModel::~PathBarModel()
 {
+    qDeleteAll(m_pathList);
 }
 
 QString PathBarModel::url() const

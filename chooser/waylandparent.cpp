@@ -96,11 +96,19 @@ void applyWaylandParent(QWindow *window, const QString &parentWindow, bool modal
 
     // The parent relation stacks the dialog; modality is what blocks input to
     // the application behind it.
+    xdg_dialog_v1 *dialog = nullptr;
     if (modal && globals->dialogManager) {
-        xdg_dialog_v1 *dialog = xdg_wm_dialog_v1_get_xdg_dialog(globals->dialogManager, toplevel);
+        dialog = xdg_wm_dialog_v1_get_xdg_dialog(globals->dialogManager, toplevel);
         xdg_dialog_v1_set_modal(dialog);
     }
     wl_display_flush(application->display());
+
+    // Both go with the window; the compositor keeps them until then.
+    QObject::connect(window, &QObject::destroyed, window, [imported, dialog] {
+        if (dialog)
+            xdg_dialog_v1_destroy(dialog);
+        zxdg_imported_v2_destroy(imported);
+    });
 }
 
 #else

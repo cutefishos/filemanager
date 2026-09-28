@@ -4,6 +4,7 @@
 #include "daemonarchivetask.h"
 
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
 #include <QDBusMessage>
 #include <QDBusServiceWatcher>
 #include <QTimer>
@@ -45,7 +46,7 @@ QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStrin
 
     m_taskPaths.append(path);
     connect(task, &DaemonArchiveTask::Finished, this,
-            [this, path, task] { retire(path, task); });
+            [this, path, task] { retireArchive(path, task); });
     emit TaskAdded(path);
     return QDBusObjectPath(path);
 }
@@ -73,6 +74,11 @@ void FileOperationsService::ownerLost(const QString &owner)
     m_owners->removeWatchedService(owner);
     const auto tasks = findChildren<DaemonTask *>(QString(), Qt::FindDirectChildrenOnly);
     for (auto *task : tasks) {
+        if (task->owner() == owner)
+            task->orphan();
+    }
+    const auto archives = findChildren<DaemonArchiveTask *>(QString(), Qt::FindDirectChildrenOnly);
+    for (auto *task : archives) {
         const QVariantMap snapshot = task->GetSnapshot();
         if (snapshot.value(QStringLiteral("owner")).toString() == owner
             && snapshot.value(QStringLiteral("waitingForConflict")).toBool()) {
@@ -81,16 +87,66 @@ void FileOperationsService::ownerLost(const QString &owner)
     }
 }
 
-// A client reads the snapshot of a task right after it is announced and runs the
-// operation itself if that fails, so a finished task stays on the bus a while.
+bool FileOperationsService::Adopt(const QDBusObjectPath &path)
+{
+    const QString adopter = caller();
+    if (adopter.isEmpty())
+        return false;
+    const auto tasks = findChildren<DaemonTask *>(QString(), Qt::FindDirectChildrenOnly);
+    for (auto *task : tasks) {
+        if (task->objectPath() != path.path())
+            continue;
+        if (!task->owner().isEmpty() || task->isFinished())
+            return false;
+        task->setOwner(adopter);
+        watchOwner(adopter);
+        return true;
+    }
+    return false;
+}
 
-void FileOperationsService::retire(const QString &path, QObject *task)
+// A client reads the snapshot of a task right after it is announced and runs the
+// operation itself if that fails, so a finished task stays on the bus until its
+// outcome was read, and a while after that for late readers. One nobody reads -
+// its submitter gone - still goes eventually.
+
+void FileOperationsService::retire(const QString &path, DaemonTask *task)
+{
+    m_taskPaths.removeAll(path);
+    const auto unregister = [path, task] {
+        QDBusConnection::sessionBus().unregisterObject(path);
+        task->deleteLater();
+    };
+    const auto linger = [task, unregister] { QTimer::singleShot(10000, task, unregister); };
+    if (task->outcomeRead() || task->owner().isEmpty()) {
+        linger();
+        return;
+    }
+    task->setOutcomeReadCallback(linger);
+    QTimer::singleShot(300000, task, unregister);
+}
+
+void FileOperationsService::retireArchive(const QString &path, QObject *task)
 {
     m_taskPaths.removeAll(path);
     QTimer::singleShot(10000, task, [path, task] {
         QDBusConnection::sessionBus().unregisterObject(path);
         task->deleteLater();
     });
+}
+
+void FileOperationsService::announce(const QString &path, DaemonTask *task)
+{
+    m_taskPaths.append(path);
+    watchOwner(task->owner());
+    connect(task, &DaemonTask::Finished, this, [this, path, task] { retire(path, task); });
+    emit TaskAdded(path);
+    // A submitter that left between its call and this dispatch is never seen
+    // leaving by the watcher.
+    if (!task->owner().isEmpty()
+        && !QDBusConnection::sessionBus().interface()->isServiceRegistered(task->owner())) {
+        ownerLost(task->owner());
+    }
 }
 
 QStringList FileOperationsService::TaskPaths() const
@@ -134,10 +190,7 @@ QDBusObjectPath FileOperationsService::publish(Cutefish::IO::Task *history)
         return {};
     }
 
-    m_taskPaths.append(path);
-    watchOwner(caller());
-    connect(task, &DaemonTask::Finished, this, [this, path, task] { retire(path, task); });
-    emit TaskAdded(path);
+    announce(path, task);
     return QDBusObjectPath(path);
 }
 
@@ -172,9 +225,6 @@ QDBusObjectPath FileOperationsService::Submit(int operation, const QStringList &
         return {};
     }
 
-    m_taskPaths.append(path);
-    watchOwner(caller());
-    connect(task, &DaemonTask::Finished, this, [this, path, task] { retire(path, task); });
-    emit TaskAdded(path);
+    announce(path, task);
     return QDBusObjectPath(path);
 }

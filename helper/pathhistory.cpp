@@ -28,7 +28,12 @@ PathHistory::PathHistory(QObject *parent)
 
 void PathHistory::append(const QUrl &path)
 {
+    // A new destination ends the forward branch, as in a browser; the back
+    // list is bounded so a long-lived tab does not keep every step.
+    m_postHistory.clear();
     m_prevHistory.append(path);
+    while (m_prevHistory.size() > kMaxEntries)
+        m_prevHistory.removeFirst();
 }
 
 void PathHistory::replaceCurrent(const QUrl &path)

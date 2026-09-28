@@ -46,7 +46,7 @@ MimeAppManager *MimeAppManager::self()
 
 MimeAppManager::MimeAppManager(QObject *parent)
     : QObject(parent)
-    , m_fileSystemWatcher(new QFileSystemWatcher)
+    , m_fileSystemWatcher(new QFileSystemWatcher(this))
     , m_updateTimer(new QTimer(this))
 {
     m_updateTimer->setInterval(100);

@@ -54,6 +54,7 @@ public:
     void restore(const QList<QUrl> &backward, const QList<QUrl> &forward);
 
 private:
+    static constexpr int kMaxEntries = 200;
     QVector<QUrl> m_prevHistory;
     QVector<QUrl> m_postHistory;
 };

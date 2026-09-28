@@ -1,5 +1,7 @@
 #include "daemontask.h"
 
+#include <QTimer>
+
 namespace {
 QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
 {
@@ -53,6 +55,11 @@ void DaemonTask::initialize()
     });
     connect(m_task, &Cutefish::IO::Task::conflictRequested, this,
             [this](const QString &source, const QString &destination) {
+                // Nobody is left to answer: a worker must not wait for good.
+                if (owner().isEmpty()) {
+                    m_task->cancel();
+                    return;
+                }
                 m_snapshot.insert(QStringLiteral("waitingForConflict"), true);
                 m_snapshot.insert(QStringLiteral("conflictSource"), source);
                 m_snapshot.insert(QStringLiteral("conflictPath"), destination);
@@ -69,6 +76,7 @@ void DaemonTask::initialize()
         m_snapshot.insert(QStringLiteral("canceled"), task->wasCanceled());
         m_snapshot.insert(QStringLiteral("errorCode"), error.code);
         m_snapshot.insert(QStringLiteral("errorString"), task->errorString());
+        m_finished = true;
         emit Finished(m_snapshot);
         m_task = nullptr;
     });
@@ -84,8 +92,40 @@ void DaemonTask::setOwner(const QString &owner)
     m_snapshot.insert(QStringLiteral("owner"), owner);
 }
 
+QString DaemonTask::owner() const
+{
+    return m_snapshot.value(QStringLiteral("owner")).toString();
+}
+
+void DaemonTask::orphan()
+{
+    setOwner(QString());
+    if (m_task && m_snapshot.value(QStringLiteral("waitingForConflict")).toBool())
+        m_task->cancel();
+}
+
+bool DaemonTask::isFinished() const
+{
+    return m_finished;
+}
+
+bool DaemonTask::outcomeRead() const
+{
+    return m_outcomeRead;
+}
+
+void DaemonTask::setOutcomeReadCallback(std::function<void()> callback)
+{
+    m_outcomeReadCallback = std::move(callback);
+}
+
 QVariantMap DaemonTask::GetSnapshot() const
 {
+    if (m_finished && !m_outcomeRead) {
+        m_outcomeRead = true;
+        if (m_outcomeReadCallback)
+            QTimer::singleShot(0, this, m_outcomeReadCallback);
+    }
     return m_snapshot;
 }
 

@@ -6,6 +6,10 @@
 #include "windowmanager.h"
 
 #include <QDir>
+#include <QProcess>
+#include <QPointer>
+#include <QDeadlineTimer>
+#include <QDBusConnectionInterface>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
@@ -18,6 +22,13 @@
 #include <task.h>
 
 namespace {
+
+// Sanitizer builds run several times slower; the watchdogs scale with them.
+#if defined(__SANITIZE_ADDRESS__) || (defined(__has_feature) && __has_feature(address_sanitizer))
+constexpr int kTimeScale = 5;
+#else
+constexpr int kTimeScale = 1;
+#endif
 QList<QWindow *> browserWindows()
 {
     QList<QWindow *> windows;
@@ -73,7 +84,7 @@ int activatedRequest(Application &app, const QString &folder, bool showFolders)
         QDBusConnection::sessionBus().asyncCall(message);
         poll.start();
     });
-    QTimer::singleShot(5000, &app, [&] { app.exit(4); });
+    QTimer::singleShot(5000 * kTimeScale, &app, [&] { app.exit(4); });
     const int result = app.run();
     return selected ? result : 5;
 }
@@ -100,12 +111,58 @@ int closingWindowsQuits(Application &app, const QString &folder)
             remaining.first()->close();
         });
     });
-    QTimer::singleShot(5000, &app, [&] { app.exit(4); });
+    QTimer::singleShot(5000 * kTimeScale, &app, [&] { app.exit(4); });
     const int result = app.exec();
     return closedLastWindow ? result : 5;
 }
 
 // A running operation outlives the last window: the application waits for it.
+// With the daemon on the bus, a task runs there and is presented here by a
+// remote task object, which must go once its result is out.
+int remoteTaskIsReleased(Application &app, const QString &folder)
+{
+    QProcess daemon;
+    daemon.start(QCoreApplication::applicationDirPath()
+                         + QStringLiteral("/cutefish-filemanager-daemon"));
+    if (!daemon.waitForStarted())
+        return 6;
+    QFile file(folder + "/photo.svg");
+    if (!file.open(QIODevice::WriteOnly))
+        return 6;
+    file.write("<svg/>");
+    file.close();
+    QDir(folder).mkdir("target");
+
+    int outcome = 5;
+    QTimer::singleShot(0, &app, [&] {
+        const auto *bus = QDBusConnection::sessionBus().interface();
+        QDeadlineTimer deadline(3000 * kTimeScale);
+        while (!bus->isServiceRegistered(QStringLiteral("com.cutefish.FileOperations"))
+               && !deadline.hasExpired()) {
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
+        }
+        QPointer<OperationTask> task = FileOperationsClient::instance()->copy(
+                {QUrl::fromLocalFile(folder + "/photo.svg")},
+                QUrl::fromLocalFile(folder + "/target"));
+        if (!task || !QByteArray(task->metaObject()->className()).contains("Remote")) {
+            outcome = 3;
+            app.exit(3);
+            return;
+        }
+        QObject::connect(task, &OperationTask::result, &app, [&, task] {
+            QTimer::singleShot(100, &app, [&, task] {
+                outcome = task ? 7 : (FileOperationsClient::instance()->activeTaskCount() == 0 ? 0 : 8);
+                app.exit(outcome);
+            });
+        });
+    });
+    QTimer::singleShot(5000 * kTimeScale, &app, [&] { app.exit(4); });
+    const int result = app.exec();
+    daemon.terminate();
+    daemon.waitForFinished(3000);
+    return outcome == 0 ? result : outcome;
+}
+
 int runningTaskKeepsApplication(Application &app, const QString &folder)
 {
     QDir(folder).mkdir("target");
@@ -131,7 +188,7 @@ int runningTaskKeepsApplication(Application &app, const QString &folder)
                 QUrl::fromLocalFile(folder + "/target"));
         windows.first()->close();
 
-        QTimer::singleShot(500, &app, [&, task] {
+        QTimer::singleShot(500 * kTimeScale, &app, [&, task] {
             if (!browserWindows().isEmpty() || !task || task->isFinished()) {
                 app.exit(3);
                 return;
@@ -145,7 +202,7 @@ int runningTaskKeepsApplication(Application &app, const QString &folder)
             task->resolveConflict(int(Cutefish::IO::ConflictPolicy::Skip));
         });
     });
-    QTimer::singleShot(5000, &app, [&] { app.exit(4); });
+    QTimer::singleShot(5000 * kTimeScale, &app, [&] { app.exit(4); });
     const int result = app.exec();
     return resolved ? result : 5;
 }
@@ -166,7 +223,7 @@ int rejectedEmptyTrashQuits(Application &app)
             windows.first()->close();
         });
     });
-    QTimer::singleShot(5000, &app, [&] { app.exit(4); });
+    QTimer::singleShot(5000 * kTimeScale, &app, [&] { app.exit(4); });
     const int result = app.exec();
     return rejected ? result : 5;
 }
@@ -199,6 +256,8 @@ int main(int argc, char **argv)
         return activatedRequest(app, folder.path(), scenario == "activation-folders");
     if (scenario == "task")
         return runningTaskKeepsApplication(app, folder.path());
+    if (scenario == "remote-task")
+        return remoteTaskIsReleased(app, folder.path());
     if (scenario == "emptytrash")
         return rejectedEmptyTrashQuits(app);
     return closingWindowsQuits(app, folder.path());
