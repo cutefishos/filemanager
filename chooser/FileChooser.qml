@@ -251,11 +251,6 @@ FishUI.Window {
                     FileManagerControls.IconButton {
                         Layout.preferredWidth: 30
                         Layout.preferredHeight: 30
-                        backgroundColor: FishUI.Theme.alternateBackgroundColor
-                        hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.3)
-                                                            : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.08)
-                        pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.15)
-                                                            : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.16)
                         iconName: "chevron-left"
                         iconSize: 16
                         enabled: chooser.canGoBack
@@ -266,11 +261,6 @@ FishUI.Window {
                     FileManagerControls.IconButton {
                         Layout.preferredWidth: 30
                         Layout.preferredHeight: 30
-                        backgroundColor: FishUI.Theme.alternateBackgroundColor
-                        hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.3)
-                                                            : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.08)
-                        pressedColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.alternateBackgroundColor, 1.15)
-                                                            : Qt.darker(FishUI.Theme.alternateBackgroundColor, 1.16)
                         iconName: "chevron-right"
                         iconSize: 16
                         enabled: chooser.canGoForward
@@ -278,13 +268,17 @@ FishUI.Window {
                         onClicked: chooser.forward()
                     }
 
-                    // Breadcrumbs with the file manager's path bar look; clicking an
-                    // empty spot or Ctrl+L swaps in the editable path.
+                    // The file manager's path bar; clicking an empty spot or
+                    // Ctrl+L swaps in the editable path.
                     Item {
                         id: pathBar
                         Layout.fillWidth: true
                         Layout.preferredHeight: 30
                         Layout.leftMargin: FishUI.Units.smallSpacing / 2
+
+                        readonly property color ancestorColor: Qt.rgba(FishUI.Theme.textColor.r,
+                                                                      FishUI.Theme.textColor.g,
+                                                                      FishUI.Theme.textColor.b, 0.6)
 
                         function openEditor() {
                             pathEditor.text = pathBarModel.url
@@ -348,7 +342,7 @@ FishUI.Window {
                             clip: true
                             leftMargin: 3
                             rightMargin: 3
-                            spacing: FishUI.Units.smallSpacing
+                            spacing: 10 + FishUI.Units.smallSpacing
                             model: pathBarModel
                             currentIndex: count - 1
 
@@ -380,7 +374,18 @@ FishUI.Window {
                                     anchors.centerIn: parent
                                     text: crumb.model.name
                                     textFormat: Text.PlainText
-                                    color: crumb.current ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
+                                    color: crumb.current ? FishUI.Theme.textColor : pathBar.ancestorColor
+                                }
+
+                                FishUI.Icon {
+                                    anchors.left: parent.right
+                                    anchors.leftMargin: FishUI.Units.smallSpacing / 2
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 10
+                                    height: 10
+                                    visible: !crumb.current
+                                    name: "chevron-right"
+                                    color: pathBar.ancestorColor
                                 }
                             }
                         }
