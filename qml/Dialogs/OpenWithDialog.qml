@@ -49,6 +49,8 @@ FishUI.Window {
     maximumHeight: contentHeight
 
     background.color: FishUI.Theme.secondBackgroundColor
+    // The background item reaches a grown window a frame or two after its buffer does.
+    color: background.color
 
     Component.onCompleted: {
         var items = FM.MimeAppManager.recommendedApps(control.url)
@@ -76,7 +78,11 @@ FishUI.Window {
 
     ColumnLayout {
         id: _mainLayout
-        anchors.fill: parent
+        // Not filled to the window: the window height follows this layout's implicit
+        // height a polish later, and a filled layout would be spread over the old height.
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: 16
         spacing: 16
 

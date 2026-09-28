@@ -50,14 +50,19 @@ FishUI.Window {
     }
 
     background.color: FishUI.Theme.secondBackgroundColor
+    // The background item reaches a grown window a frame or two after its buffer does.
+    color: background.color
 
     ColumnLayout {
         id: _mainLayout
-        anchors.fill: parent
+        // Not filled to the window: the window height follows this layout's implicit
+        // height a polish later, and a filled layout would be spread over the old height.
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.leftMargin: FishUI.Units.largeSpacing * 1.5
         anchors.rightMargin: FishUI.Units.largeSpacing * 1.5
         anchors.topMargin: FishUI.Units.smallSpacing
-        anchors.bottomMargin: FishUI.Units.largeSpacing * 1.5
         spacing: FishUI.Units.largeSpacing
 
         RowLayout {
@@ -84,15 +89,27 @@ FishUI.Window {
         }
 
         GridLayout {
+            id: _form
             columns: 2
             Layout.fillWidth: true
             columnSpacing: FishUI.Units.largeSpacing
             rowSpacing: FishUI.Units.largeSpacing
             Layout.alignment: Qt.AlignTop
 
+            // Hidden rows leave the grid, so the values would start further left for some files.
+            readonly property real labelWidth: Math.max(_typeLabel.implicitWidth,
+                                                        _locationLabel.implicitWidth,
+                                                        _sizeLabel.implicitWidth,
+                                                        _createdLabel.implicitWidth,
+                                                        _modifiedLabel.implicitWidth,
+                                                        _accessedLabel.implicitWidth)
+
             FishUI.Label {
+                id: _typeLabel
                 text: qsTr("Type:")
+                Layout.preferredWidth: _form.labelWidth
                 Layout.alignment: Qt.AlignRight
+                horizontalAlignment: Text.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: mimeType.visible
             }
@@ -104,8 +121,11 @@ FishUI.Window {
             }
 
             FishUI.Label {
+                id: _locationLabel
                 text: qsTr("Location:")
+                Layout.preferredWidth: _form.labelWidth
                 Layout.alignment: Qt.AlignRight
+                horizontalAlignment: Text.AlignRight
                 color: FishUI.Theme.disabledTextColor
             }
 
@@ -117,8 +137,11 @@ FishUI.Window {
             }
 
             FishUI.Label {
+                id: _sizeLabel
                 text: qsTr("Size:")
+                Layout.preferredWidth: _form.labelWidth
                 Layout.alignment: Qt.AlignRight
+                horizontalAlignment: Text.AlignRight
                 color: FishUI.Theme.disabledTextColor
             }
 
@@ -128,8 +151,11 @@ FishUI.Window {
             }
 
             FishUI.Label {
+                id: _createdLabel
                 text: qsTr("Created:")
+                Layout.preferredWidth: _form.labelWidth
                 Layout.alignment: Qt.AlignRight
+                horizontalAlignment: Text.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: creationTime.visible
             }
@@ -141,8 +167,11 @@ FishUI.Window {
             }
 
             FishUI.Label {
+                id: _modifiedLabel
                 text: qsTr("Modified:")
+                Layout.preferredWidth: _form.labelWidth
                 Layout.alignment: Qt.AlignRight
+                horizontalAlignment: Text.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: modifiedTime.visible
             }
@@ -154,8 +183,11 @@ FishUI.Window {
             }
 
             FishUI.Label {
+                id: _accessedLabel
                 text: qsTr("Accessed:")
+                Layout.preferredWidth: _form.labelWidth
                 Layout.alignment: Qt.AlignRight
+                horizontalAlignment: Text.AlignRight
                 color: FishUI.Theme.disabledTextColor
                 visible: accessTime.visible
             }

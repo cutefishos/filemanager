@@ -27,6 +27,8 @@ FishUI.Window {
     windowButtonsRightMargin: 8
     header.height: 44
     background.color: FishUI.Theme.secondBackgroundColor
+    // The background item reaches a grown window a frame or two after its buffer does.
+    color: background.color
 
     // The window buttons sit inside the content area (contentTopMargin is
     // 0), so the text keeps 32px clear of the close button on the right.
@@ -123,7 +125,11 @@ FishUI.Window {
 
     ColumnLayout {
         id: layout
-        anchors.fill: parent
+        // Not filled to the window: the window height follows this layout's implicit
+        // height a polish later, and a filled layout would be spread over the old height.
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.margins: control.padding
         spacing: 20
 
