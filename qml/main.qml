@@ -392,12 +392,16 @@ FishUI.Window {
             spacing: root.windowButtonsSpacing
 
             readonly property int buttonSize: root.header.buttonSize
+            // The title reads low on the sidebar title's baseline, so it sits
+            // 1px above it; the buttons stay centred on that baseline's capitals.
+            readonly property real titleRaise: 1
+            readonly property real buttonTopMargin: _folderName.capCenter + titleRaise - buttonSize / 2
 
             IconButton {
                 id: _backButton
                 objectName: "backButton"
-                Layout.alignment: root.windowButtonsAlignment
-                Layout.topMargin: root.windowButtonsTopMargin
+                Layout.alignment: Qt.AlignTop
+                Layout.topMargin: _headerRow.buttonTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoBack
@@ -410,8 +414,8 @@ FishUI.Window {
             IconButton {
                 id: _forwardButton
                 objectName: "forwardButton"
-                Layout.alignment: root.windowButtonsAlignment
-                Layout.topMargin: root.windowButtonsTopMargin
+                Layout.alignment: Qt.AlignTop
+                Layout.topMargin: _headerRow.buttonTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoForward
@@ -421,15 +425,13 @@ FishUI.Window {
                 onClicked: _folderPage.goForward()
             }
 
-            FishUI.Label {
+            FishUI.AlignedLabel {
                 id: _folderName
                 Layout.fillWidth: true
-                Layout.fillHeight: true
                 Layout.leftMargin: FishUI.Units.smallSpacing
+                // Header and sidebar share the window's top edge.
+                textBaseline: _sideBar.titleItem.y + _sideBar.titleItem.baselineOffset - _headerRow.titleRaise
                 leftPadding: 0
-                topPadding: 0
-                bottomPadding: 0
-                verticalAlignment: Text.AlignVCenter
                 color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
                 font.pointSize: 11
                 text: _pathBar.currentName
