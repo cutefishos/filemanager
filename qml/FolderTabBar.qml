@@ -38,6 +38,8 @@ Rectangle {
         FishUI.Theme.textColor.g, FishUI.Theme.textColor.b, 0.10)
     readonly property color hoverColor: Qt.rgba(FishUI.Theme.textColor.r,
         FishUI.Theme.textColor.g, FishUI.Theme.textColor.b, 0.05)
+    // Translucent, so the tabs sliding aside show through the one being dragged.
+    readonly property color selectedColor: FishUI.Theme.darkMode ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.8)
 
     // Where a tab sits while a drag is in progress: the dragged one is taken
     // out of the order and put back at dropIndex, so the rest slide aside.
@@ -142,10 +144,12 @@ Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
                     radius: height / 2
-                    color: tab.selected ? (FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 2)
-                                                               : FishUI.Theme.secondBackgroundColor)
+                    color: tab.selected ? control.selectedColor
                                         : mouse.containsMouse || tab.springLoadTarget
                                                 ? control.hoverColor : "transparent"
+                    // Light mode raises a white pill on a pale track; a hairline keeps its edge.
+                    border.width: tab.selected && !FishUI.Theme.darkMode ? 1 : 0
+                    border.color: Qt.rgba(0, 0, 0, 0.06)
                 }
 
                 MouseArea {
