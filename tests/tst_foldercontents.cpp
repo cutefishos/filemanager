@@ -1,7 +1,10 @@
 #include "model/foldermodel.h"
 
 #include <QAbstractItemModelTester>
+#include <QAction>
+#include <QApplication>
 #include <QFile>
+#include <QMenu>
 #include <QMimeData>
 #include <QPersistentModelIndex>
 #include <QScopeGuard>
@@ -472,6 +475,45 @@ private slots:
         gate->release();
         QTRY_COMPARE(completed.count(), 1);
         QCOMPARE(folder.rowCount(), 1);
+    }
+
+    // Menus are built per popup: neither the model nor a closed context menu
+    // may leave a menu widget or an action behind.
+    void contextMenuLeavesNothingBehind()
+    {
+        const auto menuCount = [] {
+            const QWidgetList widgets = QApplication::allWidgets();
+
+            return std::count_if(widgets.cbegin(), widgets.cend(), [](QWidget *widget) {
+                return qobject_cast<QMenu *>(widget) != nullptr;
+            });
+        };
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        const auto menus = menuCount();
+
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QVERIFY(writeFile(directory.filePath("file.txt")));
+
+        {
+            FolderModel folder;
+            QCOMPARE(menuCount(), menus);
+
+            folder.setUrl(directory.path());
+            QTRY_COMPARE(folder.status(), FolderModel::Ready);
+            const auto actions = folder.findChildren<QAction *>(Qt::FindDirectChildrenOnly).size();
+
+            folder.openContextMenu();
+            auto *popup = qobject_cast<QMenu *>(QApplication::activePopupWidget());
+            QVERIFY(popup);
+            popup->close();
+            QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            QCOMPARE(menuCount(), menus);
+            QCOMPARE(folder.findChildren<QAction *>(Qt::FindDirectChildrenOnly).size(), actions);
+        }
+
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        QCOMPARE(menuCount(), menus);
     }
 };
 

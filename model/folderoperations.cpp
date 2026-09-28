@@ -582,13 +582,13 @@ void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifier
 
     // Open folder menu.
     if (indexes.isEmpty()) {
-        QAction *selectAll = new QAction(tr("Select All"), this);
+        QAction *selectAll = new QAction(tr("Select All"), menu);
         connect(selectAll, &QAction::triggered, this, &FolderModel::selectAll);
 
         menu->addAction(m_actions.value("newFolder"));
 
         if (!isTrash) {
-            QMenu *newMenu = new QMenu(tr("New Documents"));
+            QMenu *newMenu = new QMenu(tr("New Documents"), menu);
             newMenu->addAction(m_actions.value("newTextFile"));
             menu->addMenu(newMenu);
         }
@@ -784,10 +784,8 @@ void FolderModel::createActions()
     QAction *newFolder = new QAction(tr("New Folder"), this);
     connect(newFolder, &QAction::triggered, this, &FolderModel::newFolder);
 
-    QMenu *newDocuments = new QMenu(tr("New Documents"));
     QAction *newTextFile = new QAction(tr("New Text"), this);
     connect(newTextFile, &QAction::triggered, this, &FolderModel::newTextFile);
-    newDocuments->addAction(newTextFile);
 
     QAction *trash = new QAction(tr("Move To Trash"), this);
     connect(trash, &QAction::triggered, this, &FolderModel::moveSelectedToTrash);

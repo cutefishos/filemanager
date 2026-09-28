@@ -84,6 +84,8 @@ void MimeAppManager::initApplications()
 {
     m_desktopFiles.clear();
     m_desktopObjects.clear();
+    m_terminalApps.clear();
+    m_mimeApps.clear();
 
     QMap<QString, QSet<QString>> mimeAppsSet;
 

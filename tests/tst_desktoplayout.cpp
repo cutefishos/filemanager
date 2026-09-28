@@ -1,3 +1,4 @@
+#include "desktopplugin/desktopview.h"
 #include "model/foldermodel.h"
 #include "model/positioner.h"
 #include "qmltypes.h"
@@ -7,6 +8,7 @@
 #include <QDropEvent>
 #include <QFile>
 #include <QMimeData>
+#include <QPointer>
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -335,6 +337,33 @@ private slots:
         QVERIFY(!folder.indexForUrl(a).isValid());
         QVERIFY(positioner.indexForUrl(a) < 0);
         QCOMPARE(positioner.indexForUrl(created), 2);
+    }
+
+    // A host drops the view on every primary screen change, so the desktop it
+    // created, folder model and directory watch included, has to go with it.
+    void desktopViewDeletesContent()
+    {
+        qmlRegisterType<DesktopView>("DesktopLayoutTest", 1, 0, "DesktopView");
+        QQmlEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        QQmlComponent component(&engine);
+        component.setData("import DesktopLayoutTest 1.0\n"
+                          "DesktopView { width: 1366; height: 768 }\n",
+                          QUrl());
+        QVERIFY2(component.isReady(), qPrintable(component.errorString()));
+        QScopedPointer<QObject> object(component.create());
+        QVERIFY2(object, qPrintable(component.errorString()));
+        auto *view = qobject_cast<DesktopView *>(object.data());
+        QVERIFY(view);
+        QCOMPARE(view->childItems().size(), 1);
+        QPointer<QQuickItem> content = view->childItems().first();
+        QPointer<FolderModel> folder = qobject_cast<FolderModel *>(view->folderModel());
+        QVERIFY(folder);
+        QTRY_VERIFY(folder->status() != FolderModel::Listing);
+
+        object.reset();
+        QVERIFY(content.isNull());
+        QVERIFY(folder.isNull());
     }
 };
 

@@ -56,6 +56,9 @@ DesktopView::DesktopView(QQuickItem *parent)
 
 DesktopView::~DesktopView()
 {
+    // A beginCreate() root has no QObject parent, so nothing else frees it. It
+    // goes before m_context and the menu bar, which its handlers still reach.
+    delete m_content;
     delete m_menuBar;
 }
 

@@ -1,6 +1,8 @@
 #include "mimetype/mimeappmanager.h"
 
+#include <QDir>
 #include <QFile>
+#include <QMimeDatabase>
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -54,6 +56,59 @@ private slots:
         for (int i = 1; i < applications.size(); ++i) {
             const QVariantMap app = applications.at(i).toMap();
             QVERIFY(app.value("desktopFile").toString() != expected);
+        }
+    }
+
+    // A rescan rebuilds the application lists instead of adding to the last
+    // one, so a type an application stopped listing is no longer offered.
+    void rescanDropsStaleAssociations()
+    {
+        QTemporaryDir home;
+        QVERIFY(home.isValid());
+        const QByteArray previousHome = qgetenv("HOME");
+        qputenv("HOME", home.path().toUtf8());
+        const auto restoreHome = qScopeGuard([previousHome] {
+            if (previousHome.isNull())
+                qunsetenv("HOME");
+            else
+                qputenv("HOME", previousHome);
+        });
+
+        QVERIFY(QDir(home.path()).mkpath(".local/share/applications"));
+        const QString path = home.filePath(".local/share/applications/cutefish-test-viewer.desktop");
+        const auto writeDesktopFile = [&path](const QStringList &mimeTypes) {
+            QFile file(path);
+            if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+                return false;
+
+            file.write("[Desktop Entry]\nType=Application\nName=Cutefish Test Viewer\n"
+                       "Exec=cutefish-test-viewer %f\n");
+            file.write("MimeType=" + mimeTypes.join(QLatin1Char(';')).toUtf8() + "\n");
+            return true;
+        };
+
+        const QList<QMimeType> types = QMimeDatabase().allMimeTypes();
+        QStringList names;
+        for (const QMimeType &type : types)
+            names.append(type.name());
+        QVERIFY(writeDesktopFile(names));
+
+        MimeAppManager manager;
+        manager.initApplications();
+
+        // Types no installed application handles drop out of the next scan.
+        QList<QMimeType> onlyOurs;
+        for (const QMimeType &type : types) {
+            if (manager.getRecommendedAppsByMimeType(type) == QStringList{path})
+                onlyOurs.append(type);
+        }
+        QVERIFY(!onlyOurs.isEmpty());
+
+        QVERIFY(writeDesktopFile({}));
+        manager.initApplications();
+        for (const QMimeType &type : std::as_const(onlyOurs)) {
+            QVERIFY2(!manager.getRecommendedAppsByMimeType(type).contains(path),
+                     qPrintable(type.name()));
         }
     }
 };
