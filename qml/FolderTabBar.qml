@@ -13,6 +13,14 @@ Rectangle {
     property real dragPos: 0
     property real dragOffset: 0
     property int springLoadIndex: -1
+    // The page of a tab pulled off the bar, hidden until the window lets it go.
+    property var leavingPage: null
+    // Where a tab dragged in was drawn when it was dropped, in slots; the tab
+    // made for it glides from there.
+    property real arrivalSlot: NaN
+    // Tabs glide to their slots while a tab is dragged, arrives or leaves;
+    // opening or closing a tab places the rest at once.
+    readonly property bool sliding: dragIndex >= 0 || incoming || settle.running
     signal selected(int index)
     signal closeRequested(int index)
     signal newRequested()
@@ -46,6 +54,10 @@ Rectangle {
     function slotFor(index) {
         if (incoming)
             return index + (index >= incomingIndex ? 1 : 0)
+        if (leavingPage) {
+            var leaving = tabModel.indexOf(leavingPage)
+            return index - (leaving >= 0 && index > leaving ? 1 : 0)
+        }
         if (dragIndex < 0 || index === dragIndex)
             return index
         var without = index - (index > dragIndex ? 1 : 0)
@@ -59,18 +71,57 @@ Rectangle {
         dropIndex = Math.max(0, Math.min(tabs.length - 1, Math.round(dragPos / list.tabWidth)))
     }
 
-    // Dropped, the tab takes the slot it was shown in at once; gone, the
-    // others slide back.
+    // Every edge of a drag restarts the settle timer first: bindings that
+    // follow the edge would otherwise still see `sliding` false and jump.
+    function beginIncoming(title, x) {
+        settle.restart()
+        incomingTitle = title
+        incomingX = x
+        incoming = true
+    }
+
+    // Dropped, the tab glides from under the pointer into its slot; gone,
+    // the others slide back.
     function endIncoming(dropped) {
+        settle.restart()
+        arrivalSlot = dropped ? ghost.x / list.slotWidth : NaN
         incoming = false
-        if (!dropped)
-            settle.restart()
     }
 
     Timer {
         id: settle
         interval: 150
     }
+
+    // The tabs, one element each. The Repeater keeps a tab's delegate while
+    // others come, go or move, so each tab can glide from where it is.
+    ListModel {
+        id: tabModel
+
+        function indexOf(page) {
+            for (var i = 0; i < count; ++i) {
+                if (get(i).page === page)
+                    return i
+            }
+            return -1
+        }
+    }
+
+    function syncTabs() {
+        for (var i = 0; i < tabs.length; ++i) {
+            var at = tabModel.indexOf(tabs[i])
+            if (at < 0)
+                tabModel.insert(i, { page: tabs[i] })
+            else if (at !== i)
+                tabModel.move(at, i, 1)
+        }
+        if (tabModel.count > tabs.length)
+            tabModel.remove(tabs.length, tabModel.count - tabs.length)
+        if (leavingPage && tabModel.indexOf(leavingPage) < 0)
+            leavingPage = null
+    }
+
+    Component.onCompleted: syncTabs()
 
     function indexAtPosition(x, y) {
         if (x < list.x || x >= list.x + list.width || y < list.y || y >= list.y + list.height)
@@ -103,9 +154,18 @@ Rectangle {
         contentWidth: tabWidth * count
         contentHeight: height
 
-        // A tab dragged in from another window takes a slot of its own.
+        // A tab dragged in from another window takes a slot of its own; one
+        // pulled out gives its slot up before the window lets it go.
         readonly property int count: control.tabs.length + (control.incoming ? 1 : 0)
+                                     - (control.leavingPage ? 1 : 0)
         readonly property real tabWidth: Math.max(140, width / Math.max(1, count))
+        // What the tabs are drawn at: tabWidth, eased while they slide.
+        property real slotWidth: tabWidth
+
+        Behavior on slotWidth {
+            enabled: control.sliding
+            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+        }
 
         function ensureVisible(index) {
             if (index < 0 || index >= count)
@@ -119,36 +179,75 @@ Rectangle {
         }
 
         Repeater {
-            model: control.tabs
+            model: tabModel
 
             delegate: Item {
                 id: tab
                 objectName: "folderTab" + index
-                width: list.tabWidth
+                width: list.slotWidth
                 height: list.height
-                x: control.dragIndex === index ? control.dragPos
-                                               : control.slotFor(index) * list.tabWidth
-                z: control.dragIndex === index ? 2 : tab.selected ? 1 : 0
+                x: dragged ? control.dragPos : (slot + slotShift) * list.slotWidth
+                z: dragged || landing ? 2 : tab.selected ? 1 : 0
+                // Not `visible`: hiding the item would cancel the press the window drag goes on with.
+                opacity: page !== control.leavingPage ? 1 : 0
+                property var page: model.page
                 property bool selected: index === control.currentIndex
                 property bool springLoadTarget: index === control.springLoadIndex
+                property bool dragged: control.dragIndex === index
+                property real slot: control.slotFor(index)
+                // Eases to zero: the tab is drawn at slot + slotShift, so it
+                // glides from where it was drawn when its slot changes.
+                property real slotShift: 0
+                property real lastSlot: 0
+                // Let go, or dropped in from another window, and not in its slot yet.
+                property bool landing: false
 
-                // Only the shuffling aside during a drag animates; opening or
-                // closing a tab must place the rest at once.
-                Behavior on x {
-                    enabled: control.dragIndex !== index
-                             && (control.dragIndex >= 0 || control.incoming || settle.running)
-                    NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+                function glideFrom(drawnSlot) {
+                    if (control.sliding) {
+                        slotShift = drawnSlot - slot
+                        glide.restart()
+                    } else {
+                        glide.stop()
+                        slotShift = 0
+                        landing = false
+                    }
+                    lastSlot = slot
+                }
+
+                onSlotChanged: glideFrom(lastSlot + slotShift)
+                onDraggedChanged: {
+                    if (!dragged) {
+                        landing = true
+                        glideFrom(control.dragPos / list.slotWidth)
+                    }
+                }
+
+                Component.onCompleted: {
+                    var arrival = control.arrivalSlot
+                    control.arrivalSlot = NaN
+                    landing = !isNaN(arrival)
+                    glideFrom(landing ? arrival : slot)
+                }
+
+                NumberAnimation {
+                    id: glide
+                    target: tab
+                    property: "slotShift"
+                    to: 0
+                    duration: 150
+                    easing.type: Easing.OutCubic
+                    onFinished: tab.landing = false
                 }
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 2
                     radius: height / 2
-                    color: tab.selected ? control.selectedColor
-                                        : mouse.containsMouse || tab.springLoadTarget
+                    color: tab.selected || tab.landing ? control.selectedColor
+                                                       : mouse.containsMouse || tab.springLoadTarget
                                                 ? control.hoverColor : "transparent"
                     // Light mode raises a white pill on a pale track; a hairline keeps its edge.
-                    border.width: tab.selected && !FishUI.Theme.darkMode ? 1 : 0
+                    border.width: (tab.selected || tab.landing) && !FishUI.Theme.darkMode ? 1 : 0
                     border.color: Qt.rgba(0, 0, 0, 0.06)
                 }
 
@@ -179,6 +278,7 @@ Rectangle {
                         var position = mapToItem(control, event.x, event.y)
                         if (!didDrag && (Math.abs(position.x - pressX) > 8 || Math.abs(position.y - pressY) > 8)) {
                             didDrag = true
+                            settle.restart()
                             control.dragIndex = index
                             control.dropIndex = index
                         }
@@ -188,6 +288,9 @@ Rectangle {
                                         || position.y > control.height + control.detachDistance)) {
                             didDrag = false
                             detached = true
+                            // The rest close up behind it before the window lets it go.
+                            settle.restart()
+                            control.leavingPage = tab.page
                             control.dragIndex = -1
                             control.dropIndex = -1
                             control.detachRequested(index, mapToItem(null, event.x, event.y))
@@ -197,17 +300,23 @@ Rectangle {
                             control.updateDrag(position.x)
                     }
                     onReleased: {
+                        // The window kept the tab after all.
+                        if (detached)
+                            control.leavingPage = null
                         if (!didDrag)
                             return
                         var from = control.dragIndex
                         var to = control.dropIndex
-                        // Clear first: the tabs are already in their final
-                        // places, so the reorder must not animate them again.
+                        // The tab glides from under the pointer into its slot.
+                        settle.restart()
                         control.dragIndex = -1
                         control.dropIndex = -1
                         control.moveRequested(from, to)
                     }
                     onCanceled: {
+                        if (detached)
+                            control.leavingPage = null
+                        settle.restart()
                         control.dragIndex = -1
                         control.dropIndex = -1
                     }
@@ -227,7 +336,7 @@ Rectangle {
                     anchors.rightMargin: 28
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    text: modelData.tabTitle
+                    text: tab.page ? tab.page.tabTitle : ""
                     font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 12,
                                     weight: tab.selected ? Font.Medium : Font.Normal })
                     elide: Text.ElideMiddle
@@ -271,7 +380,7 @@ Rectangle {
 
                     FishUI.MenuItem {
                         text: qsTr("Open In New Tab")
-                        onTriggered: control.duplicateRequested(modelData.currentUrl)
+                        onTriggered: control.duplicateRequested(tab.page.currentUrl)
                     }
                     FishUI.MenuItem {
                         text: qsTr("Close Tab")
@@ -282,19 +391,23 @@ Rectangle {
         }
 
         Item {
+            id: ghost
             visible: control.incoming
             x: Math.max(0, Math.min(list.contentWidth - width,
                                     control.incomingX - list.x + list.contentX - width / 2))
             z: 2
-            width: list.tabWidth
+            width: list.slotWidth
             height: list.height
 
-            Rectangle {
+            FishUI.RoundedRectangle {
                 anchors.fill: parent
                 anchors.margins: 2
                 radius: height / 2
-                color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 2)
-                                             : FishUI.Theme.secondBackgroundColor
+                continuousCorners: false
+                color: control.selectedColor
+                border.width: 1
+                border.color: Qt.rgba(FishUI.Theme.textColor.r, FishUI.Theme.textColor.g,
+                                      FishUI.Theme.textColor.b, 0.12)
             }
 
             FishUI.Label {
@@ -315,7 +428,10 @@ Rectangle {
         if (control.dragIndex < 0)
             list.ensureVisible(control.currentIndex)
     }
-    onTabsChanged: Qt.callLater(function() { list.ensureVisible(control.currentIndex) })
+    onTabsChanged: {
+        syncTabs()
+        Qt.callLater(function() { list.ensureVisible(control.currentIndex) })
+    }
 
     Timer {
         interval: 30
