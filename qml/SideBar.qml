@@ -168,12 +168,9 @@ Item {
                 property bool dropTarget: sideBar.dropTargetRow === index
                 property bool dropRejected: sideBar.dropRejectedRow === index
                 opacity: _mouseArea.drag.active ? 0.45 : 1
-                property color hoveredColor: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.1)
-                                                                 : Qt.darker(FishUI.Theme.backgroundColor, 1.1)
                 MouseArea {
                     id: _mouseArea
                     anchors.fill: parent
-                    hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     drag.target: index < placesModel.favoriteCount ? dragProxy : null
                     drag.axis: Drag.YAxis
@@ -282,10 +279,6 @@ Item {
                            _mouseArea.pressed || _item.dropTarget || _menu.visible ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
                                                        FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
-                           // Hover still reaches other rows while a favorite is dragged.
-                           _mouseArea.containsMouse && !checked && !dragProxy.dragging ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                                          FishUI.Theme.textColor.g,
-                                                                          FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
                            checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                              FishUI.Theme.textColor.g,
                                              FishUI.Theme.textColor.b, 0.05) : "transparent"

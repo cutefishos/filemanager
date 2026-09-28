@@ -43,7 +43,6 @@ Item {
     readonly property real layoutWidth: desktop ? width : GridView.view.minimumCellWidth
 
     property int index: model.index
-    property bool hovered: GridView.view.hoveredItem === control
     property bool selected: model.selected
     property bool blank: model.blank
     property bool isDir: model.isDir
@@ -284,12 +283,12 @@ Item {
     Loader {
         anchors.fill: _iconItem
         z: 2
-        active: control.selected || control.hovered
+        active: control.selected
 
         sourceComponent: FishUI.ColorOverlay {
             source: _iconItem
-            color: control.selected ? FishUI.Theme.highlightColor : "white"
-            opacity: (control.selected ? 0.5 : 0.1) * _iconItem.opacity
+            color: FishUI.Theme.highlightColor
+            opacity: 0.5 * _iconItem.opacity
         }
     }
 

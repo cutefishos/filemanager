@@ -39,7 +39,6 @@ Item {
     property Item labelArea: _row.labelArea
 
     property int index: model.index
-    property bool hovered: view && view.hoveredItem === _listItem
     property bool selected: model.selected
     property bool blank: model.blank
     property bool isDir: model.isDir
@@ -96,7 +95,6 @@ Item {
         itemModel: model
         rowIndex: _listItem.index
         selected: _listItem.selected
-        hovered: _listItem.hovered
         dropTarget: _listItem.dropTarget
         dropAllowed: _listItem.dropAllowed
         previousSelected: _listItem.previousSelected

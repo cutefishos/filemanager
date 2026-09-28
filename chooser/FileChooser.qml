@@ -182,7 +182,6 @@ FishUI.Window {
                     MouseArea {
                         id: placePointer
                         anchors.fill: parent
-                        hoverEnabled: true
                         onClicked: {
                             if (place.model.setupNeeded)
                                 places.requestSetup(place.index)
@@ -199,9 +198,6 @@ FishUI.Window {
                         color: placePointer.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                              FishUI.Theme.textColor.g,
                                                              FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1)
-                             : placePointer.containsMouse && !place.checked ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                                                      FishUI.Theme.textColor.g,
-                                                                                      FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05)
                              : place.checked ? Qt.rgba(FishUI.Theme.textColor.r,
                                                        FishUI.Theme.textColor.g,
                                                        FishUI.Theme.textColor.b, 0.05) : "transparent"
@@ -366,7 +362,6 @@ FishUI.Window {
 
                                 height: crumbs.height - crumbs.topMargin - crumbs.bottomMargin
                                 width: crumbLabel.width + FishUI.Units.largeSpacing
-                                hoverEnabled: true
                                 onPressed: pathBar.dragging = false
                                 onClicked: if (!pathBar.dragging) chooser.navigate(model.path)
 
@@ -376,9 +371,6 @@ FishUI.Window {
                                     color: crumb.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                                    FishUI.Theme.textColor.g,
                                                                    FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1)
-                                         : crumb.containsMouse ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                                         FishUI.Theme.textColor.g,
-                                                                         FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05)
                                          : "transparent"
                                     smooth: true
                                 }
@@ -506,7 +498,6 @@ FishUI.Window {
 
                             width: files.columns.availableWidth
                             height: files.columns.rowHeight
-                            hoverEnabled: true
                             acceptedButtons: Qt.LeftButton
 
                             Accessible.name: model.fileName
@@ -525,7 +516,6 @@ FishUI.Window {
                                 itemModel: entry.model
                                 rowIndex: entry.index
                                 selected: entry.selected
-                                hovered: entry.containsMouse
                                 previousSelected: entry.previousSelected
                                 nextSelected: entry.nextSelected
                             }

@@ -11,7 +11,6 @@ Item {
     required property var itemModel
     property int rowIndex: 0
     property bool selected: false
-    property bool hovered: false
     property bool dropTarget: false
     property bool dropAllowed: false
     // Adjacent selected rows read as one block, so only the outer corners round.
@@ -46,9 +45,6 @@ Item {
                 return "transparent"
             if (row.selected)
                 return FishUI.Theme.highlightColor
-            if (row.hovered)
-                return Qt.rgba(FishUI.Theme.textColor.r, FishUI.Theme.textColor.g,
-                               FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.08 : 0.06)
             if (row.rowIndex % 2 === 1)
                 return Qt.rgba(FishUI.Theme.textColor.r, FishUI.Theme.textColor.g,
                                FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.03 : 0.025)

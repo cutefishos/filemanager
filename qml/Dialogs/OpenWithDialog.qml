@@ -117,7 +117,6 @@ FishUI.Window {
                 MouseArea {
                     id: mouseArea
                     anchors.fill: parent
-                    hoverEnabled: true
                     acceptedButtons: Qt.LeftButton
                     onDoubleClicked: {
                         listView.currentIndex = index
@@ -129,11 +128,7 @@ FishUI.Window {
                 Rectangle {
                     anchors.fill: parent
                     radius: FishUI.Theme.mediumRadius
-                    color: isSelected ? FishUI.Theme.highlightColor
-                                      : mouseArea.containsMouse ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                                          FishUI.Theme.textColor.g,
-                                                                          FishUI.Theme.textColor.b,
-                                                                          0.1) : "transparent"
+                    color: isSelected ? FishUI.Theme.highlightColor : "transparent"
                     smooth: true
                 }
 

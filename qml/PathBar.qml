@@ -119,7 +119,6 @@ Item {
             id: _item
             height: ListView.view.height - ListView.view.topMargin - ListView.view.bottomMargin
             width: _name.width + FishUI.Units.largeSpacing
-            hoverEnabled: true
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             z: -1
 
@@ -170,9 +169,6 @@ Item {
                 color: _item.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
                                                    FishUI.Theme.textColor.g,
                                                    FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
-                       _item.containsMouse ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                     FishUI.Theme.textColor.g,
-                                                     FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.1 : 0.05) :
                                                               "transparent"
 
                 smooth: true
