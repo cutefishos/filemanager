@@ -71,6 +71,7 @@ private:
     QQmlEngine *m_engine = nullptr;
     WindowManager *m_windows = nullptr;
     bool m_servicesRegistered = false;
+    bool m_dbusActivated = false;
     bool m_idleCheckScheduled = false;
     int m_exitCode = EXIT_SUCCESS;
 };

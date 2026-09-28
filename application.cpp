@@ -73,7 +73,12 @@ int Application::run()
     if (!parseCommandLineArgs())
         return m_exitCode;
 
-    scheduleIdleCheck();
+    // Activation must leave time for the bus to deliver the request after we
+    // acquire the service name, without opening an unrelated default window.
+    if (m_dbusActivated)
+        QTimer::singleShot(10000, this, &Application::scheduleIdleCheck);
+    else
+        scheduleIdleCheck();
     return QApplication::exec();
 }
 
@@ -246,6 +251,11 @@ bool Application::parseCommandLineArgs()
 
     parser.addPositionalArgument("files", "Files", "[FILE1, FILE2,...]");
 
+    QCommandLineOption activatedOption(QStringLiteral("dbus-activated"),
+                                       QStringLiteral("Wait for a D-Bus file manager request"));
+    activatedOption.setFlags(QCommandLineOption::HiddenFromHelp);
+    parser.addOption(activatedOption);
+
     QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
     parser.addOption(emptyTrashOption);
 
@@ -254,8 +264,14 @@ bool Application::parseCommandLineArgs()
     parser.addOption(moveToTrashOption);
 
     parser.process(arguments());
+    m_dbusActivated = parser.isSet(activatedOption);
 
     if (!registerServices()) {
+        if (m_dbusActivated) {
+            m_exitCode = EXIT_FAILURE;
+            return false;
+        }
+
         QDBusInterface iface(serviceName, QStringLiteral("/FileManager"), serviceName,
                              QDBusConnection::sessionBus());
         QDBusMessage reply;
@@ -273,6 +289,8 @@ bool Application::parseCommandLineArgs()
 
     // Each action leaves a window or a task behind, or nothing: then the
     // idle check ends the process.
+    if (m_dbusActivated)
+        return true;
     if (parser.isSet(emptyTrashOption))
         emptyTrash();
     else if (parser.isSet(moveToTrashOption))

@@ -1,12 +1,18 @@
 #include "application.h"
+#include "model/foldermodel.h"
 #include "operations/fileoperationsclient.h"
 #include "operations/operationtask.h"
 #include "qmltypes.h"
 #include "windowmanager.h"
 
 #include <QDir>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDBusPendingCall>
 #include <QFile>
+#include <QQuickItem>
 #include <QQuickWindow>
+#include <QSettings>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <task.h>
@@ -20,6 +26,56 @@ QList<QWindow *> browserWindows()
             windows.append(window);
     }
     return windows;
+}
+
+int activatedRequest(Application &app, const QString &folder, bool showFolders)
+{
+    const QUrl url = QUrl::fromLocalFile(folder + "/Screenshot #1.png");
+    QFile file(url.toLocalFile());
+    if (!file.open(QIODevice::WriteOnly))
+        return 6;
+    file.close();
+
+    bool selected = false;
+    QTimer poll;
+    poll.setInterval(50);
+    QObject::connect(&poll, &QTimer::timeout, &app, [&] {
+        const auto windows = browserWindows();
+        if (windows.size() != 1)
+            return;
+        auto *page = windows.first()->property("_folderPage").value<QObject *>();
+        if (!page)
+            return;
+        auto *model = qobject_cast<FolderModel *>(page->property("model").value<QObject *>());
+        auto *view = page->property("currentView").value<QQuickItem *>();
+        if (!model || !view || model->status() != FolderModel::Ready)
+            return;
+        if (model->resolvedUrl() != QUrl::fromLocalFile(folder))
+            return;
+        if (showFolders ? model->hasSelection()
+                        : (model->selectedUrls() != QList<QUrl> {url}
+                           || view->property("currentIndex").toInt() < 0))
+            return;
+        selected = true;
+        poll.stop();
+        windows.first()->close();
+    });
+    QTimer::singleShot(100, &app, [&] {
+        if (!browserWindows().isEmpty()) {
+            app.exit(7);
+            return;
+        }
+        auto message = QDBusMessage::createMethodCall(
+                "org.freedesktop.FileManager1", "/org/freedesktop/FileManager1",
+                "org.freedesktop.FileManager1", showFolders ? "ShowFolders" : "ShowItems");
+        message << QStringList {showFolders ? QUrl::fromLocalFile(folder).toString() : url.toString()}
+                << QString();
+        QDBusConnection::sessionBus().asyncCall(message);
+        poll.start();
+    });
+    QTimer::singleShot(5000, &app, [&] { app.exit(4); });
+    const int result = app.run();
+    return selected ? result : 5;
 }
 
 // Two browser windows; the application ends once both are closed.
@@ -126,12 +182,21 @@ int main(int argc, char **argv)
     CutefishFM::registerQmlTypes();
     CutefishFM::initResources();
     const QString scenario = argc > 1 ? QString::fromLocal8Bit(argv[1]) : QStringLiteral("windows");
+    const bool activated = scenario.startsWith("activation-");
+    QByteArray activationArgument("--dbus-activated");
+    if (activated) {
+        QSettings settings("cutefish", "filemanager");
+        settings.setValue("viewMethod", scenario == "activation-list" ? 0 : 1);
+        argv[1] = activationArgument.data();
+    }
     Application app(argc, argv);
 
     // Qt's own last-window rule must not be what ends the application.
     QWindow helper;
     helper.show();
 
+    if (activated)
+        return activatedRequest(app, folder.path(), scenario == "activation-folders");
     if (scenario == "task")
         return runningTaskKeepsApplication(app, folder.path());
     if (scenario == "emptytrash")

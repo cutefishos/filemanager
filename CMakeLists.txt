@@ -219,6 +219,9 @@ add_custom_target(translations DEPENDS ${QM_FILES} SOURCES ${TS_FILES})
 add_dependencies(cutefish-filemanager translations)
 
 install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+configure_file(com.cutefish.FileManager1.service.in com.cutefish.FileManager1.service @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileManager1.service
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(TARGETS cutefish-filemanager-daemon RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileOperations.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
@@ -294,15 +297,36 @@ if(FILEMANAGER_BUILD_TESTS)
     add_test(NAME lifecycle COMMAND tst_lifecycle windows)
     add_test(NAME lifecycle-task COMMAND tst_lifecycle task)
     add_test(NAME lifecycle-emptytrash COMMAND tst_lifecycle emptytrash)
-    set_tests_properties(lifecycle lifecycle-task lifecycle-emptytrash PROPERTIES
+    find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
+    add_test(NAME lifecycle-activation-list
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-list)
+    add_test(NAME lifecycle-activation-grid
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-grid)
+    add_test(NAME lifecycle-activation-folders
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-folders)
+    set_tests_properties(lifecycle lifecycle-task lifecycle-emptytrash
+                         lifecycle-activation-list lifecycle-activation-grid
+                         lifecycle-activation-folders PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
+
+    find_program(DBUS_DAEMON_EXECUTABLE dbus-daemon REQUIRED)
+    add_executable(tst_dbusactivation tests/tst_dbusactivation.cpp)
+    target_link_libraries(tst_dbusactivation PRIVATE Qt6::Core Qt6::DBus Qt6::Test)
+    target_compile_definitions(tst_dbusactivation PRIVATE
+        SERVICE_TEMPLATE="${CMAKE_CURRENT_SOURCE_DIR}/com.cutefish.FileManager1.service.in"
+        FILEMANAGER_EXECUTABLE="$<TARGET_FILE:cutefish-filemanager>"
+        DBUS_DAEMON_EXECUTABLE="${DBUS_DAEMON_EXECUTABLE}")
+    add_dependencies(tst_dbusactivation cutefish-filemanager)
+    add_test(NAME dbusactivation COMMAND tst_dbusactivation)
+    set_tests_properties(dbusactivation PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software;CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
     add_executable(tst_fileoperationsdaemon tests/tst_fileoperationsdaemon.cpp)
     target_link_libraries(tst_fileoperationsdaemon PRIVATE Qt6::Core Qt6::DBus Qt6::Test)
     add_dependencies(tst_fileoperationsdaemon cutefish-filemanager-daemon)
-    find_program(DBUS_RUN_SESSION_EXECUTABLE dbus-run-session REQUIRED)
     add_test(NAME fileoperationsdaemon
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_fileoperationsdaemon>)
     set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs gridresize windowmanager
                  lifecycle lifecycle-task lifecycle-emptytrash
+                 lifecycle-activation-list lifecycle-activation-grid lifecycle-activation-folders
                  APPEND PROPERTY ENVIRONMENT "CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
 endif()
