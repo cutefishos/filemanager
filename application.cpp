@@ -31,6 +31,7 @@
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
 #include <QDBusInterface>
+#include <QDBusServiceWatcher>
 #include <QDir>
 #include <QFileInfo>
 #include <QIcon>
@@ -77,7 +78,7 @@ int Application::run()
     // acquire the service name, without opening an unrelated default window.
     if (m_dbusActivated)
         QTimer::singleShot(10000, this, &Application::scheduleIdleCheck);
-    else
+    else if (!m_daemon)
         scheduleIdleCheck();
     return QApplication::exec();
 }
@@ -106,6 +107,24 @@ bool Application::registerServices()
                                          QDBusConnectionInterface::QueueService);
     m_servicesRegistered = true;
     return true;
+}
+
+void Application::startDaemon()
+{
+    // Compiled now, so the first window opens as fast as later ones.
+    ensureWindows()->preload(browserWindow);
+
+    // An instance started before the session's daemon gives the names up once
+    // it is idle, and the daemon takes them over then.
+    auto *watcher = new QDBusServiceWatcher(serviceName, QDBusConnection::sessionBus(),
+                                            QDBusServiceWatcher::WatchForUnregistration, this);
+    connect(watcher, &QDBusServiceWatcher::serviceUnregistered, this, [this, watcher] {
+        if (registerServices())
+            watcher->deleteLater();
+    });
+
+    if (registerServices())
+        watcher->deleteLater();
 }
 
 WindowManager *Application::ensureWindows()
@@ -256,6 +275,11 @@ bool Application::parseCommandLineArgs()
     activatedOption.setFlags(QCommandLineOption::HiddenFromHelp);
     parser.addOption(activatedOption);
 
+    QCommandLineOption daemonOption(QStringLiteral("daemon"),
+                                    QStringLiteral("Keep running for the session"));
+    daemonOption.setFlags(QCommandLineOption::HiddenFromHelp);
+    parser.addOption(daemonOption);
+
     QCommandLineOption emptyTrashOption(QStringList() << "e" << "empty-trash" << "Empty Trash");
     parser.addOption(emptyTrashOption);
 
@@ -265,6 +289,12 @@ bool Application::parseCommandLineArgs()
 
     parser.process(arguments());
     m_dbusActivated = parser.isSet(activatedOption);
+    m_daemon = parser.isSet(daemonOption);
+
+    if (m_daemon) {
+        startDaemon();
+        return true;
+    }
 
     if (!registerServices()) {
         if (m_dbusActivated) {
@@ -321,7 +351,7 @@ void Application::scheduleIdleCheck()
 
 void Application::quitIfIdle()
 {
-    if (!isIdle())
+    if (m_daemon || !isIdle())
         return;
 
     // Give up the names first, then look again: a request that was already on

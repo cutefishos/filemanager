@@ -304,13 +304,15 @@ if(FILEMANAGER_BUILD_TESTS)
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-grid)
     add_test(NAME lifecycle-activation-folders
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-folders)
+    add_test(NAME lifecycle-daemon
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> daemon)
     add_test(NAME lifecycle-remote-task
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE}
                      --config-file=${CMAKE_CURRENT_SOURCE_DIR}/tests/dbus-session.conf
                      -- $<TARGET_FILE:tst_lifecycle> remote-task)
     set_tests_properties(lifecycle lifecycle-task lifecycle-emptytrash
                          lifecycle-activation-list lifecycle-activation-grid
-                         lifecycle-activation-folders lifecycle-remote-task PROPERTIES
+                         lifecycle-activation-folders lifecycle-daemon lifecycle-remote-task PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 
     find_program(DBUS_DAEMON_EXECUTABLE dbus-daemon REQUIRED)
@@ -337,5 +339,6 @@ if(FILEMANAGER_BUILD_TESTS)
     set_property(TEST desktopicons placesmodel iointegration desktoplayout tabs gridresize windowmanager
                  lifecycle lifecycle-task lifecycle-emptytrash
                  lifecycle-activation-list lifecycle-activation-grid lifecycle-activation-folders
+                 lifecycle-daemon
                  APPEND PROPERTY ENVIRONMENT "CUTEFISH_FILEOPERATIONS_IN_PROCESS=1")
 endif()

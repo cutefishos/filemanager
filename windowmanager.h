@@ -69,6 +69,9 @@ public:
     QQuickWindow *create(const QUrl &url, const QVariantMap &properties = {},
                          QWindow *owner = nullptr, CreateFlags flags = NoFlags);
 
+    /** Compiles the window at @p url ahead of its first create(). */
+    bool preload(const QUrl &url);
+
     /** Destroys @p window at the next safe point. Calling it again is harmless. */
     void release(QQuickWindow *window);
 

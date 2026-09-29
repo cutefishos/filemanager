@@ -227,6 +227,57 @@ int rejectedEmptyTrashQuits(Application &app)
     const int result = app.exec();
     return rejected ? result : 5;
 }
+
+// The session's daemon holds the names with no window, opens what the bus asks
+// for, and outlives its last window.
+int daemonOutlivesWindows(Application &app, const QString &folder)
+{
+    const auto call = [](const QString &method, const QVariantList &arguments) {
+        auto message = QDBusMessage::createMethodCall("com.cutefish.FileManager", "/FileManager",
+                                                      "com.cutefish.FileManager", method);
+        message.setArguments(arguments);
+        message.setAutoStartService(false);
+        QDBusConnection::sessionBus().asyncCall(message);
+    };
+
+    bool survived = false;
+    QTimer::singleShot(500, &app, [&] {
+        if (!app.windowManager() || app.windowManager()->windowCount() != 0) {
+            app.exit(2);
+            return;
+        }
+        call("openFiles", {QStringList {folder}});
+        QTimer::singleShot(500, &app, [&] {
+            const auto windows = browserWindows();
+            if (windows.size() != 1) {
+                app.exit(3);
+                return;
+            }
+            windows.first()->close();
+            QTimer::singleShot(500, &app, [&] {
+                if (app.windowManager()->windowCount() != 0
+                    || !QDBusConnection::sessionBus().interface()->isServiceRegistered(
+                            "com.cutefish.FileManager")) {
+                    app.exit(6);
+                    return;
+                }
+                // The dock's Empty Trash: its dialog belongs to the daemon too.
+                call("emptyTrash", {});
+                QTimer::singleShot(500, &app, [&] {
+                    if (app.windowManager()->windowCount() != 1) {
+                        app.exit(7);
+                        return;
+                    }
+                    survived = true;
+                    app.exit(0);
+                });
+            });
+        });
+    });
+    QTimer::singleShot(5000 * kTimeScale, &app, [&] { app.exit(4); });
+    const int result = app.run();
+    return survived ? result : 5;
+}
 }
 
 int main(int argc, char **argv)
@@ -241,10 +292,13 @@ int main(int argc, char **argv)
     const QString scenario = argc > 1 ? QString::fromLocal8Bit(argv[1]) : QStringLiteral("windows");
     const bool activated = scenario.startsWith("activation-");
     QByteArray activationArgument("--dbus-activated");
+    QByteArray daemonArgument("--daemon");
     if (activated) {
         QSettings settings("cutefish", "filemanager");
         settings.setValue("viewMethod", scenario == "activation-list" ? 0 : 1);
         argv[1] = activationArgument.data();
+    } else if (scenario == "daemon") {
+        argv[1] = daemonArgument.data();
     }
     Application app(argc, argv);
 
@@ -254,6 +308,8 @@ int main(int argc, char **argv)
 
     if (activated)
         return activatedRequest(app, folder.path(), scenario == "activation-folders");
+    if (scenario == "daemon")
+        return daemonOutlivesWindows(app, folder.path());
     if (scenario == "task")
         return runningTaskKeepsApplication(app, folder.path());
     if (scenario == "remote-task")

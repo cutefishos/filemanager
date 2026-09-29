@@ -54,6 +54,9 @@ private:
     /** Takes the D-Bus names; false if another instance holds them. */
     bool registerServices();
     void unregisterServices();
+
+    /** Serves the session from its start until it ends, with or without windows. */
+    void startDaemon();
     WindowManager *ensureWindows();
     QQuickWindow *openWindow(const QString &path, const QStringList &selection = {});
     QStringList formatUriList(const QStringList &list);
@@ -72,6 +75,7 @@ private:
     WindowManager *m_windows = nullptr;
     bool m_servicesRegistered = false;
     bool m_dbusActivated = false;
+    bool m_daemon = false;
     bool m_idleCheckScheduled = false;
     int m_exitCode = EXIT_SUCCESS;
 };

@@ -132,6 +132,11 @@ QQmlComponent *WindowManager::component(const QUrl &url)
     return component;
 }
 
+bool WindowManager::preload(const QUrl &url)
+{
+    return component(url) != nullptr;
+}
+
 QQuickWindow *WindowManager::create(const QUrl &url, const QVariantMap &properties,
                                     QWindow *owner, CreateFlags flags)
 {
