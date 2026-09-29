@@ -18,6 +18,14 @@ jobs:
       run: apt-get update -y
     - name: Install the basic dev packages
       run: apt-get install -y equivs curl git devscripts lintian build-essential automake autotools-dev cmake g++
+    - name: Checkout packaging
+      uses: actions/checkout@v4
+      with:
+        repository: cutefishos/packaging
+        ref: main
+        path: packaging
+    - name: Add the Debian packaging
+      run: mv packaging/debian/filemanager/debian . && rm -rf packaging
     - name: Install build dependencies
       run: mk-build-deps -i -t "apt-get --yes" -r
     - name: Build Package
