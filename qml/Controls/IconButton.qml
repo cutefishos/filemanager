@@ -22,9 +22,6 @@ import FishUI 1.0 as FishUI
 
 FishUI.HeaderButton {
     iconSize: 18
-    // Translucent, so the buttons sit on the frosted header without a solid
-    // patch. Over the plain window background they match the old opaque tones.
-    backgroundColor: darkMode ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.6)
     hoveredColor: Qt.rgba(tint.r, tint.g, tint.b, darkMode ? 0.21 : 0.17)
     pressedColor: Qt.rgba(tint.r, tint.g, tint.b, darkMode ? 0.15 : 0.26)
 }
