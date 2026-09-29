@@ -46,7 +46,8 @@ FishUI.Window {
     // FishUI's title-bar double click otherwise calls this even on fixed-size windows.
     function toggleMaximized() {}
 
-    Shortcut { sequence: "Escape"; onActivated: chooser.cancel() }
+    // Left to the location field while it is open: a shortcut beats its keys.
+    Shortcut { sequence: "Escape"; enabled: !pathEditor.visible; onActivated: chooser.cancel() }
     Shortcut { sequence: "Alt+Up"; onActivated: chooser.up() }
     Shortcut { sequence: "Alt+Left"; onActivated: chooser.back() }
     Shortcut { sequence: "Alt+Right"; onActivated: chooser.forward() }
