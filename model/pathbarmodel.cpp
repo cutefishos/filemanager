@@ -58,9 +58,19 @@ void PathBarModel::setUrl(const QString &url)
             item->url = m_url;
             m_pathList.append(item);
         } else {
+            // Folders under home start from Home, as in the sidebar.
+            const QString homePath = QDir::homePath();
             QDir dir(m_url);
 
             do {
+                if (!QDir(homePath).isRoot() && dir.absolutePath() == homePath) {
+                    PathBarItem *item = new PathBarItem;
+                    item->name = tr("Home");
+                    item->url = QUrl::fromLocalFile(homePath);
+                    m_pathList.append(item);
+                    break;
+                }
+
                 if (dir.isRoot()) {
                     PathBarItem *item = new PathBarItem;
                     item->name = tr("Computer");
