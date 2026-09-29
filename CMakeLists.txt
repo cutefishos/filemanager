@@ -64,6 +64,7 @@ add_library(cutefish-filemanager-core STATIC
   model/placesmodel.cpp
   model/placesitem.cpp
   model/pathbarmodel.cpp
+  model/pathcompletionmodel.cpp
   model/dirlister.cpp
   model/positioner.cpp
 

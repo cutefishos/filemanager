@@ -265,6 +265,63 @@ private slots:
         QTRY_VERIFY(!editor->isVisible());
         QVERIFY(chooser.isSelected(0));
     }
+
+    void pathEditorCompletesFolders()
+    {
+        QTemporaryDir directory;
+        QDir root(directory.path());
+        QVERIFY(root.mkpath("Documents/Work"));
+        QVERIFY(root.mkdir("Downloads"));
+        QVERIFY(root.mkdir(".Drafts"));
+        writeFile(directory.filePath("Diary.txt"));
+        FileChooser chooser({{"mode", "OpenFile"}, {"current_folder", directory.path()}});
+        QQmlApplicationEngine engine;
+        CutefishFM::registerImageProviders(&engine);
+        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
+        QVERIFY(!engine.rootObjects().isEmpty());
+        auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+        QVERIFY(window);
+        window->show();
+        window->requestActivate();
+        QVERIFY(QTest::qWaitForWindowActive(window));
+
+        auto *editor = window->findChild<QQuickItem *>("locationField");
+        QVERIFY(editor);
+        auto *completion = window->findChild<QObject *>("pathCompletion");
+        QVERIFY(completion);
+        QTest::keyClick(window, Qt::Key_L, Qt::ControlModifier);
+        QTRY_VERIFY(editor->hasActiveFocus());
+        // Opening the editor lists nothing until something is typed.
+        QVERIFY(!completion->property("visible").toBool());
+
+        // Only folders, and hidden ones only once a dot is typed.
+        for (const QChar c : directory.path() + "/D")
+            QTest::keyClick(window, c.toLatin1());
+        QTRY_VERIFY(completion->property("visible").toBool());
+        QCOMPARE(completion->property("count").toInt(), 2);
+
+        // Tab extends to what both share, then to the one folder left.
+        QTest::keyClick(window, Qt::Key_Tab);
+        QCOMPARE(editor->property("text").toString(), directory.path() + "/Do");
+        QVERIFY(editor->hasActiveFocus());
+        QTest::keyClick(window, Qt::Key_C);
+        QTest::keyClick(window, Qt::Key_Tab);
+        QCOMPARE(editor->property("text").toString(), directory.path() + "/Documents/");
+        QCOMPARE(completion->property("count").toInt(), 1);
+
+        // Escape hides the list but keeps the editor; Down brings it back.
+        QTest::keyClick(window, Qt::Key_Escape);
+        QVERIFY(!completion->property("visible").toBool());
+        QVERIFY(editor->isVisible());
+        QTest::keyClick(window, Qt::Key_Down);
+        QVERIFY(completion->property("visible").toBool());
+
+        QTest::keyClick(window, Qt::Key_Down);
+        QTest::keyClick(window, Qt::Key_Return);
+        QTRY_COMPARE(chooser.directory(), directory.filePath("Documents/Work"));
+        QTRY_VERIFY(!editor->isVisible());
+    }
 };
 
 int main(int argc, char **argv)

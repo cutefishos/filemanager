@@ -96,7 +96,9 @@ Item {
         }
 
         Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape)
+            if (_completion.handleKey(event))
+                event.accepted = true
+            else if (event.key === Qt.Key_Escape)
                 focus = false
         }
 
@@ -104,6 +106,16 @@ Item {
             if (!activeFocus) {
                 closeEditor()
             }
+        }
+    }
+
+    PathCompletion {
+        id: _completion
+        editor: _pathEditor
+
+        onActivated: function(path) {
+            control.editorAccepted(path)
+            closeEditor()
         }
     }
 
@@ -117,6 +129,7 @@ Item {
     }
 
     function openEditor() {
+        _completion.reset()
         _pathEditor.text = _pathBarModel.url
         _pathEditor.visible = true
         _pathEditor.forceActiveFocus()

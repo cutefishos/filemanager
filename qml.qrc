@@ -16,6 +16,7 @@
         <file>qml/FileList/Row.qml</file>
         <file>qml/Controls/IconButton.qml</file>
         <file>qml/Controls/Breadcrumbs.qml</file>
+        <file>qml/Controls/PathCompletion.qml</file>
         <file>qml/PathBar.qml</file>
         <file>qml/Desktop/Main.qml</file>
         <file>qml/FolderGridView.qml</file>

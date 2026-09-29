@@ -79,7 +79,8 @@ FishUI.Window {
             enabled: pathEditor.visible
             acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
             onActiveChanged: {
-                if (active && !pathBar.contains(pathBar.mapFromItem(null, point.scenePressPosition)))
+                if (active && !pathBar.contains(pathBar.mapFromItem(null, point.scenePressPosition))
+                        && !pathCompletion.containsScenePosition(point.scenePressPosition))
                     pathBar.closeEditor()
             }
         }
@@ -278,6 +279,7 @@ FishUI.Window {
                         Layout.leftMargin: FishUI.Units.smallSpacing / 2
 
                         function openEditor() {
+                            pathCompletion.reset()
                             pathEditor.text = pathBarModel.url
                             pathEditor.visible = true
                             crumbs.visible = false
@@ -340,7 +342,21 @@ FishUI.Window {
                             Accessible.name: qsTr("Location")
                             onAccepted: chooser.navigate(text)
                             onActiveFocusChanged: if (!activeFocus) pathBar.closeEditor()
-                            Keys.onEscapePressed: pathBar.closeEditor()
+                            Keys.onPressed: function(event) {
+                                if (pathCompletion.handleKey(event))
+                                    event.accepted = true
+                            }
+                            Keys.onEscapePressed: function(event) {
+                                if (!pathCompletion.handleKey(event))
+                                    pathBar.closeEditor()
+                            }
+                        }
+
+                        FileManagerControls.PathCompletion {
+                            id: pathCompletion
+                            objectName: "pathCompletion"
+                            editor: pathEditor
+                            onActivated: function(path) { chooser.navigate(path) }
                         }
                     }
                 }
