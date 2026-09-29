@@ -195,7 +195,7 @@ Item {
             topInset: folderPage.headerHeight
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
-            topMargin: topInset
+            topMargin: topInset + FishUI.Units.smallSpacing
             bottomMargin: FishUI.Units.smallSpacing
 
             onIconSizeChanged: {
@@ -216,7 +216,7 @@ Item {
 
             onContextMenuRequested: folderMenu.popup()
 
-            topInset: folderPage.headerHeight
+            topInset: folderPage.headerHeight + FishUI.Units.smallSpacing
             topMargin: _folderListView.headerHeight + 2
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
