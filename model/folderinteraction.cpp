@@ -714,7 +714,15 @@ void FolderModel::addDragImage(QDrag *drag, int x, int y)
     QPoint offset = rect.topLeft();
     rect.translate(-offset.x(), -offset.y());
 
-    QImage dragImage(rect.size(), QImage::Format_RGBA8888);
+    // The snapshots are in device pixels. Composited at the logical size, they
+    // would be scaled down here and up again on the drag icon's surface.
+    qreal dpr = 1;
+    foreach (DragImage *image, m_dragImages) {
+        if (!image->blank && !image->image.isNull())
+            dpr = std::max(dpr, image->image.devicePixelRatio());
+    }
+
+    QImage dragImage((QSizeF(rect.size()) * dpr).toSize(), QImage::Format_ARGB32_Premultiplied);
     dragImage.fill(Qt::transparent);
 
     QPainter painter(&dragImage);
@@ -726,13 +734,18 @@ void FolderModel::addDragImage(QDrag *drag, int x, int y)
             image->cursorOffset.setX(pos.x() - (x - offset.x()));
             image->cursorOffset.setY(pos.y() - (y - offset.y()));
 
-            painter.drawImage(pos, image->image);
+            // Placed on whole device pixels so each snapshot is copied, not resampled.
+            QImage pixels = image->image;
+            pixels.setDevicePixelRatio(1);
+            painter.drawImage(QPoint(qRound(pos.x() * dpr), qRound(pos.y() * dpr)), pixels);
         }
 
         // FIXME HACK: Operate on copy.
         image->rect.translate(m_dragHotSpotScrollOffset.x(), m_dragHotSpotScrollOffset.y());
     }
 
+    painter.end();
+    dragImage.setDevicePixelRatio(dpr);
     drag->setPixmap(QPixmap::fromImage(dragImage));
     drag->setHotSpot(QPoint(x - offset.x(), y - offset.y()));
 }
