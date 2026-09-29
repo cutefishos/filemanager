@@ -395,10 +395,22 @@ FishUI.Window {
             spacing: root.windowButtonsSpacing
 
             readonly property int buttonSize: root.header.buttonSize
-            // The title reads low on the sidebar title's baseline, so it sits
-            // 1px above it; the buttons stay centred on that baseline's capitals.
+            // The path bar sits 1px above the sidebar title's baseline; the
+            // buttons stay centred on that baseline's capitals.
             readonly property real titleRaise: 1
-            readonly property real buttonTopMargin: _folderName.capCenter + titleRaise - buttonSize / 2
+            readonly property real titleBaseline: _sideBar.titleItem.y + _sideBar.titleItem.baselineOffset - titleRaise
+            readonly property real buttonTopMargin: snap(snap(titleBaseline) - _capMetrics.tightBoundingRect.height / 2)
+                                                    + titleRaise - buttonSize / 2
+
+            function snap(value) {
+                return Math.round(value * FishUI.Dpi.ratio) / FishUI.Dpi.ratio
+            }
+
+            TextMetrics {
+                id: _capMetrics
+                font: _sideBar.titleItem.font
+                text: "H"
+            }
 
             IconButton {
                 id: _backButton
@@ -428,16 +440,16 @@ FishUI.Window {
                 onClicked: _folderPage.goForward()
             }
 
-            FishUI.AlignedLabel {
-                id: _folderName
+            PathBar {
+                id: _pathBar
                 Layout.fillWidth: true
-                Layout.leftMargin: FishUI.Units.smallSpacing
-                // Header and sidebar share the window's top edge.
-                textBaseline: _sideBar.titleItem.y + _sideBar.titleItem.baselineOffset - _headerRow.titleRaise
-                leftPadding: 0
-                color: root.active ? FishUI.Theme.textColor : FishUI.Theme.disabledTextColor
-                font.pointSize: 11
-                text: _pathBar.currentName
+                Layout.alignment: Qt.AlignTop
+                Layout.topMargin: _headerRow.buttonTopMargin
+                Layout.preferredHeight: _headerRow.buttonSize
+                onItemClicked: function(path) { _folderPage.openUrl(path) }
+                onEditorAccepted: function(path) { _folderPage.openUrl(path) }
+                onOpenInNewTab: function(path) { root.openTab(path) }
+                onOpenInNewWindow: function(path) { _folderPage.model.openInNewWindow(path) }
             }
 
             IconButton {
@@ -599,7 +611,6 @@ FishUI.Window {
             visible: root._folderPage === this
             enabled: visible
             headerHeight: root.headerInset + tabBar.height
-            bottomNavigationHeight: _navigationBar.height
             onOpenInNewTab: function(path) { root.openTab(path) }
             onCloseRequested: root.closeTab(root.currentTab)
             onCurrentUrlChanged: {
@@ -608,57 +619,6 @@ FishUI.Window {
             }
             onRequestPathEditor: {
                 _pathBar.openEditor()
-            }
-        }
-    }
-
-    Item {
-        id: _navigationBar
-        x: _content.x
-        width: _content.width
-        height: root.header.height
-        anchors.bottom: parent.bottom
-        z: 3
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: FishUI.Units.smallSpacing * 1.5
-            anchors.rightMargin: FishUI.Units.smallSpacing * 1.5
-            anchors.topMargin: FishUI.Units.smallSpacing
-            anchors.bottomMargin: FishUI.Units.smallSpacing
-            spacing: 0
-
-            PathBar {
-                id: _pathBar
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                onItemClicked: function(path) { _folderPage.openUrl(path) }
-                onEditorAccepted: function(path) { _folderPage.openUrl(path) }
-                onOpenInNewTab: function(path) { root.openTab(path) }
-                onOpenInNewWindow: function(path) { _folderPage.model.openInNewWindow(path) }
-            }
-        }
-
-        // Include the bottom bar in drag scrolling without accepting file drops.
-        DragDrop.DropArea {
-            id: _navigationDragArea
-            anchors.fill: parent
-            z: 10
-
-            onDragEnter: function(event) {
-                root.updateDragHoverPosition(_navigationDragArea, event.x, event.y)
-                root.updateCurrentViewDragPosition(_navigationDragArea, event)
-                event.accept(Qt.MoveAction)
-            }
-            onDragMove: function(event) {
-                root.updateDragHoverPosition(_navigationDragArea, event.x, event.y)
-                root.updateCurrentViewDragPosition(_navigationDragArea, event)
-                event.accept(Qt.MoveAction)
-            }
-            onDragLeave: root.stopCurrentViewDragScroll()
-            onDrop: {
-                root.stopCurrentViewDragScroll()
-                event.ignore()
             }
         }
     }

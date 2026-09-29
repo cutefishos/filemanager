@@ -27,7 +27,6 @@ Item {
     id: control
 
     property string url: ""
-    property string currentName: nameForUrl(url)
     readonly property color ancestorColor: Qt.rgba(FishUI.Theme.textColor.r,
                                                   FishUI.Theme.textColor.g,
                                                   FishUI.Theme.textColor.b, 0.6)
@@ -36,27 +35,6 @@ Item {
     signal editorAccepted(string path)
     signal openInNewTab(string path)
     signal openInNewWindow(string path)
-
-    function nameForUrl(value) {
-        if (!value)
-            return ""
-
-        if (value.indexOf("trash:/") === 0)
-            return qsTr("Trash")
-
-        var path = value.toString()
-        if (path.indexOf("file://") === 0)
-            path = path.substring(7)
-
-        while (path.length > 1 && path.endsWith("/"))
-            path = path.substring(0, path.length - 1)
-
-        if (path === "/")
-            return qsTr("Computer")
-
-        var separator = path.lastIndexOf("/")
-        return separator >= 0 ? (path.substring(separator + 1) || "/") : path
-    }
 
     property bool _dragged: false
     property real _pressX: 0

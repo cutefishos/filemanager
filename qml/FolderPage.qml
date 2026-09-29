@@ -36,7 +36,6 @@ Item {
     property alias canGoForward: dirModel.canGoForward
     property Item currentView: _viewLoader.item
     property int headerHeight: 0
-    property int bottomNavigationHeight: 0
     property string initialUrl: ""
     property var initialSelection: []
     // Back and forward history carried over from a tab in another window.
@@ -154,7 +153,6 @@ Item {
     // The view runs up under the window header, which floats over it.
     ColumnLayout {
         anchors.fill: parent
-        anchors.bottomMargin: 2 + folderPage.bottomNavigationHeight
         spacing: 0
 
         Loader {
