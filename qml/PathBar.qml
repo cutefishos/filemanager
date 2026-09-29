@@ -40,14 +40,6 @@ Item {
     property real _pressX: 0
     property real _pressY: 0
 
-    Rectangle {
-        anchors.fill: parent
-        color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.secondBackgroundColor, 1.3)
-                                     : FishUI.Theme.secondBackgroundColor
-        radius: FishUI.Theme.smallRadius
-        z: -1
-    }
-
     // Clicking anywhere that is not a breadcrumb opens the path editor. The
     // view above is not interactive, so its empty area lets the press through.
     MouseArea {

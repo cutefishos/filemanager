@@ -301,12 +301,6 @@ FishUI.Window {
                             url: chooser.directory
                         }
 
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: FishUI.Theme.smallRadius
-                            color: FishUI.Theme.alternateBackgroundColor
-                        }
-
                         // Dragging the path bar moves the window, which has no title
                         // bar; the click that opens the editor must still get through.
                         property bool dragging: false
