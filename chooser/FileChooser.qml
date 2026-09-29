@@ -276,10 +276,6 @@ FishUI.Window {
                         Layout.preferredHeight: 30
                         Layout.leftMargin: FishUI.Units.smallSpacing / 2
 
-                        readonly property color ancestorColor: Qt.rgba(FishUI.Theme.textColor.r,
-                                                                      FishUI.Theme.textColor.g,
-                                                                      FishUI.Theme.textColor.b, 0.6)
-
                         function openEditor() {
                             pathEditor.text = pathBarModel.url
                             pathEditor.visible = true
@@ -326,63 +322,11 @@ FishUI.Window {
                             }
                         }
 
-                        ListView {
+                        FileManagerControls.Breadcrumbs {
                             id: crumbs
                             anchors.fill: parent
-                            anchors.topMargin: 2
-                            anchors.bottomMargin: 2
-                            orientation: Qt.Horizontal
-                            interactive: false
-                            clip: true
-                            // With the crumb's own half-largeSpacing, text starts where the editor's does.
-                            leftMargin: FishUI.Units.smallSpacing
-                            rightMargin: FishUI.Units.smallSpacing
-                            spacing: 10 + FishUI.Units.smallSpacing
                             model: pathBarModel
-                            currentIndex: count - 1
-
-                            onCountChanged: positionViewAtEnd()
-
-                            delegate: MouseArea {
-                                id: crumb
-                                required property int index
-                                required property var model
-                                readonly property bool current: index === crumbs.count - 1
-
-                                height: crumbs.height - crumbs.topMargin - crumbs.bottomMargin
-                                width: crumbLabel.width + FishUI.Units.largeSpacing
-                                onPressed: pathBar.dragging = false
-                                onClicked: if (!pathBar.dragging) chooser.navigate(model.path)
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: FishUI.Theme.smallRadius
-                                    color: crumb.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                                   FishUI.Theme.textColor.g,
-                                                                   FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1)
-                                         : "transparent"
-                                    smooth: true
-                                }
-
-                                FishUI.Label {
-                                    id: crumbLabel
-                                    anchors.centerIn: parent
-                                    text: crumb.model.name
-                                    textFormat: Text.PlainText
-                                    color: crumb.current ? FishUI.Theme.textColor : pathBar.ancestorColor
-                                }
-
-                                FishUI.Icon {
-                                    anchors.left: parent.right
-                                    anchors.leftMargin: FishUI.Units.smallSpacing / 2
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 10
-                                    height: 10
-                                    visible: !crumb.current
-                                    name: "chevron-right"
-                                    color: pathBar.ancestorColor
-                                }
-                            }
+                            onItemClicked: function(path) { chooser.navigate(path) }
                         }
 
                         FishUI.TextField {

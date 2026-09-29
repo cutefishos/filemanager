@@ -23,13 +23,12 @@ import QtQuick.Controls 2.12
 import Cutefish.FileManager 1.0
 import FishUI 1.0 as FishUI
 
+import "./Controls"
+
 Item {
     id: control
 
     property string url: ""
-    readonly property color ancestorColor: Qt.rgba(FishUI.Theme.textColor.r,
-                                                  FishUI.Theme.textColor.g,
-                                                  FishUI.Theme.textColor.b, 0.6)
 
     signal itemClicked(string path)
     signal editorAccepted(string path)
@@ -61,108 +60,15 @@ Item {
         }
     }
 
-    ListView {
+    Breadcrumbs {
         id: _pathView
         anchors.fill: parent
-        interactive: false
-        anchors.topMargin: 2
-        anchors.bottomMargin: 2
         model: _pathBarModel
-        orientation: Qt.Horizontal
-        layoutDirection: Qt.LeftToRight
-        clip: true
+        openActionsEnabled: true
 
-        // With the crumb's own half-largeSpacing, text starts where the editor's does.
-        leftMargin: FishUI.Units.smallSpacing
-        rightMargin: FishUI.Units.smallSpacing
-        spacing: 10 + FishUI.Units.smallSpacing
-
-        onWidthChanged: Qt.callLater(function() { _pathView.positionViewAtEnd() })
-
-        onCountChanged: {
-            _pathView.currentIndex = _pathView.count - 1
-            _pathView.positionViewAtEnd()
-        }
-
-        highlight: null
-
-        delegate: MouseArea {
-            id: _item
-            height: ListView.view.height - ListView.view.topMargin - ListView.view.bottomMargin
-            width: _name.width + FishUI.Units.largeSpacing
-            acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-            z: -1
-
-            property bool selected: index === _pathView.count - 1
-
-            property bool dragged: false
-            property real pressX: 0
-            property real pressY: 0
-
-            onPressed: function(mouse) {
-                dragged = false
-                pressX = mouse.x
-                pressY = mouse.y
-            }
-            onPositionChanged: function(mouse) {
-                if (Math.abs(mouse.x - pressX) > 4 || Math.abs(mouse.y - pressY) > 4)
-                    dragged = true
-            }
-            onCanceled: dragged = true
-            onClicked: function(mouse) {
-                if (dragged)
-                    return
-                if (mouse.button === Qt.RightButton)
-                    breadcrumbMenu.popup()
-                else if (mouse.button === Qt.MiddleButton)
-                    control.openInNewTab(model.path)
-                else
-                    control.itemClicked(model.path)
-            }
-
-            FishUI.DesktopMenu {
-                id: breadcrumbMenu
-                pointerGrabEnabled: true
-
-                FishUI.MenuItem {
-                    text: qsTr("Open In New Tab")
-                    onTriggered: control.openInNewTab(model.path)
-                }
-                FishUI.MenuItem {
-                    text: qsTr("Open In New Window")
-                    onTriggered: control.openInNewWindow(model.path)
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                radius: FishUI.Theme.smallRadius
-                color: _item.pressed ? Qt.rgba(FishUI.Theme.textColor.r,
-                                                   FishUI.Theme.textColor.g,
-                                                   FishUI.Theme.textColor.b, FishUI.Theme.darkMode ? 0.05 : 0.1) :
-                                                              "transparent"
-
-                smooth: true
-            }
-
-            FishUI.Label {
-                id: _name
-                text: model.name
-                anchors.centerIn: parent
-                color: selected ? FishUI.Theme.textColor : control.ancestorColor
-            }
-
-            FishUI.Icon {
-                anchors.left: parent.right
-                anchors.leftMargin: FishUI.Units.smallSpacing / 2
-                anchors.verticalCenter: parent.verticalCenter
-                width: 10
-                height: 10
-                visible: !_item.selected
-                name: "chevron-right"
-                color: control.ancestorColor
-            }
-        }
+        onItemClicked: function(path) { control.itemClicked(path) }
+        onOpenInNewTab: function(path) { control.openInNewTab(path) }
+        onOpenInNewWindow: function(path) { control.openInNewWindow(path) }
     }
 
     FishUI.TextField {
