@@ -725,7 +725,8 @@ GridView {
     Loader {
         z: 1
         width: control.width
-        height: control.topInset
+        // Down to where the first row rests, so scrolled icons slip under the band.
+        height: control.topInset + FishUI.Units.smallSpacing
         active: control.topInset > 0
 
         sourceComponent: FishUI.HeaderBackdrop {
