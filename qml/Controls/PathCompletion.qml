@@ -56,6 +56,9 @@ T.Popup {
         clip: true
         spacing: 1
         boundsBehavior: Flickable.StopAtBounds
+        // Scrolled by WheelHandler, as the folder views are, so a touchpad
+        // gets the same momentum; a flick would also steal presses from rows.
+        interactive: false
         currentIndex: control.currentIndex
         highlightFollowsCurrentItem: false
         // No rows are built for a list nobody sees, nor ahead of scrolling:
@@ -78,6 +81,10 @@ T.Popup {
             highlighted: index === control.currentIndex
 
             onTriggered: control.activated(path)
+        }
+
+        FishUI.WheelHandler {
+            target: _list
         }
 
         // Only a pointer that moves lights a row: hover also follows rows
