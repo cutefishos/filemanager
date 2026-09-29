@@ -65,20 +65,25 @@ FishUI.Window {
         anchors.topMargin: FishUI.Units.smallSpacing
         spacing: FishUI.Units.largeSpacing
 
+        // The icon ends where the labels below do and the name starts where their values do.
         RowLayout {
-            spacing: FishUI.Units.largeSpacing * 2
+            spacing: _form.columnSpacing
 
-            FishUI.IconItem {
-                width: 48
-                height: 48
-                Layout.preferredWidth: 48
+            Item {
+                Layout.preferredWidth: _form.labelWidth
                 Layout.preferredHeight: 48
-                source: control.details.iconName
 
-                // The source is available while the item is being created.
-                // Refresh after completion so IconItem can load it once its
-                // component lifecycle is ready.
-                Component.onCompleted: updateIcon()
+                FishUI.IconItem {
+                    anchors.right: parent.right
+                    width: 48
+                    height: 48
+                    source: control.details.iconName
+
+                    // The source is available while the item is being created.
+                    // Refresh after completion so IconItem can load it once its
+                    // component lifecycle is ready.
+                    Component.onCompleted: updateIcon()
+                }
             }
 
             FishUI.Label {
@@ -97,7 +102,8 @@ FishUI.Window {
             Layout.alignment: Qt.AlignTop
 
             // Hidden rows leave the grid, so the values would start further left for some files.
-            readonly property real labelWidth: Math.max(_typeLabel.implicitWidth,
+            readonly property real labelWidth: Math.max(48,
+                                                        _typeLabel.implicitWidth,
                                                         _locationLabel.implicitWidth,
                                                         _sizeLabel.implicitWidth,
                                                         _createdLabel.implicitWidth,
