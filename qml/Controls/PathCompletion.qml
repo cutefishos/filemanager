@@ -76,7 +76,7 @@ T.Popup {
             icon.name: "folder"
             // A press must leave the editor focused, or it closes under the click.
             focusPolicy: Qt.NoFocus
-            // The keys and the pointer share one lit row.
+            // Only the keys light a row; hover leaves it alone.
             pointerTracking: true
             highlighted: index === control.currentIndex
 
@@ -87,25 +87,10 @@ T.Popup {
             target: _list
         }
 
-        // Only a pointer that moves lights a row: hover also follows rows
-        // refiltered under a resting pointer, and Return would then take one.
-        HoverHandler {
-            property bool tracking: false
-            property point lastPosition
-
-            onHoveredChanged: tracking = false
-            onPointChanged: {
-                var position = point.scenePosition
-                var moved = tracking && (position.x !== lastPosition.x || position.y !== lastPosition.y)
-                tracking = true
-                lastPosition = position
-                if (!moved)
-                    return
-
-                var index = _list.indexAt(point.position.x + _list.contentX, point.position.y + _list.contentY)
-                if (index >= 0)
-                    control.currentIndex = index
-            }
+        FishUI.ScrollBar.vertical: FishUI.ScrollBar {
+            // Always drawn on a list that scrolls, as in the ComboBox drop-down:
+            // it is the only sign that there is more of it.
+            policy: _list.contentHeight > _list.height ? FishUI.ScrollBar.AlwaysOn : FishUI.ScrollBar.AlwaysOff
         }
     }
 
