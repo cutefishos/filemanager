@@ -37,8 +37,11 @@ FishUI.Window {
     visible: true
     title: qsTr("Files")
 
-    blurEnabled: active
-    background.opacity: 1
+    // Inactive windows keep the blur and halve the see-through instead of going opaque.
+    background.color: Qt.rgba(FishUI.Theme.backgroundColor.r,
+                              FishUI.Theme.backgroundColor.g,
+                              FishUI.Theme.backgroundColor.b,
+                              !blurAvailable ? 1 : active ? 0.8 : 0.9)
     header.height: headerInset
     contentTopMargin: 0
 
