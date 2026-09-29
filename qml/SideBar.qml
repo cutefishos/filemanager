@@ -32,8 +32,6 @@ Item {
     implicitWidth: 190
 
     property string title
-    // The header aligns its own contents to this label's text line.
-    property alias titleItem: titleLabel
     property alias currentIndex: listView.currentIndex
     property alias count: listView.count
     property alias model: listView.model

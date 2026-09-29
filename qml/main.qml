@@ -395,28 +395,12 @@ FishUI.Window {
             spacing: root.windowButtonsSpacing
 
             readonly property int buttonSize: root.header.buttonSize
-            // The path bar sits 1px above the sidebar title's baseline; the
-            // buttons stay centred on that baseline's capitals.
-            readonly property real titleRaise: 1
-            readonly property real titleBaseline: _sideBar.titleItem.y + _sideBar.titleItem.baselineOffset - titleRaise
-            readonly property real buttonTopMargin: snap(snap(titleBaseline) - _capMetrics.tightBoundingRect.height / 2)
-                                                    + titleRaise - buttonSize / 2
-
-            function snap(value) {
-                return Math.round(value * FishUI.Dpi.ratio) / FishUI.Dpi.ratio
-            }
-
-            TextMetrics {
-                id: _capMetrics
-                font: _sideBar.titleItem.font
-                text: "H"
-            }
 
             IconButton {
                 id: _backButton
                 objectName: "backButton"
                 Layout.alignment: Qt.AlignTop
-                Layout.topMargin: _headerRow.buttonTopMargin
+                Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoBack
@@ -430,7 +414,7 @@ FishUI.Window {
                 id: _forwardButton
                 objectName: "forwardButton"
                 Layout.alignment: Qt.AlignTop
-                Layout.topMargin: _headerRow.buttonTopMargin
+                Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
                 enabled: _folderPage && _folderPage.canGoForward
@@ -444,7 +428,7 @@ FishUI.Window {
                 id: _pathBar
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignTop
-                Layout.topMargin: _headerRow.buttonTopMargin
+                Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredHeight: _headerRow.buttonSize
                 onItemClicked: function(path) { _folderPage.openUrl(path) }
                 onEditorAccepted: function(path) { _folderPage.openUrl(path) }
