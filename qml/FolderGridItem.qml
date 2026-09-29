@@ -79,7 +79,8 @@ Item {
 
     // Cells are a fraction of a pixel wide; the drawing sits on whole device
     // pixels so icons and names stay sharp while the columns spread.
-    readonly property real devicePixelRatio: Screen.devicePixelRatio > 0 ? Screen.devicePixelRatio : 1
+    // The window's ratio: Screen's is the integer wl_output scale (2 at 125%).
+    readonly property real devicePixelRatio: FishUI.Dpi.ratio > 0 ? FishUI.Dpi.ratio : 1
     transform: Translate {
         x: desktop ? 0 : Math.round(control.x * control.devicePixelRatio)
                          / control.devicePixelRatio - control.x
@@ -184,16 +185,15 @@ Item {
 
         opacity: model.isHidden ? 0.5 : 1.0
 
-        Image {
+        // Snapped to the device pixel grid wherever the cell and view land.
+        FishUI.IconItem {
             id: _icon
             width: control.GridView.view.iconSize
             height: control.GridView.view.iconSize
             anchors.centerIn: parent
-            sourceSize: Qt.size(width, height)
-            source: "image://icontheme/" + model.iconName + FishUI.Theme.iconThemeQuery
+            source: model.iconName
+            fallback: model.isDir ? "folder" : "unknown"
             visible: !_image.visible
-            smooth: true
-            antialiasing: true
         }
 
         Image {

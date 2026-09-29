@@ -360,8 +360,11 @@ Rectangle {
                         name: "close"
                         opacity: closeButton.hovered ? 1 : 0.6
                     }
-                    background: Rectangle {
+                    // Snapped like the glyph; a plain Rectangle drifts up to a device
+                    // pixel from it at fractional scales.
+                    background: FishUI.RoundedRectangle {
                         radius: height / 2
+                        continuousCorners: false
                         color: closeButton.down ? control.pressedColor
                                                 : closeButton.hovered ? control.hoverColor : "transparent"
                     }

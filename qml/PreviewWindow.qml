@@ -194,8 +194,8 @@ FishUI.Window {
                 width: imageView.contentWidth
                 height: imageView.contentHeight
                 source: file.url || ""
-                sourceSize.width: Math.min(4096, Math.ceil(width * preview.screen.devicePixelRatio))
-                sourceSize.height: Math.min(4096, Math.ceil(height * preview.screen.devicePixelRatio))
+                sourceSize.width: Math.min(4096, Math.ceil(width * FishUI.Dpi.ratio))
+                sourceSize.height: Math.min(4096, Math.ceil(height * FishUI.Dpi.ratio))
                 asynchronous: true
                 retainWhileLoading: true
                 autoTransform: true

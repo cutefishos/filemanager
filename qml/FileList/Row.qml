@@ -78,16 +78,14 @@ Item {
             height: width
             opacity: row.itemModel.isHidden ? 0.5 : 1.0
 
-            Image {
+            FishUI.IconItem {
                 id: _icon
                 anchors.fill: parent
                 // Small sizes resolve to the flat symbolic variants in the theme.
-                sourceSize: Qt.size(96, 96)
-                source: "image://icontheme/" + row.itemModel.iconName + FishUI.Theme.iconThemeQuery
+                themeSize: 96
+                source: row.itemModel.iconName
+                fallback: row.itemModel.isDir ? "folder" : "unknown"
                 visible: !_image.visible
-                asynchronous: true
-                smooth: true
-                mipmap: true
             }
 
             Image {
