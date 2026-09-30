@@ -302,11 +302,46 @@ Item {
                     id: _label
                     x: listView.snap(_icon.x + _icon.width + FishUI.Units.smallSpacing)
                     y: listView.snap((_item.height - height) / 2)
-                    width: _item.width - x - listView.snap(FishUI.Units.smallSpacing)
+                    width: (_ejectButton.visible ? _ejectButton.x : _item.width)
+                           - x - listView.snap(FishUI.Units.smallSpacing)
                     text: model.name
                     color: !root.active ? FishUI.Theme.disabledTextColor
                          : checked ? FishUI.Theme.highlightColor : FishUI.Theme.textColor
                     elide: Text.ElideRight
+                }
+
+                ToolButton {
+                    id: _ejectButton
+                    x: listView.snap(_item.width - listView.sideInset
+                                     - FishUI.Units.smallSpacing - width)
+                    y: listView.snap((_item.height - height) / 2)
+                    width: listView.snap(28)
+                    height: width
+                    visible: _ejectMenuItem.visible || _umountMenuItem.visible
+                    hoverEnabled: true
+                    Accessible.name: _ejectMenuItem.visible ? qsTr("Eject") : qsTr("Unmount")
+
+                    contentItem: Item {
+                        FishUI.IconItem {
+                            x: listView.snap((parent.width - width) / 2)
+                            y: listView.snap((parent.height - height) / 2)
+                            width: listView.snap(14)
+                            height: width
+                            themeSize: 16
+                            source: "media-eject-symbolic"
+                            color: _icon.color
+                            opacity: _ejectButton.hovered ? 0.85 : 0.45
+                        }
+                    }
+
+                    background: Item {}
+
+                    onClicked: {
+                        if (_ejectMenuItem.visible)
+                            placesModel.requestEject(index)
+                        else
+                            placesModel.requestTeardown(index)
+                    }
                 }
             }
         }
