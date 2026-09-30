@@ -52,6 +52,15 @@ void writeEntry(QStringList &lines, const QString &group, const QString &key,
     }
     lines.insert(insertion, entry);
 }
+
+// An entry may carry a "+" (include) or "-" (exclude) prefix and an ":action" suffix.
+QString terminalId(const QString &line)
+{
+    QString entry = line.trimmed();
+    if (entry.startsWith('+') || entry.startsWith('-'))
+        entry.remove(0, 1);
+    return entry.section(':', 0, 0);
+}
 } // namespace
 
 QStringList MimeApps::associations(const QString &path, const QString &group,
@@ -90,6 +99,47 @@ bool MimeApps::setDefault(const QString &path, const QString &mimeType, const QS
     auto removed = readEntries(lines, "Removed Associations", mimeType);
     if (removed.removeAll(desktopId))
         writeEntry(lines, "Removed Associations", mimeType, removed);
+    QSaveFile output(path);
+    if (!output.open(QIODevice::WriteOnly))
+        return false;
+    const auto data = (lines.join('\n') + '\n').toUtf8();
+    return output.write(data) == data.size() && output.commit();
+}
+
+QString MimeApps::defaultTerminal(const QString &path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+    for (const QString &line : QString::fromUtf8(file.readAll()).split('\n')) {
+        const QString entry = line.trimmed();
+        if (!entry.isEmpty() && !entry.startsWith('#') && !entry.startsWith('-'))
+            return terminalId(entry);
+    }
+    return {};
+}
+
+bool MimeApps::setDefaultTerminal(const QString &path, const QString &desktopId)
+{
+    if (desktopId.isEmpty() || desktopId.contains('\n') || desktopId.contains('\r'))
+        return false;
+    if (!QDir().mkpath(QFileInfo(path).absolutePath()))
+        return false;
+    QLockFile lock(path + ".lock");
+    if (!lock.tryLock())
+        return false;
+    QFile input(path);
+    QStringList lines;
+    if (input.exists()) {
+        if (!input.open(QIODevice::ReadOnly))
+            return false;
+        lines = QString::fromUtf8(input.readAll()).split('\n', Qt::SkipEmptyParts);
+        input.close();
+    }
+    lines.removeIf([&desktopId](const QString &line) {
+        return !line.trimmed().startsWith('#') && terminalId(line) == desktopId;
+    });
+    lines.prepend(desktopId);
     QSaveFile output(path);
     if (!output.open(QIODevice::WriteOnly))
         return false;

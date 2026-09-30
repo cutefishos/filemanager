@@ -29,6 +29,8 @@
 #include <QSettings>
 #include <QStandardPaths>
 
+#include <preferences.h>
+
 static PlacesItem *createFolderItem(const QUrl &url)
 {
     const QString path = url.toLocalFile();
@@ -93,7 +95,7 @@ PlacesModel::PlacesModel(QObject *parent)
         m_items.append(item);
     }
 
-    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager"));
+    QSettings settings(Preferences::file(QStringLiteral("filemanager")), QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("Sidebar"));
     if (settings.contains(QStringLiteral("favorites"))) {
         const auto defaults = m_items;
@@ -277,7 +279,7 @@ void PlacesModel::saveFavorites()
     QStringList urls;
     for (int row = 0; row < favoriteCount(); ++row)
         urls.append(m_items.at(row)->url().toString());
-    QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager"));
+    QSettings settings(Preferences::file(QStringLiteral("filemanager")), QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("Sidebar"));
     settings.setValue(QStringLiteral("favorites"), urls);
     emit favoritesChanged();

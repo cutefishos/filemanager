@@ -1,4 +1,5 @@
 #include "../model/placesmodel.h"
+#include "preferences.h"
 
 #include <QAbstractItemModelTester>
 #include <QDir>
@@ -19,7 +20,7 @@ private slots:
         QVERIFY(config.isValid());
         QVERIFY(folders.isValid());
         qputenv("XDG_CONFIG_HOME", config.path().toUtf8());
-        QSettings settings(QStringLiteral("cutefish"), QStringLiteral("filemanager"));
+        QSettings settings(Preferences::file(QStringLiteral("filemanager")), QSettings::IniFormat);
         settings.setValue(QStringLiteral("Sidebar/favorites"), QStringList());
         settings.sync();
 

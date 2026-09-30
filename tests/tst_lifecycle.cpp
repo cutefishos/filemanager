@@ -20,6 +20,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <task.h>
+#include <preferences.h>
 
 namespace {
 
@@ -294,7 +295,7 @@ int main(int argc, char **argv)
     QByteArray activationArgument("--dbus-activated");
     QByteArray daemonArgument("--daemon");
     if (activated) {
-        QSettings settings("cutefish", "filemanager");
+        QSettings settings(Preferences::file("filemanager"), QSettings::IniFormat);
         settings.setValue("viewMethod", scenario == "activation-list" ? 0 : 1);
         argv[1] = activationArgument.data();
     } else if (scenario == "daemon") {

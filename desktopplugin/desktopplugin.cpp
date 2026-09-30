@@ -16,6 +16,7 @@
  */
 
 #include "desktopview.h"
+#include "helper/folderpreferences.h"
 #include "qmltypes.h"
 
 #include <QQmlEngine>
@@ -38,6 +39,7 @@ public:
 
         CutefishFM::initResources();
         CutefishFM::registerQmlTypes();
+        FolderPreferences::useDesktop();
 
         qmlRegisterType<DesktopView>(uri, 1, 0, "DesktopView");
     }

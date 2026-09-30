@@ -36,18 +36,23 @@ Item {
 
     readonly property string screenName: (typeof desktopView !== "undefined" && desktopView)
                                          ? String(desktopView.screenName).replace(/[\/\\]/g, "_") : ""
-    readonly property string legacyLayoutKey: "%1_%2x%3".arg(screenName)
-                                              .arg(_folderView.gridColumns).arg(_folderView.gridRows)
     property bool restoringLayout: false
     property bool layoutLoaded: false
 
-    GlobalSettings {
-        id: globalSettings
+    // cutefish-shell hosts the desktop, so it keeps its settings in shell.conf.
+    Settings {
+        id: desktopSettings
+        location: StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)
+                  + "/cutefish/shell.conf"
+        category: "Desktop"
+
+        property int iconSize: 64
+        property int maximumIconSize: 256
     }
 
     Settings {
         id: layoutSettings
-        location: globalSettings.location
+        location: desktopSettings.location
         category: "DesktopIconLayout"
     }
 
@@ -102,25 +107,12 @@ Item {
         restoringLayout = true
 
         var raw = layoutSettings.value("layout.v3." + screenName, "")
-        if (!raw)
-            raw = layoutSettings.value("layout.v2." + legacyLayoutKey, "")
-        if (!raw)
-            raw = layoutSettings.value("latest.v2." + screenName, "")
-        var legacy = false
-        if (!raw) {
-            raw = layoutSettings.value("layout." + legacyLayoutKey, "")
-            legacy = !!raw
-        }
 
         if (raw) {
             try {
                 var stored = JSON.parse(raw)
-                if (stored instanceof Array && stored.length >= 5) {
-                    // Legacy headers counted occupied columns, not the screen grid.
-                    if (legacy)
-                        stored[0] = String(_folderView.gridColumns)
+                if (stored instanceof Array && stored.length >= 5)
                     _folderView.positioner.positions = stored
-                }
             } catch (e) {
                 console.warn("Desktop: ignoring unreadable icon layout for", screenName, e)
             }
@@ -212,8 +204,8 @@ Item {
 
         isDesktopView: true
         interactionSurface: rootItem
-        iconSize: globalSettings.desktopIconSize
-        maximumIconSize: globalSettings.maximumIconSize
+        iconSize: desktopSettings.iconSize
+        maximumIconSize: desktopSettings.maximumIconSize
         minimumIconSize: 22
         focus: true
         model: _folderView.positioner
@@ -228,7 +220,7 @@ Item {
         onContextMenuRequested: desktopMenu.popup()
 
         onIconSizeChanged: {
-            globalSettings.desktopIconSize = _folderView.iconSize
+            desktopSettings.iconSize = _folderView.iconSize
         }
 
         onActiveFocusChanged: {

@@ -3,6 +3,7 @@
 #include "dirlister.h"
 #include "foldersizecache.h"
 #include "helper/datehelper.h"
+#include "helper/folderpreferences.h"
 #include "helper/iojobui.h"
 
 #include <filesystemurl.h>
@@ -46,8 +47,8 @@ FolderModel::FolderModel(QObject *parent)
 {
     CutefishFM::installIoJobUi();
 
-    // Not the application name: cutefish-shell's desktop and the file chooser load this model too.
-    QSettings settings("cutefish", "filemanager");
+    QSettings settings(FolderPreferences::file(), QSettings::IniFormat);
+    settings.beginGroup(FolderPreferences::group());
     m_showHiddenFiles = settings.value("showHiddenFiles", false).toBool();
 
     m_dragImageTimeout->setSingleShot(true);
@@ -739,7 +740,8 @@ void FolderModel::setShowHiddenFiles(bool showHiddenFiles)
         m_dirLister->setShowHiddenFiles(m_showHiddenFiles);
         m_dirLister->emitChanges();
 
-        QSettings settings("cutefish", "filemanager");
+        QSettings settings(FolderPreferences::file(), QSettings::IniFormat);
+        settings.beginGroup(FolderPreferences::group());
         settings.setValue("showHiddenFiles", m_showHiddenFiles);
 
         emit showHiddenFilesChanged();

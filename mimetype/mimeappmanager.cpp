@@ -31,7 +31,6 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QSet>
-#include <QSettings>
 #include <QThread>
 
 static MimeAppManager *SELF = nullptr;
@@ -388,13 +387,14 @@ void MimeAppManager::launchTerminal(const QString &path)
     if (m_terminalApps.isEmpty())
         return;
 
-    QSettings settings("cutefish", "defaultapps");
-    QString defaultTerminal = settings.value("terminal").toString();
+    const QString defaultTerminal = MimeApps::defaultTerminal(
+            QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+            + QLatin1String("/xdg-terminals.list"));
     QString command;
 
     if (!defaultTerminal.isEmpty()) {
         for (const XdgDesktopFile &f : m_terminalApps) {
-            if (f.fileName().contains(defaultTerminal)) {
+            if (QFileInfo(f.fileName()).fileName() == defaultTerminal) {
                 command = f.value("Exec").toString();
                 break;
             }

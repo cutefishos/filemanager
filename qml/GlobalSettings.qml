@@ -21,11 +21,7 @@ import QtQuick 2.12
 import QtCore
 
 Settings {
-    // Pinned to one file on purpose. This QML is loaded both by the file
-    // manager window and, through the desktop plugin, by cutefish-shell; the
-    // default location follows the host application's name, which would give
-    // the two hosts different preferences and silently reset the desktop's
-    // icon size the first time the shell started.
+    // Pinned: the file chooser, a process of its own, shares the file manager's preferences.
     location: StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)
               + "/cutefish/filemanager.conf"
 
@@ -44,7 +40,6 @@ Settings {
     property real listTypeColumnWidth: 150
 
     // UI
-    property int desktopIconSize: 64
     property int maximumIconSize: 256
     property int minimumIconSize: 64
 
