@@ -432,7 +432,6 @@ void PlacesModel::onDeviceRemoved(const QString &udi)
 
 void PlacesModel::onItemChanged(PlacesItem *item)
 {
-    // 更新 item 数据
     int index = m_items.indexOf(item);
 
     if (index < 0 || index > m_items.size())

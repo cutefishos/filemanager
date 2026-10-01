@@ -32,7 +32,7 @@ class QScreen;
  *     }
  *
  * The item owns no window state (flags, type hints, stacking); that is the
- * host's job, so the same item works on X11, Wayland or inside a test harness.
+ * host's job, so the same item works in the shell or inside a test harness.
  *
  * menuBar is what a global menu bar shows while the desktop has the focus: a
  * QMenu whose top-level actions are the "File" and "Edit" menus, acting on the
