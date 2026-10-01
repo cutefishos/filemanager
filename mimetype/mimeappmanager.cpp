@@ -2,222 +2,60 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "mimeappmanager.h"
-#include "helper/filelauncher.h"
+
+#include "applicationlauncher.h"
+#include "applicationregistry.h"
 #include "mimeapps.h"
 
-#include <QDir>
-#include <QDirIterator>
-#include <QStandardPaths>
-#include <QUrl>
-
 #include <QDateTime>
-#include <QDebug>
+#include <QFileInfo>
 #include <QMimeDatabase>
 #include <QMimeType>
-#include <QSet>
-#include <QThread>
+#include <QUrl>
 
-static MimeAppManager *SELF = nullptr;
+#include <algorithm>
+
+namespace {
+
+MimeAppManager *s_self = nullptr;
+
+// Hidden entries only mask a system entry; programs that need a terminal are not
+// offered for opening files.
+bool opensFiles(const DesktopEntry *entry)
+{
+    return !entry->hidden() && !entry->terminal();
+}
+
+// mimeapps.list and xdg-terminals.list name applications by desktop file ID.
+DesktopEntry *entryForDesktopId(QString desktopId)
+{
+    if (desktopId.endsWith(QLatin1String(".desktop")))
+        desktopId.chop(QLatin1String(".desktop").size());
+
+    DesktopEntry *entry = ApplicationRegistry::instance()->byId(desktopId);
+    return entry && opensFiles(entry) ? entry : nullptr;
+}
+
+QString desktopId(const DesktopEntry *entry)
+{
+    return entry->id() + QLatin1String(".desktop");
+}
+
+} // namespace
 
 MimeAppManager *MimeAppManager::self()
 {
-    if (!SELF)
-        SELF = new MimeAppManager;
+    if (!s_self)
+        s_self = new MimeAppManager;
 
-    return SELF;
+    return s_self;
 }
 
 MimeAppManager::MimeAppManager(QObject *parent)
     : QObject(parent)
-    , m_fileSystemWatcher(new QFileSystemWatcher(this))
-    , m_updateTimer(new QTimer(this))
 {
-    m_updateTimer->setInterval(100);
-    m_updateTimer->setSingleShot(true);
-
-    m_fileSystemWatcher->addPaths(desktopPaths());
-
-    connect(m_fileSystemWatcher, &QFileSystemWatcher::directoryChanged, this,
-            &MimeAppManager::onFileChanged);
-    connect(m_fileSystemWatcher, &QFileSystemWatcher::fileChanged, this,
-            &MimeAppManager::onFileChanged);
-    connect(m_updateTimer, &QTimer::timeout, this, &MimeAppManager::initApplications);
-
-    m_updateTimer->start();
-}
-
-QStringList MimeAppManager::desktopPaths()
-{
-    QStringList folders;
-    folders << QString("/usr/share/applications") << QString("/usr/local/share/applications/")
-            << QDir::homePath() + QString("/.local/share/applications");
-
-    return folders;
-}
-
-QString MimeAppManager::mimeAppsListFilePath()
-{
-    // return QString("%1/.config/mimeapps.list").arg(QDir::homePath());
-
-    return QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-            + QLatin1String("/mimeapps.list");
-}
-
-void MimeAppManager::initApplications()
-{
-    m_desktopFiles.clear();
-    m_desktopObjects.clear();
-    m_terminalApps.clear();
-    m_mimeApps.clear();
-
-    QMap<QString, QSet<QString>> mimeAppsSet;
-
-    for (const QString &folder : desktopPaths()) {
-        QDirIterator itor(folder, QStringList("*.desktop"), QDir::Files | QDir::NoDotAndDotDot,
-                          QDirIterator::Subdirectories);
-        while (itor.hasNext()) {
-            itor.next();
-            QString filePath = itor.filePath();
-            XdgDesktopFile desktopFile(filePath);
-
-            if (!desktopFile.valid())
-                continue;
-
-            if (desktopFile.value("Terminal").toBool())
-                continue;
-
-            m_desktopFiles.append(filePath);
-            m_desktopObjects.insert(filePath, desktopFile);
-
-            // Load terminal
-            QStringList categories = desktopFile.value("Categories").toString().split(";");
-            if (categories.contains("TerminalEmulator")) {
-                m_terminalApps.append(desktopFile);
-            }
-
-            QStringList mimeTypes = desktopFile.value("MimeType").toString().trimmed().split(";");
-            for (const QString &mimeType : mimeTypes) {
-                if (!mimeType.isEmpty()) {
-                    QSet<QString> apps;
-                    if (mimeAppsSet.contains(mimeType)) {
-                        apps = mimeAppsSet.value(mimeType);
-                        apps.insert(filePath);
-                    } else {
-                        apps.insert(filePath);
-                    }
-
-                    mimeAppsSet.insert(mimeType, apps);
-                }
-            }
-        }
-    }
-
-    for (const QString &key : mimeAppsSet.keys()) {
-        QSet<QString> apps = mimeAppsSet.value(key);
-        QStringList orderApps;
-
-        if (apps.count() > 1) {
-            QFileInfoList fileInfos;
-            for (const QString &app : apps) {
-                QFileInfo info(app);
-                fileInfos.append(info);
-            }
-
-            std::sort(fileInfos.begin(), fileInfos.end(),
-                      [=](const QFileInfo &f1, const QFileInfo &f2) {
-                          return f1.birthTime() < f2.birthTime();
-                      });
-
-            for (QFileInfo info : fileInfos) {
-                orderApps.append(info.absoluteFilePath());
-            }
-        } else {
-            orderApps.append(apps.values());
-        }
-
-        m_mimeApps.insert(key, orderApps);
-    }
-
-    // Check from cache.
-    // ref: https://specifications.freedesktop.org/desktop-entry-spec/0.9.5/ar01s07.html
-
-    QFile file("/usr/share/applications/mimeinfo.cache");
-    if (!file.open(QIODevice::ReadOnly))
-        return;
-
-    QStringList audioDesktopList;
-    QStringList imageDeksopList;
-    QStringList textDekstopList;
-    QStringList videoDesktopList;
-
-    while (!file.atEnd()) {
-        QString line = file.readLine();
-        QString mimeType = line.split("=").first();
-        QString _desktops = line.split("=").last();
-        QStringList desktops = _desktops.split(";");
-
-        for (const QString &desktop : desktops) {
-            if (desktop.isEmpty() || audioDesktopList.contains(desktop))
-                continue;
-
-            if (mimeType.startsWith("audio")) {
-                if (!audioDesktopList.contains(desktop))
-                    audioDesktopList.append(desktop);
-            } else if (mimeType.startsWith("image")) {
-                if (!imageDeksopList.contains(desktop))
-                    imageDeksopList.append(desktop);
-            } else if (mimeType.startsWith("text")) {
-                if (!textDekstopList.contains(desktop))
-                    textDekstopList.append(desktop);
-            } else if (mimeType.startsWith("video")) {
-                if (!videoDesktopList.contains(desktop))
-                    videoDesktopList.append(desktop);
-            }
-        }
-    }
-
-    file.close();
-
-    const QString mimeInfoCacheRootPath = "/usr/share/applications";
-    for (const QString &desktop : audioDesktopList) {
-        const QString &path = QString("%1/%2").arg(mimeInfoCacheRootPath, desktop);
-        if (!QFile::exists(path))
-            continue;
-
-        XdgDesktopFile desktopFile(path);
-        if (desktopFile.valid())
-            m_audioMimeApps.insert(path, desktopFile);
-    }
-
-    for (const QString &desktop : imageDeksopList) {
-        const QString &path = QString("%1/%2").arg(mimeInfoCacheRootPath, desktop);
-        if (!QFile::exists(path))
-            continue;
-
-        XdgDesktopFile desktopFile(path);
-        if (desktopFile.valid())
-            m_imageMimeApps.insert(path, desktopFile);
-    }
-
-    for (const QString &desktop : textDekstopList) {
-        const QString &path = QString("%1/%2").arg(mimeInfoCacheRootPath, desktop);
-        if (!QFile::exists(path))
-            continue;
-
-        XdgDesktopFile desktopFile(path);
-        if (desktopFile.valid())
-            m_textMimeApps.insert(path, desktopFile);
-    }
-
-    for (const QString &desktop : videoDesktopList) {
-        const QString &path = QString("%1/%2").arg(mimeInfoCacheRootPath, desktop);
-        if (!QFile::exists(path))
-            continue;
-
-        XdgDesktopFile desktopFile(path);
-        if (desktopFile.valid())
-            m_videoMimeApps.insert(path, desktopFile);
-    }
+    // Starts the background scan, so the lists are ready by the first right click.
+    ApplicationRegistry::instance();
 }
 
 QString MimeAppManager::getDefaultAppByFilePath(const QString &filePath)
@@ -229,33 +67,26 @@ QString MimeAppManager::getDefaultAppByMimeType(const QMimeType &mimeType)
 {
     for (const QString &group :
          {QStringLiteral("Default Applications"), QStringLiteral("Added Associations")}) {
-        const auto apps = MimeApps::associations(mimeAppsListFilePath(), group, mimeType.name());
+        const auto apps = MimeApps::associations(MimeApps::userListPath(), group, mimeType.name());
         for (const QString &app : apps) {
-            for (const QString &folder : desktopPaths()) {
-                const QString path = QDir(folder).filePath(app);
-                if (QFileInfo(path).isFile())
-                    return path;
-            }
+            if (const DesktopEntry *entry = entryForDesktopId(app))
+                return entry->path();
         }
     }
     return {};
 }
 
-QString MimeAppManager::getDefaultAppDesktopByMimeType(const QString &mimeType)
-{
-    return getDefaultAppByMimeType(QMimeDatabase().mimeTypeForName(mimeType));
-}
-
 bool MimeAppManager::setDefaultAppForType(const QString &mimeType, const QString &app)
 {
-    if (!QFileInfo(app).isFile())
+    const DesktopEntry *entry = ApplicationRegistry::instance()->byPath(app);
+    if (!entry)
         return false;
-    return MimeApps::setDefault(mimeAppsListFilePath(), mimeType, QFileInfo(app).fileName());
+    return MimeApps::setDefault(MimeApps::userListPath(), mimeType, desktopId(entry));
 }
 
 bool MimeAppManager::setDefaultAppForFile(const QString &filePath, const QString &desktop)
 {
-    if (!QFile::exists(filePath))
+    if (!QFileInfo::exists(filePath))
         return false;
     return setDefaultAppForType(QMimeDatabase().mimeTypeForFile(filePath).name(), desktop);
 }
@@ -267,100 +98,90 @@ QStringList MimeAppManager::getRecommendedAppsByFilePath(const QString &filePath
 
 QStringList MimeAppManager::getRecommendedAppsByMimeType(const QMimeType &mimeType)
 {
-    QStringList recommendApps;
-    QList<QMimeType> mimeTypeList;
+    const QList<DesktopEntry *> entries = ApplicationRegistry::instance()->entries();
     QMimeDatabase mimeDatabase;
+    QList<QMimeType> mimeTypes {mimeType};
+    QStringList apps;
 
-    mimeTypeList.append(mimeType);
+    // Applications for the type itself, else for its parents, a generation at a time.
+    while (apps.isEmpty() && !mimeTypes.isEmpty()) {
+        QStringList names;
+        for (const QMimeType &type : std::as_const(mimeTypes))
+            names << type.name() << type.aliases();
 
-    while (recommendApps.isEmpty()) {
-        for (const QMimeType &type : mimeTypeList) {
-            QStringList typeNameList;
+        QList<DesktopEntry *> matches;
+        for (DesktopEntry *entry : entries) {
+            if (!opensFiles(entry))
+                continue;
 
-            typeNameList.append(type.name());
-            typeNameList.append(type.aliases());
-
-            for (const QString &name : typeNameList) {
-                for (const QString &app : m_mimeApps.value(name)) {
-                    bool exists = false;
-
-                    for (const QString &other : recommendApps) {
-                        const XdgDesktopFile &appDesktop = m_desktopObjects.value(app);
-                        const XdgDesktopFile &otherDesktop = m_desktopObjects.value(other);
-
-                        if (appDesktop.value("Exec").toString()
-                                    == otherDesktop.value("Exec").toString()
-                            && appDesktop.localeName() == otherDesktop.localeName()) {
-                            exists = true;
-                            break;
-                        }
-                    }
-
-                    // if desktop file was not existed do not recommend!!
-                    if (!QFileInfo::exists(app)) {
-                        qWarning() << app << "not exist anymore";
-                        continue;
-                    }
-
-                    if (!exists)
-                        recommendApps.append(app);
-                }
-            }
+            const QStringList entryTypes = entry->mimeTypes();
+            if (std::any_of(entryTypes.cbegin(), entryTypes.cend(),
+                            [&names](const QString &type) { return names.contains(type); }))
+                matches.append(entry);
         }
 
-        if (!recommendApps.isEmpty())
-            break;
+        // The first one opens files without a default, so keep that the earliest installed.
+        std::stable_sort(matches.begin(), matches.end(), [](DesktopEntry *a, DesktopEntry *b) {
+            return QFileInfo(a->path()).birthTime() < QFileInfo(b->path()).birthTime();
+        });
 
-        QList<QMimeType> newMimeTypeList;
-        for (const QMimeType &type : mimeTypeList) {
+        QList<DesktopEntry *> added;
+        for (DesktopEntry *entry : std::as_const(matches)) {
+            // One program installed under two desktop files is offered once.
+            const bool duplicate = std::any_of(added.cbegin(), added.cend(),
+                                               [entry](const DesktopEntry *other) {
+                return other->exec() == entry->exec() && other->name() == entry->name();
+            });
+            if (duplicate)
+                continue;
+
+            added.append(entry);
+            apps.append(entry->path());
+        }
+
+        QList<QMimeType> parents;
+        for (const QMimeType &type : std::as_const(mimeTypes)) {
             for (const QString &name : type.parentMimeTypes())
-                newMimeTypeList.append(mimeDatabase.mimeTypeForName(name));
+                parents.append(mimeDatabase.mimeTypeForName(name));
         }
-
-        mimeTypeList = newMimeTypeList;
-
-        if (mimeTypeList.isEmpty())
-            break;
+        mimeTypes = parents;
     }
 
-    return recommendApps;
+    return apps;
 }
 
 QVariantList MimeAppManager::recommendedApps(const QUrl &url)
 {
     QVariantList list;
 
-    if (url.isValid()) {
-        const QString filePath = url.isLocalFile() ? url.toLocalFile() : url.toString();
-        QStringList applications = getRecommendedAppsByFilePath(filePath);
-        QString defaultApp = getDefaultAppByFilePath(filePath);
+    if (!url.isValid())
+        return list;
 
-        // Match openSelected(): without an explicit association, Open uses
-        // the first recommended application.
-        if (defaultApp.isEmpty() && !applications.isEmpty())
-            defaultApp = applications.first();
+    const QString filePath = url.isLocalFile() ? url.toLocalFile() : url.toString();
+    QStringList applications = getRecommendedAppsByFilePath(filePath);
+    QString defaultApp = getDefaultAppByFilePath(filePath);
 
-        const QString canonicalDefaultApp = QFileInfo(defaultApp).canonicalFilePath();
-        if (!canonicalDefaultApp.isEmpty()) {
-            applications.removeIf([&canonicalDefaultApp](const QString &path) {
-                return QFileInfo(path).canonicalFilePath() == canonicalDefaultApp;
-            });
-            applications.prepend(defaultApp);
-        }
+    // Match openSelected(): without an explicit association, Open uses
+    // the first recommended application.
+    if (defaultApp.isEmpty() && !applications.isEmpty())
+        defaultApp = applications.first();
 
-        for (const QString &path : applications) {
-            XdgDesktopFile desktop(path);
+    if (!defaultApp.isEmpty()) {
+        applications.removeAll(defaultApp);
+        applications.prepend(defaultApp);
+    }
 
-            if (!desktop.valid())
-                continue;
+    for (const QString &path : std::as_const(applications)) {
+        const DesktopEntry *entry = ApplicationRegistry::instance()->byPath(path);
+        if (!entry)
+            continue;
 
-            QVariantMap item;
-            item["icon"] = desktop.value("Icon").toString();
-            item["name"] = desktop.localeName();
-            item["desktopFile"] = path;
+        QVariantMap item;
+        item["icon"] = entry->icon();
+        item["name"] = entry->name();
+        item["desktopFile"] = path;
 
-            list << item;
-        }
+        list << item;
     }
 
     return list;
@@ -368,33 +189,20 @@ QVariantList MimeAppManager::recommendedApps(const QUrl &url)
 
 void MimeAppManager::launchTerminal(const QString &path)
 {
-    if (m_terminalApps.isEmpty())
-        return;
+    const QString preferred = MimeApps::defaultTerminal(MimeApps::userTerminalsListPath());
+    const DesktopEntry *terminal = entryForDesktopId(preferred);
 
-    const QString defaultTerminal = MimeApps::defaultTerminal(
-            QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
-            + QLatin1String("/xdg-terminals.list"));
-    QString command;
-
-    if (!defaultTerminal.isEmpty()) {
-        for (const XdgDesktopFile &f : m_terminalApps) {
-            if (QFileInfo(f.fileName()).fileName() == defaultTerminal) {
-                command = f.value("Exec").toString();
+    if (!terminal || !terminal->categories().contains(QStringLiteral("TerminalEmulator"))) {
+        terminal = nullptr;
+        for (const DesktopEntry *entry : ApplicationRegistry::instance()->entries()) {
+            if (opensFiles(entry)
+                && entry->categories().contains(QStringLiteral("TerminalEmulator"))) {
+                terminal = entry;
                 break;
             }
         }
     }
 
-    if (command.isEmpty()) {
-        command = m_terminalApps.first().value("Exec").toString();
-    }
-
-    FileLauncher::startDetached(command, path, QStringList());
-}
-
-void MimeAppManager::onFileChanged(const QString &path)
-{
-    Q_UNUSED(path);
-
-    m_updateTimer->start();
+    if (terminal)
+        ApplicationLauncher::startDetached(terminal->commandForArguments({}), path, terminal->id());
 }

@@ -1,17 +1,35 @@
 #include "mimetype/mimeappmanager.h"
 
-#include <QDir>
+#include <applicationregistry.h>
+
 #include <QFile>
 #include <QMimeDatabase>
-#include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QtTest>
+
+namespace {
+DesktopEntryData textApp(const QString &id, const QString &path, const QStringList &mimeTypes)
+{
+    DesktopEntryData data;
+    const QByteArray contents = "[Desktop Entry]\nType=Application\nName=" + id.toUtf8()
+            + "\nExec=" + id.toUtf8() + " %f\nMimeType=" + mimeTypes.join(';').toUtf8() + ";\n";
+    DesktopEntry::parse(id, path, contents, &data);
+    return data;
+}
+} // namespace
 
 class OpenWithTest : public QObject
 {
     Q_OBJECT
 
 private slots:
+    void initTestCase()
+    {
+        QVERIFY(m_config.isValid());
+        qputenv("XDG_CONFIG_HOME", m_config.path().toUtf8());
+        QTRY_VERIFY(!ApplicationRegistry::instance()->loading());
+    }
+
     void defaultIsFirst_data()
     {
         QTest::addColumn<bool>("explicitDefault");
@@ -22,27 +40,20 @@ private slots:
     void defaultIsFirst()
     {
         QFETCH(bool, explicitDefault);
-        QTemporaryDir config;
-        QVERIFY(config.isValid());
-        const QByteArray previousConfig = qgetenv("XDG_CONFIG_HOME");
-        qputenv("XDG_CONFIG_HOME", config.path().toUtf8());
-        const auto restoreConfig = qScopeGuard([previousConfig] {
-            if (previousConfig.isNull())
-                qunsetenv("XDG_CONFIG_HOME");
-            else
-                qputenv("XDG_CONFIG_HOME", previousConfig);
-        });
+        QFile::remove(m_config.filePath("mimeapps.list"));
 
-        QFile file(config.filePath("sample # text.txt"));
+        QFile file(m_config.filePath("sample # text.txt"));
         QVERIFY(file.open(QIODevice::WriteOnly));
         file.write("Sample text\n");
         file.close();
 
+        ApplicationRegistry::instance()->applyScan(
+                {textApp("first-editor", "/applications/first-editor.desktop", {"text/plain"}),
+                 textApp("second-editor", "/applications/second-editor.desktop", {"text/plain"})});
+
         MimeAppManager manager;
-        manager.initApplications();
         const QStringList candidates = manager.getRecommendedAppsByFilePath(file.fileName());
-        if (candidates.isEmpty())
-            QSKIP("No installed text applications");
+        QCOMPARE(candidates.size(), 2);
 
         const QString expected = explicitDefault ? candidates.last() : candidates.first();
         if (explicitDefault)
@@ -51,66 +62,50 @@ private slots:
             QVERIFY(manager.getDefaultAppByFilePath(file.fileName()).isEmpty());
 
         const QVariantList applications = manager.recommendedApps(QUrl::fromLocalFile(file.fileName()));
-        QVERIFY(!applications.isEmpty());
+        QCOMPARE(applications.size(), 2);
         QCOMPARE(applications.first().toMap().value("desktopFile").toString(), expected);
-        for (int i = 1; i < applications.size(); ++i) {
-            const QVariantMap app = applications.at(i).toMap();
-            QVERIFY(app.value("desktopFile").toString() != expected);
+        QVERIFY(applications.last().toMap().value("desktopFile").toString() != expected);
+
+        if (explicitDefault) {
+            QFile list(m_config.filePath("mimeapps.list"));
+            QVERIFY(list.open(QIODevice::ReadOnly));
+            QVERIFY(list.readAll().contains("text/plain=second-editor.desktop;"));
         }
     }
 
-    // A rescan rebuilds the application lists instead of adding to the last
-    // one, so a type an application stopped listing is no longer offered.
-    void rescanDropsStaleAssociations()
+    // The lists follow the registry: a type an application stopped listing is no
+    // longer offered.
+    void followsTheRegistry()
     {
-        QTemporaryDir home;
-        QVERIFY(home.isValid());
-        const QByteArray previousHome = qgetenv("HOME");
-        qputenv("HOME", home.path().toUtf8());
-        const auto restoreHome = qScopeGuard([previousHome] {
-            if (previousHome.isNull())
-                qunsetenv("HOME");
-            else
-                qputenv("HOME", previousHome);
-        });
-
-        QVERIFY(QDir(home.path()).mkpath(".local/share/applications"));
-        const QString path = home.filePath(".local/share/applications/cutefish-test-viewer.desktop");
-        const auto writeDesktopFile = [&path](const QStringList &mimeTypes) {
-            QFile file(path);
-            if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-                return false;
-
-            file.write("[Desktop Entry]\nType=Application\nName=Cutefish Test Viewer\n"
-                       "Exec=cutefish-test-viewer %f\n");
-            file.write("MimeType=" + mimeTypes.join(QLatin1Char(';')).toUtf8() + "\n");
-            return true;
-        };
-
-        const QList<QMimeType> types = QMimeDatabase().allMimeTypes();
-        QStringList names;
-        for (const QMimeType &type : types)
-            names.append(type.name());
-        QVERIFY(writeDesktopFile(names));
+        const QString path = QStringLiteral("/applications/cutefish-test-viewer.desktop");
+        const QMimeType type = QMimeDatabase().mimeTypeForName(QStringLiteral("image/x-tga"));
+        QVERIFY(type.isValid());
 
         MimeAppManager manager;
-        manager.initApplications();
+        ApplicationRegistry::instance()->applyScan(
+                {textApp("cutefish-test-viewer", path, {type.name()})});
+        QCOMPARE(manager.getRecommendedAppsByMimeType(type), QStringList {path});
 
-        // Types no installed application handles drop out of the next scan.
-        QList<QMimeType> onlyOurs;
-        for (const QMimeType &type : types) {
-            if (manager.getRecommendedAppsByMimeType(type) == QStringList{path})
-                onlyOurs.append(type);
-        }
-        QVERIFY(!onlyOurs.isEmpty());
-
-        QVERIFY(writeDesktopFile({}));
-        manager.initApplications();
-        for (const QMimeType &type : std::as_const(onlyOurs)) {
-            QVERIFY2(!manager.getRecommendedAppsByMimeType(type).contains(path),
-                     qPrintable(type.name()));
-        }
+        ApplicationRegistry::instance()->applyScan(
+                {textApp("cutefish-test-viewer", path, {QStringLiteral("text/plain")})});
+        QVERIFY(!manager.getRecommendedAppsByMimeType(type).contains(path));
     }
+
+    // Parent types stand in when nothing handles the type itself.
+    void fallsBackToParentTypes()
+    {
+        const QMimeType type = QMimeDatabase().mimeTypeForName(QStringLiteral("text/x-csrc"));
+        QVERIFY(type.isValid());
+
+        MimeAppManager manager;
+        ApplicationRegistry::instance()->applyScan(
+                {textApp("plain-editor", "/applications/plain-editor.desktop", {"text/plain"})});
+        QCOMPARE(manager.getRecommendedAppsByMimeType(type),
+                 QStringList {"/applications/plain-editor.desktop"});
+    }
+
+private:
+    QTemporaryDir m_config;
 };
 
 QTEST_GUILESS_MAIN(OpenWithTest)

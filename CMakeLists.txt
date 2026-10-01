@@ -91,7 +91,6 @@ add_library(cutefish-filemanager-core STATIC
   operations/operationtask.cpp
   operations/fileoperationsclient.cpp
 
-  mimetype/mimeapps.cpp
   mimetype/mimeappmanager.cpp
   mimetype/xdgdesktopfile.cpp
 
@@ -260,10 +259,6 @@ if(FILEMANAGER_BUILD_TESTS)
     target_link_libraries(tst_desktopicons PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME desktopicons COMMAND tst_desktopicons)
     set_tests_properties(desktopicons PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-    add_executable(tst_mimeapps tests/tst_mimeapps.cpp mimetype/mimeapps.cpp)
-    target_include_directories(tst_mimeapps PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(tst_mimeapps PRIVATE Qt6::Core Qt6::Test)
-    add_test(NAME mimeapps COMMAND tst_mimeapps)
     add_executable(tst_shortcut tests/tst_shortcut.cpp)
     target_link_libraries(tst_shortcut PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME shortcut COMMAND tst_shortcut)

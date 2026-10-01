@@ -5,11 +5,10 @@
 
 #include "applicationlauncher.h"
 #include "applicationruntime.h"
+#include "desktopentry.h"
 
-#include <QSettings>
 #include <QFile>
-#include <QDir>
-#include <QDebug>
+#include <QFileInfo>
 
 FileLauncher *SELF = nullptr;
 
@@ -29,53 +28,29 @@ FileLauncher::FileLauncher(QObject *parent)
 
 bool FileLauncher::launchApp(const QString &desktopFile, const QString &fileName)
 {
+    const QStringList arguments = fileName.isEmpty() ? QStringList() : QStringList {fileName};
+
     // The runtime knows the entry: let it expand Exec and track the instance
     // under the application's own id.
-    if (ApplicationRuntime::instance()->launchApplication(
-                desktopFile, fileName.isEmpty() ? QStringList() : QStringList{fileName}))
+    if (ApplicationRuntime::instance()->launchApplication(desktopFile, arguments))
         return true;
 
-    QSettings settings(desktopFile, QSettings::IniFormat);
-    settings.beginGroup("Desktop Entry");
-
-    QStringList list = settings.value("Exec").toString().split(' ');
-    QStringList args;
-
-    if (list.isEmpty() || list.size() < 0)
+    // Without the runtime, or for an entry it does not know, expand Exec here.
+    QFile file(desktopFile);
+    DesktopEntryData data;
+    if (!file.open(QIODevice::ReadOnly)
+        || !DesktopEntry::parse(QFileInfo(desktopFile).completeBaseName(), desktopFile,
+                                file.readAll(), &data))
         return false;
 
-    QString exec = list.first();
-    list.removeOne(exec);
-
-    for (const QString &arg : list) {
-        QString newArg = arg;
-
-        if (newArg.startsWith("%F", Qt::CaseInsensitive))
-            newArg.replace("%F", fileName, Qt::CaseInsensitive);
-
-        if (newArg.startsWith("%U", Qt::CaseInsensitive))
-            newArg.replace("%U", fileName, Qt::CaseInsensitive);
-
-        args.append(newArg);
-    }
-
-    qDebug() << "launchApp()" << exec << args;
-
-    return startDetached(exec, args);
+    DesktopEntry entry(data.id);
+    entry.update(data);
+    return ApplicationLauncher::startDetached(entry.commandForArguments(arguments),
+                                              entry.workingDirectory(), entry.id());
 }
 
 bool FileLauncher::launchExecutable(const QString &fileName)
 {
-    return startDetached(fileName);
-}
-
-bool FileLauncher::startDetached(const QString &exec, QStringList args)
-{
-    return startDetached(exec, QString(), args);
-}
-
-bool FileLauncher::startDetached(const QString &exec, const QString &workingDir, QStringList args)
-{
     // The application runtime owns every application start of the session.
-    return ApplicationLauncher::startDetached(QStringList{exec} + args, workingDir);
+    return ApplicationLauncher::startDetached({fileName});
 }
