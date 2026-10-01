@@ -8,32 +8,46 @@ import Cutefish.Application
 FishUI.Window {
     id: preview
     WindowHints.skipTaskbar: true
+    // Fitting the window to each image keeps it where it is on screen.
+    WindowHints.resizeAroundCenter: true
     objectName: "quickLookWindow"
 
     required property var controller
-    readonly property var file: controller.file
-    readonly property bool compact: file.kind !== "image"
+    // What is on screen. It trails controller.file while the next image
+    // decodes, so the size, title and picture change in one frame.
+    property var shown: ({})
+    property var pending: null
+    // Set from Space until the first item is on screen.
+    property bool opening: false
+    readonly property bool imageMode: shown.kind === "image"
     readonly property bool multiple: controller.items.length > 1
+    readonly property var application: shown.application || null
     readonly property int sideMargin: 16
-    readonly property int previewWidth: compact ? 480 : 720
-    readonly property int previewHeight: compact ? (multiple ? 168 : 144) : 540
+    readonly property int headerHeight: 40
+    readonly property int minimumImageWidth: 400
+    readonly property int minimumImageHeight: 200
+    // The requesting window's: it opens on the same output, and until this
+    // window has been on screen its own ratio is the rounded-up integer scale.
+    readonly property real displayRatio: controller.sourceRatio > 0 ? controller.sourceRatio
+                                         : FishUI.Dpi.ratio > 0 ? FishUI.Dpi.ratio : 1
 
-    title: qsTr("Quick Look")
+    title: shown.name || qsTr("Quick Look")
     flags: Qt.Tool | Qt.FramelessWindowHint
     visible: false
     minimizeButtonVisible: false
-    header.height: 40
+    header.height: headerHeight
     windowButtonsAlignment: Qt.AlignVCenter
     windowButtonsTopMargin: 0
     windowButtonsRightMargin: 4
     contentTopMargin: 0
     modality: Qt.NonModal
-    width: previewWidth
-    height: previewHeight
-    minimumWidth: previewWidth
-    maximumWidth: previewWidth
-    minimumHeight: previewHeight
-    maximumHeight: previewHeight
+    restorationBehavior: FishUI.Window.Disabled
+    width: 480
+    height: 144
+    minimumWidth: 480
+    maximumWidth: 480
+    minimumHeight: 144
+    maximumHeight: 144
     blurEnabled: false
     background.visible: !glassEffect.available
     background.color: FishUI.Theme.backgroundColor
@@ -49,6 +63,99 @@ FishUI.Window {
                                     : Qt.rgba(1.0, 1.0, 1.0, 0.7)
     }
 
+    function isImage(file) {
+        return file.kind === "image" && file.width > 0 && file.height > 0
+    }
+
+    // An image at its own pixels, shrunk to fit a large share of the screen.
+    function sizeFor(file) {
+        if (file.kind !== "image")
+            return Qt.size(480, multiple ? 168 : 144)
+        if (!isImage(file))
+            return Qt.size(720, 540)
+        const ratio = preview.displayRatio
+        const w = file.width / ratio
+        const h = file.height / ratio
+        const scale = Math.min(1, Math.floor(Screen.width * 0.75) / w,
+                               (Math.floor(Screen.height * 0.8) - headerHeight) / h)
+        return Qt.size(Math.max(minimumImageWidth, Math.round(w * scale)),
+                       Math.max(minimumImageHeight, Math.round(h * scale)) + headerHeight)
+    }
+
+    // The decode PreviewImageView asks for when fitted into a window of `size`.
+    function fittedPixels(file, size) {
+        const ratio = preview.displayRatio
+        const zoom = Math.min(1, size.width * ratio / file.width,
+                              (size.height - headerHeight) * ratio / file.height)
+        return Qt.size(Math.ceil(file.width * zoom), Math.ceil(file.height * zoom))
+    }
+
+    // Decodes an image into the pixmap cache before it is shown.
+    function stage(file) {
+        if (!isImage(file) || file.animated) {
+            present(file)
+            return
+        }
+        // Configured before `pending` is set: a new sourceSize alone reports a status.
+        preloader.sourceSize = fittedPixels(file, sizeFor(file))
+        preloader.source = file.url
+        pending = file
+        if (preloader.status !== Image.Loading)
+            present(file)
+        else if (!stall.running)
+            stall.start()
+    }
+
+    function present(file) {
+        pending = null
+        stall.stop()
+        const size = sizeFor(file)
+        const image = Object.assign({}, file)
+        if (isImage(file) && !file.animated)
+            image.prepared = fittedPixels(file, size)
+        // The contents first: a resize can render a frame before returning.
+        shown = image
+        // Opened up first: Qt bounds a resize by the old limits.
+        minimumWidth = 0
+        minimumHeight = 0
+        maximumWidth = 16777215
+        maximumHeight = 16777215
+        // One geometry change: separate width and height changes each render a frame.
+        setGeometry(x, y, size.width, size.height)
+        minimumWidth = size.width
+        maximumWidth = size.width
+        minimumHeight = size.height
+        maximumHeight = size.height
+        preloader.source = ""
+        if (opening) {
+            opening = false
+            showNormal()
+            content.forceActiveFocus()
+            requestActivate()
+        }
+    }
+
+    // Its source, size, orientation and fill mode match PreviewImageView's
+    // fitted layer: together they are the pixmap cache key.
+    Image {
+        id: preloader
+        visible: false
+        asynchronous: true
+        autoTransform: true
+        fillMode: Image.PreserveAspectFit
+        onStatusChanged: {
+            if (preview.pending && status !== Image.Loading)
+                preview.present(preview.pending)
+        }
+    }
+
+    // A slow decode is shown anyway, with the busy indicator.
+    Timer {
+        id: stall
+        interval: 300
+        onTriggered: if (preview.pending) preview.present(preview.pending)
+    }
+
     onClosing: function(close) {
         close.accepted = false
         controller.close()
@@ -57,28 +164,30 @@ FishUI.Window {
     Connections {
         target: controller
         function onShowRequested() {
-            if (preview.transientParent) {
-                preview.x = preview.transientParent.x + (preview.transientParent.width - preview.width) / 2
-                preview.y = preview.transientParent.y + (preview.transientParent.height - preview.height) / 2
-            }
-            preview.showNormal()
-            content.forceActiveFocus()
-            preview.requestActivate()
+            preview.opening = true
+            preview.stage(controller.file)
         }
         function onChanged() {
-            if (!controller.visible)
+            if (!controller.visible) {
+                preview.pending = null
+                preview.opening = false
+                stall.stop()
                 preview.hide()
+            }
+        }
+        function onFileChanged() {
+            if (preview.visible && !controller.loading)
+                preview.stage(controller.file)
         }
     }
 
     headerItem: Item {
         RowLayout {
+            id: navigation
             visible: preview.multiple
             anchors.left: parent.left
-            anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: preview.windowButtonsRightMargin
-            anchors.rightMargin: 8
             spacing: 0
 
             FishUI.HeaderButton {
@@ -104,53 +213,105 @@ FishUI.Window {
                 onClicked: controller.step(1)
             }
             FishUI.Label {
-                Layout.fillWidth: true
                 Layout.leftMargin: 4
                 Layout.alignment: Qt.AlignVCenter
                 verticalAlignment: Text.AlignVCenter
-                text: controller.items.length > 1
-                      ? qsTr("%1 of %2").arg(controller.currentIndex + 1).arg(controller.items.length) : ""
+                text: qsTr("%1 of %2").arg(controller.currentIndex + 1).arg(controller.items.length)
                 color: FishUI.Theme.textColor
-            }
-        }
-    }
-
-    ColumnLayout {
-        id: content
-        anchors.fill: parent
-        spacing: 0
-        focus: true
-
-        Item {
-            visible: preview.multiple
-            Layout.fillWidth: true
-            Layout.preferredHeight: preview.header.height
-        }
-
-        Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.leftMargin: preview.sideMargin
-            Layout.rightMargin: preview.multiple ? preview.sideMargin : 40
-            Layout.topMargin: preview.multiple ? 8 : 16
-            Layout.bottomMargin: 16
-
-            Loader {
-                id: renderer
-                anchors.fill: parent
-                sourceComponent: {
-                    if (file.kind === "image")
-                        return imagePreview
-                    return fileInfo
-                }
             }
         }
 
         FishUI.Label {
-            Layout.fillWidth: true
-            Layout.margins: 10
-            visible: !!file.message
-            text: file.message || ""
+            id: titleLabel
+            objectName: "previewTitle"
+            visible: preview.imageMode
+            anchors.left: navigation.visible ? navigation.right : parent.left
+            anchors.leftMargin: navigation.visible ? 8 : 12
+            anchors.right: actions.left
+            anchors.rightMargin: 8
+            anchors.verticalCenter: parent.verticalCenter
+            text: preview.shown.name || ""
+            textFormat: Text.PlainText
+            elide: Text.ElideMiddle
+            font.bold: true
+            color: FishUI.Theme.textColor
+        }
+
+        RowLayout {
+            id: actions
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.rightMargin: 4
+            spacing: 4
+
+            Item {
+                id: openButton
+                // A single compact preview has no header row to hold it.
+                visible: !!preview.application && (preview.imageMode || preview.multiple)
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: Math.min(220, openLabel.implicitWidth + 24)
+                implicitHeight: 26
+                Accessible.role: Accessible.Button
+                Accessible.name: openLabel.text
+
+                readonly property color tint: FishUI.Theme.darkMode ? "#FFFFFF" : "#323238"
+
+                FishUI.RoundedRectangle {
+                    anchors.fill: parent
+                    continuousCorners: false
+                    radius: height / 2
+                    color: Qt.rgba(openButton.tint.r, openButton.tint.g, openButton.tint.b,
+                                   openArea.pressed ? 0.21 : openArea.containsMouse ? 0.14 : 0.07)
+                }
+                FishUI.Label {
+                    id: openLabel
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                    text: preview.application ? qsTr("Open with %1").arg(preview.application.name) : ""
+                    color: FishUI.Theme.textColor
+                    opacity: preview.active ? 1.0 : 0.6
+                }
+                MouseArea {
+                    id: openArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: controller.openCurrent()
+                }
+            }
+        }
+    }
+
+    // Anchors rather than a layout: a layout settles in a later polish pass,
+    // so the first frame at a new window size would show the old geometry.
+    Item {
+        id: content
+        anchors.fill: parent
+        focus: true
+
+        Loader {
+            id: renderer
+            anchors.fill: parent
+            anchors.topMargin: (preview.multiple || preview.imageMode ? preview.headerHeight : 0)
+                               + (preview.imageMode ? 0 : preview.multiple ? 8 : 16)
+            anchors.leftMargin: preview.imageMode ? 0 : preview.sideMargin
+            anchors.rightMargin: preview.imageMode ? 0 : preview.multiple ? preview.sideMargin : 40
+            anchors.bottomMargin: (preview.imageMode ? 0 : 16)
+                                  + (message.visible ? message.height + 20 : 0)
+            sourceComponent: preview.imageMode ? imagePreview : fileInfo
+        }
+
+        FishUI.Label {
+            id: message
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.margins: 10
+            visible: !!preview.shown.message
+            text: preview.shown.message || ""
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
             color: FishUI.Theme.textColor
@@ -159,51 +320,33 @@ FishUI.Window {
 
     Component {
         id: imagePreview
-        Flickable {
-            id: imageView
-            objectName: "previewImageView"
-            property real zoom: 1
-            clip: true
-            contentWidth: width * zoom
-            contentHeight: height * zoom
-            boundsBehavior: Flickable.StopAtBounds
 
-            function changeZoom(factor) {
-                zoom = Math.max(1, Math.min(8, zoom * factor))
-                returnToBounds()
+        Item {
+            PreviewImageView {
+                id: imageView
+                anchors.fill: parent
+                image: preview.shown
+                ratio: preview.displayRatio
             }
 
-            Shortcut {
-                sequences: ["Ctrl++", "Ctrl+="]
-                onActivated: imageView.changeZoom(1.25)
-            }
-            Shortcut {
-                sequence: "Ctrl+-"
-                onActivated: imageView.changeZoom(0.8)
-            }
-            Shortcut {
-                sequence: "Ctrl+0"
-                onActivated: imageView.zoom = 1
-            }
-            ScrollBar.vertical: FishUI.ScrollBar {}
-            ScrollBar.horizontal: FishUI.ScrollBar {}
+            // Shown only for a decode slow enough to notice.
+            FishUI.BusyIndicator {
+                anchors.centerIn: parent
+                visible: imageView.loading && busyDelay.elapsed
 
-            Image {
-                id: picture
-                objectName: "previewImage"
-                width: imageView.contentWidth
-                height: imageView.contentHeight
-                source: file.url || ""
-                sourceSize.width: Math.min(4096, Math.ceil(width * FishUI.Dpi.ratio))
-                sourceSize.height: Math.min(4096, Math.ceil(height * FishUI.Dpi.ratio))
-                asynchronous: true
-                retainWhileLoading: true
-                autoTransform: true
-                fillMode: Image.PreserveAspectFit
+                Timer {
+                    id: busyDelay
+                    property bool elapsed: false
+                    interval: 300
+                    running: imageView.loading
+                    onRunningChanged: if (running) elapsed = false
+                    onTriggered: elapsed = true
+                }
             }
+
             FishUI.Label {
                 anchors.centerIn: parent
-                visible: picture.status === Image.Error
+                visible: imageView.failed
                 text: qsTr("This image could not be displayed.")
                 color: FishUI.Theme.textColor
             }
@@ -221,7 +364,7 @@ FishUI.Window {
                 Layout.preferredHeight: 96
                 objectName: "previewFileIcon"
                 sourceSize: Qt.size(128, 128)
-                source: "image://fileicon/" + (file.icon || "application-octet-stream")
+                source: "image://fileicon/" + (preview.shown.icon || "application-octet-stream")
                         + FishUI.Theme.iconThemeQuery
                 fillMode: Image.PreserveAspectFit
             }
@@ -234,7 +377,7 @@ FishUI.Window {
                 FishUI.Label {
                     objectName: "previewFileName"
                     Layout.fillWidth: true
-                    text: file.name || ""
+                    text: preview.shown.name || ""
                     textFormat: Text.PlainText
                     wrapMode: Text.NoWrap
                     maximumLineCount: 1
@@ -244,10 +387,10 @@ FishUI.Window {
                 }
                 FishUI.Label {
                     Layout.fillWidth: true
-                    text: file.folder
-                          ? qsTr("%1, %2").arg(file.size || "").arg(file.itemCount === 1
-                              ? qsTr("1 item") : qsTr("%1 items").arg(file.itemCount || 0))
-                          : file.size || ""
+                    text: preview.shown.folder
+                          ? qsTr("%1, %2").arg(preview.shown.size || "").arg(preview.shown.itemCount === 1
+                              ? qsTr("1 item") : qsTr("%1 items").arg(preview.shown.itemCount || 0))
+                          : preview.shown.size || ""
                 }
             }
         }

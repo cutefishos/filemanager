@@ -18,6 +18,9 @@ class PreviewController : public QObject
     Q_PROPERTY(int currentIndex READ currentIndex NOTIFY changed)
     Q_PROPERTY(QVariantMap file READ file NOTIFY fileChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY fileChanged)
+    // The requesting window's device pixel ratio. A preview window that has
+    // not been shown yet only knows the output's rounded-up integer scale.
+    Q_PROPERTY(qreal sourceRatio READ sourceRatio NOTIFY changed)
 
 public:
     explicit PreviewController(QObject *parent = nullptr);
@@ -27,15 +30,17 @@ public:
     int currentIndex() const;
     QVariantMap file() const;
     bool loading() const;
+    qreal sourceRatio() const { return m_sourceRatio; }
 
     Q_INVOKABLE void attach(FolderModel *model, QQuickItem *view, QQuickWindow *window);
     Q_INVOKABLE void toggle();
     void setWindow(QQuickWindow *window);
-    void present(const QVariantList &items, int currentIndex, bool activate);
+    void present(const QVariantList &items, int currentIndex, bool activate, qreal ratio = 0);
     static QVariantMap snapshot(FolderModel *model, QQuickItem *view);
     Q_INVOKABLE void close();
     Q_INVOKABLE void select(int index);
     Q_INVOKABLE void step(int delta);
+    Q_INVOKABLE void openCurrent();
 
 signals:
     void changed();
@@ -64,4 +69,6 @@ private:
     quint64 m_generation = 0;
     bool m_visible = false;
     bool m_loading = false;
+    bool m_showPending = false;
+    qreal m_sourceRatio = 0;
 };

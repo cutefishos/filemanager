@@ -1,10 +1,13 @@
 #include "previewcontroller.h"
+#include "helper/filelauncher.h"
+#include "mimetype/mimeappmanager.h"
 #include "model/positioner.h"
 
 #include <QCoreApplication>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QFutureWatcher>
+#include <QImageReader>
 #include <QKeyEvent>
 #include <QMimeDatabase>
 #include <QtConcurrentRun>
@@ -46,7 +49,20 @@ QVariantMap describeFile(const QUrl &url)
 
     const QString name = mime.name();
     if (name.startsWith("image/")) {
-        result.insert("kind", "image");
+        QImageReader reader(info.filePath());
+        if (reader.canRead()) {
+            result.insert("kind", "image");
+            QSize size = reader.size();
+            if (reader.transformation() & QImageIOHandler::TransformationRotate90)
+                size.transpose();
+            if (size.isValid()) {
+                result.insert("width", size.width());
+                result.insert("height", size.height());
+            }
+            result.insert("vector", mime.inherits("image/svg+xml")
+                                    || mime.inherits("image/svg+xml-compressed"));
+            result.insert("animated", reader.supportsAnimation() && reader.imageCount() != 1);
+        }
     }
 
     return result;
@@ -145,6 +161,7 @@ void PreviewController::close()
     if (!m_visible)
         return;
     m_visible = false;
+    m_showPending = false;
     ++m_generation;
     stopFolderSize();
     m_selectionTimer.stop();
@@ -186,7 +203,8 @@ QVariantMap PreviewController::snapshot(FolderModel *model, QQuickItem *view)
         const QUrl url = model->resolvedUrl();
         items.append(QVariantMap{{"url", url}, {"name", url.fileName()}, {"icon", "folder"}});
     }
-    return {{"items", items}, {"currentIndex", currentIndex}};
+    const qreal ratio = view && view->window() ? view->window()->devicePixelRatio() : 0;
+    return {{"items", items}, {"currentIndex", currentIndex}, {"ratio", ratio}};
 }
 
 void PreviewController::setWindow(QQuickWindow *window)
@@ -198,10 +216,13 @@ void PreviewController::setWindow(QQuickWindow *window)
         m_window->installEventFilter(this);
 }
 
-void PreviewController::present(const QVariantList &items, int currentIndex, bool activate)
+void PreviewController::present(const QVariantList &items, int currentIndex, bool activate,
+                                qreal ratio)
 {
     if (items.isEmpty())
         return;
+    if (ratio > 0)
+        m_sourceRatio = ratio;
     const bool wasVisible = m_visible;
     m_visible = true;
     if (items != m_items || !wasVisible) {
@@ -218,8 +239,21 @@ void PreviewController::present(const QVariantList &items, int currentIndex, boo
         emit changed();
         load();
     }
-    if (activate)
-        emit showRequested();
+    if (activate) {
+        if (m_loading) {
+            // Open at the size of what is shown, unless describing it stalls.
+            m_showPending = true;
+            const quint64 generation = m_generation;
+            QTimer::singleShot(250, this, [this, generation] {
+                if (m_showPending && generation == m_generation) {
+                    m_showPending = false;
+                    emit showRequested();
+                }
+            });
+        } else {
+            emit showRequested();
+        }
+    }
 }
 
 void PreviewController::synchronize()
@@ -227,7 +261,8 @@ void PreviewController::synchronize()
     if (!m_visible || !m_model)
         return;
     const auto state = snapshot(m_model, m_view);
-    present(state.value("items").toList(), state.value("currentIndex").toInt(), false);
+    present(state.value("items").toList(), state.value("currentIndex").toInt(), false,
+            state.value("ratio").toReal());
 }
 
 void PreviewController::select(int index)
@@ -244,6 +279,16 @@ void PreviewController::step(int delta)
     select(m_index + delta);
 }
 
+void PreviewController::openCurrent()
+{
+    const QString desktopFile = m_file.value("application").toMap().value("desktopFile").toString();
+    const QUrl url = m_file.value("url").toUrl();
+    if (!m_visible || desktopFile.isEmpty() || !url.isLocalFile())
+        return;
+    if (FileLauncher::self()->launchApp(desktopFile, url.toLocalFile()))
+        close();
+}
+
 void PreviewController::load()
 {
     stopFolderSize();
@@ -257,8 +302,17 @@ void PreviewController::load()
     connect(watcher, &QFutureWatcher<QVariantMap>::finished, this, [this, watcher, generation] {
         if (generation == m_generation && m_visible) {
             m_file = watcher->result();
+            if (!m_file.value("folder").toBool() && m_file.value("url").toUrl().isLocalFile()) {
+                const QVariantList apps = MimeAppManager::self()->recommendedApps(m_file.value("url").toUrl());
+                if (!apps.isEmpty())
+                    m_file.insert("application", apps.first());
+            }
             m_loading = false;
             emit fileChanged();
+            if (m_showPending) {
+                m_showPending = false;
+                emit showRequested();
+            }
             if (m_file.value("folder").toBool())
                 loadFolderSize(m_file.value("url").toUrl());
         }

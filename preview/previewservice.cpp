@@ -1,4 +1,5 @@
 #include "previewservice.h"
+#include "mimetype/mimeappmanager.h"
 #include "qmltypes.h"
 
 #include <QCoreApplication>
@@ -13,6 +14,8 @@
 PreviewService::PreviewService(QObject *parent)
     : QObject(parent)
 {
+    // Scans the desktop entries in the background, for the "Open with" button.
+    MimeAppManager::self();
     CutefishFM::registerImageProviders(&m_engine);
     QQmlComponent component(&m_engine, QUrl("qrc:/qml/PreviewWindow.qml"));
     m_window = qobject_cast<QQuickWindow *>(component.createWithInitialProperties(
@@ -70,7 +73,8 @@ void PreviewService::apply(const QString &source, const QString &snapshot, bool 
     m_source = source;
     m_owner = caller();
     emit VisibilityChanged(true);
-    m_controller.present(items, data.value("currentIndex").toInt(), activate);
+    m_controller.present(items, data.value("currentIndex").toInt(), activate,
+                         data.value("ratio").toReal());
     if (changedSource)
         m_controller.select(data.value("currentIndex").toInt());
 }

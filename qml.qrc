@@ -3,6 +3,7 @@
         <file>qml/main.qml</file>
         <file>qml/FolderPage.qml</file>
         <file>qml/PreviewWindow.qml</file>
+        <file>qml/PreviewImageView.qml</file>
         <file>qml/RenameEditor.qml</file>
         <file>qml/FolderTabBar.qml</file>
         <file>qml/FolderContextMenu.qml</file>
