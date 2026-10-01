@@ -172,7 +172,6 @@ Item {
             id: _gridView
             model: dirModel
             delegate: FolderGridItem {}
-            useCustomContextMenu: true
 
             onContextMenuRequested: folderMenu.popup()
 
@@ -196,7 +195,6 @@ Item {
         FolderListView {
             id: _folderListView
             model: dirModel
-            useCustomContextMenu: true
 
             onContextMenuRequested: folderMenu.popup()
 

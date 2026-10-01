@@ -16,7 +16,6 @@
 #include <QAction>
 #include <QHash>
 
-class QMenu;
 class QMimeData;
 
 class QDrag;
@@ -222,8 +221,6 @@ public:
     Q_INVOKABLE void setWallpaperSelected();
 
     Q_INVOKABLE void prepareContextMenu();
-    Q_INVOKABLE void openContextMenu(QQuickItem *visualParent = nullptr,
-                                     Qt::KeyboardModifiers modifiers = Qt::NoModifier);
     Q_INVOKABLE void openPropertiesDialog();
     Q_INVOKABLE void openInTerminal();
     Q_INVOKABLE void openChangeWallpaperDialog();
@@ -360,9 +357,6 @@ private:
     bool m_suffixVisible;
 
     QString m_selectedItemSize;
-
-    // Keep the selection while the context menu temporarily owns focus.
-    QPointer<QMenu> m_contextMenu;
 
     QHash<QString, QAction *> m_actions;
     QHash<int, DragImage *> m_dragImages;

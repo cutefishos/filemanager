@@ -16,10 +16,8 @@ public:
     bool valid() const;
 
     QVariant value(const QString &key, const QVariant &defaultValue = QVariant()) const;
-    void setValue(const QString &key, const QVariant &value);
 
     bool load();
-    bool save();
 
     QStringList keys() const;
 

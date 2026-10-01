@@ -33,7 +33,6 @@ GridView {
     // Bars floating over the top of the view; the content scrolls beneath them.
     property real topInset: 0
     readonly property real headerHeight: topInset
-    property bool useCustomContextMenu: false
     // Desktop input extends beyond the cells reserved for icons.
     property Item interactionSurface: control
     property bool pressActive: false
@@ -224,7 +223,7 @@ GridView {
     }
 
     // x, y are the click that opened the menu, in view coordinates.
-    function openContextMenu(modifiers, x, y) {
+    function openContextMenu(x, y) {
         // A new folder or file belongs on the cell that was right-clicked.
         if (positioner.enabled) {
             var pos = mapToItem(control.contentItem, x, y)
@@ -232,12 +231,8 @@ GridView {
             dirModel.setNewDocumentPosition(x, y, cellIndex(cell.x, cell.y))
         }
 
-        if (control.useCustomContextMenu) {
-            dirModel.prepareContextMenu()
-            control.contextMenuRequested()
-        } else {
-            dirModel.openContextMenu(null, modifiers)
-        }
+        dirModel.prepareContextMenu()
+        control.contextMenuRequested()
     }
 
     function reset() {
@@ -829,7 +824,7 @@ GridView {
                 // Item context menu.
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers, pos.x, pos.y)
+                    control.openContextMenu(pos.x, pos.y)
                     mouse.accepted = true
                 }
             } else {
@@ -843,7 +838,7 @@ GridView {
                 // Folder context menu.
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers, pos.x, pos.y)
+                    control.openContextMenu(pos.x, pos.y)
                     mouse.accepted = true
                 }
             }

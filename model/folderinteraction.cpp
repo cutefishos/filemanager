@@ -5,7 +5,6 @@
 #include <QDir>
 #include <QDrag>
 #include <QGuiApplication>
-#include <QMenu>
 #include <QMimeData>
 #include <QPainter>
 #include <QPersistentModelIndex>
@@ -125,13 +124,6 @@ void FolderModel::updateSelection(const QVariantList &rows, bool toggle, bool ex
 
 void FolderModel::clearSelection()
 {
-    // Keep the selection while our own context menu is open: the menu is a
-    // separate window, so showing it makes the view lose focus, and the desktop
-    // clears the selection on focus loss. Without this the menu would be built
-    // from the selection and then act on an empty one.
-    if (m_contextMenu)
-        return;
-
     if (m_selectionModel->hasSelection())
         m_selectionModel->clear();
 }

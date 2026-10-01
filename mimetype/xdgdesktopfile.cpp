@@ -27,18 +27,6 @@ QVariant XdgDesktopFile::value(const QString &key, const QVariant &defaultValue)
     return res;
 }
 
-void XdgDesktopFile::setValue(const QString &key, const QVariant &value)
-{
-    QString path = (!prefix().isEmpty()) ? prefix() + QLatin1Char('/') + key : key;
-
-    if (value.type() == QVariant::String) {
-        QString s = value.toString();
-        m_items[path] = QVariant(s);
-    } else {
-        m_items[path] = value;
-    }
-}
-
 bool XdgDesktopFile::load()
 {
     if (!QFile::exists(m_fileName))
@@ -49,42 +37,6 @@ bool XdgDesktopFile::load()
     read("Desktop Entry");
 
     return m_isValid;
-}
-
-bool XdgDesktopFile::save()
-{
-    QFile file(m_fileName);
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-        return false;
-
-    QTextStream stream(&file);
-    QMap<QString, QVariant>::const_iterator i = m_items.constBegin();
-    QString section;
-
-    while (i != m_items.constBegin()) {
-        QString path = i.key();
-        QString sect = path.section(QChar('/'), 0, 0);
-
-        if (sect != section) {
-            section = sect;
-#if QT_VERSION >= 0x050e00
-            stream << QLatin1Char('[') << section << QChar(']') << Qt::endl;
-#else
-            stream << QLatin1Char('[') << section << QChar(']') << endl;
-#endif
-        }
-
-        QString key = path.section(QChar('/'), 1);
-#if QT_VERSION >= 0x050e00
-        stream << key << QLatin1Char('=') << i.value().toString() << Qt::endl;
-#else
-        stream << key << QLatin1Char('=') << i.value().toString() << endl;
-#endif
-        ++i;
-    }
-
-    return true;
 }
 
 QStringList XdgDesktopFile::keys() const

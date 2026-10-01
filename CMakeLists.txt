@@ -87,7 +87,6 @@ add_library(cutefish-filemanager-core STATIC
   helper/shortcutconvention.cpp
   helper/filelauncher.cpp
   helper/folderpreferences.cpp
-  helper/keyboardsearchmanager.cpp
 
   operations/operationtask.cpp
   operations/fileoperationsclient.cpp

@@ -64,7 +64,6 @@ protected:
 private:
     bool commandKey(const QKeyEvent *event);
 
-    QObject *m_object;
     bool m_previewEnabled = false;
 };
 

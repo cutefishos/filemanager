@@ -199,7 +199,6 @@ Item {
         flow: GridView.FlowTopToBottom
 
         delegate: FolderGridItem {}
-        useCustomContextMenu: true
 
         onContextMenuRequested: desktopMenu.popup()
 

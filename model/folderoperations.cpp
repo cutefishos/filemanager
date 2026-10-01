@@ -14,7 +14,6 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
-#include <QMenu>
 #include <QMimeData>
 #include <QProcess>
 #include <QQmlEngine>
@@ -568,93 +567,6 @@ void FolderModel::setWallpaperSelected()
 void FolderModel::prepareContextMenu()
 {
     updateActions();
-}
-
-void FolderModel::openContextMenu(QQuickItem *visualParent, Qt::KeyboardModifiers modifiers)
-{
-    Q_UNUSED(modifiers);
-
-    updateActions();
-
-    const QModelIndexList indexes = m_selectionModel->selectedIndexes();
-    const bool isTrash = (resolvedUrl().scheme() == QLatin1String("trash"));
-    QMenu *menu = new QMenu;
-
-    // Open folder menu.
-    if (indexes.isEmpty()) {
-        QAction *selectAll = new QAction(tr("Select All"), menu);
-        connect(selectAll, &QAction::triggered, this, &FolderModel::selectAll);
-
-        menu->addAction(m_actions.value("newFolder"));
-
-        if (!isTrash) {
-            QMenu *newMenu = new QMenu(tr("New Documents"), menu);
-            newMenu->addAction(m_actions.value("newTextFile"));
-            menu->addMenu(newMenu);
-        }
-
-        menu->addSeparator();
-        menu->addAction(m_actions.value("paste"));
-        menu->addAction(selectAll);
-        if (m_actions.value("terminal")->isVisible()) {
-            menu->addSeparator();
-            menu->addAction(m_actions.value("terminal"));
-        }
-
-        if (m_isDesktop) {
-            menu->addAction(m_actions.value("changeBackground"));
-        }
-
-        menu->addSeparator();
-        menu->addAction(m_actions.value("showHidden"));
-
-        menu->addSeparator();
-        menu->addAction(m_actions.value("emptyTrash"));
-        menu->addAction(m_actions.value("properties"));
-    } else {
-        // Open the items menu.
-
-        // Trash items
-        menu->addAction(m_actions.value("restore"));
-
-        menu->addAction(m_actions.value("open"));
-        menu->addAction(m_actions.value("openInNewTab"));
-        menu->addAction(m_actions.value("openInNewWindow"));
-        menu->addAction(m_actions.value("openWith"));
-        menu->addAction(m_actions.value("compress"));
-        menu->addSeparator();
-        menu->addAction(m_actions.value("cut"));
-        menu->addAction(m_actions.value("copy"));
-        menu->addAction(m_actions.value("trash"));
-        menu->addAction(m_actions.value("del"));
-        menu->addAction(m_actions.value("rename"));
-
-        if (m_actions.value("terminal")->isVisible()) {
-            menu->addSeparator();
-            menu->addAction(m_actions.value("terminal"));
-        }
-
-        menu->addAction(m_actions.value("wallpaper"));
-        menu->addSeparator();
-        menu->addAction(m_actions.value("properties"));
-    }
-
-    QPoint position;
-    if (visualParent) {
-        position = visualParent->mapToGlobal(QPointF(0, visualParent->height())).toPoint();
-    } else {
-        position = QCursor::pos();
-    }
-
-    menu->installEventFilter(this);
-    menu->setAttribute(Qt::WA_TranslucentBackground);
-
-    m_contextMenu = menu;
-    menu->popup(position);
-
-    connect(menu, &QMenu::aboutToHide, [menu]() {
-        menu->deleteLater();
-    });
 }
 
 void FolderModel::openPropertiesDialog()

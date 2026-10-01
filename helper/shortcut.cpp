@@ -20,35 +20,25 @@
  ***************************************************************************/
 
 #include "shortcut.h"
-#include "keyboardsearchmanager.h"
 #include "shortcutconvention.h"
 
 #include <QKeyEvent>
 
 ShortCut::ShortCut(QObject *parent)
     : QObject(parent)
-    , m_object(parent)
 {
 }
 
 void ShortCut::install(QObject *target)
 {
-    // No need to remove, because memory space is automatically freed in qml.
-    // if (m_object) {
-    //     m_object->removeEventFilter(this);
-    // }
-
-    if (target) {
+    if (target)
         target->installEventFilter(this);
-        // m_object = target;
-    }
 }
 
 bool ShortCut::eventFilter(QObject *obj, QEvent *e)
 {
     if (e->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(e);
-        // int keyInt = keyEvent->modifiers() + keyEvent->key();
 
         if (m_previewEnabled && keyEvent->key() == Qt::Key_Space
             && keyEvent->modifiers() == Qt::NoModifier) {
@@ -111,8 +101,6 @@ bool ShortCut::eventFilter(QObject *obj, QEvent *e)
             else
                 emit undo();
         } else if (keyEvent->key() >= Qt::Key_A && keyEvent->key() <= Qt::Key_Z) {
-            // Handle select
-            // KeyboardSearchManager::self()->addKeys(keyEvent->text());
             emit keyPressed(keyEvent->text());
             keyEvent->ignore();
         }

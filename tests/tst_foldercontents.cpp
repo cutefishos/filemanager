@@ -477,8 +477,8 @@ private slots:
         QCOMPARE(folder.rowCount(), 1);
     }
 
-    // Menus are built per popup: neither the model nor a closed context menu
-    // may leave a menu widget or an action behind.
+    // Context menus are QML: preparing one may leave no menu widget or action
+    // behind in the model.
     void contextMenuLeavesNothingBehind()
     {
         const auto menuCount = [] {
@@ -503,10 +503,7 @@ private slots:
             QTRY_COMPARE(folder.status(), FolderModel::Ready);
             const auto actions = folder.findChildren<QAction *>(Qt::FindDirectChildrenOnly).size();
 
-            folder.openContextMenu();
-            auto *popup = qobject_cast<QMenu *>(QApplication::activePopupWidget());
-            QVERIFY(popup);
-            popup->close();
+            folder.prepareContextMenu();
             QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
             QCOMPARE(menuCount(), menus);
             QCOMPARE(folder.findChildren<QAction *>(Qt::FindDirectChildrenOnly).size(), actions);

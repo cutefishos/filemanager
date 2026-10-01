@@ -59,7 +59,6 @@ ListView {
     property variant cPress: null
     property Item editor: null
     property int anchorIndex: 0
-    property bool useCustomContextMenu: false
 
     // Named apart from the context's settings so the binding below is not circular.
     readonly property var listSettings: settings
@@ -245,13 +244,9 @@ ListView {
             control.editor.cancel()
     }
 
-    function openContextMenu(modifiers) {
-        if (control.useCustomContextMenu) {
-            dirModel.prepareContextMenu()
-            control.contextMenuRequested()
-        } else {
-            dirModel.openContextMenu(null, modifiers)
-        }
+    function openContextMenu() {
+        dirModel.prepareContextMenu()
+        control.contextMenuRequested()
     }
 
     function reset() {
@@ -543,7 +538,7 @@ ListView {
 
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers)
+                    control.openContextMenu()
                     mouse.accepted = true
                 }
             } else {
@@ -567,7 +562,7 @@ ListView {
 
                 if (mouse.buttons & Qt.RightButton) {
                     clearPressState()
-                    control.openContextMenu(mouse.modifiers)
+                    control.openContextMenu()
                     mouse.accepted = true
                 }
             }

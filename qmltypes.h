@@ -19,7 +19,7 @@ namespace CutefishFM {
 void registerQmlTypes();
 
 /**
- * Makes the core's compiled-in resources (":/qml", ":/images", ":/templates")
+ * Makes the core's compiled-in resources (":/qml", ":/images")
  * available. Required because the core is a static library: without an explicit
  * reference the linker would drop the resource initialiser.
  */
