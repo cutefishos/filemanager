@@ -7,6 +7,8 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCallWatcher>
+#include <QFileInfo>
+#include <QMimeDatabase>
 #include <QPointer>
 #include <QProcess>
 #include <QQuickWindow>
@@ -20,6 +22,7 @@ const QUrl ioTaskDialog(QStringLiteral("qrc:/qml/Dialogs/IoTaskDialog.qml"));
 const QUrl deleteDialog(QStringLiteral("qrc:/qml/Dialogs/DeleteDialog.qml"));
 const QUrl emptyTrashDialog(QStringLiteral("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
 const QUrl propertiesDialog(QStringLiteral("qrc:/qml/Dialogs/PropertiesDialog.qml"));
+const QUrl launchDialog(QStringLiteral("qrc:/qml/Dialogs/LaunchDialog.qml"));
 const QUrl openWithDialog(QStringLiteral("qrc:/qml/Dialogs/OpenWithDialog.qml"));
 }
 
@@ -83,6 +86,21 @@ QQuickWindow *properties(WindowManager *manager, const Cutefish::IO::FileItemLis
 
     details->setParent(window);
     return window;
+}
+
+QQuickWindow *confirmLaunch(WindowManager *manager, const QString &path, QWindow *owner)
+{
+    if (!manager || path.isEmpty())
+        return nullptr;
+
+    const QFileInfo info(path);
+    const bool desktopFile =
+            QMimeDatabase().mimeTypeForFile(info).inherits(QStringLiteral("application/x-desktop"));
+    return manager->create(launchDialog,
+                           {{QStringLiteral("path"), info.absoluteFilePath()},
+                            {QStringLiteral("name"), info.fileName()},
+                            {QStringLiteral("desktopFile"), desktopFile}},
+                           owner, WindowManager::CloseWithOwner);
 }
 
 QQuickWindow *openWith(WindowManager *manager, const QUrl &url, QWindow *owner)

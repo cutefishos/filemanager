@@ -16,6 +16,18 @@ public:
 
     Q_INVOKABLE bool launchApp(const QString &desktopFile, const QString &fileName);
     Q_INVOKABLE bool launchExecutable(const QString &fileName);
+
+    /** Runs the launcher or program at @p path itself. */
+    bool launchFile(const QString &path);
+
+    /**
+     * Whether @p path may run without asking: a launcher in an applications
+     * directory, or a file its owner marked executable.
+     */
+    static bool isTrusted(const QString &path);
+
+    /** Marks @p path executable for its owner, as the user agreed to, then runs it. */
+    Q_INVOKABLE bool trustAndLaunch(const QString &path);
 };
 
 #endif // FILELAUNCHER_H

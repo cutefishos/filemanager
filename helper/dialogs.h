@@ -34,6 +34,9 @@ QQuickWindow *confirmEmptyTrash(WindowManager *manager, QWindow *owner);
 QQuickWindow *properties(WindowManager *manager, const Cutefish::IO::FileItemList &items,
                          QWindow *owner);
 
+/** Asks before running the launcher or program at @p path, which is not trusted yet. */
+QQuickWindow *confirmLaunch(WindowManager *manager, const QString &path, QWindow *owner);
+
 QQuickWindow *openWith(WindowManager *manager, const QUrl &url, QWindow *owner);
 
 } // namespace Dialogs

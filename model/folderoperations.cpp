@@ -277,24 +277,17 @@ void FolderModel::openSelected()
 
         QString mimeType = item.mimetype();
 
-        // Desktop file.
-        if (mimeType == "application/x-desktop") {
-            FileLauncher::self()->launchApp(url.toLocalFile(), "");
-            continue;
-        }
-
-        // runnable
-        if (mimeType == "application/x-executable" || mimeType == "application/x-sharedlib"
+        // Launchers and programs run only once trusted, so a downloaded one
+        // does not run on a double-click.
+        if (mimeType == "application/x-desktop" || mimeType == "application/x-executable"
+            || mimeType == "application/x-sharedlib"
             || mimeType == "application/x-iso9660-appimage"
             || mimeType == "application/vnd.appimage") {
-            QFileInfo fileInfo(url.toLocalFile());
-            if (!fileInfo.isExecutable()) {
-                QFile file(url.toLocalFile());
-                file.setPermissions(file.permissions() | QFile::ExeOwner | QFile::ExeUser
-                                    | QFile::ExeGroup | QFile::ExeOther);
-            }
-
-            FileLauncher::self()->launchExecutable(url.toLocalFile());
+            const QString path = url.toLocalFile();
+            if (FileLauncher::isTrusted(path))
+                FileLauncher::self()->launchFile(path);
+            else
+                CutefishFM::Dialogs::confirmLaunch(windowManager(), path, dialogOwner());
 
             continue;
         }
