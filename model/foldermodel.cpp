@@ -7,6 +7,7 @@
 #include "helper/iojobui.h"
 
 #include <filesystemurl.h>
+#include <thumbnailcache.h>
 
 #include <QApplication>
 #include <QClipboard>
@@ -717,14 +718,7 @@ void FolderModel::clearPixmapCache()
 
 bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 {
-    const QStringList supportsMimetypes = {"image/bmp", "image/png", "image/gif", "image/jpeg", "image/web",
-                                           /*"application/pdf", "application/rtf", "application/doc", "application/odf",
-                                           "audio/mpeg", "video/mp4"*/};
-
-    if (supportsMimetypes.contains(mimeType))
-        return true;
-
-    return false;
+    return ThumbnailCache::self()->canThumbnail(mimeType);
 }
 
 bool FolderModel::showHiddenFiles() const
