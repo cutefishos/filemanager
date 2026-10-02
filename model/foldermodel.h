@@ -165,6 +165,7 @@ public:
 
     Q_INVOKABLE QString homePath() const;
     Q_INVOKABLE QString desktopPath() const;
+    Q_INVOKABLE QString standardFolderName(const QString &path) const;
     Q_INVOKABLE QAction *action(const QString &name) const;
 
     Q_INVOKABLE void up();

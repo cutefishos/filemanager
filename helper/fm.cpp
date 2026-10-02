@@ -38,3 +38,36 @@ bool Fm::isFixedFolder(const QUrl &folderUrl)
 {
     return Cutefish::IO::isStandardFolder(folderUrl);
 }
+
+const QHash<QString, QString> &Fm::standardFolderNames()
+{
+    static const QHash<QString, QString> names = [] {
+        const QList<QPair<QStandardPaths::StandardLocation, QString>> folders = {
+                {QStandardPaths::HomeLocation, tr("Home")},
+                {QStandardPaths::DesktopLocation, tr("Desktop")},
+                {QStandardPaths::DocumentsLocation, tr("Documents")},
+                {QStandardPaths::DownloadLocation, tr("Downloads")},
+                {QStandardPaths::MusicLocation, tr("Music")},
+                {QStandardPaths::PicturesLocation, tr("Pictures")},
+                {QStandardPaths::MoviesLocation, tr("Videos")},
+                {QStandardPaths::TemplatesLocation, tr("Templates")},
+                {QStandardPaths::PublicShareLocation, tr("Public")},
+        };
+
+        QHash<QString, QString> result;
+        for (const auto &[location, name] : folders) {
+            const QString path = QStandardPaths::writableLocation(location);
+            // Disabled XDG directories resolve to home, which keeps its own name.
+            if (!path.isEmpty() && !result.contains(QDir::cleanPath(path)))
+                result.insert(QDir::cleanPath(path), name);
+        }
+        return result;
+    }();
+
+    return names;
+}
+
+QString Fm::standardFolderName(const QString &path)
+{
+    return path.isEmpty() ? QString() : standardFolderNames().value(QDir::cleanPath(path));
+}

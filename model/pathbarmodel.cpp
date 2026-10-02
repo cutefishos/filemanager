@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "pathbarmodel.h"
+#include "helper/fm.h"
 #include <QDir>
 #include <QDebug>
 
@@ -49,7 +50,7 @@ void PathBarModel::setUrl(const QString &url)
             do {
                 if (!QDir(homePath).isRoot() && dir.absolutePath() == homePath) {
                     PathBarItem *item = new PathBarItem;
-                    item->name = tr("Home");
+                    item->name = Fm::standardFolderName(homePath);
                     item->url = QUrl::fromLocalFile(homePath);
                     m_pathList.append(item);
                     break;
@@ -64,7 +65,8 @@ void PathBarModel::setUrl(const QString &url)
                 }
 
                 PathBarItem *item = new PathBarItem;
-                item->name = dir.dirName();
+                const QString standard = Fm::standardFolderName(dir.absolutePath());
+                item->name = standard.isEmpty() ? dir.dirName() : standard;
                 item->url = QUrl::fromLocalFile(dir.absolutePath());
                 m_pathList.append(item);
             } while (dir.cdUp());

@@ -4,6 +4,7 @@
 #ifndef FM_H
 #define FM_H
 
+#include <QHash>
 #include <QObject>
 #include <QVariantMap>
 
@@ -23,6 +24,11 @@ public:
     Q_INVOKABLE QQuickWindow *openWindow(const QVariantMap &properties);
     Q_INVOKABLE static void emptyTrash();
     static bool isFixedFolder(const QUrl &folderUrl);
+
+    // Translated names of the home and XDG user directories, keyed by path. The
+    // directories keep their names on disk; only their display follows the language.
+    static const QHash<QString, QString> &standardFolderNames();
+    static QString standardFolderName(const QString &path);
 };
 
 #endif // FM_H

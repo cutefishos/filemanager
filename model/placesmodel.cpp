@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "placesmodel.h"
+#include "helper/fm.h"
 #include "operations/fileoperationsclient.h"
 
 #include <fileitem.h>
@@ -18,7 +19,9 @@
 static PlacesItem *createFolderItem(const QUrl &url)
 {
     const QString path = url.toLocalFile();
-    auto *item = new PlacesItem(QFileInfo(path).fileName(), url);
+    const QString standard = Fm::standardFolderName(path);
+    auto *item = new PlacesItem(standard.isEmpty() ? QFileInfo(path).fileName() : standard,
+                                url);
     const QString icon = Cutefish::IO::standardFolderIconName(path);
     item->setIconName(icon.isEmpty() ? QStringLiteral("folder") : icon);
     return item;
@@ -31,14 +34,16 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString homePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
 
     if (QDir(homePath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Home"), QUrl::fromLocalFile(homePath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(homePath),
+                                          QUrl::fromLocalFile(homePath));
         item->setIconName("folder-home");
         m_items.append(item);
     }
 
     const QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
     if (QDir(desktopPath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Desktop"), QUrl::fromLocalFile(desktopPath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(desktopPath),
+                                          QUrl::fromLocalFile(desktopPath));
         item->setIconName("folder-desktop");
         m_items.append(item);
     }
@@ -46,35 +51,40 @@ PlacesModel::PlacesModel(QObject *parent)
     const QString documentsPath =
             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     if (QDir(documentsPath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Documents"), QUrl::fromLocalFile(documentsPath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(documentsPath),
+                                          QUrl::fromLocalFile(documentsPath));
         item->setIconName("folder-documents");
         m_items.append(item);
     }
 
     const QString downloadPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
     if (QDir(downloadPath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Downloads"), QUrl::fromLocalFile(downloadPath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(downloadPath),
+                                          QUrl::fromLocalFile(downloadPath));
         item->setIconName("folder-download");
         m_items.append(item);
     }
 
     const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     if (QDir(musicPath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Music"), QUrl::fromLocalFile(musicPath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(musicPath),
+                                          QUrl::fromLocalFile(musicPath));
         item->setIconName("folder-music");
         m_items.append(item);
     }
 
     const QString picturePath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
     if (QDir(picturePath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Pictures"), QUrl::fromLocalFile(picturePath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(picturePath),
+                                          QUrl::fromLocalFile(picturePath));
         item->setIconName("folder-picture");
         m_items.append(item);
     }
 
     const QString videoPath = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     if (QDir(videoPath).exists()) {
-        PlacesItem *item = new PlacesItem(tr("Videos"), QUrl::fromLocalFile(videoPath));
+        PlacesItem *item = new PlacesItem(Fm::standardFolderName(videoPath),
+                                          QUrl::fromLocalFile(videoPath));
         item->setIconName("folder-video");
         m_items.append(item);
     }

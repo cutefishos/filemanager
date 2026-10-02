@@ -1,8 +1,11 @@
+#include "../helper/fm.h"
+#include "../model/pathbarmodel.h"
 #include "../model/placesmodel.h"
 #include "preferences.h"
 
 #include <QAbstractItemModelTester>
 #include <QDir>
+#include <QFile>
 #include <QSettings>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -12,6 +15,38 @@ class PlacesModelTest : public QObject
     Q_OBJECT
 
 private slots:
+
+    // Runs first: the names are read once per process.
+    void standardFolderNames()
+    {
+        QTemporaryDir home;
+        QVERIFY(home.isValid());
+        qputenv("HOME", home.path().toUtf8());
+        qputenv("XDG_CONFIG_HOME", home.filePath(".config").toUtf8());
+        QVERIFY(QDir(home.path()).mkpath(".config"));
+        QVERIFY(QDir(home.path()).mkpath(QStringLiteral("Schreibtisch/notes")));
+        QFile dirs(home.filePath(".config/user-dirs.dirs"));
+        QVERIFY(dirs.open(QIODevice::WriteOnly));
+        dirs.write("XDG_DESKTOP_DIR=\"$HOME/Schreibtisch\"\nXDG_TEMPLATES_DIR=\"$HOME/\"\n");
+        dirs.close();
+
+        const QString desktop = home.filePath(QStringLiteral("Schreibtisch"));
+        QCOMPARE(Fm::standardFolderName(desktop), QStringLiteral("Desktop"));
+        QCOMPARE(Fm::standardFolderName(desktop + "/"), QStringLiteral("Desktop"));
+        // A disabled directory points at home, which keeps its own name.
+        QCOMPARE(Fm::standardFolderName(home.path()), QStringLiteral("Home"));
+        QVERIFY(Fm::standardFolderName(desktop + "/notes").isEmpty());
+
+        PathBarModel pathBar;
+        pathBar.setUrl(QUrl::fromLocalFile(desktop + "/notes").toString());
+        QCOMPARE(pathBar.rowCount(), 3);
+        QCOMPARE(pathBar.index(0, 0).data(PathBarModel::NameRole).toString(),
+                 QStringLiteral("Home"));
+        QCOMPARE(pathBar.index(1, 0).data(PathBarModel::NameRole).toString(),
+                 QStringLiteral("Desktop"));
+        QCOMPARE(pathBar.index(2, 0).data(PathBarModel::NameRole).toString(),
+                 QStringLiteral("notes"));
+    }
 
     void favorites()
     {

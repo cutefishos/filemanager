@@ -3,6 +3,7 @@
 #include "dirlister.h"
 #include "foldersizecache.h"
 #include "helper/datehelper.h"
+#include "helper/fm.h"
 #include "helper/folderpreferences.h"
 #include "helper/iojobui.h"
 
@@ -224,7 +225,10 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case UrlRole:
         return item.url();
     case DisplayNameRole: {
-        return item.text();
+        const QString standard = item.isDir() && item.url().isLocalFile()
+                ? Fm::standardFolderName(item.url().toLocalFile())
+                : QString();
+        return standard.isEmpty() ? item.text() : standard;
     }
     case FileNameRole: {
         return item.url().fileName();
@@ -623,6 +627,11 @@ QString FolderModel::homePath() const
 QString FolderModel::desktopPath() const
 {
     return QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+}
+
+QString FolderModel::standardFolderName(const QString &path) const
+{
+    return Fm::standardFolderName(path);
 }
 
 void FolderModel::up()

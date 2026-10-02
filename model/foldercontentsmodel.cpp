@@ -1,4 +1,5 @@
 #include "foldercontentsmodel.h"
+#include "helper/fm.h"
 
 #include <QCollator>
 #include <QFutureWatcher>
@@ -287,7 +288,7 @@ void FolderContentsModel::prepare()
     watcher->setFuture(QtConcurrent::run(
             [incoming = m_source->items(), previous = m_items, query = m_query,
              renames = m_renames,
-             locale = QLocale(), cancelled] {
+             locale = QLocale(), standardNames = Fm::standardFolderNames(), cancelled] {
         auto result = std::make_shared<Prepared>();
         auto checkpoint = [&] {
             if (cancelled->load())
@@ -306,6 +307,12 @@ void FolderContentsModel::prepare()
 
             if (query.sortColumn >= 0) {
                 QCollator collator(locale);
+                // Standard folders sort by the name they are shown under.
+                auto sortName = [&](const FileItem &item) {
+                    return item.isDir() && item.url().isLocalFile()
+                            ? standardNames.value(item.url().toLocalFile(), item.name())
+                            : item.name();
+                };
                 std::stable_sort(result->ordered.begin(), result->ordered.end(),
                         [&](const FileItem &left, const FileItem &right) {
                     checkpoint();
@@ -325,7 +332,7 @@ void FolderContentsModel::prepare()
                         order = QString::compare(left.mimetype(), right.mimetype());
                     }
                     if (order == 0)
-                        order = collator.compare(left.name(), right.name());
+                        order = collator.compare(sortName(left), sortName(right));
                     if (order == 0)
                         order = QString::compare(left.url().toString(), right.url().toString());
                     return query.descending ? order > 0 : order < 0;

@@ -31,6 +31,9 @@ Item {
         if (path.indexOf("file://") === 0)
             path = path.substring(7)
         path = path.replace(/\/+$/, "")
+        var standard = dirModel.standardFolderName(path)
+        if (standard)
+            return standard
         var name = path.substring(path.lastIndexOf("/") + 1)
         try { return decodeURIComponent(name) || "/" } catch (error) { return name || "/" }
     }
