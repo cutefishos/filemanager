@@ -34,8 +34,6 @@ Item {
                                             : fitLayer.status === Image.Error
 
     property real zoom: 1
-    property real panX: 0
-    property real panY: 0
     property bool fitted: true
 
     property url fitSource
@@ -53,11 +51,23 @@ Item {
         return Math.round(value * ratio) / ratio
     }
 
+    // Where the frame sits in the content at a zoom: centred while smaller
+    // than the view. From zoom itself, not the bindings it is still updating.
+    function frameX(z) {
+        return Math.max(0, (width - naturalWidth * z) / 2)
+    }
+
+    function frameY(z) {
+        return Math.max(0, (height - naturalHeight * z) / 2)
+    }
+
+    function setPan(contentX, contentY) {
+        flick.contentX = Math.max(0, Math.min(Math.max(0, naturalWidth * zoom - width), contentX))
+        flick.contentY = Math.max(0, Math.min(Math.max(0, naturalHeight * zoom - height), contentY))
+    }
+
     function clampPan() {
-        const limitX = Math.max(0, (naturalWidth * zoom - width) / 2)
-        const limitY = Math.max(0, (naturalHeight * zoom - height) / 2)
-        panX = Math.max(-limitX, Math.min(limitX, panX))
-        panY = Math.max(-limitY, Math.min(limitY, panY))
+        setPan(flick.contentX, flick.contentY)
     }
 
     function resetZoom() {
@@ -65,15 +75,14 @@ Item {
         anchored = false
         fitted = true
         zoom = fitZoom
-        panX = 0
-        panY = 0
+        setPan(0, 0)
     }
 
     // Zooms keeping the image point under (viewX, viewY) where it is.
     function zoomTo(target, viewX, viewY, animate) {
         target = Math.max(fitZoom, Math.min(maxZoom, target))
-        anchorImageX = Math.max(0, Math.min(naturalWidth, (viewX - width / 2 - panX) / zoom + naturalWidth / 2))
-        anchorImageY = Math.max(0, Math.min(naturalHeight, (viewY - height / 2 - panY) / zoom + naturalHeight / 2))
+        anchorImageX = Math.max(0, Math.min(naturalWidth, (viewX + flick.contentX - frameX(zoom)) / zoom))
+        anchorImageY = Math.max(0, Math.min(naturalHeight, (viewY + flick.contentY - frameY(zoom)) / zoom))
         anchorViewX = viewX
         anchorViewY = viewY
         fitted = target <= fitZoom + 0.0001
@@ -134,11 +143,11 @@ Item {
     onHeightChanged: clampPan()
 
     onZoomChanged: {
-        if (anchored) {
-            panX = anchorViewX - width / 2 - (anchorImageX - naturalWidth / 2) * zoom
-            panY = anchorViewY - height / 2 - (anchorImageY - naturalHeight / 2) * zoom
-        }
-        clampPan()
+        if (anchored)
+            setPan(frameX(zoom) + anchorImageX * zoom - anchorViewX,
+                   frameY(zoom) + anchorImageY * zoom - anchorViewY)
+        else
+            clampPan()
         if (zoomed)
             detailRequested = true
         if (vector)
@@ -164,56 +173,69 @@ Item {
         }
     }
 
-    Item {
-        id: frame
-        width: viewer.naturalWidth * viewer.zoom
-        height: viewer.naturalHeight * viewer.zoom
-        x: viewer.snap((viewer.width - width) / 2 + viewer.panX)
-        y: viewer.snap((viewer.height - height) / 2 + viewer.panY)
+    // Moved only by the handlers below; FishUI.WheelHandler gives touchpad
+    // panning the same resampling, momentum and edges as every scroll view.
+    Flickable {
+        id: flick
+        anchors.fill: parent
+        interactive: false
+        contentWidth: Math.max(width, frame.width)
+        contentHeight: Math.max(height, frame.height)
 
-        Image {
-            id: fitLayer
-            objectName: "previewImage"
-            anchors.fill: parent
-            visible: !viewer.animated
-            source: viewer.fitSource
-            sourceSize: viewer.fitSourceSize
-            // No retainWhileLoading: it keeps the old texture up when the new
-            // one comes synchronously from the cache the window preloaded.
-            asynchronous: true
-            autoTransform: true
-            smooth: true
-            fillMode: Image.PreserveAspectFit
-        }
+        FishUI.ScrollBar.horizontal: FishUI.ScrollBar { id: horizontalBar }
+        FishUI.ScrollBar.vertical: FishUI.ScrollBar { id: verticalBar }
 
-        // Full resolution, decoded the first time the image is zoomed past fit.
-        Image {
-            id: detailLayer
-            anchors.fill: parent
-            visible: viewer.zoomed && status === Image.Ready && !viewer.animated
-            source: viewer.detailRequested && !viewer.animated
-                    && viewer.detailSourceSize.width > 0 ? viewer.source : ""
-            sourceSize: viewer.detailSourceSize
-            asynchronous: true
-            retainWhileLoading: viewer.vector
-            autoTransform: true
-            cache: false
-            smooth: true
-            mipmap: !viewer.vector
-            fillMode: Image.PreserveAspectFit
-        }
+        Item {
+            id: frame
+            width: viewer.naturalWidth * viewer.zoom
+            height: viewer.naturalHeight * viewer.zoom
+            x: viewer.snap(viewer.frameX(viewer.zoom))
+            y: viewer.snap(viewer.frameY(viewer.zoom))
 
-        AnimatedImage {
-            id: animatedLayer
-            anchors.fill: parent
-            visible: viewer.animated
-            source: viewer.animated ? viewer.source : ""
-            playing: visible && viewer.Window.window !== null && viewer.Window.window.visible
-            asynchronous: true
-            autoTransform: true
-            cache: false
-            smooth: true
-            fillMode: Image.PreserveAspectFit
+            Image {
+                id: fitLayer
+                objectName: "previewImage"
+                anchors.fill: parent
+                visible: !viewer.animated
+                source: viewer.fitSource
+                sourceSize: viewer.fitSourceSize
+                // No retainWhileLoading: it keeps the old texture up when the new
+                // one comes synchronously from the cache the window preloaded.
+                asynchronous: true
+                autoTransform: true
+                smooth: true
+                fillMode: Image.PreserveAspectFit
+            }
+
+            // Full resolution, decoded the first time the image is zoomed past fit.
+            Image {
+                id: detailLayer
+                anchors.fill: parent
+                visible: viewer.zoomed && status === Image.Ready && !viewer.animated
+                source: viewer.detailRequested && !viewer.animated
+                        && viewer.detailSourceSize.width > 0 ? viewer.source : ""
+                sourceSize: viewer.detailSourceSize
+                asynchronous: true
+                retainWhileLoading: viewer.vector
+                autoTransform: true
+                cache: false
+                smooth: true
+                mipmap: !viewer.vector
+                fillMode: Image.PreserveAspectFit
+            }
+
+            AnimatedImage {
+                id: animatedLayer
+                anchors.fill: parent
+                visible: viewer.animated
+                source: viewer.animated ? viewer.source : ""
+                playing: visible && viewer.Window.window !== null && viewer.Window.window.visible
+                asynchronous: true
+                autoTransform: true
+                cache: false
+                smooth: true
+                fillMode: Image.PreserveAspectFit
+            }
         }
     }
 
@@ -232,16 +254,13 @@ Item {
             if (active) {
                 zoomAnimation.complete()
                 viewer.anchored = false
-                startX = viewer.panX
-                startY = viewer.panY
+                startX = flick.contentX
+                startY = flick.contentY
             }
         }
         onActiveTranslationChanged: {
-            if (!active)
-                return
-            viewer.panX = startX + activeTranslation.x
-            viewer.panY = startY + activeTranslation.y
-            viewer.clampPan()
+            if (active)
+                viewer.setPan(startX - activeTranslation.x, startY - activeTranslation.y)
         }
     }
 
@@ -260,29 +279,37 @@ Item {
         }
     }
 
-    WheelHandler {
-        acceptedModifiers: Qt.ControlModifier
-        onWheel: function(event) {
-            if (event.pixelDelta.y !== 0)
-                viewer.zoomBy(Math.pow(1.006, event.pixelDelta.y), point.position.x, point.position.y, false)
-            else if (event.angleDelta.y !== 0)
-                viewer.zoomBy(Math.pow(1.25, event.angleDelta.y / 120), point.position.x, point.position.y, true)
-        }
+    // A pan along one axis shows both bars, as each bar alone shows only
+    // while its own position changes.
+    Binding {
+        target: horizontalBar
+        property: "active"
+        value: true
+        when: wheelHandler.scrolling || panHandler.active
     }
 
-    WheelHandler {
-        acceptedModifiers: Qt.NoModifier
-        enabled: viewer.zoomed
+    Binding {
+        target: verticalBar
+        property: "active"
+        value: true
+        when: wheelHandler.scrolling || panHandler.active
+    }
+
+    FishUI.WheelHandler {
+        id: wheelHandler
+        target: flick
         onWheel: function(event) {
-            zoomAnimation.complete()
-            viewer.anchored = false
-            const dx = event.pixelDelta.x !== 0 || event.pixelDelta.y !== 0
-                     ? event.pixelDelta.x : event.angleDelta.x / 120 * 60
-            const dy = event.pixelDelta.x !== 0 || event.pixelDelta.y !== 0
-                     ? event.pixelDelta.y : event.angleDelta.y / 120 * 60
-            viewer.panX += dx
-            viewer.panY += dy
-            viewer.clampPan()
+            if (!(event.modifiers & Qt.ControlModifier)) {
+                // A pan ends a running zoom, or its anchor would pull the view back.
+                zoomAnimation.complete()
+                viewer.anchored = false
+                return
+            }
+            event.accepted = true
+            if (event.pixelDelta.y !== 0)
+                viewer.zoomBy(Math.pow(1.006, event.pixelDelta.y), event.x, event.y, false)
+            else if (event.angleDelta.y !== 0)
+                viewer.zoomBy(Math.pow(1.25, event.angleDelta.y / 120), event.x, event.y, true)
         }
     }
 
