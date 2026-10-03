@@ -33,6 +33,8 @@ FishUI.Window {
     background.color: FishUI.Theme.backgroundColor
     onClosing: chooser.cancel()
 
+    // One per dialog: the file manager daemon hosts several in one engine.
+    required property var chooser
     readonly property bool canCreateFolder: chooser.saveMode || chooser.directoryMode
 
     // Shares column widths and sort order with the file manager's list view.

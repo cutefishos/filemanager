@@ -6,7 +6,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QSignalSpy>
@@ -171,7 +170,7 @@ private slots:
                              {"current_name", "Untitled.txt"}});
         QQmlApplicationEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.setInitialProperties({{"chooser", QVariant::fromValue(&chooser)}});
         engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
         QVERIFY(!engine.rootObjects().isEmpty());
         auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
@@ -205,7 +204,7 @@ private slots:
                              {"current_name", "photo.jpeg"}});
         QQmlApplicationEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.setInitialProperties({{"chooser", QVariant::fromValue(&chooser)}});
         engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
         QVERIFY(!engine.rootObjects().isEmpty());
         auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
@@ -234,7 +233,7 @@ private slots:
         FileChooser chooser({{"mode", "OpenFile"}, {"current_folder", directory.path()}});
         QQmlApplicationEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.setInitialProperties({{"chooser", QVariant::fromValue(&chooser)}});
         engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
         QVERIFY(!engine.rootObjects().isEmpty());
         auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
@@ -277,7 +276,7 @@ private slots:
         FileChooser chooser({{"mode", "OpenFile"}, {"current_folder", directory.path()}});
         QQmlApplicationEngine engine;
         CutefishFM::registerImageProviders(&engine);
-        engine.rootContext()->setContextProperty("chooser", &chooser);
+        engine.setInitialProperties({{"chooser", QVariant::fromValue(&chooser)}});
         engine.load(QUrl("qrc:/chooser/FileChooser.qml"));
         QVERIFY(!engine.rootObjects().isEmpty());
         auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());

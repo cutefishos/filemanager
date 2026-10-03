@@ -48,8 +48,8 @@ endif ()
 add_library(cutefish-filemanager-core STATIC
   qmltypes.cpp
 
-  # Every host of the shared QML (the file manager, the desktop plugin, the
-  # file chooser) opens the dialogs through its own engine's manager.
+  # Every host of the shared QML (the file manager, the desktop plugin) opens
+  # the dialogs through its own engine's manager.
   windowmanager.cpp
 
   draganddrop/declarativedroparea.cpp
@@ -123,6 +123,50 @@ target_link_libraries(cutefish-filemanager-core
 target_include_directories(cutefish-filemanager-core PRIVATE ${LIBZIP_INCLUDE_DIR})
 
 # ---------------------------------------------------------------------------
+# The portal's file chooser dialog, shown by the file manager daemon
+# ---------------------------------------------------------------------------
+add_library(cutefish-filechooser-ui STATIC
+  chooser/filechooser.cpp
+  chooser/chooserwindow.cpp
+  chooser/chooserservice.cpp
+  chooser/waylandparent.cpp
+)
+target_link_libraries(cutefish-filechooser-ui PUBLIC cutefish-filemanager-core Qt6::QuickControls2)
+
+# The dialog never runs in the requesting application, so its window can only
+# be reached through xdg-foreign; the protocol code is optional at build time.
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(WaylandClient QUIET IMPORTED_TARGET wayland-client)
+pkg_check_modules(WaylandProtocols QUIET wayland-protocols>=1.32)
+find_package(Qt6 QUIET COMPONENTS GuiPrivate)
+if(WaylandClient_FOUND AND WaylandProtocols_FOUND AND TARGET Qt6::GuiPrivate)
+    pkg_get_variable(WAYLAND_PROTOCOLS_DATADIR wayland-protocols pkgdatadir)
+    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
+    set(CHOOSER_PROTOCOL_DIR ${CMAKE_BINARY_DIR}/chooser-protocols)
+    file(MAKE_DIRECTORY ${CHOOSER_PROTOCOL_DIR})
+    foreach(protocol xdg-shell:stable/xdg-shell
+                     xdg-dialog-v1:staging/xdg-dialog
+                     xdg-foreign-unstable-v2:unstable/xdg-foreign)
+        string(REPLACE ":" ";" parts ${protocol})
+        list(GET parts 0 name)
+        list(GET parts 1 directory)
+        set(xml ${WAYLAND_PROTOCOLS_DATADIR}/${directory}/${name}.xml)
+        add_custom_command(OUTPUT ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
+            COMMAND ${WAYLAND_SCANNER} private-code ${xml} ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
+            DEPENDS ${xml} VERBATIM)
+        add_custom_command(OUTPUT ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h
+            COMMAND ${WAYLAND_SCANNER} client-header ${xml} ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h
+            DEPENDS ${xml} VERBATIM)
+        target_sources(cutefish-filechooser-ui PRIVATE
+            ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
+            ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h)
+    endforeach()
+    target_compile_definitions(cutefish-filechooser-ui PRIVATE CUTEFISH_FILECHOOSER_WAYLAND)
+    target_include_directories(cutefish-filechooser-ui PRIVATE ${CHOOSER_PROTOCOL_DIR})
+    target_link_libraries(cutefish-filechooser-ui PRIVATE PkgConfig::WaylandClient Qt6::GuiPrivate)
+endif()
+
+# ---------------------------------------------------------------------------
 # cutefish-filemanager -- the file browser window
 # ---------------------------------------------------------------------------
 qt6_add_dbus_adaptor(DBUS_SOURCES
@@ -134,11 +178,12 @@ add_executable(cutefish-filemanager
   application.cpp
   dbusinterface.cpp
   preview/previewservice.cpp
+  chooser/chooser.qrc
 
   ${DBUS_SOURCES}
 )
 
-target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
+target_link_libraries(cutefish-filemanager PRIVATE cutefish-filechooser-ui)
 
 configure_file(preview/com.cutefish.FilePreview.service.in com.cutefish.FilePreview.service @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FilePreview.service
@@ -163,49 +208,6 @@ target_link_libraries(cutefish-filemanager-daemon PRIVATE
 configure_file(daemon/com.cutefish.FileOperations.service.in
                com.cutefish.FileOperations.service @ONLY)
 
-add_library(cutefish-filechooser-ui STATIC chooser/filechooser.cpp chooser/filechooser.h)
-target_link_libraries(cutefish-filechooser-ui PUBLIC cutefish-filemanager-core Qt6::QuickControls2)
-
-# The dialog runs in its own process, so the requesting window can only be
-# reached through xdg-foreign; the protocol code is optional at build time.
-set(FILECHOOSER_WAYLAND_SOURCES chooser/waylandparent.cpp chooser/waylandparent.h)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(WaylandClient QUIET IMPORTED_TARGET wayland-client)
-pkg_check_modules(WaylandProtocols QUIET wayland-protocols>=1.32)
-find_package(Qt6 QUIET COMPONENTS GuiPrivate)
-if(WaylandClient_FOUND AND WaylandProtocols_FOUND AND TARGET Qt6::GuiPrivate)
-    pkg_get_variable(WAYLAND_PROTOCOLS_DATADIR wayland-protocols pkgdatadir)
-    pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
-    set(CHOOSER_PROTOCOL_DIR ${CMAKE_BINARY_DIR}/chooser-protocols)
-    file(MAKE_DIRECTORY ${CHOOSER_PROTOCOL_DIR})
-    foreach(protocol xdg-shell:stable/xdg-shell
-                     xdg-dialog-v1:staging/xdg-dialog
-                     xdg-foreign-unstable-v2:unstable/xdg-foreign)
-        string(REPLACE ":" ";" parts ${protocol})
-        list(GET parts 0 name)
-        list(GET parts 1 directory)
-        set(xml ${WAYLAND_PROTOCOLS_DATADIR}/${directory}/${name}.xml)
-        add_custom_command(OUTPUT ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
-            COMMAND ${WAYLAND_SCANNER} private-code ${xml} ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
-            DEPENDS ${xml} VERBATIM)
-        add_custom_command(OUTPUT ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h
-            COMMAND ${WAYLAND_SCANNER} client-header ${xml} ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h
-            DEPENDS ${xml} VERBATIM)
-        list(APPEND FILECHOOSER_WAYLAND_SOURCES
-            ${CHOOSER_PROTOCOL_DIR}/${name}-protocol.c
-            ${CHOOSER_PROTOCOL_DIR}/${name}-client-protocol.h)
-    endforeach()
-endif()
-
-add_executable(cutefish-filechooser chooser/main.cpp chooser/chooser.qrc ${FILECHOOSER_WAYLAND_SOURCES})
-target_link_libraries(cutefish-filechooser PRIVATE cutefish-filechooser-ui)
-if(WaylandClient_FOUND AND WaylandProtocols_FOUND AND TARGET Qt6::GuiPrivate)
-    target_compile_definitions(cutefish-filechooser PRIVATE CUTEFISH_FILECHOOSER_WAYLAND)
-    target_include_directories(cutefish-filechooser PRIVATE ${CHOOSER_PROTOCOL_DIR})
-    target_link_libraries(cutefish-filechooser PRIVATE PkgConfig::WaylandClient Qt6::GuiPrivate)
-endif()
-install(TARGETS cutefish-filechooser RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
-
 # ---------------------------------------------------------------------------
 # The desktop, as a QML module for cutefish-shell
 # ---------------------------------------------------------------------------
@@ -224,8 +226,6 @@ install(TARGETS cutefish-filemanager-daemon RUNTIME DESTINATION ${CMAKE_INSTALL_
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileOperations.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")
-# NoDisplay: the dialog is launched by the portal, and its window is not a task.
-install(FILES cutefish-filechooser.desktop DESTINATION "/usr/share/applications")
 install(FILES ${QM_FILES} DESTINATION /usr/share/cutefish-filemanager/translations)
 
 if(FILEMANAGER_BUILD_TESTS)
@@ -287,8 +287,8 @@ if(FILEMANAGER_BUILD_TESTS)
     add_test(NAME windowmanager COMMAND tst_windowmanager)
     set_tests_properties(windowmanager PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_lifecycle tests/tst_lifecycle.cpp application.cpp dbusinterface.cpp
-                  preview/previewservice.cpp ${DBUS_SOURCES})
-    target_link_libraries(tst_lifecycle PRIVATE cutefish-filemanager-core Qt6::Test)
+                  preview/previewservice.cpp chooser/chooser.qrc ${DBUS_SOURCES})
+    target_link_libraries(tst_lifecycle PRIVATE cutefish-filechooser-ui Qt6::Test)
     add_test(NAME lifecycle COMMAND tst_lifecycle windows)
     add_test(NAME lifecycle-task COMMAND tst_lifecycle task)
     add_test(NAME lifecycle-emptytrash COMMAND tst_lifecycle emptytrash)
@@ -301,13 +301,16 @@ if(FILEMANAGER_BUILD_TESTS)
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> activation-folders)
     add_test(NAME lifecycle-daemon
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> daemon)
+    add_test(NAME lifecycle-daemon-chooser
+             COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:tst_lifecycle> daemon-chooser)
     add_test(NAME lifecycle-remote-task
              COMMAND ${DBUS_RUN_SESSION_EXECUTABLE}
                      --config-file=${CMAKE_CURRENT_SOURCE_DIR}/tests/dbus-session.conf
                      -- $<TARGET_FILE:tst_lifecycle> remote-task)
     set_tests_properties(lifecycle lifecycle-task lifecycle-emptytrash
                          lifecycle-activation-list lifecycle-activation-grid
-                         lifecycle-activation-folders lifecycle-daemon lifecycle-remote-task PROPERTIES
+                         lifecycle-activation-folders lifecycle-daemon lifecycle-daemon-chooser
+                         lifecycle-remote-task PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
 
     find_program(DBUS_DAEMON_EXECUTABLE dbus-daemon REQUIRED)

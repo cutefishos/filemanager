@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QUrl>
 
+class FileChooserService;
 class OperationTask;
 class PreviewService;
 class QQmlEngine;
@@ -63,6 +64,7 @@ private:
     QQmlEngine *m_engine = nullptr;
     WindowManager *m_windows = nullptr;
     PreviewService *m_preview = nullptr;
+    FileChooserService *m_chooser = nullptr;
     QTimer *m_heapTrimTimer = nullptr;
     bool m_servicesRegistered = false;
     bool m_dbusActivated = false;

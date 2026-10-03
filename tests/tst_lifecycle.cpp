@@ -13,7 +13,10 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <QDBusPendingReply>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QSettings>
@@ -279,6 +282,80 @@ int daemonOutlivesWindows(Application &app, const QString &folder)
     const int result = app.run();
     return survived ? result : 5;
 }
+
+QList<QWindow *> chooserWindows()
+{
+    QList<QWindow *> windows;
+    for (auto *window : QGuiApplication::topLevelWindows()) {
+        if (window->isVisible() && window->objectName() == QLatin1String("fileChooserWindow"))
+            windows.append(window);
+    }
+    return windows;
+}
+
+// The daemon serves the portal's dialogs: one window per Open, answered with
+// the helper's JSON when Close or the user ends it, and it outlives them.
+int daemonServesChooser(Application &app, const QString &folder)
+{
+    // Over the bus like the portal: a call to a service of this very connection
+    // would be delivered in-process.
+    auto portal = QDBusConnection::connectToBus(QDBusConnection::SessionBus, "portal");
+    const auto call = [&portal](const QString &method, const QVariantList &arguments) {
+        auto message = QDBusMessage::createMethodCall("com.cutefish.FileChooser",
+                                                      "/com/cutefish/FileChooser",
+                                                      "com.cutefish.FileChooser", method);
+        message.setArguments(arguments);
+        message.setAutoStartService(false);
+        return QDBusPendingReply<QString>(portal.asyncCall(message, 60000));
+    };
+    const QString request = QString::fromUtf8(
+            QJsonDocument(QJsonObject {{"mode", "OpenFile"}, {"current_folder", folder}})
+                    .toJson(QJsonDocument::Compact));
+    const auto cancelled = [](const QDBusPendingReply<QString> &reply) {
+        return reply.isFinished() && !reply.isError()
+                && QJsonDocument::fromJson(reply.value().toUtf8()).object()
+                == QJsonObject {{"response", 1}};
+    };
+
+    QDBusPendingReply<QString> first;
+    QDBusPendingReply<QString> second;
+    QDBusPendingReply<QString> duplicate;
+    bool served = false;
+    QTimer::singleShot(500, &app, [&] {
+        first = call("Open", {"/request/a", request});
+        second = call("Open", {"/request/b", request});
+        duplicate = call("Open", {"/request/a", request});
+        QTimer::singleShot(1000, &app, [&] {
+            if (chooserWindows().size() != 2 || !duplicate.isError()
+                || app.windowManager()->windowCount() != 2) {
+                app.exit(2);
+                return;
+            }
+            call("Close", {"/request/a"});
+            QTimer::singleShot(500, &app, [&] {
+                const auto windows = chooserWindows();
+                if (!cancelled(first) || second.isFinished() || windows.size() != 1) {
+                    app.exit(3);
+                    return;
+                }
+                windows.first()->close();
+                QTimer::singleShot(500, &app, [&] {
+                    if (!cancelled(second) || app.windowManager()->windowCount() != 0
+                        || !QDBusConnection::sessionBus().interface()->isServiceRegistered(
+                                "com.cutefish.FileChooser")) {
+                        app.exit(6);
+                        return;
+                    }
+                    served = true;
+                    app.exit(0);
+                });
+            });
+        });
+    });
+    QTimer::singleShot(10000 * kTimeScale, &app, [&] { app.exit(4); });
+    const int result = app.run();
+    return served ? result : 5;
+}
 }
 
 int main(int argc, char **argv)
@@ -298,7 +375,7 @@ int main(int argc, char **argv)
         QSettings settings(Preferences::file("filemanager"), QSettings::IniFormat);
         settings.setValue("viewMethod", scenario == "activation-list" ? 0 : 1);
         argv[1] = activationArgument.data();
-    } else if (scenario == "daemon") {
+    } else if (scenario == "daemon" || scenario == "daemon-chooser") {
         argv[1] = daemonArgument.data();
     }
     Application app(argc, argv);
@@ -311,6 +388,8 @@ int main(int argc, char **argv)
         return activatedRequest(app, folder.path(), scenario == "activation-folders");
     if (scenario == "daemon")
         return daemonOutlivesWindows(app, folder.path());
+    if (scenario == "daemon-chooser")
+        return daemonServesChooser(app, folder.path());
     if (scenario == "task")
         return runningTaskKeepsApplication(app, folder.path());
     if (scenario == "remote-task")

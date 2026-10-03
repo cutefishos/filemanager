@@ -5,7 +5,6 @@ import QtQuick 2.12
 import QtCore
 
 Settings {
-    // Pinned: the file chooser, a process of its own, shares the file manager's preferences.
     location: StandardPaths.writableLocation(StandardPaths.GenericConfigLocation)
               + "/cutefish/filemanager.conf"
 

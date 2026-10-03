@@ -53,6 +53,17 @@ FileChooser::FileChooser(const QJsonObject &request, QObject *parent)
     navigate(folder);
 }
 
+bool FileChooser::isValidRequest(const QJsonObject &request)
+{
+    const QString mode = request.value("mode").toString();
+    return mode == "OpenFile" || mode == "SaveFile" || mode == "SaveFiles";
+}
+
+const QJsonObject &FileChooser::request() const
+{
+    return m_request;
+}
+
 QString FileChooser::title() const
 {
     return m_request.value("title").toString(saveMode() ? tr("Save File") : tr("Open"));

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "application.h"
+#include "chooser/chooserservice.h"
 #include "cutefishapplication.h"
 #include "dbusinterface.h"
 #include "filemanageradaptor.h"
@@ -34,6 +35,7 @@ namespace {
 const QString serviceName = QStringLiteral("com.cutefish.FileManager");
 const QString freedesktopServiceName = QStringLiteral("org.freedesktop.FileManager1");
 const QString previewServiceName = QStringLiteral("com.cutefish.FilePreview");
+const QString chooserServiceName = QStringLiteral("com.cutefish.FileChooser");
 const QUrl browserWindow(QStringLiteral("qrc:/qml/main.qml"));
 const QUrl previewWindow(QStringLiteral("qrc:/qml/PreviewWindow.qml"));
 }
@@ -55,6 +57,7 @@ Application::~Application()
     CutefishFM::setFolderOpener(nullptr);
 
     // Windows and components go before the engine they were created in.
+    delete m_chooser;
     delete m_preview;
     delete m_windows;
     delete m_engine;
@@ -107,6 +110,17 @@ bool Application::registerServices()
                            QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
     }
     bus.registerService(previewServiceName);
+
+    // Only the session daemon serves the portal's dialogs; the session restarts
+    // it when it dies.
+    if (m_daemon) {
+        if (!m_chooser) {
+            m_chooser = new FileChooserService(ensureWindows());
+            bus.registerObject(QStringLiteral("/com/cutefish/FileChooser"), m_chooser,
+                               QDBusConnection::ExportAllSlots);
+        }
+        bus.registerService(chooserServiceName);
+    }
     m_servicesRegistered = true;
     return true;
 }
@@ -174,6 +188,7 @@ void Application::unregisterServices()
     auto bus = QDBusConnection::sessionBus();
     bus.unregisterService(serviceName);
     bus.unregisterService(previewServiceName);
+    bus.unregisterService(chooserServiceName);
     if (bus.interface())
         bus.interface()->unregisterService(freedesktopServiceName);
     m_servicesRegistered = false;

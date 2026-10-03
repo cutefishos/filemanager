@@ -29,6 +29,11 @@ class FileChooser : public QSortFilterProxyModel
 
 public:
     explicit FileChooser(const QJsonObject &request, QObject *parent = nullptr);
+
+    /** Whether @p request names a mode this dialog serves. */
+    static bool isValidRequest(const QJsonObject &request);
+
+    const QJsonObject &request() const;
     QString title() const;
     QString acceptLabel() const;
     bool saveMode() const;
