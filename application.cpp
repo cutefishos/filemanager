@@ -23,8 +23,11 @@
 #include <QPixmapCache>
 #include <QQmlEngine>
 #include <QQuickWindow>
+#include <QThreadPool>
 #include <QTimer>
 #include <QTranslator>
+
+#include <malloc.h>
 
 namespace {
 const QString serviceName = QStringLiteral("com.cutefish.FileManager");
@@ -335,8 +338,13 @@ void Application::scheduleIdleCheck()
 
 void Application::quitIfIdle()
 {
-    if (m_daemon || !isIdle())
+    if (!isIdle())
         return;
+
+    if (m_daemon) {
+        scheduleHeapTrim();
+        return;
+    }
 
     // Give up the names first, then look again: a request that was already on
     // its way is delivered in between and keeps the process alive.
@@ -348,4 +356,25 @@ void Application::quitIfIdle()
         }
         registerServices();
     });
+}
+
+void Application::scheduleHeapTrim()
+{
+#ifdef __GLIBC__
+    if (!m_heapTrimTimer) {
+        m_heapTrimTimer = new QTimer(this);
+        m_heapTrimTimer->setSingleShot(true);
+        // Past the deferred deletes of the windows that just went.
+        m_heapTrimTimer->setInterval(10000);
+        connect(m_heapTrimTimer, &QTimer::timeout, this, [this] {
+            if (!isIdle())
+                return;
+
+            // glibc's arenas keep what closed windows freed, over 100 MB after a few.
+            // The trim locks one arena after another, so not on the GUI thread.
+            QThreadPool::globalInstance()->start([] { malloc_trim(0); });
+        });
+    }
+    m_heapTrimTimer->start();
+#endif
 }

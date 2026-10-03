@@ -10,6 +10,7 @@
 class OperationTask;
 class QQmlEngine;
 class QQuickWindow;
+class QTimer;
 class WindowManager;
 
 class Application : public QApplication
@@ -54,9 +55,13 @@ private:
     void quitIfIdle();
     bool isIdle() const;
 
+    /** Returns the daemon's freed heap to the system once it has stayed idle. */
+    void scheduleHeapTrim();
+
 private:
     QQmlEngine *m_engine = nullptr;
     WindowManager *m_windows = nullptr;
+    QTimer *m_heapTrimTimer = nullptr;
     bool m_servicesRegistered = false;
     bool m_dbusActivated = false;
     bool m_daemon = false;
