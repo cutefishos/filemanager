@@ -787,9 +787,10 @@ void FolderModel::updateActions()
                 urls.append(item.url());
             }
 
-            if (item.isDir())
+            if (item.isDir()) {
                 hasDir = true;
-            hasStandardFolder |= Cutefish::IO::isStandardFolder(item.url());
+                hasStandardFolder |= Cutefish::IO::isStandardFolder(item.url());
+            }
         }
     }
 

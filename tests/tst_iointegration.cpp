@@ -41,6 +41,9 @@ private slots:
     {
         QVERIFY(m_data.isValid());
         qputenv("XDG_DATA_HOME", m_data.path().toUtf8());
+        // Standard folders are read once per process: before a test points
+        // XDG_CONFIG_HOME away from the user-dirs.dirs dropEligibility compares with.
+        Cutefish::IO::standardFolderIconName(QDir::homePath());
         CutefishFM::registerQmlTypes();
         CutefishFM::initResources();
     }
