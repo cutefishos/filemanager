@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include "helper/previewcontroller.h"
@@ -11,11 +14,11 @@ class PreviewService : public QObject, protected QDBusContext
     Q_CLASSINFO("D-Bus Interface", "com.cutefish.FilePreview")
 
 public:
-    explicit PreviewService(QObject *parent = nullptr);
+    // The window is created in @p engine on the first Toggle and deleted with
+    // this service, which therefore has to go before the engine.
+    explicit PreviewService(QQmlEngine *engine, QObject *parent = nullptr);
     ~PreviewService() override;
-    PreviewController *controller() { return &m_controller; }
-    QQuickWindow *window() { return m_window; }
-    bool ready() const { return m_window; }
+    bool visible() const { return m_controller.visible(); }
 
 public slots:
     void Toggle(const QString &source, const QString &snapshot);
@@ -31,12 +34,13 @@ signals:
     void RestoreFocus(const QString &source);
 
 private:
+    bool ensureWindow();
     void apply(const QString &source, const QString &snapshot, bool activate);
     QString caller() const;
     bool owns(const QString &source) const;
 
     PreviewController m_controller;
-    QQmlEngine m_engine;
+    QPointer<QQmlEngine> m_engine;
     QPointer<QQuickWindow> m_window;
     QString m_source;
     QString m_owner;

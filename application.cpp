@@ -9,6 +9,7 @@
 #include "helper/iojobui.h"
 #include "operations/fileoperationsclient.h"
 #include "operations/operationtask.h"
+#include "preview/previewservice.h"
 #include "windowmanager.h"
 
 #include <QCommandLineParser>
@@ -32,7 +33,9 @@
 namespace {
 const QString serviceName = QStringLiteral("com.cutefish.FileManager");
 const QString freedesktopServiceName = QStringLiteral("org.freedesktop.FileManager1");
+const QString previewServiceName = QStringLiteral("com.cutefish.FilePreview");
 const QUrl browserWindow(QStringLiteral("qrc:/qml/main.qml"));
+const QUrl previewWindow(QStringLiteral("qrc:/qml/PreviewWindow.qml"));
 }
 
 Application::Application(int &argc, char **argv)
@@ -52,6 +55,7 @@ Application::~Application()
     CutefishFM::setFolderOpener(nullptr);
 
     // Windows and components go before the engine they were created in.
+    delete m_preview;
     delete m_windows;
     delete m_engine;
 }
@@ -92,14 +96,26 @@ bool Application::registerServices()
     if (bus.interface())
         bus.interface()->registerService(freedesktopServiceName,
                                          QDBusConnectionInterface::QueueService);
+
+    // Only the instance that serves the file manager hosts the preview, so a
+    // launch that forwards its request never builds an engine.
+    if (!m_preview) {
+        m_preview = new PreviewService(ensureWindows()->engine());
+        connect(m_preview, &PreviewService::VisibilityChanged, this,
+                &Application::scheduleIdleCheck);
+        bus.registerObject(QStringLiteral("/com/cutefish/FilePreview"), m_preview,
+                           QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
+    }
+    bus.registerService(previewServiceName);
     m_servicesRegistered = true;
     return true;
 }
 
 void Application::startDaemon()
 {
-    // Compiled now, so the first window opens as fast as later ones.
+    // Compiled now, so the first window and preview open as fast as later ones.
     ensureWindows()->preload(browserWindow);
+    m_windows->preload(previewWindow);
 
     // An instance started before the session's daemon gives the names up once
     // it is idle, and the daemon takes them over then.
@@ -157,6 +173,7 @@ void Application::unregisterServices()
 
     auto bus = QDBusConnection::sessionBus();
     bus.unregisterService(serviceName);
+    bus.unregisterService(previewServiceName);
     if (bus.interface())
         bus.interface()->unregisterService(freedesktopServiceName);
     m_servicesRegistered = false;
@@ -321,6 +338,7 @@ bool Application::parseCommandLineArgs()
 bool Application::isIdle() const
 {
     return (!m_windows || m_windows->windowCount() == 0)
+            && (!m_preview || !m_preview->visible())
             && FileOperationsClient::instance()->activeTaskCount() == 0;
 }
 

@@ -133,16 +133,14 @@ add_executable(cutefish-filemanager
   main.cpp
   application.cpp
   dbusinterface.cpp
+  preview/previewservice.cpp
 
   ${DBUS_SOURCES}
 )
 
 target_link_libraries(cutefish-filemanager PRIVATE cutefish-filemanager-core)
 
-add_executable(cutefish-filepreview preview/main.cpp preview/previewservice.cpp)
-target_link_libraries(cutefish-filepreview PRIVATE cutefish-filemanager-core)
 configure_file(preview/com.cutefish.FilePreview.service.in com.cutefish.FilePreview.service @ONLY)
-install(TARGETS cutefish-filepreview RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FilePreview.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 
@@ -288,7 +286,8 @@ if(FILEMANAGER_BUILD_TESTS)
         TEST_QML_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/windowmanager")
     add_test(NAME windowmanager COMMAND tst_windowmanager)
     set_tests_properties(windowmanager PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
-    add_executable(tst_lifecycle tests/tst_lifecycle.cpp application.cpp dbusinterface.cpp ${DBUS_SOURCES})
+    add_executable(tst_lifecycle tests/tst_lifecycle.cpp application.cpp dbusinterface.cpp
+                  preview/previewservice.cpp ${DBUS_SOURCES})
     target_link_libraries(tst_lifecycle PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME lifecycle COMMAND tst_lifecycle windows)
     add_test(NAME lifecycle-task COMMAND tst_lifecycle task)

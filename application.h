@@ -8,6 +8,7 @@
 #include <QUrl>
 
 class OperationTask;
+class PreviewService;
 class QQmlEngine;
 class QQuickWindow;
 class QTimer;
@@ -61,6 +62,7 @@ private:
 private:
     QQmlEngine *m_engine = nullptr;
     WindowManager *m_windows = nullptr;
+    PreviewService *m_preview = nullptr;
     QTimer *m_heapTrimTimer = nullptr;
     bool m_servicesRegistered = false;
     bool m_dbusActivated = false;

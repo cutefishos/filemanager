@@ -1,6 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "previewservice.h"
 #include "mimetype/mimeappmanager.h"
-#include "qmltypes.h"
 
 #include <QCoreApplication>
 #include <QDBusConnection>
@@ -11,22 +13,10 @@
 #include <QQmlComponent>
 #include <QScreen>
 
-PreviewService::PreviewService(QObject *parent)
+PreviewService::PreviewService(QQmlEngine *engine, QObject *parent)
     : QObject(parent)
+    , m_engine(engine)
 {
-    // Scans the desktop entries in the background, for the "Open with" button.
-    MimeAppManager::self();
-    CutefishFM::registerImageProviders(&m_engine);
-    QQmlComponent component(&m_engine, QUrl("qrc:/qml/PreviewWindow.qml"));
-    m_window = qobject_cast<QQuickWindow *>(component.createWithInitialProperties(
-            {{"controller", QVariant::fromValue(&m_controller)}}));
-    if (!m_window) {
-        qWarning() << component.errors();
-        return;
-    }
-    m_window->QObject::setParent(&m_engine);
-    m_window->setFlags(m_window->flags() | Qt::WindowStaysOnTopHint);
-    m_controller.setWindow(m_window);
     connect(&m_controller, &PreviewController::closed, this, [this] {
         emit VisibilityChanged(false);
         emit RestoreFocus(m_source);
@@ -53,6 +43,26 @@ PreviewService::~PreviewService()
     delete m_window;
 }
 
+bool PreviewService::ensureWindow()
+{
+    if (m_window)
+        return true;
+    if (!m_engine)
+        return false;
+
+    // Scans the desktop entries in the background, for the "Open with" button.
+    MimeAppManager::self();
+    QQmlComponent component(m_engine, QUrl("qrc:/qml/PreviewWindow.qml"));
+    m_window = qobject_cast<QQuickWindow *>(component.createWithInitialProperties(
+            {{"controller", QVariant::fromValue(&m_controller)}}));
+    if (!m_window) {
+        qWarning() << component.errors();
+        return false;
+    }
+    m_controller.setWindow(m_window);
+    return true;
+}
+
 QString PreviewService::caller() const
 {
     return calledFromDBus() ? message().service() : QString();
@@ -67,7 +77,7 @@ void PreviewService::apply(const QString &source, const QString &snapshot, bool 
 {
     const auto data = QJsonDocument::fromJson(snapshot.toUtf8()).toVariant().toMap();
     const auto items = data.value("items").toList();
-    if (items.isEmpty() || !m_window)
+    if (items.isEmpty() || !ensureWindow())
         return;
     const bool changedSource = m_source != source || m_owner != caller();
     m_source = source;
@@ -86,7 +96,9 @@ void PreviewService::Toggle(const QString &source, const QString &snapshot)
         m_owner = caller();
         m_controller.close();
     } else {
-        if (m_window && m_window->screen()) {
+        if (!ensureWindow())
+            return;
+        if (m_window->screen()) {
             const QRect available = m_window->screen()->availableGeometry();
             m_window->setPosition(available.center() - QPoint(m_window->width() / 2, m_window->height() / 2));
         }

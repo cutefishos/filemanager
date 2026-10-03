@@ -8,6 +8,7 @@ import Cutefish.Application
 FishUI.Window {
     id: preview
     WindowHints.skipTaskbar: true
+    WindowHints.alwaysOnTop: true
     // Fitting the window to each image keeps it where it is on screen.
     WindowHints.resizeAroundCenter: true
     objectName: "quickLookWindow"
