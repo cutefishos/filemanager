@@ -27,6 +27,9 @@
 ShortCut::ShortCut(QObject *parent)
     : QObject(parent)
 {
+    // The convention is read asynchronously; starting it on the first key press
+    // leaves that press under the Ctrl convention.
+    ShortcutConvention::self();
 }
 
 void ShortCut::install(QObject *target)
