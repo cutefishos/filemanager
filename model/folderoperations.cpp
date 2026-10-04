@@ -1,4 +1,5 @@
 #include "foldermodel.h"
+#include "cutefishnotification.h"
 #include "helper/dialogs.h"
 #include "helper/filelauncher.h"
 #include "helper/fm.h"
@@ -53,28 +54,6 @@ static bool isZipFile(const Cutefish::IO::FileItem &item)
     return mimeType == QLatin1String("application/zip")
             || mimeType == QLatin1String("application/x-zip-compressed")
             || item.url().path().endsWith(QLatin1String(".zip"), Qt::CaseInsensitive);
-}
-
-static bool sendSystemNotification(const QString &summary, const QString &body)
-{
-    QDBusInterface interface(QStringLiteral("org.freedesktop.Notifications"),
-                             QStringLiteral("/org/freedesktop/Notifications"),
-                             QStringLiteral("org.freedesktop.Notifications"),
-                             QDBusConnection::sessionBus());
-    if (!interface.isValid())
-        return false;
-
-    QList<QVariant> arguments;
-    arguments << QStringLiteral("cutefish-filemanager");
-    arguments << static_cast<uint>(0);
-    arguments << QStringLiteral("system-file-manager");
-    arguments << summary;
-    arguments << body;
-    arguments << QStringList();
-    arguments << QVariantMap();
-    arguments << 5000;
-    interface.asyncCallWithArgumentList(QStringLiteral("Notify"), arguments);
-    return true;
 }
 
 QAction *FolderModel::action(const QString &name) const
@@ -460,10 +439,18 @@ void FolderModel::archiveJobFinished(bool success, bool canceled, const QString 
     } else {
         message = tr("%1 failed: %2").arg(operation, error);
         // Errors are important enough to leave the operation surface and go
-        // to the system notification center. Fall back to the existing
-        // in-window toast if no notification service is available.
-        if (!sendSystemNotification(tr("Files"), message))
+        // to the system notification center, titled with the Files entry.
+        auto *systemNotification = new Cutefish::Notification(this);
+        systemNotification->setDesktopEntry(QStringLiteral("cutefish-filemanager"));
+        systemNotification->setIconName(QStringLiteral("system-file-manager"));
+        systemNotification->setBody(message);
+        systemNotification->setTimeout(5000);
+        systemNotification->setAutoDelete(true);
+        // Without a notification service the in-window toast shows it instead.
+        connect(systemNotification, &Cutefish::Notification::failed, this, [this, message] {
             emit notification(message);
+        });
+        systemNotification->show();
     }
 }
 
