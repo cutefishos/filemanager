@@ -10,11 +10,6 @@ Settings {
 
     property int viewMethod: 1          // controls display mode: list or grid
 
-    // Port to C++
-    // property bool showHiddenFiles: false
-
-    // Name, Date, Size
-    property int orderBy: 0
     property int sortMode: 0
     property bool sortDesc: false
 

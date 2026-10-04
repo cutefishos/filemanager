@@ -14,7 +14,6 @@
 #include <QClipboard>
 #include <QDir>
 #include <QMimeDatabase>
-#include <QPixmapCache>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -25,19 +24,15 @@ FolderModel::FolderModel(QObject *parent)
     , m_sortDesc(false)
     , m_sortDirsFirst(true)
     , m_showHiddenFiles(false)
-    , m_filterMode(NoFilter)
-    , m_filterPatternMatchAll(true)
     , m_complete(false)
     , m_isDesktop(false)
     , m_suffixVisible(true)
-    , m_selectedItemSize("")
     , m_dragInProgress(false)
     , m_dragWaitingForImages(false)
     , m_dragImageTimeout(new QTimer(this))
     , m_dropTargetPositionsCleanup(new QTimer(this))
     , m_viewAdapter(nullptr)
     , m_mimeAppManager(MimeAppManager::self())
-    , m_sizeJob(nullptr)
     , m_archiveJob(nullptr)
     , m_archiveBusy(false)
     , m_archiveCancelling(false)
@@ -111,7 +106,6 @@ FolderModel::FolderModel(QObject *parent)
     connect(m_dirLister, &Cutefish::IO::DirectoryLister::canceled, this, [this] {
         cancelPreparation();
         setStatus(Canceled);
-        emit listingCanceled();
     });
 
     connect(this, &FolderContentsModel::preparationStarted, this, [this] {
@@ -164,10 +158,6 @@ void FolderModel::rebuildContents()
     query.sortColumn = m_sortMode;
     query.descending = m_sortDesc;
     query.directoriesFirst = m_sortDirsFirst;
-    query.filterMode = m_filterMode;
-    query.matchAllNames = m_filterPatternMatchAll;
-    query.mimeTypes = m_mimeSet;
-    query.patterns = m_regExps;
 
     setQuery(query);
 }
@@ -504,67 +494,6 @@ void FolderModel::setSortDirsFirst(bool enable)
     emit sortDirsFirstChanged();
 }
 
-int FolderModel::filterMode() const
-{
-    return m_filterMode;
-}
-
-void FolderModel::setFilterMode(int filterMode)
-{
-    if (m_filterMode != (FilterMode)filterMode) {
-        m_filterMode = (FilterMode)filterMode;
-
-        rebuildContents();
-
-        emit filterModeChanged();
-    }
-}
-
-QStringList FolderModel::filterMimeTypes() const
-{
-    return m_mimeSet.values();
-}
-
-void FolderModel::setFilterMimeTypes(const QStringList &mimeList)
-{
-    const QSet<QString> set(mimeList.constBegin(), mimeList.constEnd());
-
-    if (m_mimeSet != set) {
-        m_mimeSet = set;
-
-        rebuildContents();
-
-        emit filterMimeTypesChanged();
-    }
-}
-
-QString FolderModel::filterPattern() const
-{
-    return m_filterPattern;
-}
-
-void FolderModel::setFilterPattern(const QString &pattern)
-{
-    if (m_filterPattern == pattern) {
-        return;
-    }
-
-    m_filterPattern = pattern;
-    m_filterPatternMatchAll = (pattern == QLatin1String("*"));
-
-    const QStringList patterns = pattern.split(QLatin1Char(' '));
-    m_regExps.clear();
-    m_regExps.reserve(patterns.count());
-
-    for (const QString &glob : patterns) {
-        m_regExps.append(QRegularExpression::fromWildcard(glob, Qt::CaseInsensitive));
-    }
-
-    rebuildContents();
-
-    emit filterPatternChanged();
-}
-
 QObject *FolderModel::viewAdapter() const
 {
     return m_viewAdapter;
@@ -720,11 +649,6 @@ void FolderModel::keyboardSearch(const QString &text)
     }
 }
 
-void FolderModel::clearPixmapCache()
-{
-    QPixmapCache::clear();
-}
-
 bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 {
     return ThumbnailCache::self()->canThumbnail(mimeType);
@@ -749,11 +673,6 @@ void FolderModel::setShowHiddenFiles(bool showHiddenFiles)
 
         emit showHiddenFilesChanged();
     }
-}
-
-QString FolderModel::selectedItemSize() const
-{
-    return m_selectedItemSize;
 }
 
 bool FolderModel::archiveBusy() const

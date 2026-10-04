@@ -1,5 +1,4 @@
 #include "foldermodel.h"
-#include "cio/cfilesizejob.h"
 #include "operations/fileoperationsclient.h"
 
 #include <QDir>
@@ -131,19 +130,11 @@ void FolderModel::clearSelection()
 void FolderModel::pinSelection()
 {
     m_pinnedSelection = m_selectionModel->selection();
-    m_selectionPinned = true;
-    m_pinnedSelectionChanged = false;
 }
 
 void FolderModel::unpinSelection()
 {
     m_pinnedSelection = QItemSelection();
-    m_selectionPinned = false;
-
-    if (m_pinnedSelectionChanged) {
-        m_pinnedSelectionChanged = false;
-        updateSelectedItemsSize();
-    }
 }
 
 // The cell a new folder or file should land on, in view coordinates plus the
@@ -444,65 +435,6 @@ void FolderModel::selectionChanged(const QItemSelection &selected, const QItemSe
     updateActions();
 
     emit selectionCountChanged();
-
-    // A rubber band changes the selection on every pointer move; sizing it
-    // waits until the band closes.
-    if (m_selectionPinned) {
-        m_pinnedSelectionChanged = true;
-        return;
-    }
-
-    updateSelectedItemsSize();
-}
-
-void FolderModel::updateSelectedItemsSize()
-{
-    // The desktop does not need to calculate the selected file size.
-    if (m_isDesktop)
-        return;
-
-    // Start calculating file size.
-    if (m_sizeJob == nullptr) {
-        m_sizeJob = new CFileSizeJob(this);
-
-        connect(m_sizeJob, &CFileSizeJob::sizeChanged, this, [this] {
-            m_selectedItemSize = Cutefish::IO::convertSize(m_sizeJob->totalSize());
-            if (!m_selectionModel->hasSelection())
-                m_selectedItemSize = "";
-            emit selectedItemSizeChanged();
-        });
-
-        connect(m_sizeJob, &CFileSizeJob::result, this, [this] {
-            m_selectedItemSize = Cutefish::IO::convertSize(m_sizeJob->totalSize());
-            if (!m_selectionModel->hasSelection())
-                m_selectedItemSize = "";
-            emit selectedItemSizeChanged();
-        });
-    }
-
-    m_sizeJob->stop();
-
-    if (!m_selectionModel->hasSelection()) {
-        m_sizeJob->blockSignals(true);
-        m_selectedItemSize = "";
-        emit selectedItemSizeChanged();
-    } else {
-        bool fileExists = false;
-
-        for (const QModelIndex &index : m_selectionModel->selectedIndexes()) {
-            if (itemForIndex(index).isFile()) {
-                fileExists = true;
-                break;
-            }
-        }
-
-        // Reion: The size label at the bottom needs to be updated
-        // only if you select the include file.
-        if (fileExists) {
-            m_sizeJob->blockSignals(false);
-            m_sizeJob->start(selectedUrls());
-        }
-    }
 }
 
 void FolderModel::dragSelectedInternal(int x, int y)

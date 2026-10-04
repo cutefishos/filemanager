@@ -22,7 +22,6 @@
 
 #include "draganddrop/declarativedragdropevent.h"
 #include "draganddrop/declarativedroparea.h"
-#include "draganddrop/declarativemimedata.h"
 
 #include <QQmlEngine>
 #include <QMimeData>
@@ -76,8 +75,6 @@ void registerQmlTypes()
     qmlRegisterAnonymousType<QMimeData>(dragandrop_uri, 1);
 
     qmlRegisterType<DeclarativeDropArea>(dragandrop_uri, 1, 0, "DropArea");
-    qmlRegisterUncreatableType<DeclarativeMimeData>(dragandrop_uri, 1, 0, "MimeData",
-        QStringLiteral("MimeData cannot be created from QML."));
     qmlRegisterUncreatableType<DeclarativeDragDropEvent>(dragandrop_uri, 2, 0, "DragDropEvent",
         QStringLiteral("DragDropEvent cannot be created from QML."));
 }

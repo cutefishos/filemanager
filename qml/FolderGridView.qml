@@ -96,11 +96,6 @@ GridView {
     property variant cachedRectangleSelection: null
     property string cachedRectangleSelectionMode: ""
 
-    property bool scrollLeft: false
-    property bool scrollRight: false
-    property bool scrollUp: false
-    property bool scrollDown: false
-
     signal keyPress(var event)
     signal contextMenuRequested()
 

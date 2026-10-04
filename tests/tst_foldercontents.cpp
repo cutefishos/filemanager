@@ -282,7 +282,7 @@ private slots:
         QCOMPARE(folder.fileItem(1).name(), QStringLiteral("a.txt"));
     }
 
-    void latestFilterAndRefreshWin()
+    void latestQueryAndRefreshWin()
     {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
@@ -297,24 +297,25 @@ private slots:
                 QAbstractItemModelTester::FailureReportingMode::QtTest);
         QSignalSpy finished(&folder, &FolderModel::listingCompleted);
 
-        folder.setFilterMimeTypes({QStringLiteral("all/all")});
-        folder.setFilterMode(FolderModel::FilterShowMatches);
-        folder.setFilterPattern("*.log");
-        folder.setFilterPattern("*.txt");
+        folder.setSortDesc(true);
+        folder.setSortDesc(false);
+        folder.setSortDesc(true);
         QTRY_COMPARE(finished.count(), 1);
-        QCOMPARE(folder.rowCount(), 1);
-        QCOMPARE(folder.fileItem(0).name(), QStringLiteral("a.txt"));
+        QCOMPARE(folder.rowCount(), 2);
+        QCOMPARE(folder.fileItem(0).name(), QStringLiteral("b.log"));
+        QCOMPARE(folder.fileItem(1).name(), QStringLiteral("a.txt"));
 
-        QPersistentModelIndex retained(folder.index(0, 0));
+        QPersistentModelIndex retained(folder.index(1, 0));
         QVERIFY(writeFile(directory.filePath("a.txt"), "updated contents"));
         QVERIFY(writeFile(directory.filePath("new.txt")));
         folder.refresh();
-        QTRY_COMPARE(folder.rowCount(), 2);
+        QTRY_COMPARE(folder.rowCount(), 3);
         QTRY_COMPARE(folder.itemForIndex(retained).size(), quint64(16));
         QVERIFY(retained.isValid());
 
-        folder.setFilterPattern("missing*");
-        QTRY_COMPARE(folder.rowCount(), 0);
+        QVERIFY(QFile::remove(directory.filePath("a.txt")));
+        folder.refresh();
+        QTRY_COMPARE(folder.rowCount(), 2);
         QVERIFY(!retained.isValid());
     }
 
@@ -351,7 +352,7 @@ private slots:
         QCOMPARE(folder.fileItem(0).name(), QStringLiteral("destination.txt"));
     }
 
-    void filterDuringRemovalDiscardsObsoletePublication()
+    void queryChangeDuringRemovalDiscardsObsoletePublication()
     {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
@@ -382,13 +383,15 @@ private slots:
 
             changedQuery = true;
             QTimer::singleShot(0, &folder, [&] {
-                folder.setFilterPattern("0000.txt");
+                folder.setSortDesc(true);
             });
         });
 
-        folder.setFilterMimeTypes({QStringLiteral("all/all")});
-        folder.setFilterPattern("missing*");
-        folder.setFilterMode(FolderModel::FilterShowMatches);
+        for (int i = 1; i < 800; ++i) {
+            const auto name = QStringLiteral("%1.txt").arg(i, 4, 10, QLatin1Char('0'));
+            QVERIFY(QFile::remove(directory.filePath(name)));
+        }
+        folder.refresh();
         QTRY_VERIFY(changedQuery);
         QTRY_VERIFY(!completed.isEmpty());
         QTRY_COMPARE(folder.status(), FolderModel::Ready);
@@ -446,7 +449,7 @@ private slots:
         QVERIFY(!errors.isEmpty());
     }
 
-    void filterChangesWaitForRunningScan()
+    void queryChangesWaitForRunningScan()
     {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
@@ -465,9 +468,7 @@ private slots:
         folder.setUrl(directory.path());
         QTRY_VERIFY(entered->load());
         QSignalSpy completed(&folder, &FolderModel::listingCompleted);
-        folder.setFilterMode(FolderModel::FilterShowMatches);
-        folder.setFilterMimeTypes({QStringLiteral("all/all")});
-        folder.setFilterPattern("*.txt");
+        folder.setSortDesc(true);
         QCoreApplication::processEvents();
         QCOMPARE(completed.count(), 0);
         QCOMPARE(folder.status(), FolderModel::Listing);

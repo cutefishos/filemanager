@@ -54,7 +54,6 @@ add_library(cutefish-filemanager-core STATIC
 
   draganddrop/declarativedroparea.cpp
   draganddrop/declarativedragdropevent.cpp
-  draganddrop/declarativemimedata.cpp
 
   model/foldermodel.cpp
   model/foldercontentsmodel.cpp

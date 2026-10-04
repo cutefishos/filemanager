@@ -162,13 +162,12 @@ private slots:
         const auto target = QUrl::fromLocalFile(directory.filePath(names[1]));
         folder.setSelected(folder.indexForUrl(target).row());
         QSignalSpy completed(&folder, &FolderModel::listingCompleted);
-        folder.setFilterMimeTypes({QStringLiteral("all/all")});
-        folder.setFilterPattern("a-*");
-        folder.setFilterMode(FolderModel::FilterHideMatches);
+        QVERIFY(QFile::remove(directory.filePath(names[0])));
+        folder.refresh();
         folder.setSortDesc(true);
         QTRY_VERIFY(!completed.isEmpty());
         QTRY_COMPARE(folder.status(), FolderModel::Ready);
-        QCOMPARE(folder.rowCount(), 2);
+        QTRY_COMPARE(folder.rowCount(), 2);
         QCOMPARE(folder.selectedUrls(), QList<QUrl>({target}));
 
         const auto renamed = QString::fromUtf8("renamed 文件 #%.txt");
@@ -208,11 +207,9 @@ private slots:
         folder.deleteSelected();
         QCOMPARE(results.size(), 2);
 
-        for (int i : {0, 2}) {
-            QFile file(directory.filePath(names[i]));
-            QVERIFY(file.open(QIODevice::ReadOnly));
-            QCOMPARE(file.readAll(), names[i].toUtf8());
-        }
+        QFile kept(directory.filePath(names[2]));
+        QVERIFY(kept.open(QIODevice::ReadOnly));
+        QCOMPARE(kept.readAll(), names[2].toUtf8());
 
         FolderModel trash;
         trash.setUrl("trash:/");
@@ -229,7 +226,7 @@ private slots:
         QCOMPARE(restored.readAll(), names[1].toUtf8());
     }
 
-    void filteredSelectionCannotDeleteReplacementRow()
+    void removedSelectionCannotDeleteReplacementRow()
     {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
@@ -244,9 +241,9 @@ private slots:
         folder.setUrl(directory.path());
         QTRY_COMPARE(folder.status(), FolderModel::Ready);
         folder.setSelected(0);
-        folder.setFilterMimeTypes({QStringLiteral("all/all")});
-        folder.setFilterPattern("b.txt");
-        folder.setFilterMode(FolderModel::FilterShowMatches);
+        QCOMPARE(folder.fileItem(0).name(), QStringLiteral("a.txt"));
+        QVERIFY(QFile::remove(directory.filePath("a.txt")));
+        folder.refresh();
         QTRY_COMPARE(folder.rowCount(), 1);
         QCOMPARE(folder.fileItem(0).name(), QStringLiteral("b.txt"));
         QCOMPARE(folder.selectionCount(), 0);
@@ -263,11 +260,9 @@ private slots:
         folder.rename(0, QStringLiteral("null") + QChar(0) + QStringLiteral("name"));
         QCOMPARE(added.count(), 0);
 
-        for (const auto &name : {QStringLiteral("a.txt"), QStringLiteral("b.txt")}) {
-            QFile file(directory.filePath(name));
-            QVERIFY(file.open(QIODevice::ReadOnly));
-            QCOMPARE(file.readAll(), QByteArray("keep"));
-        }
+        QFile file(directory.filePath("b.txt"));
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        QCOMPARE(file.readAll(), QByteArray("keep"));
     }
 
     void acceptedDropAction_data()

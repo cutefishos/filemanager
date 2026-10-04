@@ -14,7 +14,6 @@ DeclarativeDragDropEvent::DeclarativeDragDropEvent(QDropEvent *e, DeclarativeDro
     , m_y(e->pos().y())
     , m_buttons(e->mouseButtons())
     , m_modifiers(e->keyboardModifiers())
-    , m_data(nullptr)
     , m_event(e)
 {
 }
@@ -25,7 +24,6 @@ DeclarativeDragDropEvent::DeclarativeDragDropEvent(QDragLeaveEvent *e, Declarati
     , m_y(0)
     , m_buttons(Qt::NoButton)
     , m_modifiers(Qt::NoModifier)
-    , m_data(nullptr)
     , m_event(nullptr)
 {
     Q_UNUSED(e);
@@ -34,8 +32,6 @@ DeclarativeDragDropEvent::DeclarativeDragDropEvent(QDragLeaveEvent *e, Declarati
 void DeclarativeDragDropEvent::accept(int action)
 {
     m_event->setDropAction(static_cast<Qt::DropAction>(action));
-    //     qDebug() << "-----> Accepting event: " << this << m_data.urls() << m_data.text() << m_data.html() << ( m_data.hasColor() ? m_data.color().name() : "
-    //     no color");
     m_event->accept();
 }
 
@@ -44,12 +40,8 @@ void DeclarativeDragDropEvent::ignore()
     m_event->ignore();
 }
 
-DeclarativeMimeData *DeclarativeDragDropEvent::mimeData()
+QMimeData *DeclarativeDragDropEvent::mimeData() const
 {
-    if (!m_data && m_event) {
-        //         TODO This should be using MimeDataWrapper eventually, although this is an API break,
-        //         so will need to be done carefully.
-        m_data.reset(new DeclarativeMimeData(m_event->mimeData()));
-    }
-    return m_data.data();
+    // QML only reads it, but Q_PROPERTY cannot carry a const pointer.
+    return m_event ? const_cast<QMimeData *>(m_event->mimeData()) : nullptr;
 }

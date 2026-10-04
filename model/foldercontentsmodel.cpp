@@ -4,6 +4,7 @@
 #include <QCollator>
 #include <QFutureWatcher>
 #include <QLocale>
+#include <QSet>
 #include <QtConcurrent/QtConcurrentRun>
 #include <algorithm>
 #include <cerrno>
@@ -14,28 +15,6 @@ using Cutefish::IO::FileItemList;
 
 namespace {
 constexpr int BatchSize = 256;
-
-bool matches(const FileItem &item, const FolderQuery &query)
-{
-    if (query.filterMode == 0)
-        return true;
-
-    bool nameMatches = query.matchAllNames;
-
-    for (const auto &pattern : query.patterns) {
-        if (pattern.match(item.name()).hasMatch()) {
-            nameMatches = true;
-            break;
-        }
-    }
-
-    const bool mimeMatches = query.mimeTypes.contains(QStringLiteral("all/all"))
-            || query.mimeTypes.contains(QStringLiteral("all/allfiles"))
-            || query.mimeTypes.contains(item.mimetype());
-    const bool matched = nameMatches && mimeMatches;
-
-    return query.filterMode == 1 ? matched : !matched;
-}
 
 bool sameMetadata(const FileItem &left, const FileItem &right)
 {
@@ -296,14 +275,7 @@ void FolderContentsModel::prepare()
         };
 
         try {
-            result->ordered.reserve(incoming.size());
-
-            for (const auto &item : incoming) {
-                checkpoint();
-
-                if (matches(item, query))
-                    result->ordered.append(item);
-            }
+            result->ordered = incoming;
 
             if (query.sortColumn >= 0) {
                 QCollator collator(locale);

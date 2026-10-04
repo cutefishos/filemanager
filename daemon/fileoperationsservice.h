@@ -27,10 +27,6 @@ public slots:
                                   const QString &outputPath);
     QDBusObjectPath Undo();
     QDBusObjectPath Redo();
-    // Takes over a task whose submitter left the bus, so its conflicts are
-    // answered by the caller instead of cancelling it. False when the task is
-    // unknown or still has its owner.
-    bool Adopt(const QDBusObjectPath &path);
     bool CanUndo() const;
     bool CanRedo() const;
     QStringList TaskPaths() const;

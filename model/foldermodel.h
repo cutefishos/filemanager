@@ -10,7 +10,6 @@
 #include <QPointer>
 #include <QQmlParserStatus>
 #include <QQuickItem>
-#include <QRegularExpression>
 #include <QSet>
 
 #include <QAction>
@@ -19,7 +18,6 @@
 class QMimeData;
 
 class QDrag;
-class CFileSizeJob;
 class OperationTask;
 class FolderSizeCache;
 class QWindow;
@@ -40,13 +38,7 @@ class FolderModel : public FolderContentsModel, public QQmlParserStatus
     Q_PROPERTY(QObject *viewAdapter READ viewAdapter WRITE setViewAdapter NOTIFY viewAdapterChanged)
     Q_PROPERTY(bool isDesktop READ isDesktop WRITE setIsDesktop NOTIFY isDesktopChanged)
     Q_PROPERTY(int selectionCount READ selectionCount NOTIFY selectionCountChanged)
-    Q_PROPERTY(int filterMode READ filterMode WRITE setFilterMode NOTIFY filterModeChanged)
-    Q_PROPERTY(QString filterPattern READ filterPattern WRITE setFilterPattern NOTIFY
-                       filterPatternChanged)
     Q_PROPERTY(int count READ count NOTIFY countChanged)
-    Q_PROPERTY(QStringList filterMimeTypes READ filterMimeTypes WRITE setFilterMimeTypes NOTIFY
-                       filterMimeTypesChanged)
-    Q_PROPERTY(QString selectedItemSize READ selectedItemSize NOTIFY selectedItemSizeChanged)
     Q_PROPERTY(bool showHiddenFiles READ showHiddenFiles WRITE setShowHiddenFiles NOTIFY
                        showHiddenFilesChanged)
     Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged)
@@ -75,12 +67,6 @@ public:
         IsDesktopFileRole,
         ModifiedDateRole,
         FileTypeRole
-    };
-
-    enum FilterMode {
-        NoFilter = 0,
-        FilterShowMatches,
-        FilterHideMatches,
     };
 
     enum Status {
@@ -136,15 +122,6 @@ public:
 
     bool sortDirsFirst() const;
     void setSortDirsFirst(bool enable);
-
-    int filterMode() const;
-    void setFilterMode(int filterMode);
-
-    QStringList filterMimeTypes() const;
-    void setFilterMimeTypes(const QStringList &mimeList);
-
-    QString filterPattern() const;
-    void setFilterPattern(const QString &pattern);
 
     QObject *viewAdapter() const;
     void setViewAdapter(QObject *adapter);
@@ -244,14 +221,10 @@ public:
     Q_INVOKABLE QVariantMap tabState() const;
     Q_INVOKABLE void restoreHistory(const QStringList &back, const QStringList &forward);
 
-    Q_INVOKABLE void clearPixmapCache();
-
     void restoreFromTrash();
 
     bool isDesktop() const;
     void setIsDesktop(bool isDesktop);
-
-    QString selectedItemSize() const;
 
     bool archiveBusy() const;
     bool archiveCancelling() const;
@@ -266,13 +239,11 @@ signals:
     void urlChanged();
     void openTabRequested(const QString &url);
     void listingCompleted() const;
-    void listingCanceled() const;
     void resolvedUrlChanged();
     void statusChanged();
     void sortModeChanged();
     void sortDescChanged();
     void sortDirsFirstChanged();
-    void filterModeChanged();
     void requestRename();
     void draggingChanged();
     void canGoBackChanged();
@@ -281,9 +252,6 @@ signals:
     void isDesktopChanged();
     void selectionCountChanged();
     void countChanged();
-    void filterPatternChanged();
-    void filterMimeTypesChanged();
-    void selectedItemSizeChanged();
     void showHiddenFilesChanged();
     void scrollToItem(int index);
 
@@ -316,7 +284,6 @@ private:
     void rebuildContents();
     void createActions();
     void updateActions();
-    void updateSelectedItemsSize();
     void addDragImage(QDrag *drag, int x, int y);
     void startPendingDrag();
     bool canDropUrls(const QList<QUrl> &urls, int row, Qt::DropAction action) const;
@@ -331,8 +298,6 @@ private:
 
     QItemSelectionModel *m_selectionModel;
     QItemSelection m_pinnedSelection;
-    bool m_selectionPinned = false;
-    bool m_pinnedSelectionChanged = false;
     QString m_url;
     QUrl m_newDocumentUrl;
     QPoint m_newDocumentPos {-1, -1};
@@ -347,17 +312,9 @@ private:
 
     bool m_showHiddenFiles;
 
-    FilterMode m_filterMode;
-    QString m_filterPattern;
-    bool m_filterPatternMatchAll;
-    QSet<QString> m_mimeSet;
-    QList<QRegularExpression> m_regExps;
-
     bool m_complete;
     bool m_isDesktop;
     bool m_suffixVisible;
-
-    QString m_selectedItemSize;
 
     QHash<QString, QAction *> m_actions;
     QHash<int, DragImage *> m_dragImages;
@@ -379,8 +336,6 @@ private:
     // Save path history
     PathHistory m_pathHistory;
     MimeAppManager *m_mimeAppManager;
-
-    CFileSizeJob *m_sizeJob;
 
     QPointer<OperationTask> m_archiveJob;
     bool m_archiveBusy;

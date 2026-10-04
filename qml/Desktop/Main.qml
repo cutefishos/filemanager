@@ -147,10 +147,6 @@ Item {
     FM.ItemViewAdapter {
         id: viewAdapter
         adapterView: _folderView
-        adapterModel: _folderView.positioner
-        adapterIconSize: _folderView.iconSize
-        adapterVisibleArea: Qt.rect(_folderView.contentX, _folderView.contentY,
-                                    _folderView.contentWidth, _folderView.contentHeight)
     }
 
     FolderContextMenu {

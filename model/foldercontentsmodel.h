@@ -2,8 +2,6 @@
 
 #include <directorymodel.h>
 #include <QAbstractListModel>
-#include <QRegularExpression>
-#include <QSet>
 #include <QTimer>
 #include <atomic>
 #include <memory>
@@ -13,10 +11,6 @@ struct FolderQuery
     int sortColumn = Cutefish::IO::DirectoryModel::Name;
     bool descending = false;
     bool directoriesFirst = true;
-    int filterMode = 0;
-    bool matchAllNames = true;
-    QSet<QString> mimeTypes;
-    QList<QRegularExpression> patterns;
 };
 
 class FolderContentsModel : public QAbstractListModel

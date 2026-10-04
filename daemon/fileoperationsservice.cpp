@@ -87,24 +87,6 @@ void FileOperationsService::ownerLost(const QString &owner)
     }
 }
 
-bool FileOperationsService::Adopt(const QDBusObjectPath &path)
-{
-    const QString adopter = caller();
-    if (adopter.isEmpty())
-        return false;
-    const auto tasks = findChildren<DaemonTask *>(QString(), Qt::FindDirectChildrenOnly);
-    for (auto *task : tasks) {
-        if (task->objectPath() != path.path())
-            continue;
-        if (!task->owner().isEmpty() || task->isFinished())
-            return false;
-        task->setOwner(adopter);
-        watchOwner(adopter);
-        return true;
-    }
-    return false;
-}
-
 // A client reads the snapshot of a task right after it is announced and runs the
 // operation itself if that fails, so a finished task stays on the bus until its
 // outcome was read, and a while after that for late readers. One nobody reads -
