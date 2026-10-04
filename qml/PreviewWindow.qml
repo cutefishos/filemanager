@@ -21,12 +21,16 @@ FishUI.Window {
     // Set from Space until the first item is on screen.
     property bool opening: false
     readonly property bool imageMode: shown.kind === "image"
+    readonly property bool textMode: shown.kind === "text"
+    // A window with the name and "Open with" in its header, above the contents.
+    readonly property bool pageMode: imageMode || textMode
     readonly property bool multiple: controller.items.length > 1
     readonly property var application: shown.application || null
     readonly property int sideMargin: 16
     readonly property int headerHeight: 40
     readonly property int minimumImageWidth: 400
     readonly property int minimumImageHeight: 200
+    readonly property int textColumns: 100
     // The requesting window's: it opens on the same output, and until this
     // window has been on screen its own ratio is the rounded-up integer scale.
     readonly property real displayRatio: controller.sourceRatio > 0 ? controller.sourceRatio
@@ -70,6 +74,10 @@ FishUI.Window {
 
     // An image at its own pixels, shrunk to fit a large share of the screen.
     function sizeFor(file) {
+        if (file.kind === "text")
+            return Qt.size(Math.min(Math.floor(Screen.width * 0.75),
+                                    Math.ceil(fixedMetrics.advanceWidth("0") * textColumns) + 40),
+                           Math.floor(Screen.height * 0.8))
         if (file.kind !== "image")
             return Qt.size(480, multiple ? 168 : 144)
         if (!isImage(file))
@@ -134,6 +142,11 @@ FishUI.Window {
             content.forceActiveFocus()
             requestActivate()
         }
+    }
+
+    FontMetrics {
+        id: fixedMetrics
+        font: controller.fixedFont
     }
 
     // Its source, size, orientation and fill mode match PreviewImageView's
@@ -225,7 +238,7 @@ FishUI.Window {
         FishUI.Label {
             id: titleLabel
             objectName: "previewTitle"
-            visible: preview.imageMode
+            visible: preview.pageMode
             anchors.left: navigation.visible ? navigation.right : parent.left
             anchors.leftMargin: navigation.visible ? 8 : 12
             anchors.right: actions.left
@@ -248,7 +261,7 @@ FishUI.Window {
             Item {
                 id: openButton
                 // A single compact preview has no header row to hold it.
-                visible: !!preview.application && (preview.imageMode || preview.multiple)
+                visible: !!preview.application && (preview.pageMode || preview.multiple)
                 Layout.alignment: Qt.AlignVCenter
                 implicitWidth: Math.min(220, openLabel.implicitWidth + 24)
                 implicitHeight: 26
@@ -296,13 +309,14 @@ FishUI.Window {
         Loader {
             id: renderer
             anchors.fill: parent
-            anchors.topMargin: (preview.multiple || preview.imageMode ? preview.headerHeight : 0)
-                               + (preview.imageMode ? 0 : preview.multiple ? 8 : 16)
-            anchors.leftMargin: preview.imageMode ? 0 : preview.sideMargin
-            anchors.rightMargin: preview.imageMode ? 0 : preview.multiple ? preview.sideMargin : 40
-            anchors.bottomMargin: (preview.imageMode ? 0 : 16)
+            anchors.topMargin: (preview.multiple || preview.pageMode ? preview.headerHeight : 0)
+                               + (preview.pageMode ? 0 : preview.multiple ? 8 : 16)
+            anchors.leftMargin: preview.pageMode ? 0 : preview.sideMargin
+            anchors.rightMargin: preview.pageMode ? 0 : preview.multiple ? preview.sideMargin : 40
+            anchors.bottomMargin: (preview.pageMode ? 0 : 16)
                                   + (message.visible ? message.height + 20 : 0)
-            sourceComponent: preview.imageMode ? imagePreview : fileInfo
+            sourceComponent: preview.imageMode ? imagePreview
+                             : preview.textMode ? textPreview : fileInfo
         }
 
         FishUI.Label {
@@ -351,6 +365,16 @@ FishUI.Window {
                 text: qsTr("This image could not be displayed.")
                 color: FishUI.Theme.textColor
             }
+        }
+    }
+
+    Component {
+        id: textPreview
+
+        PreviewTextView {
+            file: preview.shown
+            font: controller.fixedFont
+            onCopyRequested: function(text) { controller.copyText(text) }
         }
     }
 

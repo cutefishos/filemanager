@@ -3,17 +3,87 @@
 #include "mimetype/mimeappmanager.h"
 #include "model/positioner.h"
 
+#include <QClipboard>
 #include <QCoreApplication>
 #include <QDirIterator>
+#include <QFile>
 #include <QFileInfo>
+#include <QFontDatabase>
 #include <QFutureWatcher>
+#include <QGuiApplication>
 #include <QImageReader>
 #include <QKeyEvent>
 #include <QMimeDatabase>
+#include <QStringDecoder>
 #include <QtConcurrentRun>
 #include <filesystem.h>
+#include <optional>
 
 namespace {
+// The text item lays out everything it holds when it is shown.
+constexpr qint64 textLimit = 256 * 1024;
+// TextEdit builds a paragraph's nodes whole, and at either end of the text it
+// rebuilds the paragraphs in view on every scroll step.
+constexpr qsizetype paragraphLimit = 4000;
+
+// Breaks longer paragraphs, after a space near the limit where there is one,
+// and returns the positions of the line breaks it inserted.
+QVariantList splitLongParagraphs(QString *text)
+{
+    QVariantList breaks;
+    QString result;
+    result.reserve(text->size() + text->size() / paragraphLimit);
+    qsizetype start = 0;
+    while (start < text->size()) {
+        qsizetype end = text->indexOf(QLatin1Char('\n'), start);
+        end = end < 0 ? text->size() : end + 1;
+        while (end - start > paragraphLimit) {
+            qsizetype cut = start + paragraphLimit;
+            const qsizetype space = text->lastIndexOf(QLatin1Char(' '), cut - 1);
+            if (space >= cut - 200 && space > start)
+                cut = space + 1;
+            else if (text->at(cut).isLowSurrogate())
+                --cut;
+            result.append(QStringView(*text).sliced(start, cut - start));
+            breaks.append(result.size());
+            result.append(QLatin1Char('\n'));
+            start = cut;
+        }
+        result.append(QStringView(*text).sliced(start, end - start));
+        start = end;
+    }
+    if (!breaks.isEmpty())
+        *text = result;
+    return breaks;
+}
+
+// The start of a text file, or nothing for content that is not text.
+std::optional<QString> readText(const QString &path, bool *truncated)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+    QByteArray data = file.read(textLimit + 1);
+    *truncated = data.size() > textLimit;
+    if (*truncated) {
+        data.truncate(textLimit);
+        // Ends on a whole line where there is one.
+        const qsizetype end = data.lastIndexOf('\n');
+        if (end > 0)
+            data.truncate(end + 1);
+    }
+    const auto encoding = QStringConverter::encodingForData(data);
+    // Only UTF-16 and UTF-32 text holds NUL bytes.
+    if (!encoding && data.contains('\0'))
+        return {};
+    // A character cut at the limit stays in the decoder's state.
+    QStringDecoder decoder(encoding.value_or(QStringConverter::Utf8));
+    QString text = decoder.decode(data);
+    text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
+    text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
+    return text;
+}
+
 QVariantMap describeFile(const QUrl &url)
 {
     QVariantMap result{{"url", url}, {"name", url.fileName()}, {"kind", "generic"}};
@@ -63,6 +133,15 @@ QVariantMap describeFile(const QUrl &url)
                                     || mime.inherits("image/svg+xml-compressed"));
             result.insert("animated", reader.supportsAnimation() && reader.imageCount() != 1);
         }
+    } else if (mime.inherits("text/plain")) {
+        bool truncated = false;
+        auto text = readText(info.filePath(), &truncated);
+        if (text) {
+            result.insert("kind", "text");
+            result.insert("breaks", splitLongParagraphs(&*text));
+            result.insert("text", *text);
+            result.insert("truncated", truncated);
+        }
     }
 
     return result;
@@ -105,6 +184,16 @@ QVariantMap PreviewController::file() const
 bool PreviewController::loading() const
 {
     return m_loading;
+}
+
+QFont PreviewController::fixedFont() const
+{
+    return QFontDatabase::systemFont(QFontDatabase::FixedFont);
+}
+
+void PreviewController::copyText(const QString &text)
+{
+    QGuiApplication::clipboard()->setText(text);
 }
 
 void PreviewController::attach(FolderModel *model, QQuickItem *view, QQuickWindow *window)

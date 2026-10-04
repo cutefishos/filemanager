@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QFont>
 #include <QObject>
 #include <QPointer>
 #include <QQuickItem>
@@ -21,6 +22,8 @@ class PreviewController : public QObject
     // The requesting window's device pixel ratio. A preview window that has
     // not been shown yet only knows the output's rounded-up integer scale.
     Q_PROPERTY(qreal sourceRatio READ sourceRatio NOTIFY changed)
+    // Read again for each file, so a changed system font applies to the next one.
+    Q_PROPERTY(QFont fixedFont READ fixedFont NOTIFY fileChanged)
 
 public:
     explicit PreviewController(QObject *parent = nullptr);
@@ -31,6 +34,7 @@ public:
     QVariantMap file() const;
     bool loading() const;
     qreal sourceRatio() const { return m_sourceRatio; }
+    QFont fixedFont() const;
 
     Q_INVOKABLE void attach(FolderModel *model, QQuickItem *view, QQuickWindow *window);
     Q_INVOKABLE void toggle();
@@ -41,6 +45,7 @@ public:
     Q_INVOKABLE void select(int index);
     Q_INVOKABLE void step(int delta);
     Q_INVOKABLE void openCurrent();
+    Q_INVOKABLE void copyText(const QString &text);
 
 signals:
     void changed();
