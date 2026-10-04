@@ -76,14 +76,6 @@ Item {
                  && dirModel.count === 0
     }
 
-    BusyIndicator {
-        anchors.centerIn: parent
-        width: 32
-        height: 32
-        running: dirModel.status === FM.FolderModel.Listing && dirModel.count === 0
-        visible: running
-    }
-
     FM.FolderModel {
         id: dirModel
         viewAdapter: viewAdapter
