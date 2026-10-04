@@ -220,6 +220,8 @@ Item {
     FM.PreviewClient {
         id: previewClient
         objectName: "previewClient"
+        // Clicking the empty desktop leaves the preview on its item.
+        followsEmptySelection: false
     }
 
     FM.ShortCut {

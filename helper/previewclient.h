@@ -11,6 +11,9 @@ class PreviewClient : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool previewVisible READ previewVisible NOTIFY previewVisibleChanged)
+    // Whether an empty selection previews the folder. Without it, the preview
+    // keeps its item until something here is selected.
+    Q_PROPERTY(bool followsEmptySelection MEMBER m_followsEmptySelection)
 
 public:
     explicit PreviewClient(QObject *parent = nullptr);
@@ -33,6 +36,7 @@ protected:
 
 private:
     QString snapshot() const;
+    bool follows() const;
     void send(const QString &method, const QVariantList &arguments, bool autoStart = false);
     void bindWindow();
 
@@ -43,4 +47,5 @@ private:
     QTimer m_updateTimer;
     bool m_previewVisible = false;
     bool m_navigating = false;
+    bool m_followsEmptySelection = true;
 };

@@ -31,7 +31,12 @@ PreviewClient::PreviewClient(QObject *parent)
     });
     m_updateTimer.setSingleShot(true);
     connect(&m_updateTimer, &QTimer::timeout, this, [this] {
-        if (m_model && m_view)
+        if (!follows())
+            return;
+        // The active window takes the preview over, as it may not hold it yet.
+        if (m_window && m_window->isActive() && m_view->isVisible())
+            send("Activate", {m_id, snapshot()});
+        else
             send("Update", {m_id, snapshot()});
     });
 }
@@ -50,6 +55,11 @@ QString PreviewClient::snapshot() const
 {
     return QString::fromUtf8(QJsonDocument::fromVariant(PreviewController::snapshot(m_model, m_view))
                             .toJson(QJsonDocument::Compact));
+}
+
+bool PreviewClient::follows() const
+{
+    return m_model && m_view && (m_followsEmptySelection || m_model->selectionCount() > 0);
 }
 
 void PreviewClient::send(const QString &method, const QVariantList &arguments, bool autoStart)
@@ -112,7 +122,7 @@ void PreviewClient::bindWindow()
 
 void PreviewClient::activate()
 {
-    if (m_model && m_view && m_view->isVisible() && m_window && m_window->isActive())
+    if (follows() && m_view->isVisible() && m_window && m_window->isActive())
         send("Activate", {m_id, snapshot()});
 }
 
