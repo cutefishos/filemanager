@@ -25,7 +25,9 @@ FishUI.Window {
     background.color: Qt.rgba(FishUI.Theme.backgroundColor.r,
                               FishUI.Theme.backgroundColor.g,
                               FishUI.Theme.backgroundColor.b,
-                              !blurAvailable ? 1 : active ? 0.8 : 0.9)
+                              !blurAvailable ? 1
+                              : FishUI.Theme.darkMode ? (active ? 0.85 : 0.92)
+                                                      : (active ? 0.8 : 0.9))
     header.height: headerInset
     contentTopMargin: 0
 

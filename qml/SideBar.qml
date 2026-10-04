@@ -58,10 +58,10 @@ Item {
         cancelButtonVisible: false
     }
 
+    // The window colour sits one step below the folder view's secondBackgroundColor in both modes.
     Rectangle {
         anchors.fill: parent
-        color: FishUI.Theme.darkMode ? Qt.lighter(FishUI.Theme.backgroundColor, 1.5)
-                                     : Qt.darker(FishUI.Theme.backgroundColor, 1.05)
+        color: FishUI.Theme.backgroundColor
         opacity: 0.7
     }
 
