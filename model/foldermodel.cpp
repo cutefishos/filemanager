@@ -92,6 +92,9 @@ FolderModel::FolderModel(QObject *parent)
 
     connect(m_dirLister, &Cutefish::IO::DirectoryLister::error, this, &FolderModel::notification);
     connect(m_dirLister, &Cutefish::IO::DirectoryLister::directoryChanged, this, [this] {
+        if (m_dirLister->isSearching())
+            return;
+
         const auto directory = m_dirLister->url();
         const auto path = directory.toString(QUrl::PreferLocalFile);
 
@@ -108,10 +111,21 @@ FolderModel::FolderModel(QObject *parent)
     connect(m_dirLister, &Cutefish::IO::DirectoryLister::started, this, [this] {
         cancelPreparation();
         setStatus(Listing);
+        setSearchBusy(m_dirLister->isSearching());
     });
     connect(m_dirLister, &Cutefish::IO::DirectoryLister::canceled, this, [this] {
         cancelPreparation();
         setStatus(Canceled);
+        setSearchBusy(false);
+    });
+    connect(m_dirLister, &Cutefish::IO::DirectoryLister::completed, this, [this] {
+        setSearchBusy(false);
+    });
+    // Results are not watched; whatever a file operation changed shows once it ends.
+    connect(FileOperationsClient::instance(), &FileOperationsClient::activeTaskCountChanged,
+            this, [this](int count) {
+        if (count == 0 && m_dirLister->isSearching())
+            m_dirLister->emitChanges();
     });
 
     connect(this, &FolderContentsModel::preparationStarted, this, [this] {
@@ -394,6 +408,19 @@ void FolderModel::setUrl(const QString &url)
     const bool isTrash = url.startsWith("trash:/");
     const QUrl resolvedNewUrl = isTrash ? QUrl(QStringLiteral("trash:/")) : resolve(url);
 
+    // Opening a folder ends a search; opening the searched one lists it again.
+    const bool wasSearching = !m_searchText.isEmpty();
+    if (wasSearching) {
+        m_searchText.clear();
+        emit searchTextChanged();
+
+        if (resolvedNewUrl == resolvedUrl()) {
+            updateSearch();
+            emit canGoBackChanged();
+            return;
+        }
+    }
+
     // Refresh this directory.
     if (resolvedNewUrl == resolvedUrl()) {
         refresh();
@@ -406,7 +433,9 @@ void FolderModel::setUrl(const QString &url)
     m_pendingSelection.clear();
 
     if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl) {
-        emit aboutToLeaveFolder();
+        // The results' scroll offset is not the folder's.
+        if (!wasSearching)
+            emit aboutToLeaveFolder();
         m_pathHistory.append(resolvedNewUrl);
     }
 
@@ -524,7 +553,7 @@ bool FolderModel::dragging() const
 
 bool FolderModel::canGoBack() const
 {
-    return m_pathHistory.canGoBack();
+    return !m_searchText.isEmpty() || m_pathHistory.canGoBack();
 }
 
 bool FolderModel::canGoForward() const
@@ -594,6 +623,11 @@ void FolderModel::up()
 
 void FolderModel::goBack()
 {
+    if (!m_searchText.isEmpty()) {
+        setSearchText(QString());
+        return;
+    }
+
     if (!m_pathHistory.canGoBack())
         return;
 
@@ -606,7 +640,8 @@ void FolderModel::goForward()
     if (!m_pathHistory.canGoForward())
         return;
 
-    emit aboutToLeaveFolder();
+    if (m_searchText.isEmpty())
+        emit aboutToLeaveFolder();
     setUrl(m_pathHistory.posteriorPath().toString());
 }
 
@@ -680,6 +715,78 @@ void FolderModel::keyboardSearch(const QString &text)
 bool FolderModel::isSupportThumbnails(const QString &mimeType) const
 {
     return ThumbnailCache::self()->canThumbnail(mimeType);
+}
+
+QString FolderModel::searchText() const
+{
+    return m_searchText;
+}
+
+void FolderModel::setSearchText(const QString &text)
+{
+    if (m_searchText == text)
+        return;
+
+    m_searchText = text;
+    updateSearch();
+    emit searchTextChanged();
+    emit canGoBackChanged();
+}
+
+bool FolderModel::searchHome() const
+{
+    return m_searchHome;
+}
+
+void FolderModel::setSearchHome(bool home)
+{
+    if (m_searchHome == home)
+        return;
+
+    m_searchHome = home;
+    updateSearch();
+    emit searchHomeChanged();
+}
+
+bool FolderModel::searchBusy() const
+{
+    return m_searchBusy;
+}
+
+QString FolderModel::selectedPath() const
+{
+    const auto indexes = m_selectionModel->selectedIndexes();
+
+    return indexes.size() == 1 ? itemForIndex(indexes.first()).localPath() : QString();
+}
+
+void FolderModel::setSearchBusy(bool busy)
+{
+    if (m_searchBusy != busy) {
+        m_searchBusy = busy;
+        emit searchBusyChanged();
+    }
+}
+
+void FolderModel::updateSearch()
+{
+    m_pendingSelection.clear();
+    clearDragImages();
+    m_dragIndexes.clear();
+
+    const QUrl root = m_searchHome ? QUrl::fromLocalFile(QDir::homePath()) : resolvedUrl();
+    m_dirLister->search(root, m_searchText);
+}
+
+void FolderModel::showInFolder()
+{
+    const auto indexes = m_selectionModel->selectedIndexes();
+    if (indexes.size() != 1)
+        return;
+
+    const QUrl url = itemForIndex(indexes.first()).url();
+    setUrl(Cutefish::IO::upUrl(url).toString(QUrl::PreferLocalFile));
+    selectUrlsWhenListed({url.toString(QUrl::PreferLocalFile)});
 }
 
 bool FolderModel::showHiddenFiles() const

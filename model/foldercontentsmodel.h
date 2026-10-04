@@ -57,6 +57,7 @@ signals:
 
 private:
     struct Prepared;
+    bool isSettled() const;
     void prepare();
     void publishBatch();
     void clear();

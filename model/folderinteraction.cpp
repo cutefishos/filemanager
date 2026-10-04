@@ -284,6 +284,8 @@ QUrl FolderModel::dropTargetUrl(int row) const
         item = itemForIndex(index(row, 0));
         if (!item.isDir())
             return {};
+    } else if (m_dirLister->isSearching()) {
+        return {};
     } else {
         item = rootItem();
     }

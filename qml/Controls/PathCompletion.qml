@@ -9,6 +9,8 @@ T.Popup {
     id: control
 
     required property Item editor
+    // Off while the editor holds something other than a path.
+    property bool active: true
     readonly property alias count: _model.count
 
     // Up to here the list follows the editor; from here the keys decide.
@@ -32,7 +34,7 @@ T.Popup {
                     - _list.spacing + topPadding + bottomPadding
 
     closePolicy: T.Popup.NoAutoClose
-    visible: control.editor.visible && control.editor.activeFocus
+    visible: control.active && control.editor.visible && control.editor.activeFocus
              && control.edited && !control.dismissed && _model.count > 0
 
     background: FishUI.RoundedRectangle {
@@ -97,7 +99,7 @@ T.Popup {
     PathCompletionModel {
         id: _model
         // Empty while not editing, so the next edit lists the folders afresh.
-        text: control.edited ? control.editor.text : ""
+        text: control.edited && control.active ? control.editor.text : ""
     }
 
     Connections {
@@ -147,7 +149,7 @@ T.Popup {
 
     // Whether the key was for the list; the editor handles it otherwise.
     function handleKey(event) {
-        if (!control.edited || _model.count === 0)
+        if (!control.active || !control.edited || _model.count === 0)
             return false
 
         switch (event.key) {

@@ -52,6 +52,13 @@ class FolderModel : public FolderContentsModel, public QQmlParserStatus
     Q_PROPERTY(QString archiveCurrentFile READ archiveCurrentFile NOTIFY archiveCurrentFileChanged)
     Q_PROPERTY(bool canGoBack READ canGoBack NOTIFY canGoBackChanged)
     Q_PROPERTY(bool canGoForward READ canGoForward NOTIFY canGoForwardChanged)
+    // Shows the files whose names contain the text, under home or the folder, in
+    // place of the folder's own; empty shows the folder.
+    Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
+    Q_PROPERTY(bool searchHome READ searchHome WRITE setSearchHome NOTIFY searchHomeChanged)
+    Q_PROPERTY(bool searchBusy READ searchBusy NOTIFY searchBusyChanged)
+    // The local path of the one selected item; empty for none or several.
+    Q_PROPERTY(QString selectedPath READ selectedPath NOTIFY selectionCountChanged)
 
 public:
     enum DataRole {
@@ -243,6 +250,18 @@ public:
     bool showHiddenFiles() const;
     void setShowHiddenFiles(bool showHiddenFiles);
 
+    QString searchText() const;
+    void setSearchText(const QString &text);
+
+    bool searchHome() const;
+    void setSearchHome(bool home);
+
+    bool searchBusy() const;
+    QString selectedPath() const;
+
+    // Leaves a search for the selected result's folder, with the result selected.
+    Q_INVOKABLE void showInFolder();
+
 signals:
     // The current folder is about to be left; the view saves its position.
     void aboutToLeaveFolder();
@@ -263,6 +282,9 @@ signals:
     void selectionCountChanged();
     void countChanged();
     void showHiddenFilesChanged();
+    void searchTextChanged();
+    void searchHomeChanged();
+    void searchBusyChanged();
     void scrollToItem(int index);
 
     void notification(const QString &message);
@@ -291,6 +313,8 @@ private slots:
 
 private:
     void rememberNewDocumentPosition(const QString &name);
+    void updateSearch();
+    void setSearchBusy(bool busy);
     void rebuildContents();
     void createActions();
     void updateActions();
@@ -321,6 +345,10 @@ private:
     bool m_sortDirsFirst;
 
     bool m_showHiddenFiles;
+
+    QString m_searchText;
+    bool m_searchHome = true;
+    bool m_searchBusy = false;
 
     bool m_complete;
     bool m_isDesktop;

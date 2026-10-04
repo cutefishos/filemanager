@@ -20,6 +20,7 @@
 #include <QQmlEngine>
 #include <QQuickWindow>
 #include <QTextStream>
+#include <algorithm>
 #include <sys/stat.h>
 
 static QString uniquePath(const QString &directory, const QString &name, bool directoryPath)
@@ -661,6 +662,9 @@ void FolderModel::createActions()
     QAction *openWith = new QAction(tr("Open with"), this);
     connect(openWith, &QAction::triggered, this, &FolderModel::showOpenWithDialog);
 
+    QAction *showInFolder = new QAction(tr("Show in Enclosing Folder"), this);
+    connect(showInFolder, &QAction::triggered, this, &FolderModel::showInFolder);
+
     QAction *compress = new QAction(tr("Compress"), this);
     connect(compress, &QAction::triggered, this, &FolderModel::compressSelected);
 
@@ -730,6 +734,7 @@ void FolderModel::createActions()
 
     m_actions.insert(QStringLiteral("open"), open);
     m_actions.insert(QStringLiteral("openWith"), openWith);
+    m_actions.insert(QStringLiteral("showInFolder"), showInFolder);
     m_actions.insert(QStringLiteral("compress"), compress);
     m_actions.insert(QStringLiteral("cut"), cut);
     m_actions.insert(QStringLiteral("copy"), copy);
@@ -781,7 +786,14 @@ void FolderModel::updateActions()
         }
     }
 
-    const bool canMoveItems = !items.isEmpty() && rootItem().isWritable();
+    const bool searching = m_dirLister->isSearching();
+    // Search results come from many folders; each must let its file go.
+    const bool canMoveItems = !items.isEmpty()
+            && (searching ? std::all_of(items.cbegin(), items.cend(), [](const auto &item) {
+                                return QFileInfo(QFileInfo(item.localPath()).absolutePath())
+                                        .isWritable();
+                            })
+                          : rootItem().isWritable());
     // Check if we're showing the menu for the trash link
     if (items.count() == 1 && items.at(0).isDesktopFile()) {
         isTrashLink = items.at(0).targetUrl() == QUrl(QStringLiteral("trash:/"));
@@ -800,7 +812,7 @@ void FolderModel::updateActions()
 
     if (QAction *cutAction = m_actions.value(QStringLiteral("cut"))) {
         cutAction->setVisible(!isTrash);
-        cutAction->setEnabled(!indexes.isEmpty() && rootItem().isWritable() && !hasStandardFolder);
+        cutAction->setEnabled(!indexes.isEmpty() && canMoveItems && !hasStandardFolder);
     }
 
     if (QAction *restoreAction = m_actions.value(QStringLiteral("restore"))) {
@@ -811,9 +823,14 @@ void FolderModel::updateActions()
         openWith->setVisible(items.count() == 1 && !isTrash && !hasDir);
     }
 
+    if (QAction *showInFolder = m_actions.value(QStringLiteral("showInFolder"))) {
+        showInFolder->setVisible(searching && indexes.count() == 1);
+    }
+
     if (QAction *compress = m_actions.value(QStringLiteral("compress"))) {
         const bool canCompress =
-                !indexes.isEmpty() && !isTrash && !hasRemoteFiles && rootItem().isWritable();
+                !indexes.isEmpty() && !isTrash && !hasRemoteFiles && !searching
+                && rootItem().isWritable();
         compress->setVisible(canCompress);
         compress->setEnabled(canCompress && !m_archiveJob);
 
@@ -825,12 +842,12 @@ void FolderModel::updateActions()
     }
 
     if (QAction *newFolder = m_actions.value(QStringLiteral("newFolder"))) {
-        newFolder->setVisible(!isTrash);
+        newFolder->setVisible(!isTrash && !searching);
         newFolder->setEnabled(rootItem().isWritable());
     }
 
     if (QAction *newTextFile = m_actions.value(QStringLiteral("newTextFile"))) {
-        newTextFile->setVisible(!isTrash);
+        newTextFile->setVisible(!isTrash && !searching);
         newTextFile->setEnabled(rootItem().isWritable());
     }
 
@@ -847,7 +864,7 @@ void FolderModel::updateActions()
         }
 
         paste->setEnabled(enable);
-        paste->setVisible(!isTrash);
+        paste->setVisible(!isTrash && !searching);
     }
 
     if (QAction *rename = m_actions.value(QStringLiteral("rename"))) {

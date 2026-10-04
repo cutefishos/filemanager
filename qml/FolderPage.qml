@@ -20,6 +20,8 @@ Item {
     property alias canGoForward: dirModel.canGoForward
     property Item currentView: _viewLoader.item
     property int headerHeight: 0
+    // The search path strip the view runs under.
+    readonly property real footerHeight: _pathStrip.visible ? _pathStrip.height : 0
     property string initialUrl: ""
     property var initialSelection: []
     // Back and forward history carried over from a tab in another window.
@@ -27,7 +29,10 @@ Item {
     // Scroll offset to return to in a folder reached by back or forward,
     // applied once enough of the folder is listed.
     property real pendingViewPosition: NaN
-    readonly property string tabTitle: {
+    readonly property string tabTitle: dirModel.searchText.length > 0
+                                       ? qsTr("Searching “%1”").arg(dirModel.searchText)
+                                       : folderName
+    readonly property string folderName: {
         var path = currentUrl.toString()
         if (path.indexOf("trash:/") === 0)
             return qsTr("Trash")
@@ -68,12 +73,13 @@ Item {
 
     FishUI.Label {
         id: _fileTips
-        text: qsTr("Empty folder")
+        text: dirModel.searchText.length > 0 ? qsTr("No Results") : qsTr("Empty folder")
         font.pointSize: 15
         anchors.centerIn: parent
         visible: dirModel.status === FM.FolderModel.Ready
                  && _viewLoader.status === Loader.Ready
                  && dirModel.count === 0
+                 && !dirModel.searchBusy
     }
 
     FM.FolderModel {
@@ -141,27 +147,35 @@ Item {
         folderModel: dirModel
     }
 
-    // The view runs up under the window header, which floats over it.
-    ColumnLayout {
+    // The view runs up under the window header and down under the path strip,
+    // which float over it.
+    Loader {
+        id: _viewLoader
         anchors.fill: parent
-        spacing: 0
+        asynchronous: true
+        sourceComponent: switch (settings.viewMethod) {
+                         case 0: return _listViewComponent
+                         case 1: return _gridViewComponent
+                         }
 
-        Loader {
-            id: _viewLoader
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            asynchronous: true
-            sourceComponent: switch (settings.viewMethod) {
-                             case 0: return _listViewComponent
-                             case 1: return _gridViewComponent
-                             }
-
-            onLoaded: {
-                folderPage.focusView()
-                shortCut.install(_viewLoader.item)
-                previewClient.attach(dirModel, _viewLoader.item)
-            }
+        onLoaded: {
+            folderPage.focusView()
+            shortCut.install(_viewLoader.item)
+            previewClient.attach(dirModel, _viewLoader.item)
         }
+    }
+
+    SearchPathStrip {
+        id: _pathStrip
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 28
+        z: 1
+        visible: dirModel.searchText.length > 0
+        folderModel: dirModel
+        view: _viewLoader.item
+        onOpenFolder: function(path) { folderPage.openUrl(path) }
     }
 
     function rename() {
@@ -188,7 +202,7 @@ Item {
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
             topMargin: topInset + FishUI.Units.smallSpacing
-            bottomMargin: FishUI.Units.smallSpacing
+            bottomMargin: FishUI.Units.smallSpacing + folderPage.footerHeight
 
             onIconSizeChanged: {
                 // Save
@@ -213,7 +227,7 @@ Item {
             topMargin: _folderListView.headerHeight + 2
             leftMargin: FishUI.Units.smallSpacing
             rightMargin: FishUI.Units.largeSpacing
-            bottomMargin: FishUI.Units.smallSpacing
+            bottomMargin: FishUI.Units.smallSpacing + folderPage.footerHeight
 
             delegate: FolderListItem {}
         }

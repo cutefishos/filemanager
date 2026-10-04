@@ -145,6 +145,14 @@ FishUI.DesktopMenu {
     }
 
     FishUI.MenuItem {
+        property var modelAction: control.folderModel ? control.folderModel.action("showInFolder") : null
+        text: modelAction ? modelAction.text : qsTr("Show in Enclosing Folder")
+        visible: control.hasSelection && modelAction && modelAction.visible
+        enabled: modelAction ? modelAction.enabled : false
+        onTriggered: modelAction.trigger()
+    }
+
+    FishUI.MenuItem {
         id: openWithItem
         property var modelAction: control.folderModel ? control.folderModel.action("openWith") : null
         property var applications: []

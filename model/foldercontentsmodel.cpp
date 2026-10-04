@@ -253,17 +253,26 @@ void FolderContentsModel::expectRename(const QUrl &from, const QUrl &to)
     m_renames.insert(from, to);
 }
 
+// A search shows what it has found so far; a folder only once it is listed.
+
+bool FolderContentsModel::isSettled() const
+{
+    const auto *lister = m_source->dirLister();
+
+    return !lister->isListing() || lister->isSearching();
+}
+
 void FolderContentsModel::schedulePreparation()
 {
     cancelPreparation();
 
-    if (m_source && !m_source->dirLister()->isListing())
+    if (m_source && isSettled())
         m_prepareTimer.start();
 }
 
 void FolderContentsModel::prepare()
 {
-    if (!m_source || m_source->dirLister()->isListing())
+    if (!m_source || !isSettled())
         return;
 
     const auto cancelled = std::make_shared<std::atomic_bool>(false);

@@ -174,6 +174,7 @@ FishUI.Window {
         var page = tabs.length ? tabs[currentTab] : null
         if (!page)
             return
+        _pathBar.folderModel = page.model
         _pathBar.closeEditor()
         _sideBar.updateSelection(page.currentUrl)
         _pathBar.updateUrl(page.currentUrl)
@@ -296,6 +297,7 @@ FishUI.Window {
     Shortcut { sequence: "Ctrl+W"; onActivated: root.closeTab(root.currentTab) }
     Shortcut { sequence: "Ctrl+Tab"; onActivated: root.currentTab = (root.currentTab + 1) % root.tabs.length }
     Shortcut { sequence: "Ctrl+Shift+Tab"; onActivated: root.currentTab = (root.currentTab + root.tabs.length - 1) % root.tabs.length }
+    Shortcut { sequence: StandardKey.Find; onActivated: _pathBar.openSearch() }
 
     Platform.MenuBar {
         id: appMenu
@@ -420,6 +422,18 @@ FishUI.Window {
                 onEditorAccepted: function(path) { _folderPage.openUrl(path) }
                 onOpenInNewTab: function(path) { root.openTab(path) }
                 onOpenInNewWindow: function(path) { _folderPage.model.openInNewWindow(path) }
+                onFinished: _folderPage.focusView()
+            }
+
+            IconButton {
+                objectName: "searchButton"
+                Layout.alignment: Qt.AlignTop
+                Layout.topMargin: root.windowButtonsTopMargin
+                Layout.preferredWidth: _headerRow.buttonSize
+                Layout.preferredHeight: _headerRow.buttonSize
+                iconName: "search"
+                iconSize: 16
+                onClicked: _pathBar.openSearch()
             }
 
             IconButton {
@@ -520,7 +534,7 @@ FishUI.Window {
             MouseArea {
                 z: 1
                 width: parent.width
-                height: root.headerInset + tabBar.height
+                height: root.headerInset + tabBar.height + scopeBar.height
                 acceptedButtons: Qt.AllButtons
                 hoverEnabled: true
             }
@@ -548,6 +562,18 @@ FishUI.Window {
                 onDetachRequested: function(index, position) {
                     Qt.callLater(root.detachTab, index, position)
                 }
+            }
+
+            SearchScopeBar {
+                id: scopeBar
+                objectName: "searchScopeBar"
+                y: root.headerInset + tabBar.height
+                width: parent.width
+                z: 2
+                visible: root._folderPage && root._folderPage.model.searchText.length > 0
+                height: visible ? 34 : 0
+                folderModel: root._folderPage ? root._folderPage.model : null
+                folderName: root._folderPage ? root._folderPage.folderName : ""
             }
 
             DragDrop.DropArea {
@@ -580,7 +606,7 @@ FishUI.Window {
             anchors.fill: parent
             visible: root._folderPage === this
             enabled: visible
-            headerHeight: root.headerInset + tabBar.height
+            headerHeight: root.headerInset + tabBar.height + scopeBar.height
             onOpenInNewTab: function(path) { root.openTab(path) }
             onCloseRequested: root.closeTab(root.currentTab)
             onCurrentUrlChanged: {
