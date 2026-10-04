@@ -182,6 +182,9 @@ Item {
 
         Image {
             id: _image
+
+            readonly property string thumbnail: model.thumbnail ? String(model.thumbnail) : ""
+
             anchors.fill: parent
             anchors.topMargin: FishUI.Units.smallSpacing
             anchors.leftMargin: FishUI.Units.smallSpacing
@@ -190,12 +193,47 @@ Item {
             visible: status === Image.Ready
             horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
-            sourceSize: Qt.size(width, height)
-            source: model.thumbnail ? model.thumbnail : ""
-            asynchronous: true
             cache: false
             smooth: true
             antialiasing: true
+
+            onThumbnailChanged: load(true)
+            onWidthChanged: load(true)
+            onHeightChanged: load(true)
+            Component.onCompleted: load(true)
+
+            // The cache entry was left by an older version of the file.
+            onStatusChanged: {
+                if (status === Image.Error && String(source).startsWith("image://thumbnailcache/"))
+                    Qt.callLater(load, false)
+            }
+
+            // A thumbnail already in the disk cache is read synchronously, so the
+            // item shows it in its first frame; only a new one waits. Assigned
+            // rather than bound: setting sourceSize or source starts a load,
+            // which must find the mode and size it is meant to have.
+            function load(useCache) {
+                var size = Qt.size(Math.round(width), Math.round(height))
+                if (!thumbnail || size.width <= 0 || size.height <= 0) {
+                    source = ""
+                    return
+                }
+
+                var cached = useCache && thumbnail.startsWith("image://thumbnailer/")
+                        && dirModel.isThumbnailCached(thumbnail, size, _image)
+                var target = cached ? thumbnail.replace("image://thumbnailer/", "image://thumbnailcache/")
+                                    : thumbnail
+
+                asynchronous = !cached
+                if (sourceSize.width !== size.width || sourceSize.height !== size.height) {
+                    // Not a reload of the old source at the new size.
+                    if (String(source) !== target)
+                        source = ""
+                    sourceSize = size
+                }
+                if (String(source) !== target)
+                    source = target
+            }
 
             layer.enabled: _image.visible
             layer.effect: FishUI.OpacityMask {

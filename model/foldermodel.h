@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
 #include "foldercontentsmodel.h"
@@ -143,6 +146,8 @@ public:
     Q_INVOKABLE QString homePath() const;
     Q_INVOKABLE QString desktopPath() const;
     Q_INVOKABLE QString standardFolderName(const QString &path) const;
+    // Whether the thumbnail image requests for source at sourceSize is in the disk cache.
+    Q_INVOKABLE bool isThumbnailCached(const QUrl &source, const QSizeF &sourceSize, QQuickItem *image) const;
     Q_INVOKABLE QAction *action(const QString &name) const;
 
     Q_INVOKABLE void up();

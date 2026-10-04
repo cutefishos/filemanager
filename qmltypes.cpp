@@ -94,6 +94,9 @@ void registerImageProviders(QQmlEngine *engine)
     if (!engine->imageProvider(QStringLiteral("thumbnailer")))
         engine->addImageProvider(QStringLiteral("thumbnailer"), new ThumbnailProvider);
 
+    if (!engine->imageProvider(QStringLiteral("thumbnailcache")))
+        engine->addImageProvider(QStringLiteral("thumbnailcache"), new CachedThumbnailProvider);
+
     if (!engine->imageProvider(QStringLiteral("fileicon")))
         engine->addImageProvider(QStringLiteral("fileicon"), new DesktopIconProvider);
 

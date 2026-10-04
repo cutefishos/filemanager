@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "foldermodel.h"
 #include "operations/fileoperationsclient.h"
 #include "dirlister.h"
@@ -9,11 +12,13 @@
 
 #include <filesystemurl.h>
 #include <thumbnailcache.h>
+#include <thumbnailprovider.h>
 
 #include <QApplication>
 #include <QClipboard>
 #include <QDir>
 #include <QMimeDatabase>
+#include <QQuickWindow>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -563,6 +568,17 @@ QString FolderModel::desktopPath() const
 QString FolderModel::standardFolderName(const QString &path) const
 {
     return Fm::standardFolderName(path);
+}
+
+bool FolderModel::isThumbnailCached(const QUrl &source, const QSizeF &sourceSize, QQuickItem *image) const
+{
+    if (!image)
+        return false;
+
+    // The size QQuickImage asks an image provider for.
+    const qreal ratio = image->window() ? image->window()->effectiveDevicePixelRatio() : qApp->devicePixelRatio();
+    const QSize requestedSize = sourceSize.toSize() * ratio;
+    return ThumbnailProvider::isCached(source, requestedSize);
 }
 
 void FolderModel::up()
