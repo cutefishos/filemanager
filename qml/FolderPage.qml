@@ -24,6 +24,9 @@ Item {
     property var initialSelection: []
     // Back and forward history carried over from a tab in another window.
     property var initialHistory: null
+    // Scroll offset to return to in a folder reached by back or forward,
+    // applied once enough of the folder is listed.
+    property real pendingViewPosition: NaN
     readonly property string tabTitle: {
         var path = currentUrl.toString()
         if (path.indexOf("trash:/") === 0)
@@ -52,6 +55,7 @@ Item {
             return
 
         _viewLoader.item.reset()
+        pendingViewPosition = dirModel.viewPosition()
         focusView()
     }
 
@@ -116,6 +120,18 @@ Item {
             root.showPassiveNotification(text, 3000)
         }
 
+        function onAboutToLeaveFolder() {
+            // Left again before the offset was reached: it still stands.
+            if (_viewLoader.item)
+                dirModel.setViewPosition(isNaN(folderPage.pendingViewPosition)
+                                         ? _viewLoader.item.contentY : folderPage.pendingViewPosition)
+            folderPage.pendingViewPosition = NaN
+        }
+
+        function onListingCompleted() {
+            folderPage.restoreViewPosition(true)
+        }
+
         // Scroll to item.
         function onScrollToItem(index) {
             if (_viewLoader.item)
@@ -172,6 +188,8 @@ Item {
             model: dirModel
             delegate: FolderGridItem {}
 
+            onCountChanged: folderPage.restoreViewPosition(false)
+
             onContextMenuRequested: folderMenu.popup()
 
             topInset: folderPage.headerHeight
@@ -194,6 +212,8 @@ Item {
         FolderListView {
             id: _folderListView
             model: dirModel
+
+            onCountChanged: folderPage.restoreViewPosition(false)
 
             onContextMenuRequested: folderMenu.popup()
 
@@ -315,6 +335,24 @@ Item {
     function focusView() {
         if (visible && _viewLoader.item)
             _viewLoader.item.forceActiveFocus()
+    }
+
+    // Rows arrive in batches: scroll as soon as the saved offset is in reach
+    // so the folder does not first show its top, and settle for the nearest
+    // offset once the listing is complete.
+    function restoreViewPosition(complete) {
+        var view = _viewLoader.item
+        if (isNaN(pendingViewPosition) || !view)
+            return
+
+        view.forceLayout()
+        var minimum = view.originY - view.topMargin
+        var maximum = Math.max(minimum, view.contentHeight + view.bottomMargin - view.height + view.originY)
+        if (!complete && pendingViewPosition > maximum)
+            return
+
+        view.contentY = Math.max(minimum, Math.min(maximum, pendingViewPosition))
+        pendingViewPosition = NaN
     }
 
     function goBack() {

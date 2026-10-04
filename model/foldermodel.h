@@ -148,6 +148,9 @@ public:
     Q_INVOKABLE void up();
     Q_INVOKABLE void goBack();
     Q_INVOKABLE void goForward();
+    // The view's scroll offset in the current folder, kept with its history entry.
+    Q_INVOKABLE qreal viewPosition() const;
+    Q_INVOKABLE void setViewPosition(qreal position);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void undo();
     Q_INVOKABLE void redo();
@@ -236,6 +239,8 @@ public:
     void setShowHiddenFiles(bool showHiddenFiles);
 
 signals:
+    // The current folder is about to be left; the view saves its position.
+    void aboutToLeaveFolder();
     void urlChanged();
     void openTabRequested(const QString &url);
     void listingCompleted() const;

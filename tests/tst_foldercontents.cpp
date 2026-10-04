@@ -449,6 +449,51 @@ private slots:
         QVERIFY(!errors.isEmpty());
     }
 
+    void backAndForwardKeepHistoryAndViewPositions()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QVERIFY(QDir(directory.path()).mkpath("a/b"));
+        const auto root = QUrl::fromLocalFile(directory.path());
+        const auto a = QUrl::fromLocalFile(directory.filePath("a"));
+        const auto b = QUrl::fromLocalFile(directory.filePath("a/b"));
+
+        FolderModel folder;
+        int leaves = 0;
+        connect(&folder, &FolderModel::aboutToLeaveFolder, this, [&] {
+            folder.setViewPosition(++leaves * 100);
+        });
+
+        folder.setUrl(root.toString());
+        QVERIFY(qIsNaN(folder.viewPosition()));
+        folder.setUrl(a.toString());
+        folder.setUrl(b.toString());
+
+        folder.goBack();
+        QCOMPARE(folder.resolvedUrl(), a);
+        QVERIFY(folder.canGoBack());
+        QVERIFY(folder.canGoForward());
+        QCOMPARE(folder.viewPosition(), 300.0);
+
+        folder.goBack();
+        QCOMPARE(folder.resolvedUrl(), root);
+        QVERIFY(!folder.canGoBack());
+        QCOMPARE(folder.viewPosition(), 200.0);
+
+        folder.goForward();
+        QCOMPARE(folder.resolvedUrl(), a);
+        QCOMPARE(folder.viewPosition(), 500.0);
+        folder.goForward();
+        QCOMPARE(folder.resolvedUrl(), b);
+        QVERIFY(!folder.canGoForward());
+        QCOMPARE(folder.viewPosition(), 400.0);
+
+        folder.goBack();
+        folder.setUrl(root.toString());
+        QVERIFY(!folder.canGoForward());
+        QVERIFY(qIsNaN(folder.viewPosition()));
+    }
+
     void queryChangesWaitForRunningScan()
     {
         QTemporaryDir directory;

@@ -398,8 +398,10 @@ void FolderModel::setUrl(const QString &url)
     setStatus(Status::Listing);
     m_pendingSelection.clear();
 
-    if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl)
+    if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl) {
+        emit aboutToLeaveFolder();
         m_pathHistory.append(resolvedNewUrl);
+    }
 
     m_url = resolvedNewUrl.toString(QUrl::PreferLocalFile);
     m_dirModel->dirLister()->openUrl(isTrash ? QUrl(QStringLiteral("trash:/")) : resolvedNewUrl);
@@ -574,22 +576,30 @@ void FolderModel::up()
 
 void FolderModel::goBack()
 {
-    QUrl url = m_pathHistory.previousPath();
+    if (!m_pathHistory.canGoBack())
+        return;
 
-    if (url.isEmpty())
-        url = resolvedUrl();
-
-    setUrl(url.toString());
+    emit aboutToLeaveFolder();
+    setUrl(m_pathHistory.previousPath().toString());
 }
 
 void FolderModel::goForward()
 {
-    QUrl url = m_pathHistory.posteriorPath();
+    if (!m_pathHistory.canGoForward())
+        return;
 
-    if (url.isEmpty())
-        url = resolvedUrl();
+    emit aboutToLeaveFolder();
+    setUrl(m_pathHistory.posteriorPath().toString());
+}
 
-    setUrl(url.toString());
+qreal FolderModel::viewPosition() const
+{
+    return m_pathHistory.currentPosition();
+}
+
+void FolderModel::setViewPosition(qreal position)
+{
+    m_pathHistory.setCurrentPosition(position);
 }
 
 void FolderModel::refresh()

@@ -5,6 +5,7 @@
 #define PATHHISTORY_H
 
 #include <QObject>
+#include <QUrl>
 #include <QVector>
 
 class PathHistory : public QObject
@@ -28,8 +29,14 @@ public:
     bool canGoBack() const;
     bool canGoForward() const;
 
+    // Step through the history and return the folder now current, or an
+    // empty URL when there is nothing that way.
     QUrl posteriorPath();
     QUrl previousPath();
+
+    // Where the view was scrolled in the current folder; NaN until it is left.
+    qreal currentPosition() const;
+    void setCurrentPosition(qreal position);
 
     // The folders before and after the current one, oldest first.
     QList<QUrl> backward() const;
@@ -38,9 +45,17 @@ public:
     void restore(const QList<QUrl> &backward, const QList<QUrl> &forward);
 
 private:
+    struct Entry {
+        QUrl url;
+        qreal position = qQNaN();
+    };
+
+    static QList<QUrl> urls(const QVector<Entry> &entries);
+    static QVector<Entry> entries(const QList<QUrl> &urls);
+
     static constexpr int kMaxEntries = 200;
-    QVector<QUrl> m_prevHistory;
-    QVector<QUrl> m_postHistory;
+    QVector<Entry> m_prevHistory;
+    QVector<Entry> m_postHistory;
 };
 
 #endif // PATHHISTORY_H
