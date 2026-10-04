@@ -21,6 +21,7 @@
 #include <QQuickWindow>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QTimeZone>
 
 FolderModel::FolderModel(QObject *parent)
     : FolderContentsModel(parent)
@@ -258,7 +259,8 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
             // replaced in place; an unchanged source is never reloaded by Image.
             QUrl url = item.url();
             url.setQuery(QStringLiteral("mtime=")
-                         + QString::number(item.time(Cutefish::IO::FileItem::ModificationTime)
+                         + QString::number(item.time(Cutefish::IO::FileItem::ModificationTime,
+                                                     QTimeZone::UTC)
                                                    .toMSecsSinceEpoch()));
 
             // Svg Image

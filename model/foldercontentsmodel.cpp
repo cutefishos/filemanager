@@ -5,9 +5,12 @@
 #include <QFutureWatcher>
 #include <QLocale>
 #include <QSet>
+#include <QTimeZone>
 #include <QtConcurrent/QtConcurrentRun>
 #include <algorithm>
 #include <cerrno>
+#include <numeric>
+#include <vector>
 
 using Cutefish::IO::DirectoryModel;
 using Cutefish::IO::FileItem;
@@ -25,8 +28,19 @@ bool sameMetadata(const FileItem &left, const FileItem &right)
             && left.iconName() == right.iconName()
             && left.targetUrl() == right.targetUrl()
             && left.typeDescription() == right.typeDescription()
-            && left.time(FileItem::ModificationTime) == right.time(FileItem::ModificationTime);
+            && left.time(FileItem::ModificationTime, QTimeZone::UTC)
+                    == right.time(FileItem::ModificationTime, QTimeZone::UTC);
 }
+
+// What the sort compares, read once per item instead of once per comparison.
+struct SortEntry
+{
+    QString name;
+    QString mimeType;
+    QDateTime modified;
+    quint64 size = 0;
+    bool dir = false;
+};
 }
 
 struct FolderContentsModel::Prepared
@@ -279,37 +293,58 @@ void FolderContentsModel::prepare()
 
             if (query.sortColumn >= 0) {
                 QCollator collator(locale);
-                // Standard folders sort by the name they are shown under.
-                auto sortName = [&](const FileItem &item) {
-                    return item.isDir() && item.url().isLocalFile()
+                std::vector<SortEntry> entries(incoming.size());
+
+                for (qsizetype i = 0; i < incoming.size(); ++i) {
+                    checkpoint();
+                    const auto &item = incoming[i];
+                    auto &entry = entries[i];
+                    entry.dir = item.isDir();
+                    // Standard folders sort by the name they are shown under.
+                    entry.name = entry.dir && item.url().isLocalFile()
                             ? standardNames.value(item.url().toLocalFile(), item.name())
                             : item.name();
-                };
-                std::stable_sort(result->ordered.begin(), result->ordered.end(),
-                        [&](const FileItem &left, const FileItem &right) {
+
+                    if (query.sortColumn == DirectoryModel::Size)
+                        entry.size = item.size();
+                    else if (query.sortColumn == DirectoryModel::ModifiedTime)
+                        entry.modified = item.time(FileItem::ModificationTime, QTimeZone::UTC);
+                    else if (query.sortColumn == DirectoryModel::Type)
+                        entry.mimeType = item.mimetype();
+                }
+
+                std::vector<qsizetype> positions(incoming.size());
+                std::iota(positions.begin(), positions.end(), 0);
+                std::stable_sort(positions.begin(), positions.end(), [&](qsizetype a, qsizetype b) {
                     checkpoint();
+                    const auto &left = entries[a];
+                    const auto &right = entries[b];
 
                     if ((query.directoriesFirst || query.sortColumn == DirectoryModel::Size)
-                        && left.isDir() != right.isDir())
-                        return left.isDir();
+                        && left.dir != right.dir)
+                        return left.dir;
 
                     int order = 0;
-                    if (query.sortColumn == DirectoryModel::Size && !left.isDir()) {
-                        order = left.size() < right.size() ? -1 : left.size() > right.size();
+                    if (query.sortColumn == DirectoryModel::Size && !left.dir) {
+                        order = left.size < right.size ? -1 : left.size > right.size;
                     } else if (query.sortColumn == DirectoryModel::ModifiedTime) {
-                        const auto a = left.time(FileItem::ModificationTime);
-                        const auto b = right.time(FileItem::ModificationTime);
-                        order = a < b ? -1 : a > b;
+                        order = left.modified < right.modified ? -1 : left.modified > right.modified;
                     } else if (query.sortColumn == DirectoryModel::Type) {
-                        order = QString::compare(left.mimetype(), right.mimetype());
+                        order = QString::compare(left.mimeType, right.mimeType);
                     }
                     if (order == 0)
-                        order = collator.compare(sortName(left), sortName(right));
+                        order = collator.compare(left.name, right.name);
                     if (order == 0)
-                        order = QString::compare(left.url().toString(), right.url().toString());
+                        order = QString::compare(incoming[a].url().toString(),
+                                                 incoming[b].url().toString());
                     return query.descending ? order > 0 : order < 0;
-
                 });
+
+                FileItemList sorted;
+                sorted.reserve(incoming.size());
+                for (const qsizetype position : positions)
+                    sorted.append(incoming[position]);
+                result->ordered = std::move(sorted);
             }
 
             result->rows.reserve(result->ordered.size());
