@@ -107,6 +107,67 @@ private slots:
         }
     }
 
+    // A refresh merges new files into the order it kept, and sorts again when a
+    // kept file moved; either way the rows are the ones a fresh listing sorts.
+    void refreshOrderMatchesAFreshListing()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const QDateTime base = QDateTime::currentDateTimeUtc().addDays(-1);
+
+        const auto write = [&](int i, int seconds, int grow = 0) {
+            const QString path =
+                    directory.filePath(QStringLiteral("file-%1.txt").arg(i, 3, 10, QLatin1Char('0')));
+            QVERIFY(writeFile(path, QByteArray((i * 7) % 23 + 1 + grow, 'x')));
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::ReadWrite));
+            QVERIFY(file.setFileTime(base.addSecs(seconds), QFileDevice::FileModificationTime));
+        };
+        const auto names = [](const FolderModel &folder) {
+            QStringList result;
+            for (int row = 0; row < folder.rowCount(); ++row)
+                result.append(folder.fileItem(row).name());
+            return result;
+        };
+
+        for (int i = 0; i < 200; i += 2)
+            write(i, (i * 37) % 200);
+
+        const QList<int> modes = {Cutefish::IO::DirectoryModel::Name,
+                                  Cutefish::IO::DirectoryModel::ModifiedTime,
+                                  Cutefish::IO::DirectoryModel::Size};
+
+        for (const int mode : modes) {
+            for (const bool descending : {false, true}) {
+                const auto sortedFresh = [&] {
+                    FolderModel fresh;
+                    fresh.setSortMode(mode);
+                    fresh.setSortDesc(descending);
+                    fresh.setUrl(directory.path());
+                    [&] { QTRY_COMPARE(fresh.status(), FolderModel::Ready); }();
+                    return names(fresh);
+                };
+
+                FolderModel folder;
+                folder.setSortMode(mode);
+                folder.setSortDesc(descending);
+                folder.setUrl(directory.path());
+                QTRY_COMPARE(folder.status(), FolderModel::Ready);
+                QCOMPARE(names(folder), sortedFresh());
+
+                // New files between the kept ones.
+                const int round = int(modes.indexOf(mode)) * 2 + int(descending);
+                for (int i = 1 + round * 2; i < 200; i += 12)
+                    write(i, (i * 53) % 200);
+                QTRY_COMPARE(names(folder), sortedFresh());
+
+                // A kept file whose time and size move it.
+                write(round * 4, 500 + round, 40);
+                QTRY_COMPARE(names(folder), sortedFresh());
+            }
+        }
+    }
+
     void dragUrlsPreserveSpecialNamesAndRejectForeignIndexes()
     {
         QTemporaryDir directory;

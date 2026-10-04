@@ -1,6 +1,8 @@
 #include "foldercontentsmodel.h"
 #include "helper/fm.h"
 
+#include <backgroundrelease.h>
+
 #include <QCollator>
 #include <QFutureWatcher>
 #include <QLocale>
@@ -15,21 +17,27 @@
 using Cutefish::IO::DirectoryModel;
 using Cutefish::IO::FileItem;
 using Cutefish::IO::FileItemList;
+using Cutefish::IO::releaseInBackground;
 
 namespace {
 constexpr int BatchSize = 256;
 
 bool sameMetadata(const FileItem &left, const FileItem &right)
 {
-    return left.url() == right.url() && left.text() == right.text()
-            && left.size() == right.size() && left.isDir() == right.isDir()
-            && left.isLink() == right.isLink() && left.isHidden() == right.isHidden()
-            && left.isWritable() == right.isWritable() && left.mimetype() == right.mimetype()
-            && left.iconName() == right.iconName()
+    // Equal stamps answer for size, kind and modification time without the accessors.
+    const auto sameStat = [&] {
+        return left.sameStat(right)
+                || (left.size() == right.size() && left.isDir() == right.isDir()
+                    && left.isLink() == right.isLink()
+                    && left.time(FileItem::ModificationTime, QTimeZone::UTC)
+                            == right.time(FileItem::ModificationTime, QTimeZone::UTC));
+    };
+
+    return left.url() == right.url() && left.text() == right.text() && sameStat()
+            && left.isHidden() == right.isHidden() && left.isWritable() == right.isWritable()
+            && left.mimetype() == right.mimetype() && left.iconName() == right.iconName()
             && left.targetUrl() == right.targetUrl()
-            && left.typeDescription() == right.typeDescription()
-            && left.time(FileItem::ModificationTime, QTimeZone::UTC)
-                    == right.time(FileItem::ModificationTime, QTimeZone::UTC);
+            && left.typeDescription() == right.typeDescription();
 }
 
 // What the sort compares, read once per item instead of once per comparison.
@@ -223,15 +231,16 @@ void FolderContentsModel::cancelPreparation()
 
     m_prepareTimer.stop();
     m_publishTimer.stop();
-    m_prepared.reset();
+    releaseInBackground(std::exchange(m_prepared, {}));
+    releaseInBackground(std::exchange(m_released, {}));
 }
 
 void FolderContentsModel::clear()
 {
     cancelPreparation();
     beginResetModel();
-    m_items.clear();
-    m_rowsByUrl.clear();
+    releaseInBackground(std::exchange(m_items, {}));
+    releaseInBackground(std::exchange(m_rowsByUrl, {}));
     m_renames.clear();
     m_rowsValid = true;
     endResetModel();
@@ -291,6 +300,28 @@ void FolderContentsModel::prepare()
         try {
             result->ordered = incoming;
 
+            // Rows by URL, numbered in listing order until the sort renumbers them.
+            result->rows.reserve(incoming.size());
+            for (int row = 0; row < incoming.size(); ++row) {
+                checkpoint();
+                result->rows.insert(incoming[row].url(), row);
+            }
+
+            // Names that are not UTF-8 can decode to one URL; the row of such a URL
+            // is its last file's in the final order.
+            const bool unique = result->rows.size() == incoming.size();
+
+            // Each previous row's file in the listing, or -1; hashing URLs is the cost
+            // here, so the sort and the comparison below share one lookup.
+            std::vector<int> previousRows;
+            if (unique) {
+                previousRows.reserve(previous.size());
+                for (const auto &item : previous) {
+                    checkpoint();
+                    previousRows.push_back(result->rows.value(item.url(), -1));
+                }
+            }
+
             if (query.sortColumn >= 0) {
                 QCollator collator(locale);
                 std::vector<SortEntry> entries(incoming.size());
@@ -313,9 +344,7 @@ void FolderContentsModel::prepare()
                         entry.mimeType = item.mimetype();
                 }
 
-                std::vector<qsizetype> positions(incoming.size());
-                std::iota(positions.begin(), positions.end(), 0);
-                std::stable_sort(positions.begin(), positions.end(), [&](qsizetype a, qsizetype b) {
+                const auto less = [&](qsizetype a, qsizetype b) {
                     checkpoint();
                     const auto &left = entries[a];
                     const auto &right = entries[b];
@@ -338,38 +367,93 @@ void FolderContentsModel::prepare()
                         order = QString::compare(incoming[a].url().toString(),
                                                  incoming[b].url().toString());
                     return query.descending ? order > 0 : order < 0;
-                });
+                };
+
+                // A refresh usually keeps the files it had in their order. Then only the
+                // new ones are sorted, and merged in; with the URL breaking every tie,
+                // the order is the one a full sort gives.
+                std::vector<qsizetype> positions;
+                if (unique && !previous.isEmpty()) {
+                    std::vector<qsizetype> kept;
+                    kept.reserve(previous.size());
+                    std::vector<bool> seen(incoming.size(), false);
+
+                    for (const int row : previousRows) {
+                        if (row >= 0 && !seen[row]) {
+                            seen[row] = true;
+                            kept.push_back(row);
+                        }
+                    }
+
+                    bool inOrder = true;
+                    for (size_t i = 1; i < kept.size() && inOrder; ++i)
+                        inOrder = less(kept[i - 1], kept[i]);
+
+                    if (inOrder) {
+                        std::vector<qsizetype> fresh;
+                        for (qsizetype i = 0; i < incoming.size(); ++i) {
+                            if (!seen[i])
+                                fresh.push_back(i);
+                        }
+
+                        std::stable_sort(fresh.begin(), fresh.end(), less);
+                        positions.resize(incoming.size());
+                        std::merge(kept.cbegin(), kept.cend(), fresh.cbegin(), fresh.cend(),
+                                   positions.begin(), less);
+                    }
+                }
+
+                if (positions.empty()) {
+                    positions.resize(incoming.size());
+                    std::iota(positions.begin(), positions.end(), 0);
+                    std::stable_sort(positions.begin(), positions.end(), less);
+                }
 
                 FileItemList sorted;
                 sorted.reserve(incoming.size());
                 for (const qsizetype position : positions)
                     sorted.append(incoming[position]);
                 result->ordered = std::move(sorted);
+
+                if (unique) {
+                    std::vector<int> sortedRows(incoming.size());
+                    for (size_t row = 0; row < positions.size(); ++row)
+                        sortedRows[positions[row]] = int(row);
+
+                    for (auto it = result->rows.begin(); it != result->rows.end(); ++it)
+                        it.value() = sortedRows[it.value()];
+                    for (int &row : previousRows) {
+                        if (row >= 0)
+                            row = sortedRows[row];
+                    }
+                } else {
+                    result->rows.clear();
+
+                    for (int row = 0; row < result->ordered.size(); ++row) {
+                        checkpoint();
+                        result->rows.insert(result->ordered[row].url(), row);
+                    }
+                }
             }
 
-            result->rows.reserve(result->ordered.size());
-
-            for (int row = 0; row < result->ordered.size(); ++row) {
-                checkpoint();
-                result->rows.insert(result->ordered[row].url(), row);
-            }
-
-            QSet<QUrl> retainedUrls;
+            // Which rows of ordered a previous row kept; with colliding URLs, by the
+            // row that owns the URL.
+            std::vector<bool> retainedRows(result->ordered.size(), false);
 
             for (int row = 0; row < previous.size(); ++row) {
                 checkpoint();
                 const auto &item = previous[row];
-                auto found = result->rows.constFind(item.url());
-                if (found == result->rows.cend() && renames.contains(item.url())) {
+                int found = unique ? previousRows[row] : result->rows.value(item.url(), -1);
+                if (found < 0 && renames.contains(item.url())) {
                     // A rename we made ourselves: the file went away under its old
                     // name and is back under the new one. Keep the row so the
                     // view updates the icon in place instead of tearing it down.
                     result->consumedRenames.append(item.url());
-                    const QUrl renamed = renames.value(item.url());
-                    if (!retainedUrls.contains(renamed))
-                        found = result->rows.constFind(renamed);
+                    const int renamed = result->rows.value(renames.value(item.url()), -1);
+                    if (renamed >= 0 && !retainedRows[renamed])
+                        found = renamed;
                 }
-                if (found == result->rows.cend()) {
+                if (found < 0) {
                     if (!result->removals.isEmpty() && result->removals.last().second == row - 1)
                         result->removals.last().second = row;
                     else
@@ -377,19 +461,20 @@ void FolderContentsModel::prepare()
                     continue;
                 }
 
-                const auto &updated = result->ordered[found.value()];
+                const auto &updated = result->ordered[found];
 
                 if (!sameMetadata(item, updated))
                     result->changed.insert(result->retained.size());
 
                 result->retained.append(updated);
-                retainedUrls.insert(updated.url());
+                retainedRows[found] = true;
             }
 
-            for (const auto &item : std::as_const(result->ordered)) {
+            for (int row = 0; row < result->ordered.size(); ++row) {
                 checkpoint();
+                const auto &item = result->ordered[row];
 
-                if (!retainedUrls.contains(item.url()))
+                if (!retainedRows[unique ? row : result->rows.value(item.url())])
                     result->added.append(item);
             }
 
@@ -423,7 +508,7 @@ void FolderContentsModel::prepare()
 
 void FolderContentsModel::publishBatch()
 {
-    const auto result = m_prepared;
+    auto result = m_prepared;
     const auto cancelled = m_cancelled;
 
     if (!result || cancelled->load())
@@ -435,6 +520,8 @@ void FolderContentsModel::publishBatch()
         const int first = qMax(range.first, last - BatchSize + 1);
 
         beginRemoveRows({}, first, last);
+        for (int row = first; row <= last; ++row)
+            m_released.append(std::move(m_items[row]));
         m_items.remove(first, last - first + 1);
         m_rowsValid = false;
         endRemoveRows();
@@ -453,7 +540,7 @@ void FolderContentsModel::publishBatch()
                 m_rowsByUrl.remove(m_items[row].url());
                 m_rowsByUrl.insert(result->retained[row].url(), row);
             }
-            m_items[row] = result->retained[row];
+            m_released.append(std::exchange(m_items[row], result->retained[row]));
             if (result->changed.contains(row)) {
                 if (changedFirst < 0)
                     changedFirst = row;
@@ -488,19 +575,21 @@ void FolderContentsModel::publishBatch()
 
             for (const auto &old : from)
                 to.append(index(result->rows.value(m_items[old.row()].url()), 0));
-            m_items = result->ordered;
-            m_rowsByUrl = result->rows;
+            releaseInBackground(std::exchange(m_items, result->ordered));
+            releaseInBackground(std::exchange(m_rowsByUrl, result->rows));
             m_rowsValid = true;
             changePersistentIndexList(from, to);
             emit layoutChanged({}, QAbstractItemModel::VerticalSortHint);
         } else {
-            m_rowsByUrl = result->rows;
+            releaseInBackground(std::exchange(m_rowsByUrl, result->rows));
             m_rowsValid = true;
         }
+        releaseInBackground(std::exchange(m_released, {}));
         if (!cancelled->load()) {
             m_prepared.reset();
             emit preparationFinished();
         }
+        releaseInBackground(std::move(result));
         return;
     }
     if (!cancelled->load())

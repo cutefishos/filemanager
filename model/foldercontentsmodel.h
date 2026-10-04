@@ -63,6 +63,8 @@ private:
 
     Cutefish::IO::DirectoryModel *m_source = nullptr;
     Cutefish::IO::FileItemList m_items;
+    // Rows a publish replaced or removed, freed off the GUI thread when it ends.
+    Cutefish::IO::FileItemList m_released;
     QHash<QUrl, int> m_rowsByUrl;
     QHash<QUrl, QUrl> m_renames;
     bool m_rowsValid = true;
