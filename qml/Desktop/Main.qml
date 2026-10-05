@@ -258,7 +258,7 @@ Item {
         onDeleteFile: {
             dirModel.keyDeletePress()
         }
-        onKeyPressed: {
+        onKeyPressed: function(text) {
             dirModel.keyboardSearch(text)
         }
         onShowHidden: {

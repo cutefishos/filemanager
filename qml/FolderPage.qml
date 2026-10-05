@@ -316,7 +316,7 @@ Item {
         onRefresh: {
             dirModel.refresh()
         }
-        onKeyPressed: {
+        onKeyPressed: function(text) {
             dirModel.keyboardSearch(text)
         }
         onShowHidden: {

@@ -474,7 +474,7 @@ FishUI.Window {
             event.accept(Qt.MoveAction)
         }
         onDragLeave: root.stopCurrentViewDragScroll()
-        onDrop: {
+        onDrop: function(event) {
             root.stopCurrentViewDragScroll()
             event.ignore()
         }
@@ -519,9 +519,9 @@ FishUI.Window {
             objectName: "sideBar"
             Layout.fillHeight: true
             title: root.title
-            onClicked: _folderPage.openUrl(path)
-            onOpenInNewWindow: _folderPage.model.openInNewWindow(path)
-            onOpenInNewTab: root.openTab(path)
+            onClicked: function(path) { _folderPage.openUrl(path) }
+            onOpenInNewWindow: function(path) { _folderPage.model.openInNewWindow(path) }
+            onOpenInNewTab: function(path) { root.openTab(path) }
         }
 
         Item {
