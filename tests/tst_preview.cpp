@@ -52,6 +52,19 @@ private slots:
                                      << "int main() {}\n";
         QTest::newRow("no extension") << "README" << QByteArray("Plain words.\n")
                                       << "Plain words.\n";
+
+        const QList<std::pair<const char *, QString>> legacy = {
+            {"GB18030", QStringLiteral("这是一个用 GBK 编码保存的中文文本文件。\n")},
+            {"Big5", QStringLiteral("這是一個用繁體中文寫的文件，使用 Big5 編碼保存。\n")},
+            {"Shift_JIS", QStringLiteral("これは Shift_JIS で保存された日本語のテキストです。\n")},
+            {"EUC-KR", QStringLiteral("이 파일은 EUC-KR 인코딩으로 저장된 한국어 텍스트입니다.\n")},
+            {"windows-1251", QStringLiteral("Привет, это текст в кодировке Windows-1251.\n")},
+            {"windows-1252", QStringLiteral("Café, naïve façade, résumé.\n")},
+        };
+        for (const auto &[encoding, text] : legacy) {
+            QStringEncoder encoder(encoding);
+            QTest::newRow(encoding) << "notes.txt" << QByteArray(encoder(text)) << text;
+        }
     }
 
     void textIsDecoded()
@@ -64,6 +77,31 @@ private slots:
         QCOMPARE(file.value("kind").toString(), QStringLiteral("text"));
         QCOMPARE(file.value("text").toString(), text);
         QCOMPARE(file.value("truncated").toBool(), false);
+    }
+
+    // A few characters score the same as GB18030 and Shift JIS.
+    void shortLegacyTextFollowsTheUiLanguage_data()
+    {
+        QTest::addColumn<QString>("locale");
+        QTest::addColumn<QByteArray>("encoding");
+        QTest::addColumn<QString>("text");
+
+        QTest::newRow("chinese") << "zh_CN" << QByteArray("GB18030") << QStringLiteral("第一行文本");
+        QTest::newRow("japanese") << "ja_JP" << QByteArray("Shift_JIS") << QStringLiteral("日本語");
+    }
+
+    void shortLegacyTextFollowsTheUiLanguage()
+    {
+        QFETCH(QString, locale);
+        QFETCH(QByteArray, encoding);
+        QFETCH(QString, text);
+
+        const QLocale previous;
+        QLocale::setDefault(QLocale(locale));
+        QStringEncoder encoder(encoding.constData());
+        const QVariantMap file = describe(write("short.txt", encoder(text)));
+        QLocale::setDefault(previous);
+        QCOMPARE(file.value("text").toString(), text);
     }
 
     void binaryContentIsNotText()

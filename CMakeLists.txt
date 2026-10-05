@@ -19,6 +19,7 @@ if(FILEMANAGER_BUILD_TESTS)
 endif()
 find_package(Qt6 COMPONENTS Core Concurrent DBus Quick QuickControls2 Widgets LinguistTools REQUIRED)
 find_package(CutefishFramework REQUIRED COMPONENTS IO Application)
+find_package(ICU REQUIRED COMPONENTS uc i18n)
 
 find_path(LIBZIP_INCLUDE_DIR zip.h)
 find_library(LIBZIP_LIBRARY NAMES zip)
@@ -117,6 +118,10 @@ target_link_libraries(cutefish-filemanager-core
   Cutefish::IO
   Qt6::Widgets
   ${LIBZIP_LIBRARY}
+
+  PRIVATE
+  ICU::i18n
+  ICU::uc
 )
 
 target_include_directories(cutefish-filemanager-core PRIVATE ${LIBZIP_INCLUDE_DIR})

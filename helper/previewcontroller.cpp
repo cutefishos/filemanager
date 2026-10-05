@@ -13,11 +13,14 @@
 #include <QGuiApplication>
 #include <QImageReader>
 #include <QKeyEvent>
+#include <QLocale>
 #include <QMimeDatabase>
 #include <QStringDecoder>
 #include <QtConcurrentRun>
 #include <filesystem.h>
+#include <memory>
 #include <optional>
+#include <unicode/ucsdet.h>
 
 namespace {
 // The text item lays out everything it holds when it is shown.
@@ -57,6 +60,46 @@ QVariantList splitLongParagraphs(QString *text)
     return breaks;
 }
 
+// A decoder for text that is neither UTF-8 nor marked by a byte order mark
+// (GBK, Shift JIS, Big5, Windows code pages), guessed from byte statistics.
+QStringDecoder legacyDecoder(const QByteArray &data)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    std::unique_ptr<UCharsetDetector, decltype(&ucsdet_close)> detector(ucsdet_open(&status),
+                                                                        ucsdet_close);
+    ucsdet_setText(detector.get(), data.constData(), int32_t(data.size()), &status);
+    int32_t count = 0;
+    const UCharsetMatch **matches = ucsdet_detectAll(detector.get(), &count, &status);
+    if (U_FAILURE(status))
+        return {};
+
+    // A few characters score the same in several encodings; the UI language
+    // settles a tie.
+    const QString language = QLocale().name().section(QLatin1Char('_'), 0, 0);
+    QString best;
+    int32_t bestConfidence = 0;
+    bool bestInLanguage = false;
+    for (int32_t i = 0; i < count; ++i) {
+        status = U_ZERO_ERROR;
+        const QString name = QString::fromLatin1(ucsdet_getName(matches[i], &status));
+        const int32_t confidence = ucsdet_getConfidence(matches[i], &status);
+        const bool inLanguage = language == QLatin1String(ucsdet_getLanguage(matches[i], &status));
+        // Without a byte order mark, NUL bytes already decided UTF-16 and UTF-32.
+        if (U_FAILURE(status) || name.startsWith(QLatin1String("UTF-"))
+            || !QStringDecoder(name).isValid())
+            continue;
+        if (confidence > bestConfidence
+            || (confidence == bestConfidence && inLanguage && !bestInLanguage)) {
+            best = name;
+            bestConfidence = confidence;
+            bestInLanguage = inLanguage;
+        }
+    }
+    if (best.isEmpty())
+        return {};
+    return QStringDecoder(best);
+}
+
 // The start of a text file, or nothing for content that is not text.
 std::optional<QString> readText(const QString &path, bool *truncated)
 {
@@ -79,6 +122,10 @@ std::optional<QString> readText(const QString &path, bool *truncated)
     // A character cut at the limit stays in the decoder's state.
     QStringDecoder decoder(encoding.value_or(QStringConverter::Utf8));
     QString text = decoder.decode(data);
+    if (!encoding && decoder.hasError()) {
+        if (QStringDecoder legacy = legacyDecoder(data); legacy.isValid())
+            text = legacy.decode(data);
+    }
     text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
     text.replace(QLatin1Char('\r'), QLatin1Char('\n'));
     return text;
