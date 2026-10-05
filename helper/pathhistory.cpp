@@ -96,6 +96,17 @@ void PathHistory::setCurrentPosition(qreal position)
         m_prevHistory.last().position = position;
 }
 
+QList<QUrl> PathHistory::currentSelection() const
+{
+    return m_prevHistory.isEmpty() ? QList<QUrl>() : m_prevHistory.last().selection;
+}
+
+void PathHistory::setCurrentSelection(const QList<QUrl> &selection)
+{
+    if (!m_prevHistory.isEmpty())
+        m_prevHistory.last().selection = selection;
+}
+
 QList<QUrl> PathHistory::backward() const
 {
     return m_prevHistory.isEmpty() ? QList<QUrl>() : urls(m_prevHistory.first(m_prevHistory.size() - 1));

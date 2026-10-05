@@ -303,7 +303,10 @@ private slots:
     void onRowsInserted(const QModelIndex &parent, int first, int last);
     void delayUpdateNeedSelectUrls();
     void updateNeedSelectUrls();
+    void selectWhenListed(const QList<QUrl> &urls);
     void applyPendingSelection();
+    // Keeps the scroll offset and selection with the folder's history entry.
+    void leaveFolder();
     WindowManager *windowManager() const;
     QWindow *dialogOwner() const;
     void startArchiveJob(OperationTask *job, const QString &operation,

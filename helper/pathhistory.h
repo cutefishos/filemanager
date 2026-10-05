@@ -37,6 +37,9 @@ public:
     // Where the view was scrolled in the current folder; NaN until it is left.
     qreal currentPosition() const;
     void setCurrentPosition(qreal position);
+    // What was selected in the current folder when it was left.
+    QList<QUrl> currentSelection() const;
+    void setCurrentSelection(const QList<QUrl> &selection);
 
     // The folders before and after the current one, oldest first.
     QList<QUrl> backward() const;
@@ -48,6 +51,7 @@ private:
     struct Entry {
         QUrl url;
         qreal position = qQNaN();
+        QList<QUrl> selection;
     };
 
     static QList<QUrl> urls(const QVector<Entry> &entries);

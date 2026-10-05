@@ -435,7 +435,7 @@ void FolderModel::setUrl(const QString &url)
     if (m_pathHistory.isEmpty() || m_pathHistory.last() != resolvedNewUrl) {
         // The results' scroll offset is not the folder's.
         if (!wasSearching)
-            emit aboutToLeaveFolder();
+            leaveFolder();
         m_pathHistory.append(resolvedNewUrl);
     }
 
@@ -614,10 +614,12 @@ bool FolderModel::isThumbnailCached(const QUrl &source, const QSizeF &sourceSize
 
 void FolderModel::up()
 {
-    const QUrl &url = Cutefish::IO::upUrl(resolvedUrl());
+    const QUrl child = resolvedUrl();
+    const QUrl &url = Cutefish::IO::upUrl(child);
 
     if (url.isValid()) {
         setUrl(url.toString());
+        selectWhenListed({child});
     }
 }
 
@@ -631,8 +633,9 @@ void FolderModel::goBack()
     if (!m_pathHistory.canGoBack())
         return;
 
-    emit aboutToLeaveFolder();
+    leaveFolder();
     setUrl(m_pathHistory.previousPath().toString());
+    selectWhenListed(m_pathHistory.currentSelection());
 }
 
 void FolderModel::goForward()
@@ -641,8 +644,15 @@ void FolderModel::goForward()
         return;
 
     if (m_searchText.isEmpty())
-        emit aboutToLeaveFolder();
+        leaveFolder();
     setUrl(m_pathHistory.posteriorPath().toString());
+    selectWhenListed(m_pathHistory.currentSelection());
+}
+
+void FolderModel::leaveFolder()
+{
+    emit aboutToLeaveFolder();
+    m_pathHistory.setCurrentSelection(selectedUrls());
 }
 
 qreal FolderModel::viewPosition() const

@@ -555,6 +555,45 @@ private slots:
         QVERIFY(qIsNaN(folder.viewPosition()));
     }
 
+    void backForwardAndUpRestoreSelection()
+    {
+        QTemporaryDir directory;
+        QVERIFY(QDir(directory.path()).mkpath("a/b"));
+        QVERIFY(QDir(directory.path()).mkpath("c"));
+        QVERIFY(writeFile(directory.filePath("a/file.txt")));
+        const auto root = QUrl::fromLocalFile(directory.path());
+        const auto a = QUrl::fromLocalFile(directory.filePath("a"));
+        const auto b = QUrl::fromLocalFile(directory.filePath("a/b"));
+        const auto file = QUrl::fromLocalFile(directory.filePath("a/file.txt"));
+
+        FolderModel folder;
+        folder.setUrl(root.toString());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        folder.setSelected(folder.indexForUrl(a).row());
+        folder.setUrl(a.toString());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        folder.setSelected(folder.indexForUrl(b).row());
+        folder.setUrl(b.toString());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+
+        folder.goBack();
+        QTRY_COMPARE(folder.selectedUrls(), QList<QUrl>({b}));
+        folder.clearSelection();
+        folder.setSelected(folder.indexForUrl(file).row());
+
+        folder.goBack();
+        QTRY_COMPARE(folder.selectedUrls(), QList<QUrl>({a}));
+
+        folder.goForward();
+        QTRY_COMPARE(folder.selectedUrls(), QList<QUrl>({file}));
+
+        folder.goForward();
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        folder.up();
+        QTRY_COMPARE(folder.resolvedUrl(), a);
+        QTRY_COMPARE(folder.selectedUrls(), QList<QUrl>({b}));
+    }
+
     void queryChangesWaitForRunningScan()
     {
         QTemporaryDir directory;

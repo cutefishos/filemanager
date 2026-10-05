@@ -577,9 +577,16 @@ void FolderModel::updateNeedSelectUrls()
 
 void FolderModel::selectUrlsWhenListed(const QStringList &urls)
 {
-    m_pendingSelection.clear();
+    QList<QUrl> resolved;
     for (const QString &url : urls)
-        m_pendingSelection.append(resolve(url));
+        resolved.append(resolve(url));
+
+    selectWhenListed(resolved);
+}
+
+void FolderModel::selectWhenListed(const QList<QUrl> &urls)
+{
+    m_pendingSelection = urls;
 
     if (m_status == Ready)
         applyPendingSelection();
