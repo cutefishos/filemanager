@@ -4,6 +4,10 @@
 #include "helper/previewcontroller.h"
 
 #include <QFile>
+#include <QQmlComponent>
+#include <QQmlEngine>
+#include <QQuickItem>
+#include <QQuickWindow>
 #include <QStringEncoder>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -166,6 +170,39 @@ private slots:
     {
         const QVariantMap file = describe(write("short.txt", "one\ntwo\n"));
         QVERIFY(file.value("breaks").toList().isEmpty());
+    }
+
+    void longTextArrivesInSlices()
+    {
+        QString text;
+        for (int line = 0; text.size() < 200 * 1024; ++line)
+            text += QStringLiteral("Line %1 of a long text file.\n").arg(line);
+
+        QQmlEngine engine;
+        QQmlComponent component(&engine);
+        component.setData("import QtQuick\n"
+                          "Window { width: 600; height: 400; visible: true\n"
+                          "    PreviewTextView { objectName: \"view\"; anchors.fill: parent } }",
+                          QUrl("qrc:/qml/SliceTest.qml"));
+        std::unique_ptr<QObject> window(component.create());
+        QVERIFY2(window, qPrintable(component.errorString()));
+        auto *view = window->findChild<QQuickItem *>("view");
+        auto *edit = window->findChild<QQuickItem *>("previewText");
+        QVERIFY(view && edit);
+
+        view->setProperty("file", QVariantMap{{"text", text}, {"truncated", true}});
+        const int first = edit->property("length").toInt();
+        QVERIFY(first > 10000);
+        QVERIFY(first < 12 * 1024);
+        QVERIFY(text.at(first - 1) == QLatin1Char('\n'));
+        QVERIFY(!view->property("complete").toBool());
+
+        QTRY_VERIFY_WITH_TIMEOUT(view->property("complete").toBool(), 10000);
+        QCOMPARE(edit->property("text").toString(), text);
+
+        // The same text again keeps what is laid out.
+        view->setProperty("file", QVariantMap{{"text", text}});
+        QCOMPARE(edit->property("length").toInt(), text.size());
     }
 
 private:
