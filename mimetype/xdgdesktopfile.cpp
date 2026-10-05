@@ -46,12 +46,17 @@ QStringList XdgDesktopFile::keys() const
 
 QString XdgDesktopFile::localeName() const
 {
-    QString localeKey = QString("Name[%1]").arg(QLocale::system().name());
+    // Most entries translate by language alone: ja_JP has to fall back to Name[ja].
+    const QString locale = QLocale::system().name();
+    const QStringList languages = {locale, locale.section(QLatin1Char('_'), 0, 0)};
 
-    if (XdgDesktopFile::value(localeKey).toString().isEmpty())
-        return XdgDesktopFile::value("Name").toString();;
+    for (const QString &language : languages) {
+        const QString name = XdgDesktopFile::value(QString("Name[%1]").arg(language)).toString();
+        if (!name.isEmpty())
+            return name;
+    }
 
-    return XdgDesktopFile::value(localeKey).toString();
+    return XdgDesktopFile::value("Name").toString();
 }
 
 QString XdgDesktopFile::prefix() const
