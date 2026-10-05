@@ -19,13 +19,12 @@
 
 #include <cerrno>
 
-namespace {
-constexpr auto serviceName = "com.cutefish.FileOperations";
-constexpr auto managerPath = "/com/cutefish/FileOperations";
-constexpr auto managerInterface = "com.cutefish.FileOperations.Manager1";
-constexpr auto taskInterface = "com.cutefish.FileOperations.Task1";
+static constexpr auto serviceName = "com.cutefish.FileOperations";
+static constexpr auto managerPath = "/com/cutefish/FileOperations";
+static constexpr auto managerInterface = "com.cutefish.FileOperations.Manager1";
+static constexpr auto taskInterface = "com.cutefish.FileOperations.Task1";
 
-bool daemonAvailable()
+static bool daemonAvailable()
 {
     if (qEnvironmentVariableIsSet("CUTEFISH_FILEOPERATIONS_IN_PROCESS"))
         return false;
@@ -40,7 +39,7 @@ bool daemonAvailable()
     return activatable.isValid() && activatable.value().contains(QString::fromLatin1(serviceName));
 }
 
-QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
+static QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
 {
     return {{QStringLiteral("preparing"), progress.preparing},
             {QStringLiteral("totalsKnown"), progress.totalsKnown},
@@ -52,7 +51,7 @@ QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
             {QStringLiteral("currentPath"), progress.currentPath}};
 }
 
-QVariantMap initialSnapshot(const Cutefish::IO::TaskRequest &request)
+static QVariantMap initialSnapshot(const Cutefish::IO::TaskRequest &request)
 {
     Cutefish::IO::Task task(request);
     return {{QStringLiteral("operationName"), task.operationName()},
@@ -61,6 +60,8 @@ QVariantMap initialSnapshot(const Cutefish::IO::TaskRequest &request)
             {QStringLiteral("destinationName"), task.destinationName()},
             {QStringLiteral("progress"), progressMap(task.progressInfo())}};
 }
+
+namespace {
 
 class LocalOperationTask final : public OperationTask
 {
@@ -233,6 +234,7 @@ public:
 private:
     QPointer<ArchiveJob> m_job;
 };
+
 } // namespace
 
 FileOperationsClient *FileOperationsClient::instance()

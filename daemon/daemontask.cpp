@@ -2,8 +2,7 @@
 
 #include <QTimer>
 
-namespace {
-QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
+static QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
 {
     return {{QStringLiteral("preparing"), progress.preparing},
             {QStringLiteral("totalsKnown"), progress.totalsKnown},
@@ -14,7 +13,6 @@ QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
             {QStringLiteral("elapsedMs"), progress.elapsedMs},
             {QStringLiteral("currentPath"), progress.currentPath}};
 }
-} // namespace
 
 DaemonTask::DaemonTask(const QString &objectPath, const Cutefish::IO::TaskRequest &request,
                        QObject *parent)

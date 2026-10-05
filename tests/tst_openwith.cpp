@@ -7,8 +7,7 @@
 #include <QTemporaryDir>
 #include <QtTest>
 
-namespace {
-DesktopEntryData textApp(const QString &id, const QString &path, const QStringList &mimeTypes)
+static DesktopEntryData textApp(const QString &id, const QString &path, const QStringList &mimeTypes)
 {
     DesktopEntryData data;
     const QByteArray contents = "[Desktop Entry]\nType=Application\nName=" + id.toUtf8()
@@ -16,7 +15,6 @@ DesktopEntryData textApp(const QString &id, const QString &path, const QStringLi
     DesktopEntry::parse(id, path, contents, &data);
     return data;
 }
-} // namespace
 
 class OpenWithTest : public QObject
 {

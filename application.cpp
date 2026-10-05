@@ -31,14 +31,12 @@
 
 #include <malloc.h>
 
-namespace {
-const QString serviceName = QStringLiteral("com.cutefish.FileManager");
-const QString freedesktopServiceName = QStringLiteral("org.freedesktop.FileManager1");
-const QString previewServiceName = QStringLiteral("com.cutefish.FilePreview");
-const QString chooserServiceName = QStringLiteral("com.cutefish.FileChooser");
-const QUrl browserWindow(QStringLiteral("qrc:/qml/main.qml"));
-const QUrl previewWindow(QStringLiteral("qrc:/qml/PreviewWindow.qml"));
-}
+static const QString serviceName = QStringLiteral("com.cutefish.FileManager");
+static const QString freedesktopServiceName = QStringLiteral("org.freedesktop.FileManager1");
+static const QString previewServiceName = QStringLiteral("com.cutefish.FilePreview");
+static const QString chooserServiceName = QStringLiteral("com.cutefish.FileChooser");
+static const QUrl browserWindow(QStringLiteral("qrc:/qml/main.qml"));
+static const QUrl previewWindow(QStringLiteral("qrc:/qml/PreviewWindow.qml"));
 
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)

@@ -2,10 +2,7 @@
 
 #include <preferences.h>
 
-namespace
-{
-bool s_desktop = false;
-}
+static bool s_desktop = false;
 
 void FolderPreferences::useDesktop()
 {

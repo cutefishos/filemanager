@@ -4,8 +4,7 @@
 #include <QDBusConnection>
 #include <QUrl>
 
-namespace {
-QList<QUrl> toUrls(const QStringList &uriList)
+static QList<QUrl> toUrls(const QStringList &uriList)
 {
     QList<QUrl> urls;
     for (const QString &uri : uriList) {
@@ -14,7 +13,6 @@ QList<QUrl> toUrls(const QStringList &uriList)
             urls.append(url);
     }
     return urls;
-}
 }
 
 DBusInterface::DBusInterface(Application *application)

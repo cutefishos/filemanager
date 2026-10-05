@@ -9,9 +9,7 @@
 #include <QQuickWindow>
 #include <QTimer>
 
-namespace {
-const QUrl chooserWindow(QStringLiteral("qrc:/chooser/FileChooser.qml"));
-}
+static const QUrl chooserWindow(QStringLiteral("qrc:/chooser/FileChooser.qml"));
 
 bool preloadChooserWindow(WindowManager *windows)
 {

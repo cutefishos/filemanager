@@ -5,8 +5,7 @@
 #include <QPromise>
 #include <QThreadPool>
 
-namespace {
-QThreadPool &countPool()
+static QThreadPool &countPool()
 {
     static QThreadPool pool;
     static const bool configured = [] {
@@ -15,7 +14,6 @@ QThreadPool &countPool()
     }();
     Q_UNUSED(configured)
     return pool;
-}
 }
 
 FolderSizeCache::FolderSizeCache(QObject *parent)

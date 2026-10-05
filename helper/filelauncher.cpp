@@ -16,17 +16,16 @@
 #include <sys/vfs.h>
 #include <unistd.h>
 
-namespace {
 // Not in linux/magic.h: the ntfs3 driver and the old in-kernel ntfs.
-constexpr long NTFS3_SUPER_MAGIC = 0x7366746e;
-constexpr long NTFS_SB_MAGIC = 0x5346544e;
+static constexpr long NTFS3_SUPER_MAGIC = 0x7366746e;
+static constexpr long NTFS_SB_MAGIC = 0x5346544e;
 
-bool isDesktopFile(const QString &path)
+static bool isDesktopFile(const QString &path)
 {
     return QMimeDatabase().mimeTypeForFile(path).inherits(QStringLiteral("application/x-desktop"));
 }
 
-bool isInApplicationsDirectory(const QString &path)
+static bool isInApplicationsDirectory(const QString &path)
 {
     const QString directory = QFileInfo(path).canonicalPath();
     const QStringList locations =
@@ -42,7 +41,7 @@ bool isInApplicationsDirectory(const QString &path)
 }
 
 // These mounts show every file as executable, so the bit says nothing about the user's intent.
-bool keepsPermissions(const QString &path)
+static bool keepsPermissions(const QString &path)
 {
     struct statfs fs;
     if (::statfs(QFile::encodeName(path).constData(), &fs) != 0)
@@ -58,7 +57,6 @@ bool keepsPermissions(const QString &path)
     default:
         return true;
     }
-}
 }
 
 FileLauncher *SELF = nullptr;

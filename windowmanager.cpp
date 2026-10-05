@@ -10,14 +10,12 @@
 #include <QThread>
 #include <QTimer>
 
-namespace {
-QHash<const QQmlEngine *, WindowManager *> s_managers;
-QPointer<WindowManager> s_default;
+static QHash<const QQmlEngine *, WindowManager *> s_managers;
+static QPointer<WindowManager> s_default;
 
 // A deferred teardown waits this long before looking again while a nested
 // event loop is still running.
-constexpr int nestedLoopRetryMs = 100;
-}
+static constexpr int nestedLoopRetryMs = 100;
 
 class IncubationController : public QObject, public QQmlIncubationController
 {

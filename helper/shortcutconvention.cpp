@@ -7,13 +7,9 @@
 #include <QDBusServiceWatcher>
 #include <QDBusVariant>
 
-namespace {
-
-constexpr auto kService = "com.cutefish.Keyboard1";
-constexpr auto kPath = "/com/cutefish/Keyboard1";
-constexpr auto kInterface = "com.cutefish.Keyboard1";
-
-} // namespace
+static constexpr auto kService = "com.cutefish.Keyboard1";
+static constexpr auto kPath = "/com/cutefish/Keyboard1";
+static constexpr auto kInterface = "com.cutefish.Keyboard1";
 
 ShortcutConvention *ShortcutConvention::self()
 {

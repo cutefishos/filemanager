@@ -22,16 +22,15 @@
 #include <optional>
 #include <unicode/ucsdet.h>
 
-namespace {
 // The text item lays out everything it holds when it is shown.
-constexpr qint64 textLimit = 256 * 1024;
+static constexpr qint64 textLimit = 256 * 1024;
 // TextEdit builds a paragraph's nodes whole, and at either end of the text it
 // rebuilds the paragraphs in view on every scroll step.
-constexpr qsizetype paragraphLimit = 4000;
+static constexpr qsizetype paragraphLimit = 4000;
 
 // Breaks longer paragraphs, after a space near the limit where there is one,
 // and returns the positions of the line breaks it inserted.
-QVariantList splitLongParagraphs(QString *text)
+static QVariantList splitLongParagraphs(QString *text)
 {
     QVariantList breaks;
     QString result;
@@ -62,7 +61,7 @@ QVariantList splitLongParagraphs(QString *text)
 
 // A decoder for text that is neither UTF-8 nor marked by a byte order mark
 // (GBK, Shift JIS, Big5, Windows code pages), guessed from byte statistics.
-QStringDecoder legacyDecoder(const QByteArray &data)
+static QStringDecoder legacyDecoder(const QByteArray &data)
 {
     UErrorCode status = U_ZERO_ERROR;
     std::unique_ptr<UCharsetDetector, decltype(&ucsdet_close)> detector(ucsdet_open(&status),
@@ -101,7 +100,7 @@ QStringDecoder legacyDecoder(const QByteArray &data)
 }
 
 // The start of a text file, or nothing for content that is not text.
-std::optional<QString> readText(const QString &path, bool *truncated)
+static std::optional<QString> readText(const QString &path, bool *truncated)
 {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly))
@@ -131,7 +130,7 @@ std::optional<QString> readText(const QString &path, bool *truncated)
     return text;
 }
 
-QVariantMap describeFile(const QUrl &url)
+static QVariantMap describeFile(const QUrl &url)
 {
     QVariantMap result{{"url", url}, {"name", url.fileName()}, {"kind", "generic"}};
     if (!url.isLocalFile()) {
@@ -192,7 +191,6 @@ QVariantMap describeFile(const QUrl &url)
     }
 
     return result;
-}
 }
 
 PreviewController::PreviewController(QObject *parent)

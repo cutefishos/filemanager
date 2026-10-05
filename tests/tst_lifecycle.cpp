@@ -25,15 +25,14 @@
 #include <task.h>
 #include <preferences.h>
 
-namespace {
-
 // Sanitizer builds run several times slower; the watchdogs scale with them.
 #if defined(__SANITIZE_ADDRESS__) || (defined(__has_feature) && __has_feature(address_sanitizer))
-constexpr int kTimeScale = 5;
+static constexpr int kTimeScale = 5;
 #else
-constexpr int kTimeScale = 1;
+static constexpr int kTimeScale = 1;
 #endif
-QList<QWindow *> browserWindows()
+
+static QList<QWindow *> browserWindows()
 {
     QList<QWindow *> windows;
     for (auto *window : QGuiApplication::topLevelWindows()) {
@@ -43,7 +42,7 @@ QList<QWindow *> browserWindows()
     return windows;
 }
 
-int activatedRequest(Application &app, const QString &folder, bool showFolders)
+static int activatedRequest(Application &app, const QString &folder, bool showFolders)
 {
     const QUrl url = QUrl::fromLocalFile(folder + "/Screenshot #1.png");
     QFile file(url.toLocalFile());
@@ -94,7 +93,7 @@ int activatedRequest(Application &app, const QString &folder, bool showFolders)
 }
 
 // Two browser windows; the application ends once both are closed.
-int closingWindowsQuits(Application &app, const QString &folder)
+static int closingWindowsQuits(Application &app, const QString &folder)
 {
     bool closedLastWindow = false;
     QTimer::singleShot(0, &app, [&] {
@@ -123,7 +122,7 @@ int closingWindowsQuits(Application &app, const QString &folder)
 // A running operation outlives the last window: the application waits for it.
 // With the daemon on the bus, a task runs there and is presented here by a
 // remote task object, which must go once its result is out.
-int remoteTaskIsReleased(Application &app, const QString &folder)
+static int remoteTaskIsReleased(Application &app, const QString &folder)
 {
     QProcess daemon;
     daemon.start(QCoreApplication::applicationDirPath()
@@ -167,7 +166,7 @@ int remoteTaskIsReleased(Application &app, const QString &folder)
     return outcome == 0 ? result : outcome;
 }
 
-int runningTaskKeepsApplication(Application &app, const QString &folder)
+static int runningTaskKeepsApplication(Application &app, const QString &folder)
 {
     QDir(folder).mkdir("target");
     for (const QString &path : {folder + "/photo.svg", folder + "/target/photo.svg"}) {
@@ -212,7 +211,7 @@ int runningTaskKeepsApplication(Application &app, const QString &folder)
 }
 
 // Declining to empty the trash leaves nothing to do.
-int rejectedEmptyTrashQuits(Application &app)
+static int rejectedEmptyTrashQuits(Application &app)
 {
     bool rejected = false;
     QTimer::singleShot(0, &app, [&] {
@@ -234,7 +233,7 @@ int rejectedEmptyTrashQuits(Application &app)
 
 // The session's daemon holds the names with no window, opens what the bus asks
 // for, and outlives its last window.
-int daemonOutlivesWindows(Application &app, const QString &folder)
+static int daemonOutlivesWindows(Application &app, const QString &folder)
 {
     const auto call = [](const QString &method, const QVariantList &arguments) {
         auto message = QDBusMessage::createMethodCall("com.cutefish.FileManager", "/FileManager",
@@ -283,7 +282,7 @@ int daemonOutlivesWindows(Application &app, const QString &folder)
     return survived ? result : 5;
 }
 
-QList<QWindow *> chooserWindows()
+static QList<QWindow *> chooserWindows()
 {
     QList<QWindow *> windows;
     for (auto *window : QGuiApplication::topLevelWindows()) {
@@ -295,7 +294,7 @@ QList<QWindow *> chooserWindows()
 
 // The daemon serves the portal's dialogs: one window per Open, answered with
 // the helper's JSON when Close or the user ends it, and it outlives them.
-int daemonServesChooser(Application &app, const QString &folder)
+static int daemonServesChooser(Application &app, const QString &folder)
 {
     // Over the bus like the portal: a call to a service of this very connection
     // would be delivered in-process.
@@ -355,7 +354,6 @@ int daemonServesChooser(Application &app, const QString &folder)
     QTimer::singleShot(10000 * kTimeScale, &app, [&] { app.exit(4); });
     const int result = app.run();
     return served ? result : 5;
-}
 }
 
 int main(int argc, char **argv)

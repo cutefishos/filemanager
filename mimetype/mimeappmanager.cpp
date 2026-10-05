@@ -15,19 +15,17 @@
 
 #include <algorithm>
 
-namespace {
-
-MimeAppManager *s_self = nullptr;
+static MimeAppManager *s_self = nullptr;
 
 // Hidden entries only mask a system entry; programs that need a terminal are not
 // offered for opening files.
-bool opensFiles(const DesktopEntry *entry)
+static bool opensFiles(const DesktopEntry *entry)
 {
     return !entry->hidden() && !entry->terminal();
 }
 
 // mimeapps.list and xdg-terminals.list name applications by desktop file ID.
-DesktopEntry *entryForDesktopId(QString desktopId)
+static DesktopEntry *entryForDesktopId(QString desktopId)
 {
     if (desktopId.endsWith(QLatin1String(".desktop")))
         desktopId.chop(QLatin1String(".desktop").size());
@@ -36,12 +34,10 @@ DesktopEntry *entryForDesktopId(QString desktopId)
     return entry && opensFiles(entry) ? entry : nullptr;
 }
 
-QString desktopId(const DesktopEntry *entry)
+static QString desktopId(const DesktopEntry *entry)
 {
     return entry->id() + QLatin1String(".desktop");
 }
-
-} // namespace
 
 MimeAppManager *MimeAppManager::self()
 {

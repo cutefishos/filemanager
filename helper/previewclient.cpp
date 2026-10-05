@@ -11,10 +11,8 @@
 #include <QKeyEvent>
 #include <QUuid>
 
-namespace {
-constexpr auto serviceName = "com.cutefish.FilePreview";
-constexpr auto servicePath = "/com/cutefish/FilePreview";
-}
+static constexpr auto serviceName = "com.cutefish.FilePreview";
+static constexpr auto servicePath = "/com/cutefish/FilePreview";
 
 PreviewClient::PreviewClient(QObject *parent)
     : QObject(parent)

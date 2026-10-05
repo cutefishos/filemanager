@@ -15,9 +15,7 @@
 #include <sys/stat.h>
 #endif
 
-namespace {
-
-QString zipError(zip_t *archive)
+static QString zipError(zip_t *archive)
 {
     if (!archive)
         return QStringLiteral("Unknown ZIP error");
@@ -25,7 +23,7 @@ QString zipError(zip_t *archive)
     return QString::fromUtf8(zip_strerror(archive));
 }
 
-QString zipOpenError(int errorCode)
+static QString zipOpenError(int errorCode)
 {
     zip_error_t error;
     zip_error_init_with_code(&error, errorCode);
@@ -34,18 +32,18 @@ QString zipOpenError(int errorCode)
     return message;
 }
 
-QString temporaryPath(const QString &parentPath, const QString &prefix)
+static QString temporaryPath(const QString &parentPath, const QString &prefix)
 {
     return QDir(parentPath).filePath(QStringLiteral(".%1-%2")
                                          .arg(prefix, QUuid::createUuid().toString(QUuid::WithoutBraces)));
 }
 
-bool isDirectoryEntry(const QString &name)
+static bool isDirectoryEntry(const QString &name)
 {
     return name.endsWith(QLatin1Char('/'));
 }
 
-bool hasSymbolicLinkParent(const QString &rootPath, const QString &relativePath)
+static bool hasSymbolicLinkParent(const QString &rootPath, const QString &relativePath)
 {
     const QStringList components = relativePath.split(QLatin1Char('/'), Qt::SkipEmptyParts);
     QString currentPath = rootPath;
@@ -63,13 +61,11 @@ bool hasSymbolicLinkParent(const QString &rootPath, const QString &relativePath)
     return false;
 }
 
-QString topLevelArchiveName(const QString &archivePath)
+static QString topLevelArchiveName(const QString &archivePath)
 {
     const qsizetype separator = archivePath.indexOf(QLatin1Char('/'));
     return separator < 0 ? archivePath : archivePath.left(separator);
 }
-
-} // namespace
 
 ArchiveJob::ArchiveJob(Operation operation,
                        const QStringList &inputs,

@@ -15,16 +15,14 @@
 
 namespace CutefishFM {
 
-namespace {
-FolderOpener s_folderOpener;
+static FolderOpener s_folderOpener;
 
-const QUrl ioTaskDialog(QStringLiteral("qrc:/qml/Dialogs/IoTaskDialog.qml"));
-const QUrl deleteDialog(QStringLiteral("qrc:/qml/Dialogs/DeleteDialog.qml"));
-const QUrl emptyTrashDialog(QStringLiteral("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
-const QUrl propertiesDialog(QStringLiteral("qrc:/qml/Dialogs/PropertiesDialog.qml"));
-const QUrl launchDialog(QStringLiteral("qrc:/qml/Dialogs/LaunchDialog.qml"));
-const QUrl openWithDialog(QStringLiteral("qrc:/qml/Dialogs/OpenWithDialog.qml"));
-}
+static const QUrl ioTaskDialog(QStringLiteral("qrc:/qml/Dialogs/IoTaskDialog.qml"));
+static const QUrl deleteDialog(QStringLiteral("qrc:/qml/Dialogs/DeleteDialog.qml"));
+static const QUrl emptyTrashDialog(QStringLiteral("qrc:/qml/Dialogs/EmptyTrashDialog.qml"));
+static const QUrl propertiesDialog(QStringLiteral("qrc:/qml/Dialogs/PropertiesDialog.qml"));
+static const QUrl launchDialog(QStringLiteral("qrc:/qml/Dialogs/LaunchDialog.qml"));
+static const QUrl openWithDialog(QStringLiteral("qrc:/qml/Dialogs/OpenWithDialog.qml"));
 
 namespace Dialogs {
 

@@ -19,10 +19,9 @@ using Cutefish::IO::FileItem;
 using Cutefish::IO::FileItemList;
 using Cutefish::IO::releaseInBackground;
 
-namespace {
-constexpr int BatchSize = 256;
+static constexpr int BatchSize = 256;
 
-bool sameMetadata(const FileItem &left, const FileItem &right)
+static bool sameMetadata(const FileItem &left, const FileItem &right)
 {
     // Equal stamps answer for size, kind and modification time without the accessors.
     const auto sameStat = [&] {
@@ -40,6 +39,8 @@ bool sameMetadata(const FileItem &left, const FileItem &right)
             && left.typeDescription() == right.typeDescription();
 }
 
+namespace {
+
 // What the sort compares, read once per item instead of once per comparison.
 struct SortEntry
 {
@@ -49,7 +50,8 @@ struct SortEntry
     quint64 size = 0;
     bool dir = false;
 };
-}
+
+} // namespace
 
 struct FolderContentsModel::Prepared
 {
