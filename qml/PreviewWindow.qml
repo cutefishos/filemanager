@@ -11,6 +11,8 @@ FishUI.Window {
     WindowHints.alwaysOnTop: true
     // Fitting the window to each image keeps it where it is on screen.
     WindowHints.resizeAroundCenter: true
+    // Each Space maps a new window; it opens where the last one was left.
+    WindowHints.restoreId: "quickLook"
     objectName: "quickLookWindow"
 
     required property var controller
