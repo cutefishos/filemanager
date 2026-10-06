@@ -7,13 +7,10 @@
 #include "applicationregistry.h"
 #include "mimeapps.h"
 
-#include <QDateTime>
 #include <QFileInfo>
 #include <QMimeDatabase>
 #include <QMimeType>
 #include <QUrl>
-
-#include <algorithm>
 
 static MimeAppManager *s_self = nullptr;
 
@@ -61,15 +58,7 @@ QString MimeAppManager::getDefaultAppByFilePath(const QString &filePath)
 
 QString MimeAppManager::getDefaultAppByMimeType(const QMimeType &mimeType)
 {
-    for (const QString &group :
-         {QStringLiteral("Default Applications"), QStringLiteral("Added Associations")}) {
-        const auto apps = MimeApps::associations(MimeApps::userListPath(), group, mimeType.name());
-        for (const QString &app : apps) {
-            if (const DesktopEntry *entry = entryForDesktopId(app))
-                return entry->path();
-        }
-    }
-    return {};
+    return MimeApps::chosenApplication(MimeApps::userListPath(), mimeType);
 }
 
 bool MimeAppManager::setDefaultAppForType(const QString &mimeType, const QString &app)
@@ -94,56 +83,7 @@ QStringList MimeAppManager::getRecommendedAppsByFilePath(const QString &filePath
 
 QStringList MimeAppManager::getRecommendedAppsByMimeType(const QMimeType &mimeType)
 {
-    const QList<DesktopEntry *> entries = ApplicationRegistry::instance()->entries();
-    QMimeDatabase mimeDatabase;
-    QList<QMimeType> mimeTypes {mimeType};
-    QStringList apps;
-
-    // Applications for the type itself, else for its parents, a generation at a time.
-    while (apps.isEmpty() && !mimeTypes.isEmpty()) {
-        QStringList names;
-        for (const QMimeType &type : std::as_const(mimeTypes))
-            names << type.name() << type.aliases();
-
-        QList<DesktopEntry *> matches;
-        for (DesktopEntry *entry : entries) {
-            if (!opensFiles(entry))
-                continue;
-
-            const QStringList entryTypes = entry->mimeTypes();
-            if (std::any_of(entryTypes.cbegin(), entryTypes.cend(),
-                            [&names](const QString &type) { return names.contains(type); }))
-                matches.append(entry);
-        }
-
-        // The first one opens files without a default, so keep that the earliest installed.
-        std::stable_sort(matches.begin(), matches.end(), [](DesktopEntry *a, DesktopEntry *b) {
-            return QFileInfo(a->path()).birthTime() < QFileInfo(b->path()).birthTime();
-        });
-
-        QList<DesktopEntry *> added;
-        for (DesktopEntry *entry : std::as_const(matches)) {
-            // One program installed under two desktop files is offered once.
-            const bool duplicate = std::any_of(added.cbegin(), added.cend(),
-                                               [entry](const DesktopEntry *other) {
-                return other->exec() == entry->exec() && other->name() == entry->name();
-            });
-            if (duplicate)
-                continue;
-
-            added.append(entry);
-            apps.append(entry->path());
-        }
-
-        QList<QMimeType> parents;
-        for (const QMimeType &type : std::as_const(mimeTypes)) {
-            for (const QString &name : type.parentMimeTypes())
-                parents.append(mimeDatabase.mimeTypeForName(name));
-        }
-        mimeTypes = parents;
-    }
-
-    return apps;
+    return MimeApps::applications(mimeType);
 }
 
 QVariantList MimeAppManager::recommendedApps(const QUrl &url)
