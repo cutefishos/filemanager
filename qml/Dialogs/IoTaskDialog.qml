@@ -10,15 +10,16 @@ FishUI.Window {
     flags: Qt.Dialog | Qt.FramelessWindowHint
     visible: false
     minimizeButtonVisible: false
-    windowButtonsTopMargin: 8
-    windowButtonsRightMargin: 8
-    header.height: 36
+    // Cancel or Close is always there, so no title bar button.
+    closeButtonVisible: false
+    header.height: 0
+    contentTopMargin: 0
     background.color: FishUI.Theme.secondBackgroundColor
     // The background item reaches a grown window a frame or two after its buffer does.
     color: background.color
 
-    readonly property int dialogWidth: Math.max(480, actions.implicitWidth + 40)
-    readonly property int dialogHeight: content.implicitHeight + header.height + 36
+    readonly property int dialogWidth: Math.max(480, actions.implicitWidth + 32)
+    readonly property int dialogHeight: content.implicitHeight + 32
     width: dialogWidth
     height: dialogHeight
     minimumWidth: dialogWidth
@@ -246,17 +247,16 @@ FishUI.Window {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
-        spacing: 20
+        anchors.margins: 16
+        spacing: 16
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 16
+            spacing: 14
 
             FishUI.IconItem {
-                Layout.preferredWidth: 40
-                Layout.preferredHeight: 40
+                Layout.preferredWidth: 48
+                Layout.preferredHeight: 48
                 Layout.alignment: Qt.AlignTop
                 source: control.operation === "trash" || control.operation === "emptyTrash"
                         ? "user-trash" : "folder"
@@ -264,14 +264,14 @@ FishUI.Window {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: 4
 
                 FishUI.Label {
                     objectName: "ioOperationHeading"
                     Layout.fillWidth: true
                     text: control.heading
                     textFormat: Text.PlainText
-                    font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 13, weight: Font.DemiBold })
+                    font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 14, weight: Font.DemiBold })
                     color: FishUI.Theme.textColor
                     wrapMode: Text.Wrap
                     maximumLineCount: 2
