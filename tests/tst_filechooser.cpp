@@ -61,6 +61,20 @@ private slots:
         QCOMPARE(completed.size(), 1);
     }
 
+    void namesSortNumerically()
+    {
+        QTemporaryDir directory;
+        for (const QString &name : {"page10.txt", "page2.txt", "page1.txt"})
+            writeFile(directory.filePath(name));
+        FileChooser chooser({{"mode", "OpenFile"}, {"current_folder", directory.path()}});
+        chooser.setSortMode(Cutefish::IO::DirectoryModel::Name);
+        chooser.setSortDesc(false);
+        QTRY_COMPARE(chooser.rowCount(), 3);
+        QTRY_COMPARE(rowFor(chooser, "page1.txt"), 0);
+        QCOMPARE(rowFor(chooser, "page2.txt"), 1);
+        QCOMPARE(rowFor(chooser, "page10.txt"), 2);
+    }
+
     void mimeAndGlobAreAlternatives()
     {
         QTemporaryDir directory;

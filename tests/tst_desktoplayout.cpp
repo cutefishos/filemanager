@@ -265,6 +265,43 @@ private slots:
         QCOMPARE(cell(1), 12 * 8 + 2);
     }
 
+    // Files without a saved cell take the free cells in the folder view's
+    // name order, numbers by value.
+    void newItemsFillCellsInNameOrder()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        QStringList urls;
+        for (const QString &name : {QStringLiteral("a"), QStringLiteral("img10"),
+                                    QStringLiteral("img2"), QStringLiteral("img1")}) {
+            QFile file(directory.filePath(name));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            urls.append(QUrl::fromLocalFile(file.fileName()).toString());
+        }
+
+        FolderModel folder;
+        folder.setSortMode(-1);
+        Positioner positioner;
+        positioner.setPerStripe(8);
+        positioner.setStripes(12);
+        positioner.setFolderModel(&folder);
+        positioner.setEnabled(true);
+        folder.setUrl(QUrl::fromLocalFile(directory.path()).toString());
+        QTRY_COMPARE(folder.rowCount(), 4);
+        QTRY_VERIFY(folder.status() != FolderModel::Listing);
+
+        // Only "a" has a saved cell, away from the default slots in the first stripe.
+        positioner.setPositions({"12", "8", urls[0], "0", "0"});
+        QTest::qWait(20);
+        auto cell = [&](int item) {
+            return positioner.indexForUrl(QUrl(urls[item]));
+        };
+        QCOMPARE(cell(0), 0);
+        QCOMPARE(cell(3), 11 * 8);
+        QCOMPARE(cell(2), 11 * 8 + 1);
+        QCOMPARE(cell(1), 11 * 8 + 2);
+    }
+
     // A new folder appears straight on the right-clicked cell, and a renamed
     // file comes back on the cell it was on -- neither passes through the
     // default cell first.

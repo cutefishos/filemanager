@@ -5,6 +5,7 @@
 #include "positioner.h"
 #include "foldermodel.h"
 
+#include <QCollator>
 #include <QDebug>
 #include <QSet>
 #include <QTimer>
@@ -1265,8 +1266,15 @@ bool Positioner::computeMaps(QHash<int, int> *proxyToSource, QHash<int, int> *so
         place(cell, sourceIndices.take(spill.name));
     }
 
+    // New items fill the free cells in the order the folder view lists names;
+    // names the collator equates ("a1", "a01") still need one fixed order.
     QStringList newNames = sourceIndices.keys();
-    std::sort(newNames.begin(), newNames.end());
+    QCollator collator;
+    collator.setNumericMode(true);
+    std::sort(newNames.begin(), newNames.end(), [&collator](const QString &a, const QString &b) {
+        const int order = collator.compare(a, b);
+        return order != 0 ? order < 0 : a < b;
+    });
 
     for (const QString &name : std::as_const(newNames)) {
         const int sourceRow = sourceIndices.value(name);

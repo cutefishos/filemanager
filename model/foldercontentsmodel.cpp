@@ -335,6 +335,8 @@ void FolderContentsModel::prepare()
 
             if (query.sortColumn >= 0) {
                 QCollator collator(locale);
+                // Numbers in names compare by value: "img2" before "img10".
+                collator.setNumericMode(true);
                 std::vector<SortEntry> entries(incoming.size());
 
                 for (qsizetype i = 0; i < incoming.size(); ++i) {

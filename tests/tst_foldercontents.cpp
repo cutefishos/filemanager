@@ -286,6 +286,36 @@ private slots:
         QCOMPARE(selectedRows(), QList<int>({1}));
     }
 
+    // Numbers inside names sort by value, both ways round, so "img2" comes
+    // before "img10" in the folder view and on the desktop.
+    void namesSortNumerically()
+    {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        for (const char *name : {"img10.png", "img2.png", "img1.png", "img100.png", "Img3.png"})
+            QVERIFY(writeFile(directory.filePath(QString::fromLatin1(name))));
+
+        const auto names = [](const FolderModel &folder) {
+            QStringList result;
+            for (int row = 0; row < folder.rowCount(); ++row)
+                result.append(folder.fileItem(row).name());
+            return result;
+        };
+        const QStringList expected = {"img1.png", "img2.png", "Img3.png", "img10.png",
+                                      "img100.png"};
+
+        FolderModel folder;
+        folder.setSortMode(Cutefish::IO::DirectoryModel::Name);
+        folder.setUrl(directory.path());
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QCOMPARE(names(folder), expected);
+
+        QStringList reversed = expected;
+        std::reverse(reversed.begin(), reversed.end());
+        folder.setSortDesc(true);
+        QTRY_COMPARE(names(folder), reversed);
+    }
+
     void sortingIsDeferredAndPreservesSelection()
     {
         QTemporaryDir directory;
