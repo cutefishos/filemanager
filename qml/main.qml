@@ -379,7 +379,7 @@ FishUI.Window {
             id: _headerRow
             anchors.fill: parent
             anchors.leftMargin: _sideBar.width + FishUI.Units.smallSpacing * 1.5
-            anchors.rightMargin: FishUI.Units.smallSpacing
+            anchors.rightMargin: root.windowButtonsSpacing
             spacing: root.windowButtonsSpacing
 
             readonly property int buttonSize: root.header.buttonSize
@@ -442,8 +442,9 @@ FishUI.Window {
                 Layout.preferredWidth: _headerRow.buttonSize
                 Layout.preferredHeight: _headerRow.buttonSize
 
-                iconName: settings.viewMethod === 0 ? "list" : "grid"
-                iconSize: 16
+                artwork: "menu"
+                iconSize: 24
+                checked: optionsMenu.visible
 
                 onClicked: {
                     optionsMenu.popup()
