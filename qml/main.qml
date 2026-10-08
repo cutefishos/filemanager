@@ -437,6 +437,7 @@ FishUI.Window {
             }
 
             IconButton {
+                id: _optionsButton
                 Layout.alignment: root.windowButtonsAlignment
                 Layout.topMargin: root.windowButtonsTopMargin
                 Layout.preferredWidth: _headerRow.buttonSize
@@ -447,7 +448,7 @@ FishUI.Window {
                 checked: optionsMenu.visible
 
                 onClicked: {
-                    optionsMenu.popup()
+                    optionsMenu.popupFor(_optionsButton.background, FishUI.Units.smallSpacing / 2)
                 }
             }
         }
