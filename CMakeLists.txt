@@ -79,7 +79,6 @@ add_library(cutefish-filemanager-core STATIC
 
   dialogs/fileproperties.cpp
 
-  widgets/rubberband.cpp
   widgets/itemviewadapter.cpp
 
   helper/datehelper.cpp

@@ -275,13 +275,17 @@ Item {
     Component {
         id: rubberBandObject
 
-        FM.RubberBand {
+        FishUI.RoundedRectangle {
             id: rubberBand
 
             width: 0
             height: 0
             z: 99999
-            color: "white"
+            color: Qt.alpha("white", 0.12)
+            radius: FishUI.Theme.smallRadius
+            continuousCorners: false
+            border.width: 1 / FishUI.Dpi.ratio
+            border.color: Qt.alpha("white", 0.7)
 
             function close() {
                 opacityAnimation.restart()

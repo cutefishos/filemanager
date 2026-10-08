@@ -8,7 +8,6 @@
 #include "model/pathbarmodel.h"
 #include "model/pathcompletionmodel.h"
 #include "model/positioner.h"
-#include "widgets/rubberband.h"
 #include "widgets/itemviewadapter.h"
 #include "helper/datehelper.h"
 #include "helper/fm.h"
@@ -52,7 +51,6 @@ void registerQmlTypes()
     qmlRegisterType<PathBarModel>(uri, 1, 0, "PathBarModel");
     qmlRegisterType<PathCompletionModel>(uri, 1, 0, "PathCompletionModel");
     qmlRegisterType<Positioner>(uri, 1, 0, "Positioner");
-    qmlRegisterType<RubberBand>(uri, 1, 0, "RubberBand");
     qmlRegisterType<ItemViewAdapter>(uri, 1, 0, "ItemViewAdapter");
     qmlRegisterType<Fm>(uri, 1, 0, "Fm");
     qmlRegisterType<PreviewClient>(uri, 1, 0, "PreviewClient");
