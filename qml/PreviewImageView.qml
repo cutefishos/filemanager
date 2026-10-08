@@ -280,7 +280,7 @@ Item {
     }
 
     // A pan along one axis shows both bars, as each bar alone shows only
-    // while its own position changes.
+    // while its own axis moves.
     Binding {
         target: horizontalBar
         property: "active"
