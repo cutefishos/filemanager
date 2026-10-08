@@ -13,12 +13,14 @@ FishUI.DesktopMenu {
 
     FishUI.MenuItem {
         text: qsTr("Icons")
+        iconName: "grid"
         checked: settings.viewMethod === 1
         onTriggered: settings.viewMethod = 1
     }
 
     FishUI.MenuItem {
         text: qsTr("List")
+        iconName: "list"
         checked: settings.viewMethod === 0
         onTriggered: settings.viewMethod = 0
     }
