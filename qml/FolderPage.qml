@@ -85,8 +85,8 @@ Item {
     FM.FolderModel {
         id: dirModel
         viewAdapter: viewAdapter
-        sortMode: settings.sortMode
-        sortDesc: settings.sortDesc
+        sortMode: dirModel.trash ? settings.trashSortMode : settings.sortMode
+        sortDesc: dirModel.trash ? settings.trashSortDesc : settings.sortDesc
         // showHiddenFiles: settings.showHiddenFiles
 
         Component.onCompleted: {

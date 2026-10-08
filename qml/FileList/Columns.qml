@@ -8,6 +8,9 @@ QtObject {
     // A GlobalSettings instance; widths and sort order persist there.
     required property var settings
     property real availableWidth: 0
+    // The trash shows where items came from and when they were deleted, in place
+    // of the modification date and kind, and keeps a sort order of its own.
+    property bool trash: false
 
     readonly property real rowHeight: Math.max(28, Math.round(FishUI.Units.fontMetrics.height + 12))
     readonly property real headerHeight: Math.max(26, Math.round(FishUI.Units.fontMetrics.height + 10))
@@ -16,37 +19,54 @@ QtObject {
 
     readonly property real minimumNameColumnWidth: 180
     readonly property real minimumColumnWidth: 64
+    readonly property real defaultOriginColumnWidth: 200
     readonly property real defaultDateColumnWidth: 180
     readonly property real defaultSizeColumnWidth: 96
     readonly property real defaultTypeColumnWidth: 150
 
+    property real originColumnWidth: settings.listOriginColumnWidth
     property real dateColumnWidth: settings.listDateColumnWidth
     property real sizeColumnWidth: settings.listSizeColumnWidth
     property real typeColumnWidth: settings.listTypeColumnWidth
 
     // Narrow lists drop the least useful columns before squeezing the name.
-    readonly property bool showDateColumn: availableWidth >= minimumNameColumnWidth + dateColumnWidth
+    readonly property real originRequiredWidth: minimumNameColumnWidth + (trash ? originColumnWidth : 0)
+    readonly property bool showOriginColumn: trash && availableWidth >= originRequiredWidth
+    readonly property bool showDateColumn: (!trash || showOriginColumn)
+                                           && availableWidth >= originRequiredWidth + dateColumnWidth
     readonly property bool showSizeColumn: showDateColumn
-                                           && availableWidth >= minimumNameColumnWidth + dateColumnWidth + sizeColumnWidth
-    readonly property bool showTypeColumn: showSizeColumn
+                                           && availableWidth >= originRequiredWidth + dateColumnWidth + sizeColumnWidth
+    readonly property bool showTypeColumn: !trash && showSizeColumn
                                            && availableWidth >= minimumNameColumnWidth + dateColumnWidth + sizeColumnWidth + typeColumnWidth
     readonly property real nameColumnWidth: availableWidth
+                                            - (showOriginColumn ? originColumnWidth : 0)
                                             - (showDateColumn ? dateColumnWidth : 0)
                                             - (showSizeColumn ? sizeColumnWidth : 0)
                                             - (showTypeColumn ? typeColumnWidth : 0)
-    readonly property real dateColumnX: nameColumnWidth
+    readonly property real originColumnX: nameColumnWidth
+    readonly property real dateColumnX: originColumnX + (showOriginColumn ? originColumnWidth : 0)
     readonly property real sizeColumnX: dateColumnX + (showDateColumn ? dateColumnWidth : 0)
     readonly property real typeColumnX: sizeColumnX + (showSizeColumn ? sizeColumnWidth : 0)
 
-    readonly property int sortMode: settings.sortMode
-    readonly property bool sortDesc: settings.sortDesc
+    // DirectoryModel columns.
+    readonly property int nameSortMode: 0
+    readonly property int sizeSortMode: 1
+    readonly property int dateSortMode: trash ? 8 : 2
+    readonly property int typeSortMode: 3
+    readonly property int originSortMode: 7
+
+    readonly property int sortMode: trash ? settings.trashSortMode : settings.sortMode
+    readonly property bool sortDesc: trash ? settings.trashSortDesc : settings.sortDesc
 
     function sortBy(mode) {
-        if (settings.sortMode === mode) {
-            settings.sortDesc = !settings.sortDesc
+        // Newest first is the useful default for dates.
+        const desc = sortMode === mode ? !sortDesc : mode === dateSortMode
+
+        if (trash) {
+            settings.trashSortDesc = desc
+            settings.trashSortMode = mode
         } else {
-            // Newest first is the useful default for dates.
-            settings.sortDesc = mode === 2
+            settings.sortDesc = desc
             settings.sortMode = mode
         }
     }

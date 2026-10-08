@@ -12,7 +12,11 @@ Settings {
 
     property int sortMode: 0
     property bool sortDesc: false
+    // The trash sorts apart, by Date Deleted (DirectoryModel::DeletionTime) at first.
+    property int trashSortMode: 8
+    property bool trashSortDesc: true
 
+    property real listOriginColumnWidth: 200
     property real listDateColumnWidth: 180
     property real listSizeColumnWidth: 96
     property real listTypeColumnWidth: 150

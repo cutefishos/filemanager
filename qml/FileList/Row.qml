@@ -7,7 +7,8 @@ Item {
     id: row
 
     required property QtObject columns
-    // The delegate's model object: fileName, fileSize, fileType, modifiedDate, iconName, ...
+    // The delegate's model object: fileName, fileSize, fileType, modifiedDate,
+    // originalPath, deletedDate, iconName, ...
     required property var itemModel
     property int rowIndex: 0
     property bool selected: false
@@ -170,11 +171,23 @@ Item {
     }
 
     FishUI.Label {
+        x: row.columns.originColumnX + row.columns.cellPadding
+        width: row.columns.originColumnWidth - row.columns.cellPadding * 2
+        anchors.verticalCenter: parent.verticalCenter
+        visible: row.columns.showOriginColumn
+        text: row.columns.showOriginColumn ? row.itemModel.originalPath : ""
+        color: row.secondaryTextColor
+        opacity: row.textOpacity
+        textFormat: Text.PlainText
+        elide: Text.ElideMiddle
+    }
+
+    FishUI.Label {
         x: row.columns.dateColumnX + row.columns.cellPadding
         width: row.columns.dateColumnWidth - row.columns.cellPadding * 2
         anchors.verticalCenter: parent.verticalCenter
         visible: row.columns.showDateColumn
-        text: row.itemModel.modifiedDate
+        text: row.columns.trash ? row.itemModel.deletedDate : row.itemModel.modifiedDate
         color: row.secondaryTextColor
         opacity: row.textOpacity
         textFormat: Text.PlainText

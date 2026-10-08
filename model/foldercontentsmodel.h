@@ -45,6 +45,11 @@ public:
     Cutefish::IO::FileItem snapshotItem(const QModelIndex &index) const;
     Cutefish::IO::FileItem pendingItem(int row) const;
     QModelIndex viewIndexForUrl(const QUrl &url) const;
+    QModelIndex viewIndexForLocalPath(const QString &path) const;
+
+    // The folder an item at the top of the trash was trashed from, the home
+    // folder written as ~; empty for any other item.
+    static QString originalLocation(const Cutefish::IO::FileItem &item);
 
     void setQuery(const FolderQuery &query);
     void expectRename(const QUrl &from, const QUrl &to);

@@ -4,6 +4,8 @@
 #include <backgroundrelease.h>
 
 #include <QCollator>
+#include <QDir>
+#include <QFileInfo>
 #include <QFutureWatcher>
 #include <QLocale>
 #include <QSet>
@@ -36,7 +38,9 @@ static bool sameMetadata(const FileItem &left, const FileItem &right)
             && left.isHidden() == right.isHidden() && left.isWritable() == right.isWritable()
             && left.mimetype() == right.mimetype() && left.iconName() == right.iconName()
             && left.targetUrl() == right.targetUrl()
-            && left.typeDescription() == right.typeDescription();
+            && left.typeDescription() == right.typeDescription()
+            && left.originalPath() == right.originalPath()
+            && left.deletionTime() == right.deletionTime();
 }
 
 namespace {
@@ -46,7 +50,9 @@ struct SortEntry
 {
     QString name;
     QString mimeType;
+    QString origin;
     QDateTime modified;
+    QDateTime deleted;
     quint64 size = 0;
     bool dir = false;
 };
@@ -102,6 +108,22 @@ FileItem FolderContentsModel::pendingItem(int row) const
     const int offset = m_insertOffset + (row - m_items.size());
 
     return offset < m_prepared->added.size() ? m_prepared->added.at(offset) : FileItem();
+}
+
+QString FolderContentsModel::originalLocation(const FileItem &item)
+{
+    if (item.originalPath().isEmpty())
+        return {};
+
+    const QString folder = QFileInfo(item.originalPath()).path();
+    const QString home = QDir::homePath();
+
+    if (folder == home)
+        return QStringLiteral("~");
+    if (home != QLatin1String("/") && folder.startsWith(home + '/'))
+        return QLatin1Char('~') + folder.mid(home.size());
+
+    return folder;
 }
 
 QVariant FolderContentsModel::data(const QModelIndex &index, int role) const
@@ -173,6 +195,16 @@ QModelIndex FolderContentsModel::viewIndexForUrl(const QUrl &url) const
 
     for (int row = 0; row < m_items.size(); ++row) {
         if (m_items[row].url() == url)
+            return index(row, 0);
+    }
+
+    return {};
+}
+
+QModelIndex FolderContentsModel::viewIndexForLocalPath(const QString &path) const
+{
+    for (int row = 0; row < m_items.size(); ++row) {
+        if (m_items[row].localPath() == path)
             return index(row, 0);
     }
 
@@ -355,6 +387,10 @@ void FolderContentsModel::prepare()
                         entry.modified = item.time(FileItem::ModificationTime, QTimeZone::UTC);
                     else if (query.sortColumn == DirectoryModel::Type)
                         entry.mimeType = item.mimetype();
+                    else if (query.sortColumn == DirectoryModel::OriginalPath)
+                        entry.origin = originalLocation(item);
+                    else if (query.sortColumn == DirectoryModel::DeletionTime)
+                        entry.deleted = item.deletionTime().toUTC();
                 }
 
                 const auto less = [&](qsizetype a, qsizetype b) {
@@ -373,6 +409,10 @@ void FolderContentsModel::prepare()
                         order = left.modified < right.modified ? -1 : left.modified > right.modified;
                     } else if (query.sortColumn == DirectoryModel::Type) {
                         order = QString::compare(left.mimeType, right.mimeType);
+                    } else if (query.sortColumn == DirectoryModel::OriginalPath) {
+                        order = collator.compare(left.origin, right.origin);
+                    } else if (query.sortColumn == DirectoryModel::DeletionTime) {
+                        order = left.deleted < right.deleted ? -1 : left.deleted > right.deleted;
                     }
                     if (order == 0)
                         order = collator.compare(left.name, right.name);

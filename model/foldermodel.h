@@ -32,6 +32,7 @@ class FolderModel : public FolderContentsModel, public QQmlParserStatus
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QString url READ url WRITE setUrl NOTIFY urlChanged)
     Q_PROPERTY(QUrl resolvedUrl READ resolvedUrl NOTIFY resolvedUrlChanged)
+    Q_PROPERTY(bool trash READ isTrash NOTIFY resolvedUrlChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(int sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
     Q_PROPERTY(bool sortDesc READ sortDesc WRITE setSortDesc NOTIFY sortDescChanged)
@@ -76,7 +77,9 @@ public:
         ModifiedRole,
         IsDesktopFileRole,
         ModifiedDateRole,
-        FileTypeRole
+        FileTypeRole,
+        OriginalPathRole,
+        DeletedDateRole
     };
 
     enum Status {
@@ -119,6 +122,7 @@ public:
     void setUrl(const QString &url);
 
     QUrl resolvedUrl() const;
+    bool isTrash() const;
     Q_INVOKABLE QUrl resolve(const QString &url);
 
     Status status() const;

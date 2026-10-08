@@ -142,7 +142,16 @@ MouseArea {
             x: 0
             width: header.columns.nameColumnWidth
             title: qsTr("Name")
-            sortMode: 0
+            sortMode: header.columns.nameSortMode
+        }
+
+        HeaderCell {
+            columns: header.columns
+            x: header.columns.originColumnX
+            width: header.columns.originColumnWidth
+            visible: header.columns.showOriginColumn
+            title: qsTr("Original Location")
+            sortMode: header.columns.originSortMode
         }
 
         HeaderCell {
@@ -150,8 +159,8 @@ MouseArea {
             x: header.columns.dateColumnX
             width: header.columns.dateColumnWidth
             visible: header.columns.showDateColumn
-            title: qsTr("Date Modified")
-            sortMode: 2
+            title: header.columns.trash ? qsTr("Date Deleted") : qsTr("Date Modified")
+            sortMode: header.columns.dateSortMode
         }
 
         HeaderCell {
@@ -160,7 +169,7 @@ MouseArea {
             width: header.columns.sizeColumnWidth
             visible: header.columns.showSizeColumn
             title: qsTr("Size")
-            sortMode: 1
+            sortMode: header.columns.sizeSortMode
             alignment: Text.AlignRight
         }
 
@@ -170,7 +179,16 @@ MouseArea {
             width: header.columns.typeColumnWidth
             visible: header.columns.showTypeColumn
             title: qsTr("Kind")
-            sortMode: 3
+            sortMode: header.columns.typeSortMode
+        }
+
+        ColumnResizer {
+            columns: header.columns
+            x: header.columns.originColumnX - width / 2
+            visible: header.columns.showOriginColumn
+            widthProperty: "originColumnWidth"
+            settingsProperty: "listOriginColumnWidth"
+            defaultWidth: header.columns.defaultOriginColumnWidth
         }
 
         ColumnResizer {

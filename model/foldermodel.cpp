@@ -79,7 +79,11 @@ FolderModel::FolderModel(QObject *parent)
     connect(m_dirLister, &Cutefish::IO::DirectoryLister::directoryChanged,
             m_folderSizes, &FolderSizeCache::clear);
     connect(m_folderSizes, &FolderSizeCache::ready, this, [this](const QString &path) {
-        const auto changed = viewIndexForUrl(QUrl::fromLocalFile(path));
+        auto changed = viewIndexForUrl(QUrl::fromLocalFile(path));
+
+        // Items of the trash carry trash:/ URLs, so only their local path matches.
+        if (!changed.isValid())
+            changed = viewIndexForLocalPath(path);
 
         if (changed.isValid())
             emit dataChanged(changed, changed, {FileSizeRole});
@@ -217,6 +221,8 @@ QHash<int, QByteArray> FolderModel::staticRoleNames()
     roleNames[IsDesktopFileRole] = "desktopFile";
     roleNames[ModifiedDateRole] = "modifiedDate";
     roleNames[FileTypeRole] = "fileType";
+    roleNames[OriginalPathRole] = "originalPath";
+    roleNames[DeletedDateRole] = "deletedDate";
     return roleNames;
 }
 
@@ -302,6 +308,12 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
 
         const QString comment = item.typeDescription();
         return comment.isEmpty() ? item.mimetype() : comment;
+    }
+    case OriginalPathRole: {
+        return originalLocation(item);
+    }
+    case DeletedDateRole: {
+        return DateHelper::columnTime(item.deletionTime());
     }
     default:
         break;
@@ -453,6 +465,11 @@ void FolderModel::setUrl(const QString &url)
 QUrl FolderModel::resolvedUrl() const
 {
     return m_dirModel->dirLister()->url();
+}
+
+bool FolderModel::isTrash() const
+{
+    return resolvedUrl().scheme() == QLatin1String("trash");
 }
 
 QUrl FolderModel::resolve(const QString &url)

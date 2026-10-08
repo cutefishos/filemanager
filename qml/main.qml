@@ -366,6 +366,7 @@ FishUI.Window {
 
     OptionsMenu {
         id: optionsMenu
+        trash: root._folderPage ? root._folderPage.model.trash : false
     }
 
     ArchiveProgressDialog {

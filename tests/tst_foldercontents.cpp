@@ -1,8 +1,10 @@
+#include "helper/datehelper.h"
 #include "model/foldermodel.h"
 
 #include <QAbstractItemModelTester>
 #include <QAction>
 #include <QApplication>
+#include <QDir>
 #include <QFile>
 #include <QMenu>
 #include <QMimeData>
@@ -14,6 +16,7 @@
 #include <QtTest>
 
 #include <algorithm>
+#include <tuple>
 
 class FolderContentsTest : public QObject
 {
@@ -314,6 +317,130 @@ private slots:
         std::reverse(reversed.begin(), reversed.end());
         folder.setSortDesc(true);
         QTRY_COMPARE(names(folder), reversed);
+    }
+
+    // The trash shows where each item was and when it was deleted, and sorts by both.
+    void trashShowsOriginalLocationAndDeletionDate()
+    {
+        QTemporaryDir data;
+        QVERIFY(data.isValid());
+        const QByteArray previous = qgetenv("XDG_DATA_HOME");
+        qputenv("XDG_DATA_HOME", data.path().toUtf8());
+        auto restore = qScopeGuard([&] {
+            if (previous.isEmpty())
+                qunsetenv("XDG_DATA_HOME");
+            else
+                qputenv("XDG_DATA_HOME", previous);
+        });
+
+        const QString trash = data.filePath("Trash");
+        QVERIFY(QDir().mkpath(trash + "/files"));
+        QVERIFY(QDir().mkpath(trash + "/info"));
+
+        const QString home = QDir::homePath();
+        const QList<std::tuple<QString, QString, QDateTime>> trashed = {
+                {"a.txt", home + "/Documents/a.txt", QDateTime(QDate(2026, 1, 1), QTime(10, 0))},
+                {"b.txt", "/srv/share/b.txt", QDateTime(QDate(2026, 3, 1), QTime(10, 0))},
+                {"c.txt", home + "/c.txt", QDateTime(QDate(2026, 2, 1), QTime(10, 0))},
+        };
+        for (const auto &[name, path, deleted] : trashed) {
+            QVERIFY(writeFile(trash + "/files/" + name));
+            QVERIFY(writeFile(trash + "/info/" + name + ".trashinfo",
+                              "[Trash Info]\nPath=" + QUrl::toPercentEncoding(path, "/")
+                                      + "\nDeletionDate="
+                                      + deleted.toString(Qt::ISODate).toLatin1() + '\n'));
+        }
+
+        // Only the home trash: the volumes of the machine may hold items of their own.
+        const auto names = [](const FolderModel &folder) {
+            QStringList result;
+            for (int row = 0; row < folder.rowCount(); ++row) {
+                if (folder.fileItem(row).url().path().startsWith(QLatin1String("/home/")))
+                    result.append(folder.fileItem(row).name());
+            }
+            return result;
+        };
+        const auto index = [](const FolderModel &folder, const QString &name) {
+            for (int row = 0; row < folder.rowCount(); ++row) {
+                if (folder.fileItem(row).name() == name)
+                    return folder.index(row, 0);
+            }
+            return QModelIndex();
+        };
+
+        FolderModel folder;
+        folder.setSortMode(Cutefish::IO::DirectoryModel::DeletionTime);
+        folder.setUrl(QStringLiteral("trash:/"));
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+        QVERIFY(folder.isTrash());
+        QCOMPARE(names(folder), QStringList({"a.txt", "c.txt", "b.txt"}));
+
+        folder.setSortDesc(true);
+        QTRY_COMPARE(names(folder), QStringList({"b.txt", "c.txt", "a.txt"}));
+
+        // By the folder shown: "/srv/share", then "~", then "~/Documents".
+        folder.setSortDesc(false);
+        folder.setSortMode(Cutefish::IO::DirectoryModel::OriginalPath);
+        QTRY_COMPARE(names(folder), QStringList({"b.txt", "c.txt", "a.txt"}));
+
+        QCOMPARE(index(folder, "a.txt").data(FolderModel::OriginalPathRole).toString(),
+                 QString("~/Documents"));
+        QCOMPARE(index(folder, "b.txt").data(FolderModel::OriginalPathRole).toString(),
+                 QString("/srv/share"));
+        QCOMPARE(index(folder, "c.txt").data(FolderModel::OriginalPathRole).toString(),
+                 QString("~"));
+        QCOMPARE(index(folder, "b.txt").data(FolderModel::DeletedDateRole).toString(),
+                 DateHelper::columnTime(std::get<2>(trashed[1])));
+        QVERIFY(!index(folder, "b.txt").data(FolderModel::DeletedDateRole).toString().isEmpty());
+    }
+
+    // A folder in the trash fills in its item count once counted, without a re-sort.
+    void trashFolderShowsItemCount()
+    {
+        QTemporaryDir data;
+        QVERIFY(data.isValid());
+        const QByteArray previous = qgetenv("XDG_DATA_HOME");
+        qputenv("XDG_DATA_HOME", data.path().toUtf8());
+        auto restore = qScopeGuard([&] {
+            if (previous.isEmpty())
+                qunsetenv("XDG_DATA_HOME");
+            else
+                qputenv("XDG_DATA_HOME", previous);
+        });
+
+        const QString trash = data.filePath("Trash");
+        QVERIFY(QDir().mkpath(trash + "/files/Counted"));
+        QVERIFY(QDir().mkpath(trash + "/info"));
+        QVERIFY(writeFile(trash + "/files/Counted/inner.txt"));
+        const QString original = QDir::homePath() + "/Counted";
+        QVERIFY(writeFile(trash + "/info/Counted.trashinfo",
+                          "[Trash Info]\nPath=" + QUrl::toPercentEncoding(original, "/")
+                                  + "\nDeletionDate=2026-01-01T10:00:00\n"));
+
+        FolderModel folder;
+        folder.setUrl(QStringLiteral("trash:/"));
+        QTRY_COMPARE(folder.status(), FolderModel::Ready);
+
+        // Only the home trash: the volumes of the machine may hold items of their own.
+        QPersistentModelIndex counted;
+        for (int row = 0; row < folder.rowCount(); ++row) {
+            if (folder.fileItem(row).localPath() == trash + "/files/Counted")
+                counted = folder.index(row, 0);
+        }
+        QVERIFY(counted.isValid());
+
+        bool sizeChanged = false;
+        connect(&folder, &QAbstractItemModel::dataChanged, this,
+                [&](const QModelIndex &topLeft, const QModelIndex &bottomRight,
+                    const QList<int> &roles) {
+            if (topLeft.row() <= counted.row() && counted.row() <= bottomRight.row()
+                    && roles.contains(FolderModel::FileSizeRole))
+                sizeChanged = true;
+        });
+
+        QCOMPARE(counted.data(FolderModel::FileSizeRole).toString(), QString());
+        QTRY_VERIFY(sizeChanged);
+        QCOMPARE(counted.data(FolderModel::FileSizeRole).toString(), QString("1 item"));
     }
 
     void sortingIsDeferredAndPreservesSelection()

@@ -51,6 +51,7 @@ ListView {
     readonly property FileList.Columns columns: FileList.Columns {
         settings: control.listSettings
         availableWidth: Math.max(0, control.width - control.leftMargin - control.rightMargin)
+        trash: dirModel.trash
     }
     readonly property real rowHeight: columns.rowHeight
     // Bars floating over the top of the view; the column header sits below them
