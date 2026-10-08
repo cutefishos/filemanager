@@ -46,15 +46,79 @@ static QString uniquePath(const QString &directory, const QString &name, bool di
     return candidate;
 }
 
-static bool isZipFile(const Cutefish::IO::FileItem &item)
+static const QStringList archiveMimeTypes = {
+    QStringLiteral("application/gzip"),
+    QStringLiteral("application/vnd.rar"),
+    QStringLiteral("application/x-7z-compressed"),
+    QStringLiteral("application/x-bzip"),
+    QStringLiteral("application/x-bzip-compressed-tar"),
+    QStringLiteral("application/x-bzip2"),
+    QStringLiteral("application/x-bzip2-compressed-tar"),
+    QStringLiteral("application/x-compressed-tar"),
+    QStringLiteral("application/x-lzma"),
+    QStringLiteral("application/x-lzma-compressed-tar"),
+    QStringLiteral("application/x-rar"),
+    QStringLiteral("application/x-tar"),
+    QStringLiteral("application/x-xz"),
+    QStringLiteral("application/x-xz-compressed-tar"),
+    QStringLiteral("application/x-zip-compressed"),
+    QStringLiteral("application/x-zstd-compressed-tar"),
+    QStringLiteral("application/zip"),
+    QStringLiteral("application/zstd"),
+};
+
+static const QStringList folderArchiveSuffixes = {
+    QStringLiteral(".tar.gz"), QStringLiteral(".tgz"),
+    QStringLiteral(".tar.bz2"), QStringLiteral(".tbz2"), QStringLiteral(".tbz"),
+    QStringLiteral(".tar.xz"), QStringLiteral(".txz"),
+    QStringLiteral(".tar.zst"), QStringLiteral(".tzst"),
+    QStringLiteral(".tar.lzma"),
+    QStringLiteral(".tar"),
+    QStringLiteral(".zip"),
+    QStringLiteral(".7z"),
+    QStringLiteral(".rar"),
+};
+
+static const QStringList singleFileSuffixes = {
+    QStringLiteral(".gz"),
+    QStringLiteral(".bz2"),
+    QStringLiteral(".xz"),
+    QStringLiteral(".zst"),
+    QStringLiteral(".lzma"),
+};
+
+// The suffix extraction drops: "a.tar.gz" becomes the folder "a", while
+// "a.txt.gz" becomes the file "a.txt".
+static QString archiveSuffix(const QString &fileName, bool *singleFile)
+{
+    for (const QString &suffix : folderArchiveSuffixes) {
+        if (fileName.endsWith(suffix, Qt::CaseInsensitive)) {
+            *singleFile = false;
+            return suffix;
+        }
+    }
+
+    for (const QString &suffix : singleFileSuffixes) {
+        if (fileName.endsWith(suffix, Qt::CaseInsensitive)) {
+            *singleFile = true;
+            return suffix;
+        }
+    }
+
+    *singleFile = false;
+    return QString();
+}
+
+static bool isArchive(const Cutefish::IO::FileItem &item)
 {
     if (!item.isLocalFile())
         return false;
 
-    const QString mimeType = item.mimetype();
-    return mimeType == QLatin1String("application/zip")
-            || mimeType == QLatin1String("application/x-zip-compressed")
-            || item.url().path().endsWith(QLatin1String(".zip"), Qt::CaseInsensitive);
+    if (archiveMimeTypes.contains(item.mimetype()))
+        return true;
+
+    bool singleFile = false;
+    return !archiveSuffix(item.url().fileName(), &singleFile).isEmpty();
 }
 
 QAction *FolderModel::action(const QString &name) const
@@ -243,7 +307,7 @@ void FolderModel::openSelected()
         }
     }
 
-    if (urls.size() == 1 && isZipFile(Cutefish::IO::FileItem(urls.first()))) {
+    if (urls.size() == 1 && isArchive(Cutefish::IO::FileItem(urls.first()))) {
         extractSelectedArchive();
         return;
     }
@@ -382,7 +446,7 @@ void FolderModel::extractSelectedArchive()
 
     const QUrl archiveUrl = selectedUrls().first();
     const Cutefish::IO::FileItem item(archiveUrl);
-    if (!isZipFile(item))
+    if (!isArchive(item))
         return;
 
     const QString archivePath = archiveUrl.toLocalFile();
@@ -390,11 +454,14 @@ void FolderModel::extractSelectedArchive()
     if (!archiveInfo.isFile())
         return;
 
-    QString baseName = archiveInfo.completeBaseName();
+    bool singleFile = false;
+    const QString suffix = archiveSuffix(archiveInfo.fileName(), &singleFile);
+    QString baseName = suffix.isEmpty() ? archiveInfo.completeBaseName()
+                                        : archiveInfo.fileName().chopped(suffix.size());
     if (baseName.isEmpty())
         baseName = QStringLiteral("Extracted");
 
-    const QString outputPath = uniquePath(archiveInfo.absolutePath(), baseName, true);
+    const QString outputPath = uniquePath(archiveInfo.absolutePath(), baseName, !singleFile);
     startArchiveJob(FileOperationsClient::instance()->extract(archivePath, outputPath),
                     tr("Extracting"), outputPath);
 }

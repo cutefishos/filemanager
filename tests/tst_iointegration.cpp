@@ -1,3 +1,4 @@
+#include "cio/archivejob.h"
 #include "draganddrop/declarativedragdropevent.h"
 #include "draganddrop/declarativedroparea.h"
 #include "helper/dialogs.h"
@@ -23,6 +24,10 @@
 #include <QtTest>
 #include <task.h>
 
+#include <archive.h>
+#include <archive_entry.h>
+#include <sys/stat.h>
+
 class TestDropArea : public DeclarativeDropArea
 {
 public:
@@ -30,6 +35,84 @@ public:
     using DeclarativeDropArea::dragMoveEvent;
     using DeclarativeDropArea::dropEvent;
 };
+
+struct FixtureEntry {
+    QByteArray path;
+    mode_t type;
+    // The data of a file, or the target of a link.
+    QByteArray contents;
+    mode_t permissions = 0644;
+    bool hardLink = false;
+};
+
+static bool writeArchive(const QString &path, int format, int filter,
+                         const QList<FixtureEntry> &entries, const char *options = nullptr)
+{
+    struct archive *writer = archive_write_new();
+    auto freeWriter = qScopeGuard([writer] { archive_write_free(writer); });
+    if (archive_write_set_format(writer, format) != ARCHIVE_OK
+        || (filter != ARCHIVE_FILTER_NONE && archive_write_add_filter(writer, filter) != ARCHIVE_OK))
+        return false;
+
+    if (options && (archive_write_set_options(writer, options) != ARCHIVE_OK
+                    || archive_write_set_passphrase(writer, "secret") != ARCHIVE_OK))
+        return false;
+
+    if (archive_write_open_filename(writer, QFile::encodeName(path).constData()) != ARCHIVE_OK)
+        return false;
+
+    for (const FixtureEntry &fixture : entries) {
+        struct archive_entry *entry = archive_entry_new();
+        archive_entry_set_pathname(entry, fixture.path.constData());
+        archive_entry_set_filetype(entry, fixture.type);
+        archive_entry_set_perm(entry, fixture.permissions);
+        archive_entry_set_mtime(entry, 1700000000, 0);
+        if (fixture.hardLink)
+            archive_entry_set_hardlink(entry, fixture.contents.constData());
+        else if (fixture.type == AE_IFLNK)
+            archive_entry_set_symlink(entry, fixture.contents.constData());
+        else if (fixture.type == AE_IFREG)
+            archive_entry_set_size(entry, fixture.contents.size());
+
+        const bool written = archive_write_header(writer, entry) == ARCHIVE_OK
+                && (fixture.type != AE_IFREG || fixture.hardLink
+                    || archive_write_data(writer, fixture.contents.constData(), fixture.contents.size())
+                            == fixture.contents.size());
+        archive_entry_free(entry);
+        if (!written)
+            return false;
+    }
+
+    return archive_write_close(writer) == ARCHIVE_OK;
+}
+
+static bool runArchiveJob(ArchiveJob::Operation operation, const QStringList &inputs,
+                          const QString &outputPath, QString *error)
+{
+    ArchiveJob job(operation, inputs, outputPath);
+    QSignalSpy completed(&job, &ArchiveJob::completed);
+    job.start();
+    job.wait();
+    if (completed.size() != 1) {
+        *error = QStringLiteral("The job did not complete");
+        return false;
+    }
+
+    *error = completed.first().at(2).toString();
+    return completed.first().at(0).toBool();
+}
+
+static QString readFile(const QString &path)
+{
+    QFile file(path);
+    return file.open(QIODevice::ReadOnly) ? QString::fromUtf8(file.readAll()) : QString();
+}
+
+static QStringList extractionLeftovers(const QString &directory)
+{
+    return QDir(directory).entryList({QStringLiteral(".cutefish-extract-*")},
+                                     QDir::AllEntries | QDir::Hidden | QDir::System);
+}
 
 class IOIntegrationTest : public QObject
 {
@@ -621,6 +704,263 @@ private slots:
         QTRY_VERIFY(!compressed);
         QVERIFY(QFileInfo(dir.filePath("created")).isDir());
         QVERIFY(QFileInfo(dir.filePath("notes.zip")).isFile());
+    }
+
+    void extractsTarGzWithFoldersAndLinks()
+    {
+        QTemporaryDir dir;
+        const QString archivePath = dir.filePath("bundle.tar.gz");
+        QVERIFY(writeArchive(archivePath, ARCHIVE_FORMAT_TAR_PAX_RESTRICTED, ARCHIVE_FILTER_GZIP,
+                             {{"./", AE_IFDIR, {}, 0755},
+                              {"./docs/", AE_IFDIR, {}, 0700},
+                              {"./docs/readme.txt", AE_IFREG, "hello"},
+                              {"./run.sh", AE_IFREG, "#!/bin/sh\n", 04755},
+                              {"./latest", AE_IFLNK, "docs/readme.txt", 0777}}));
+
+        const QString output = dir.filePath("bundle");
+        QString error;
+        QVERIFY2(runArchiveJob(ArchiveJob::Extract, {archivePath}, output, &error), qPrintable(error));
+
+        QCOMPARE(readFile(output + "/docs/readme.txt"), QString("hello"));
+        QCOMPARE(QFileInfo(output + "/docs/readme.txt").lastModified().toSecsSinceEpoch(),
+                 qint64(1700000000));
+
+        struct stat info;
+        QCOMPARE(::stat(QFile::encodeName(output + "/run.sh").constData(), &info), 0);
+        QVERIFY(info.st_mode & S_IXUSR);
+        QVERIFY(!(info.st_mode & (S_ISUID | S_ISGID)));
+        QCOMPARE(::stat(QFile::encodeName(output + "/docs").constData(), &info), 0);
+        QCOMPARE(info.st_mode & 0777, mode_t(0700));
+
+        const QFileInfo link(output + "/latest");
+        QVERIFY(link.isSymLink());
+        QCOMPARE(readFile(link.filePath()), QString("hello"));
+        QVERIFY(extractionLeftovers(dir.path()).isEmpty());
+    }
+
+    void extractsArchiveFormats_data()
+    {
+        QTest::addColumn<int>("format");
+        QTest::addColumn<int>("filter");
+        QTest::addColumn<QString>("fileName");
+
+        QTest::newRow("tar.xz") << ARCHIVE_FORMAT_TAR_PAX_RESTRICTED << ARCHIVE_FILTER_XZ << "pack.tar.xz";
+        QTest::newRow("tar.zst") << ARCHIVE_FORMAT_TAR_PAX_RESTRICTED << ARCHIVE_FILTER_ZSTD << "pack.tar.zst";
+        QTest::newRow("tar.bz2") << ARCHIVE_FORMAT_TAR_PAX_RESTRICTED << ARCHIVE_FILTER_BZIP2 << "pack.tar.bz2";
+        QTest::newRow("tar") << ARCHIVE_FORMAT_TAR_GNUTAR << ARCHIVE_FILTER_NONE << "pack.tar";
+        QTest::newRow("7z") << ARCHIVE_FORMAT_7ZIP << ARCHIVE_FILTER_NONE << "pack.7z";
+        QTest::newRow("zip") << ARCHIVE_FORMAT_ZIP << ARCHIVE_FILTER_NONE << "pack.zip";
+    }
+
+    void extractsArchiveFormats()
+    {
+        QFETCH(int, format);
+        QFETCH(int, filter);
+        QFETCH(QString, fileName);
+
+        QTemporaryDir dir;
+        const QString archivePath = dir.filePath(fileName);
+        QVERIFY(writeArchive(archivePath, format, filter,
+                             {{"pack/", AE_IFDIR, {}, 0755},
+                              {"pack/a.txt", AE_IFREG, "alpha"},
+                              {"pack/sub/b.txt", AE_IFREG, QByteArray(300 * 1024, 'b')},
+                              {"pack/link", AE_IFLNK, "a.txt", 0777}}));
+
+        const QString output = dir.filePath("pack");
+        QString error;
+        QVERIFY2(runArchiveJob(ArchiveJob::Extract, {archivePath}, output, &error), qPrintable(error));
+        QCOMPARE(readFile(output + "/pack/a.txt"), QString("alpha"));
+        QCOMPARE(QFileInfo(output + "/pack/sub/b.txt").size(), qint64(300 * 1024));
+        QVERIFY(QFileInfo(output + "/pack/link").isSymLink());
+        QCOMPARE(QFileInfo(output + "/pack/link").symLinkTarget(), QFileInfo(output + "/pack/a.txt").filePath());
+        QVERIFY(extractionLeftovers(dir.path()).isEmpty());
+    }
+
+    void extractsSingleCompressedFile_data()
+    {
+        QTest::addColumn<int>("filter");
+        QTest::addColumn<QString>("fileName");
+
+        QTest::newRow("gz") << ARCHIVE_FILTER_GZIP << "notes.txt.gz";
+        QTest::newRow("xz") << ARCHIVE_FILTER_XZ << "notes.txt.xz";
+        QTest::newRow("zst") << ARCHIVE_FILTER_ZSTD << "notes.txt.zst";
+        QTest::newRow("bz2") << ARCHIVE_FILTER_BZIP2 << "notes.txt.bz2";
+    }
+
+    void extractsSingleCompressedFile()
+    {
+        QFETCH(int, filter);
+        QFETCH(QString, fileName);
+
+        QTemporaryDir dir;
+        const QString archivePath = dir.filePath(fileName);
+        QVERIFY(writeArchive(archivePath, ARCHIVE_FORMAT_RAW, filter,
+                             {{"notes.txt", AE_IFREG, "plain notes"}}));
+
+        const QString output = dir.filePath("notes.txt");
+        QString error;
+        QVERIFY2(runArchiveJob(ArchiveJob::Extract, {archivePath}, output, &error), qPrintable(error));
+        QVERIFY(QFileInfo(output).isFile());
+        QCOMPARE(readFile(output), QString("plain notes"));
+        QVERIFY(extractionLeftovers(dir.path()).isEmpty());
+    }
+
+    void refusesPlainFile()
+    {
+        QTemporaryDir dir;
+        QFile plain(dir.filePath("fake.zip"));
+        QVERIFY(plain.open(QIODevice::WriteOnly));
+        plain.write("not an archive at all");
+        plain.close();
+
+        QString error;
+        QVERIFY(!runArchiveJob(ArchiveJob::Extract, {plain.fileName()}, dir.filePath("fake"), &error));
+        QVERIFY(!error.isEmpty());
+        QVERIFY(!QFileInfo::exists(dir.filePath("fake")));
+        QVERIFY(extractionLeftovers(dir.path()).isEmpty());
+    }
+
+    void roundTripsCompressedZip()
+    {
+        QTemporaryDir dir;
+        QVERIFY(QDir(dir.path()).mkpath("source/inner"));
+        QFile file(dir.filePath("source/inner/data.txt"));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        file.write("zip data");
+        file.close();
+        QVERIFY(QFile::link("inner/data.txt", dir.filePath("source/shortcut")));
+
+        QString error;
+        QVERIFY2(runArchiveJob(ArchiveJob::Compress, {dir.filePath("source")},
+                               dir.filePath("source.zip"), &error), qPrintable(error));
+        QVERIFY2(runArchiveJob(ArchiveJob::Extract, {dir.filePath("source.zip")},
+                               dir.filePath("restored"), &error), qPrintable(error));
+        QCOMPARE(readFile(dir.filePath("restored/source/inner/data.txt")), QString("zip data"));
+        QVERIFY(QFileInfo(dir.filePath("restored/source/shortcut")).isSymLink());
+        QCOMPARE(readFile(dir.filePath("restored/source/shortcut")), QString("zip data"));
+    }
+
+    void refusesUnsafeArchives_data()
+    {
+        QTest::addColumn<QByteArrayList>("paths");
+        QTest::addColumn<QList<int>>("types");
+        QTest::addColumn<QByteArrayList>("contents");
+        QTest::addColumn<QString>("expectedError");
+
+        // "@outside" stands for a folder next to the work folder.
+        QTest::newRow("parent") << QByteArrayList {"ok.txt", "../evil"}
+                                << QList<int> {AE_IFREG, AE_IFREG}
+                                << QByteArrayList {"ok", "evil"} << "Unsafe path";
+        QTest::newRow("absolute") << QByteArrayList {"@outside/evil"} << QList<int> {AE_IFREG}
+                                  << QByteArrayList {"evil"} << "Unsafe path";
+        QTest::newRow("file through link") << QByteArrayList {"escape", "escape/evil"}
+                                           << QList<int> {AE_IFLNK, AE_IFREG}
+                                           << QByteArrayList {"@outside", "evil"} << "Duplicate path";
+        QTest::newRow("link under link") << QByteArrayList {"escape", "escape/evil"}
+                                         << QList<int> {AE_IFLNK, AE_IFLNK}
+                                         << QByteArrayList {"@outside", "/etc/passwd"}
+                                         << "Symbolic link parent";
+        QTest::newRow("fifo") << QByteArrayList {"pipe"} << QList<int> {AE_IFIFO}
+                              << QByteArrayList {QByteArray()} << "Special files";
+    }
+
+    void refusesUnsafeArchives()
+    {
+        QFETCH(QByteArrayList, paths);
+        QFETCH(QList<int>, types);
+        QFETCH(QByteArrayList, contents);
+        QFETCH(QString, expectedError);
+
+        QTemporaryDir root;
+        QVERIFY(QDir(root.path()).mkpath("work"));
+        QVERIFY(QDir(root.path()).mkpath("outside"));
+        const QByteArray outside = QFile::encodeName(root.filePath("outside"));
+        const QString work = root.filePath("work");
+
+        QList<FixtureEntry> entries;
+        for (qsizetype index = 0; index < paths.size(); ++index) {
+            QByteArray path = paths.at(index);
+            QByteArray data = contents.at(index);
+            path.replace("@outside", outside);
+            data.replace("@outside", outside);
+            entries.append({path, static_cast<mode_t>(types.at(index)), data,
+                            static_cast<mode_t>(types.at(index) == AE_IFLNK ? 0777 : 0644)});
+        }
+
+        const QString archivePath = work + "/unsafe.tar";
+        QVERIFY(writeArchive(archivePath, ARCHIVE_FORMAT_TAR_PAX_RESTRICTED, ARCHIVE_FILTER_NONE, entries));
+
+        QString error;
+        QVERIFY(!runArchiveJob(ArchiveJob::Extract, {archivePath}, work + "/unsafe", &error));
+        QVERIFY2(error.contains(expectedError), qPrintable(error));
+        QVERIFY(!QFileInfo::exists(work + "/unsafe"));
+        QVERIFY(!QFileInfo::exists(work + "/evil"));
+        QVERIFY(!QFileInfo::exists(root.filePath("outside/evil")));
+        QVERIFY(extractionLeftovers(work).isEmpty());
+    }
+
+    void refusesHardLinks()
+    {
+        QTemporaryDir dir;
+        const QString archivePath = dir.filePath("links.tar");
+        QVERIFY(writeArchive(archivePath, ARCHIVE_FORMAT_TAR_PAX_RESTRICTED, ARCHIVE_FILTER_NONE,
+                             {{"target.txt", AE_IFREG, "data"},
+                              {"copy.txt", AE_IFREG, "target.txt", 0644, true}}));
+
+        QString error;
+        QVERIFY(!runArchiveJob(ArchiveJob::Extract, {archivePath}, dir.filePath("links"), &error));
+        QVERIFY2(error.contains("Hard links"), qPrintable(error));
+        QVERIFY(!QFileInfo::exists(dir.filePath("links")));
+        QVERIFY(extractionLeftovers(dir.path()).isEmpty());
+    }
+
+    void refusesPasswordProtectedZip()
+    {
+        QTemporaryDir dir;
+        const QString archivePath = dir.filePath("secret.zip");
+        if (!writeArchive(archivePath, ARCHIVE_FORMAT_ZIP, ARCHIVE_FILTER_NONE,
+                          {{"secret.txt", AE_IFREG, "hidden"}}, "zip:encryption=zipcrypt"))
+            QSKIP("libarchive cannot write encrypted zip archives here");
+
+        QString error;
+        QVERIFY(!runArchiveJob(ArchiveJob::Extract, {archivePath}, dir.filePath("secret"), &error));
+        QVERIFY2(error.contains("Password-protected"), qPrintable(error));
+        QVERIFY(!QFileInfo::exists(dir.filePath("secret")));
+        QVERIFY(extractionLeftovers(dir.path()).isEmpty());
+    }
+
+    void openExtractsNextToArchive()
+    {
+        QTemporaryDir dir;
+        QVERIFY(writeArchive(dir.filePath("bundle.tar.gz"), ARCHIVE_FORMAT_TAR_PAX_RESTRICTED,
+                             ARCHIVE_FILTER_GZIP, {{"inside.txt", AE_IFREG, "inside"}}));
+        QVERIFY(writeArchive(dir.filePath("notes.txt.xz"), ARCHIVE_FORMAT_RAW, ARCHIVE_FILTER_XZ,
+                             {{"notes.txt", AE_IFREG, "notes"}}));
+
+        // A fresh model each time: the last one selects what it extracted.
+        const auto open = [&dir](const QString &name) {
+            FolderModel folder;
+            folder.setUrl(QUrl::fromLocalFile(dir.path()).toString());
+            QTRY_VERIFY(folder.indexForKeyboardSearch(name, 0) >= 0);
+            folder.setSelected(folder.indexForKeyboardSearch(name, 0));
+            folder.openSelected();
+            QVERIFY(folder.archiveBusy());
+            QTRY_VERIFY(!folder.archiveBusy());
+        };
+
+        open("bundle.tar.gz");
+        QVERIFY(QFileInfo(dir.filePath("bundle")).isDir());
+        QCOMPARE(readFile(dir.filePath("bundle/inside.txt")), QString("inside"));
+
+        open("notes.txt.xz");
+        QVERIFY(QFileInfo(dir.filePath("notes.txt")).isFile());
+        QCOMPARE(readFile(dir.filePath("notes.txt")), QString("notes"));
+
+        // A second open of the same archive picks a free name.
+        open("bundle.tar.gz");
+        QVERIFY(QFileInfo(dir.filePath("bundle 1")).isDir());
+        open("notes.txt.xz");
+        QVERIFY(QFileInfo(dir.filePath("notes 1.txt")).isFile());
     }
 
     void closingProgressDialogDoesNotCancelTask()

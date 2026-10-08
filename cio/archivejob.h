@@ -9,6 +9,8 @@
 
 #include <atomic>
 
+struct archive;
+
 class ArchiveJob : public QThread
 {
     Q_OBJECT
@@ -58,7 +60,9 @@ private:
     bool archiveEntryPath(const QString &archiveName,
                           QString *relativePath,
                           bool *directory) const;
-    static bool zipEntryIsSymbolicLink(zip_t *archive, zip_uint64_t index);
+    bool extractEntryData(struct archive *reader, int fd, quint64 total, QString *error);
+    bool extractSingleFile(struct archive *reader, bool empty, const QString &parentPath,
+                           quint64 total, QString *error);
 
     void emitProgress(quint64 processed, quint64 total);
     bool isCanceled() const;

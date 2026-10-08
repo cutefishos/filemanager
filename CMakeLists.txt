@@ -27,6 +27,12 @@ if (NOT LIBZIP_INCLUDE_DIR OR NOT LIBZIP_LIBRARY)
     message(FATAL_ERROR "libzip development files are required to build filemanager")
 endif ()
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LibArchive QUIET IMPORTED_TARGET libarchive)
+if (NOT LibArchive_FOUND)
+    message(FATAL_ERROR "libarchive development files are required to build filemanager")
+endif ()
+
 
 # Where QML modules go, so the desktop plugin lands next to FishUI.
 find_program(QT_PATHS_EXECUTABLE NAMES qtpaths6 REQUIRED)
@@ -122,6 +128,7 @@ target_link_libraries(cutefish-filemanager-core
   PRIVATE
   ICU::i18n
   ICU::uc
+  PkgConfig::LibArchive
 )
 
 target_include_directories(cutefish-filemanager-core PRIVATE ${LIBZIP_INCLUDE_DIR})
@@ -139,7 +146,6 @@ target_link_libraries(cutefish-filechooser-ui PUBLIC cutefish-filemanager-core Q
 
 # The dialog never runs in the requesting application, so its window can only
 # be reached through xdg-foreign; the protocol code is optional at build time.
-find_package(PkgConfig REQUIRED)
 pkg_check_modules(WaylandClient QUIET IMPORTED_TARGET wayland-client)
 pkg_check_modules(WaylandProtocols QUIET wayland-protocols>=1.32)
 find_package(Qt6 QUIET COMPONENTS GuiPrivate)
@@ -207,6 +213,7 @@ target_link_libraries(cutefish-filemanager-daemon PRIVATE
   Qt6::Core
   Qt6::DBus
   ${LIBZIP_LIBRARY}
+  PkgConfig::LibArchive
 )
 
 configure_file(daemon/com.cutefish.FileOperations.service.in
@@ -273,7 +280,7 @@ if(FILEMANAGER_BUILD_TESTS)
     target_link_libraries(tst_placesmodel PRIVATE cutefish-filemanager-core Qt6::Test)
     add_test(NAME placesmodel COMMAND tst_placesmodel)
     add_executable(tst_iointegration tests/tst_iointegration.cpp)
-    target_link_libraries(tst_iointegration PRIVATE cutefish-filemanager-core Qt6::Test)
+    target_link_libraries(tst_iointegration PRIVATE cutefish-filemanager-core Qt6::Test PkgConfig::LibArchive)
     add_test(NAME iointegration COMMAND tst_iointegration)
     set_tests_properties(iointegration PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")
     add_executable(tst_desktoplayout tests/tst_desktoplayout.cpp desktopplugin/desktopview.cpp)

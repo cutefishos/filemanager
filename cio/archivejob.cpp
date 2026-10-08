@@ -1,18 +1,26 @@
 #include "archivejob.h"
 
+#include <archive.h>
+#include <archive_entry.h>
 #include <zip.h>
 
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileInfoList>
+#include <QRegularExpression>
+#include <QScopeGuard>
 #include <QUuid>
 
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 
 #ifdef Q_OS_UNIX
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 static QString zipError(zip_t *archive)
@@ -30,6 +38,86 @@ static QString zipOpenError(int errorCode)
     const QString message = QString::fromUtf8(zip_error_strerror(&error));
     zip_error_fini(&error);
     return message;
+}
+
+using ArchiveReader = std::unique_ptr<struct archive, decltype(&archive_read_free)>;
+
+static QString archiveError(struct archive *reader)
+{
+    // An encrypted entry or header fails with a format-specific message.
+    if (archive_read_has_encrypted_entries(reader) > 0)
+        return QStringLiteral("Password-protected archives are not supported");
+
+    const char *message = archive_error_string(reader);
+    return message ? QString::fromUtf8(message) : QStringLiteral("Unknown archive error");
+}
+
+static ArchiveReader openArchiveReader(const QString &archivePath, QString *error)
+{
+    ArchiveReader reader(archive_read_new(), &archive_read_free);
+    if (!reader) {
+        *error = QStringLiteral("Could not allocate memory for the archive");
+        return reader;
+    }
+
+    // Not format_all: formats such as mtree name files elsewhere on disk.
+    archive_read_support_format_7zip(reader.get());
+    archive_read_support_format_rar(reader.get());
+    archive_read_support_format_rar5(reader.get());
+    archive_read_support_format_tar(reader.get());
+    archive_read_support_format_zip(reader.get());
+    archive_read_support_format_empty(reader.get());
+    // Raw bids lowest, so it only takes what no archive format claims.
+    archive_read_support_format_raw(reader.get());
+
+    archive_read_support_filter_bzip2(reader.get());
+    archive_read_support_filter_compress(reader.get());
+    archive_read_support_filter_gzip(reader.get());
+    archive_read_support_filter_lzip(reader.get());
+    archive_read_support_filter_lzma(reader.get());
+    archive_read_support_filter_xz(reader.get());
+    archive_read_support_filter_zstd(reader.get());
+
+    const QByteArray archiveName = QFile::encodeName(archivePath);
+    if (archive_read_open_filename(reader.get(), archiveName.constData(), 64 * 1024) != ARCHIVE_OK) {
+        *error = archiveError(reader.get());
+        reader.reset();
+    }
+
+    return reader;
+}
+
+static bool isArchiveVolume(const QString &archivePath)
+{
+    static const QRegularExpression volume(QStringLiteral("\\.(part\\d+\\.rar|7z\\.\\d+)$"),
+                                           QRegularExpression::CaseInsensitiveOption);
+    return volume.match(QFileInfo(archivePath).fileName()).hasMatch();
+}
+
+static QString entryPathName(struct archive_entry *entry)
+{
+    if (const char *name = archive_entry_pathname_utf8(entry))
+        return QString::fromUtf8(name);
+
+    const char *name = archive_entry_pathname(entry);
+    return name ? QFile::decodeName(name) : QString();
+}
+
+static QString entryLinkTarget(struct archive_entry *entry)
+{
+    if (const char *target = archive_entry_symlink_utf8(entry))
+        return QString::fromUtf8(target);
+
+    const char *target = archive_entry_symlink(entry);
+    return target ? QFile::decodeName(target) : QString();
+}
+
+static struct timespec entryModified(struct archive_entry *entry)
+{
+    struct timespec modified;
+    modified.tv_sec = archive_entry_mtime(entry);
+    modified.tv_nsec = archive_entry_mtime_nsec(entry);
+    return modified;
 }
 
 static QString temporaryPath(const QString &parentPath, const QString &prefix)
@@ -368,7 +456,13 @@ bool ArchiveJob::archiveEntryPath(const QString &archiveName,
     }
 
     const QString cleanName = QDir::cleanPath(name);
-    if (cleanName == QLatin1String(".") || cleanName.startsWith(QLatin1String("../")) ||
+    // Tar archives made from "." begin with a "./" entry for the root.
+    if (cleanName == QLatin1String(".")) {
+        relativePath->clear();
+        return true;
+    }
+
+    if (cleanName.startsWith(QLatin1String("../")) ||
         cleanName == QLatin1String("..") || cleanName.startsWith(QLatin1Char('/'))) {
         return false;
     }
@@ -377,26 +471,74 @@ bool ArchiveJob::archiveEntryPath(const QString &archiveName,
     return true;
 }
 
-bool ArchiveJob::zipEntryIsSymbolicLink(zip_t *archive, zip_uint64_t index)
+bool ArchiveJob::extractEntryData(struct archive *reader, int fd, quint64 total, QString *error)
 {
-#ifdef Q_OS_UNIX
-    zip_uint8_t operatingSystem = ZIP_OPSYS_UNIX;
-    zip_uint32_t externalAttributes = 0;
-    if (zip_file_get_external_attributes(archive, index, 0,
-                                         &operatingSystem, &externalAttributes) != 0) {
+    char buffer[64 * 1024];
+    while (true) {
+        if (isCanceled())
+            return false;
+
+        const la_ssize_t bytesRead = archive_read_data(reader, buffer, sizeof(buffer));
+        if (bytesRead < 0) {
+            *error = archiveError(reader);
+            return false;
+        }
+
+        if (bytesRead == 0)
+            return true;
+
+        la_ssize_t written = 0;
+        while (written < bytesRead) {
+            const ssize_t result = ::write(fd, buffer + written,
+                                           static_cast<size_t>(bytesRead - written));
+            if (result < 0) {
+                if (errno == EINTR)
+                    continue;
+
+                *error = qt_error_string(errno);
+                return false;
+            }
+            written += result;
+        }
+
+        emitProgress(static_cast<quint64>(qMax<la_int64_t>(0, archive_filter_bytes(reader, -1))),
+                     total);
+    }
+}
+
+bool ArchiveJob::extractSingleFile(struct archive *reader, bool empty,
+                                   const QString &parentPath, quint64 total, QString *error)
+{
+    const QString tempPath = temporaryPath(parentPath, QStringLiteral("cutefish-extract"));
+    const QByteArray tempName = QFile::encodeName(tempPath);
+    const int fd = ::open(tempName.constData(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0666);
+    if (fd < 0) {
+        *error = QStringLiteral("Could not create %1: %2")
+                         .arg(QFileInfo(m_outputPath).fileName(), qt_error_string(errno));
         return false;
     }
 
-    if (operatingSystem != ZIP_OPSYS_UNIX && operatingSystem != ZIP_OPSYS_OS_X)
+    auto cleanup = qScopeGuard([&tempPath] { QFile::remove(tempPath); });
+    emit currentFileChanged(QFileInfo(m_outputPath).fileName());
+
+    const bool written = empty || extractEntryData(reader, fd, total, error);
+    if (::close(fd) != 0 && written) {
+        *error = qt_error_string(errno);
+        return false;
+    }
+
+    if (!written)
         return false;
 
-    const mode_t mode = static_cast<mode_t>(externalAttributes >> 16);
-    return S_ISLNK(mode);
-#else
-    Q_UNUSED(archive)
-    Q_UNUSED(index)
-    return false;
-#endif
+    if (isCanceled() || !QFile::rename(tempPath, m_outputPath)) {
+        if (!isCanceled())
+            *error = QStringLiteral("Could not create %1").arg(m_outputPath);
+        return false;
+    }
+
+    cleanup.dismiss();
+    emit progressChanged(100);
+    return true;
 }
 
 bool ArchiveJob::extract(QString *error)
@@ -407,298 +549,207 @@ bool ArchiveJob::extract(QString *error)
     }
 
     const QString archivePath = m_inputs.first();
-    const QByteArray archivePathBytes = QFile::encodeName(archivePath);
-    int openError = 0;
-    zip_t *archive = zip_open(archivePathBytes.constData(), 0, &openError);
-    if (!archive) {
-        *error = zipOpenError(openError);
+    if (isArchiveVolume(archivePath)) {
+        *error = QStringLiteral("Multi-part archives are not supported");
         return false;
-    }
-
-    quint64 total = 0;
-    const zip_int64_t entriesCount = zip_get_num_entries(archive, 0);
-    if (entriesCount < 0) {
-        *error = zipError(archive);
-        zip_discard(archive);
-        return false;
-    }
-
-    for (zip_uint64_t index = 0; index < static_cast<zip_uint64_t>(entriesCount); ++index) {
-        if (isCanceled()) {
-            zip_discard(archive);
-            return false;
-        }
-
-        zip_stat_t stat;
-        zip_stat_init(&stat);
-        if (zip_stat_index(archive, index, 0, &stat) != 0 || !stat.name) {
-            *error = zipError(archive);
-            zip_discard(archive);
-            return false;
-        }
-
-        QString relativePath;
-        bool directory = false;
-        if (!archiveEntryPath(QString::fromUtf8(stat.name), &relativePath, &directory)) {
-            *error = QStringLiteral("Unsafe path in archive: %1").arg(QString::fromUtf8(stat.name));
-            zip_discard(archive);
-            return false;
-        }
-
-        if (!directory && !zipEntryIsSymbolicLink(archive, index))
-            total += stat.size;
     }
 
     const QString parentPath = QFileInfo(m_outputPath).absolutePath();
     if (!QDir().exists(parentPath)) {
         *error = QStringLiteral("The destination folder does not exist: %1").arg(parentPath);
-        zip_discard(archive);
         return false;
+    }
+
+    ArchiveReader reader = openArchiveReader(archivePath, error);
+    if (!reader)
+        return false;
+
+    // A compressed stream cannot be sized without decompressing it, so
+    // progress follows how much of the archive file has been read.
+    const quint64 total = static_cast<quint64>(qMax<qint64>(0, QFileInfo(archivePath).size()));
+    emit progressChanged(0);
+
+    struct archive_entry *entry = nullptr;
+    int status = archive_read_next_header(reader.get(), &entry);
+    if (status < ARCHIVE_WARN) {
+        *error = archiveError(reader.get());
+        return false;
+    }
+
+    const int format = archive_format(reader.get()) & ARCHIVE_FORMAT_BASE_MASK;
+    if (format == ARCHIVE_FORMAT_RAW || format == ARCHIVE_FORMAT_EMPTY) {
+        // Without a compression filter the raw format would take any file.
+        if (archive_filter_count(reader.get()) < 2) {
+            *error = QStringLiteral("Unrecognized archive format");
+            return false;
+        }
+
+        return extractSingleFile(reader.get(), status == ARCHIVE_EOF, parentPath, total, error);
     }
 
     const QString tempPath = temporaryPath(parentPath, QStringLiteral("cutefish-extract"));
     if (!QDir().mkpath(tempPath)) {
         *error = QStringLiteral("Could not create a temporary extraction folder");
-        zip_discard(archive);
         return false;
     }
 
-    quint64 processed = 0;
-    emit progressChanged(0);
+    auto cleanup = qScopeGuard([&tempPath] { QDir(tempPath).removeRecursively(); });
 
-    for (zip_uint64_t index = 0; index < static_cast<zip_uint64_t>(entriesCount); ++index) {
-        if (isCanceled()) {
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+    struct PendingLink {
+        QString relativePath;
+        QString target;
+    };
+    struct PendingDirectory {
+        QByteArray path;
+        struct timespec modified;
+    };
+    QList<PendingLink> links;
+    QList<PendingDirectory> directories;
+
+    for (; status != ARCHIVE_EOF; status = archive_read_next_header(reader.get(), &entry)) {
+        if (status < ARCHIVE_WARN) {
+            *error = archiveError(reader.get());
             return false;
         }
 
-        zip_stat_t stat;
-        zip_stat_init(&stat);
-        if (zip_stat_index(archive, index, 0, &stat) != 0 || !stat.name) {
-            *error = zipError(archive);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        if (isCanceled())
             return false;
-        }
 
+        const QString name = entryPathName(entry);
         QString relativePath;
         bool directory = false;
-        if (!archiveEntryPath(QString::fromUtf8(stat.name), &relativePath, &directory)) {
-            *error = QStringLiteral("Unsafe path in archive: %1").arg(QString::fromUtf8(stat.name));
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        if (!archiveEntryPath(name, &relativePath, &directory)) {
+            *error = QStringLiteral("Unsafe path in archive: %1").arg(name);
             return false;
         }
 
-        if (zipEntryIsSymbolicLink(archive, index))
+        if (archive_entry_is_encrypted(entry)) {
+            *error = QStringLiteral("Password-protected archives are not supported");
+            return false;
+        }
+
+        if (archive_entry_hardlink(entry)) {
+            *error = QStringLiteral("Hard links in archives are not supported: %1").arg(name);
+            return false;
+        }
+
+        const mode_t type = archive_entry_filetype(entry);
+        if (type == AE_IFLNK) {
+            const QString target = entryLinkTarget(entry);
+            if (directory || relativePath.isEmpty()) {
+                *error = QStringLiteral("Invalid symbolic link path in archive: %1").arg(name);
+                return false;
+            }
+
+            if (target.isEmpty() || target.size() > 16 * 1024) {
+                *error = QStringLiteral("Invalid symbolic link target: %1").arg(relativePath);
+                return false;
+            }
+
+            links.append({relativePath, target});
             continue;
+        }
+
+        if (type != AE_IFREG && type != AE_IFDIR) {
+            *error = QStringLiteral("Special files in archives are not supported: %1").arg(name);
+            return false;
+        }
 
         if (relativePath.isEmpty())
             continue;
 
         const QString destinationPath = QDir(tempPath).filePath(relativePath);
+        const QByteArray destinationName = QFile::encodeName(destinationPath);
+        // Set-user-ID and set-group-ID bits never survive extraction.
+        const mode_t permissions = archive_entry_perm(entry) & 0777;
         emit currentFileChanged(relativePath);
-
-        if (directory) {
-            if (!QDir().mkpath(destinationPath)) {
-                *error = QStringLiteral("Could not create %1").arg(relativePath);
-                zip_discard(archive);
-                QDir(tempPath).removeRecursively();
-                return false;
-            }
-            continue;
-        }
 
         if (!QDir().mkpath(QFileInfo(destinationPath).absolutePath())) {
             *error = QStringLiteral("Could not create the parent folder for %1").arg(relativePath);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
             return false;
         }
 
-        zip_file_t *file = zip_fopen_index(archive, index, 0);
-        if (!file) {
-            *error = zipError(archive);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        if (type == AE_IFDIR || directory) {
+            // A folder first met as a parent keeps the default mode.
+            if ((::mkdir(destinationName.constData(), permissions | S_IRWXU) != 0 && errno != EEXIST)
+                || !QFileInfo(destinationPath).isDir()) {
+                *error = QStringLiteral("Could not create %1").arg(relativePath);
+                return false;
+            }
+
+            if (archive_entry_mtime_is_set(entry))
+                directories.append({destinationName, entryModified(entry)});
+            continue;
+        }
+
+        const int fd = ::open(destinationName.constData(),
+                              O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW | O_CLOEXEC,
+                              permissions | S_IRUSR | S_IWUSR);
+        if (fd < 0) {
+            *error = QStringLiteral("Could not create %1: %2").arg(relativePath, qt_error_string(errno));
             return false;
         }
 
-        QFile output(destinationPath);
-        if (!output.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            *error = output.errorString();
-            zip_fclose(file);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        if (!extractEntryData(reader.get(), fd, total, error)) {
+            ::close(fd);
             return false;
         }
 
-        char buffer[64 * 1024];
-        while (true) {
-            if (isCanceled()) {
-                output.close();
-                zip_fclose(file);
-                zip_discard(archive);
-                QDir(tempPath).removeRecursively();
-                return false;
-            }
-
-            const zip_int64_t bytesRead = zip_fread(file, buffer, sizeof(buffer));
-            if (bytesRead < 0) {
-                *error = zipError(archive);
-                output.close();
-                zip_fclose(file);
-                zip_discard(archive);
-                QDir(tempPath).removeRecursively();
-                return false;
-            }
-
-            if (bytesRead == 0)
-                break;
-
-            if (output.write(buffer, bytesRead) != bytesRead) {
-                *error = output.errorString();
-                output.close();
-                zip_fclose(file);
-                zip_discard(archive);
-                QDir(tempPath).removeRecursively();
-                return false;
-            }
-
-            processed += static_cast<quint64>(bytesRead);
-            emitProgress(processed, total);
+        if (archive_entry_mtime_is_set(entry)) {
+            const struct timespec times[2] = {{0, UTIME_OMIT}, entryModified(entry)};
+            ::futimens(fd, times);
         }
 
-        output.close();
-        if (zip_fclose(file) != 0) {
-            *error = zipError(archive);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        if (::close(fd) != 0) {
+            *error = QStringLiteral("Could not write %1: %2").arg(relativePath, qt_error_string(errno));
             return false;
         }
     }
 
     // Create symbolic links only after all regular files have been written.
     // A link inside an archive must never redirect extraction of a later file.
-    for (zip_uint64_t index = 0; index < static_cast<zip_uint64_t>(entriesCount); ++index) {
-        if (isCanceled()) {
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+    for (const PendingLink &link : std::as_const(links)) {
+        if (isCanceled())
             return false;
-        }
 
-        if (!zipEntryIsSymbolicLink(archive, index))
-            continue;
+        emit currentFileChanged(link.relativePath);
 
-        zip_stat_t stat;
-        zip_stat_init(&stat);
-        if (zip_stat_index(archive, index, 0, &stat) != 0 || !stat.name) {
-            *error = zipError(archive);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
-            return false;
-        }
-
-        QString relativePath;
-        bool directory = false;
-        if (!archiveEntryPath(QString::fromUtf8(stat.name), &relativePath, &directory) ||
-            directory || relativePath.isEmpty()) {
-            *error = QStringLiteral("Invalid symbolic link path in archive: %1")
-                         .arg(QString::fromUtf8(stat.name));
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
-            return false;
-        }
-
-        emit currentFileChanged(relativePath);
-
-        const QString destinationPath = QDir(tempPath).filePath(relativePath);
-        if (hasSymbolicLinkParent(tempPath, relativePath)) {
-            *error = QStringLiteral("Symbolic link parent in archive: %1").arg(relativePath);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        const QString destinationPath = QDir(tempPath).filePath(link.relativePath);
+        if (hasSymbolicLinkParent(tempPath, link.relativePath)) {
+            *error = QStringLiteral("Symbolic link parent in archive: %1").arg(link.relativePath);
             return false;
         }
 
         if (!QDir().mkpath(QFileInfo(destinationPath).absolutePath())) {
-            *error = QStringLiteral("Could not create the parent folder for %1").arg(relativePath);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+            *error = QStringLiteral("Could not create the parent folder for %1").arg(link.relativePath);
             return false;
         }
 
         const QFileInfo existing(destinationPath);
         if (existing.exists() || existing.isSymLink()) {
-            *error = QStringLiteral("Duplicate path in archive: %1").arg(relativePath);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+            *error = QStringLiteral("Duplicate path in archive: %1").arg(link.relativePath);
             return false;
         }
 
-        zip_file_t *file = zip_fopen_index(archive, index, 0);
-        if (!file) {
-            *error = zipError(archive);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
+        if (!QFile::link(link.target, destinationPath)) {
+            *error = QStringLiteral("Could not restore symbolic link: %1").arg(link.relativePath);
             return false;
         }
-
-        QByteArray target;
-        char buffer[4096];
-        bool readError = false;
-        while (true) {
-            const zip_int64_t bytesRead = zip_fread(file, buffer, sizeof(buffer));
-            if (bytesRead < 0) {
-                readError = true;
-                break;
-            }
-            if (bytesRead == 0)
-                break;
-
-            if (target.size() > 16 * 1024 - bytesRead) {
-                *error = QStringLiteral("Symbolic link target is too long: %1").arg(relativePath);
-                readError = true;
-                break;
-            }
-            target.append(buffer, static_cast<qsizetype>(bytesRead));
-        }
-
-        const int closeResult = zip_fclose(file);
-        if (readError || closeResult != 0 || target.contains('\0')) {
-            if (readError && error->isEmpty())
-                *error = zipError(archive);
-            if (error->isEmpty())
-                *error = QStringLiteral("Invalid symbolic link target: %1").arg(relativePath);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
-            return false;
-        }
-
-#ifdef Q_OS_UNIX
-        if (!QFile::link(QString::fromUtf8(target), destinationPath)) {
-            *error = QStringLiteral("Could not restore symbolic link: %1").arg(relativePath);
-            zip_discard(archive);
-            QDir(tempPath).removeRecursively();
-            return false;
-        }
-#else
-        *error = QStringLiteral("Symbolic links are not supported on this platform");
-        zip_discard(archive);
-        QDir(tempPath).removeRecursively();
-        return false;
-#endif
     }
 
-    zip_discard(archive);
+    // Writing into a folder changes its time, so folders get theirs last.
+    for (const PendingDirectory &directory : std::as_const(directories)) {
+        const struct timespec times[2] = {{0, UTIME_OMIT}, directory.modified};
+        ::utimensat(AT_FDCWD, directory.path.constData(), times, AT_SYMLINK_NOFOLLOW);
+    }
 
     if (isCanceled() || !QFile::rename(tempPath, m_outputPath)) {
-        QDir(tempPath).removeRecursively();
         if (!isCanceled())
             *error = QStringLiteral("Could not create %1").arg(m_outputPath);
         return false;
     }
 
+    cleanup.dismiss();
     emit progressChanged(100);
     return true;
 }

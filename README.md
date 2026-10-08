@@ -9,13 +9,13 @@ Cutefish File Manager, simple to use, beautiful, and retain the classic PC inter
 ### Debian/Ubuntu
 
 ```shell
-sudo apt install build-essential cmake libicu-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
+sudo apt install build-essential cmake libarchive-dev libicu-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
 ```
 
 ### ArchLinux
 
 ```shell
-sudo pacman -S qt6-base qt6-declarative qt6-tools libzip icu
+sudo pacman -S qt6-base qt6-declarative qt6-tools libarchive libzip icu
 ```
 
 [Cutefish Framework](https://github.com/cutefishos/cutefish-framework) needs to
