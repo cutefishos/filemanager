@@ -466,6 +466,10 @@ void FolderContentsModel::prepare()
                     if (renamed >= 0 && !retainedRows[renamed])
                         found = renamed;
                 }
+                // A rename onto an existing name: the row kept for the renamed
+                // file must not be kept a second time for the file it replaced.
+                if (found >= 0 && retainedRows[found])
+                    found = -1;
                 if (found < 0) {
                     if (!result->removals.isEmpty() && result->removals.last().second == row - 1)
                         result->removals.last().second = row;

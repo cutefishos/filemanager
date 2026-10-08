@@ -58,7 +58,7 @@ QString MimeAppManager::getDefaultAppByFilePath(const QString &filePath)
 
 QString MimeAppManager::getDefaultAppByMimeType(const QMimeType &mimeType)
 {
-    return MimeApps::chosenApplication(MimeApps::userListPath(), mimeType);
+    return MimeApps::chosenApplication(MimeApps::listPaths(), mimeType);
 }
 
 bool MimeAppManager::setDefaultAppForType(const QString &mimeType, const QString &app)
@@ -83,7 +83,7 @@ QStringList MimeAppManager::getRecommendedAppsByFilePath(const QString &filePath
 
 QStringList MimeAppManager::getRecommendedAppsByMimeType(const QMimeType &mimeType)
 {
-    return MimeApps::applications(mimeType);
+    return MimeApps::applications(mimeType, MimeApps::listPaths());
 }
 
 QVariantList MimeAppManager::recommendedApps(const QUrl &url)
