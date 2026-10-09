@@ -22,6 +22,7 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QtTest>
+#include <applicationregistry.h>
 #include <task.h>
 
 #include <archive.h>
@@ -1000,10 +1001,12 @@ private slots:
         QVERIFY(!window->isVisible());
     }
 
-    void untrustedLaunchersAsk()
+    void untrustedProgramsAsk()
     {
         QTemporaryDir dir;
+        QTemporaryDir config;
         QVERIFY(dir.isValid());
+        QVERIFY(config.isValid());
         const QString program = dir.filePath("program");
         QVERIFY(QFile::copy("/bin/true", program));
         QVERIFY(QFile::setPermissions(program, QFile::ReadOwner | QFile::WriteOwner));
@@ -1014,10 +1017,35 @@ private slots:
         entry.write("[Desktop Entry]\nType=Application\nName=Launcher\nExec=touch " + marker.toUtf8()
                     + "\n");
         entry.close();
-        QVERIFY(QFile::setPermissions(launcher, QFile::ReadOwner | QFile::WriteOwner));
+        QVERIFY(QFile::setPermissions(launcher, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
 
         QVERIFY(!FileLauncher::isTrusted(program));
         QVERIFY(!FileLauncher::isTrusted(launcher));
+
+        // An untrusted launcher goes to the launcher type's default application, like a plain file.
+        const QString opened = dir.filePath("opened");
+        QVERIFY(QDir().mkpath(m_data.filePath("applications")));
+        QFile editor(m_data.filePath("applications/launcher-editor.desktop"));
+        QVERIFY(editor.open(QIODevice::WriteOnly));
+        editor.write("[Desktop Entry]\nType=Application\nName=Launcher Editor\nExec=cp %f "
+                     + opened.toUtf8() + "\nMimeType=application/x-desktop;\n");
+        editor.close();
+        QFile defaults(config.filePath("mimeapps.list"));
+        QVERIFY(defaults.open(QIODevice::WriteOnly));
+        defaults.write("[Default Applications]\napplication/x-desktop=launcher-editor.desktop;\n");
+        defaults.close();
+
+        const QByteArray originalConfig = qgetenv("XDG_CONFIG_HOME");
+        const auto restoreConfig = qScopeGuard([&] {
+            if (originalConfig.isNull())
+                qunsetenv("XDG_CONFIG_HOME");
+            else
+                qputenv("XDG_CONFIG_HOME", originalConfig);
+            editor.remove();
+        });
+        qputenv("XDG_CONFIG_HOME", config.path().toUtf8());
+        // An earlier test already scanned the menu; the watcher picks the editor up after a delay.
+        QTRY_VERIFY(ApplicationRegistry::instance()->byPath(editor.fileName()));
 
         QQmlEngine engine;
         CutefishFM::registerImageProviders(&engine);
@@ -1028,7 +1056,7 @@ private slots:
         auto launchDialogs = [] {
             QList<QWindow *> dialogs;
             for (QWindow *window : QGuiApplication::topLevelWindows()) {
-                if (window->property("desktopFile").isValid())
+                if (window->property("path").isValid() && window->property("name").isValid())
                     dialogs.append(window);
             }
             return dialogs;
@@ -1040,49 +1068,25 @@ private slots:
         folder.selectAll();
         folder.openSelected();
 
-        // Neither runs, nor turns executable, before the user agrees.
-        QTRY_COMPARE(launchDialogs().size(), 2);
+        // The program asks first; the launcher never runs and never asks.
+        QTRY_COMPARE(launchDialogs().size(), 1);
+        QTRY_VERIFY(QFileInfo::exists(opened));
         QTest::qWait(300);
         QVERIFY(!QFileInfo::exists(marker));
         QVERIFY(!(QFile::permissions(program) & QFile::ExeOwner));
-        QVERIFY(!(QFile::permissions(launcher) & QFile::ExeOwner));
 
-        QWindow *launcherDialog = nullptr;
-        for (QWindow *dialog : launchDialogs()) {
-            if (dialog->property("desktopFile").toBool())
-                launcherDialog = dialog;
-            else
-                QVERIFY(QMetaObject::invokeMethod(dialog, "rejected"));
-        }
-        QVERIFY(launcherDialog);
-        QCOMPARE(launcherDialog->property("name").toString(), QString("launcher.desktop"));
-        QVERIFY(QMetaObject::invokeMethod(launcherDialog, "accepted"));
-        QTRY_VERIFY(QFileInfo::exists(marker));
-        QVERIFY(QFile::permissions(launcher) & QFile::ExeOwner);
-        QVERIFY(!(QFile::permissions(program) & QFile::ExeOwner));
-        QVERIFY(FileLauncher::isTrusted(launcher));
+        QWindow *programDialog = launchDialogs().first();
+        QCOMPARE(programDialog->property("name").toString(), QString("program"));
+        QVERIFY(QMetaObject::invokeMethod(programDialog, "accepted"));
+        QTRY_VERIFY(QFile::permissions(program) & QFile::ExeOwner);
+        QVERIFY(FileLauncher::isTrusted(program));
+        QVERIFY(!FileLauncher::self()->trustAndLaunch(launcher));
+        QTest::qWait(100);
+        QVERIFY(!QFileInfo::exists(marker));
 
         for (QWindow *dialog : launchDialogs())
             manager.release(qobject_cast<QQuickWindow *>(dialog));
         QTRY_COMPARE(launchDialogs().size(), 0);
-
-        // A trusted file runs at once.
-        QTRY_COMPARE(folder.count(), 3);
-        QVERIFY(QFile::remove(marker));
-        QTRY_COMPARE(folder.count(), 2);
-        folder.clearSelection();
-        // Launchers show their Name, so the row is found by file name.
-        int launcherRow = -1;
-        for (int row = 0; row < folder.count(); ++row) {
-            if (folder.data(folder.index(row, 0), FolderModel::FileNameRole) == "launcher.desktop")
-                launcherRow = row;
-        }
-        QVERIFY(launcherRow >= 0);
-        folder.setSelected(launcherRow);
-        folder.openSelected();
-        QTRY_VERIFY(QFileInfo::exists(marker));
-        QTest::qWait(100);
-        QCOMPARE(launchDialogs().size(), 0);
     }
 
     void launchTrust()
@@ -1107,11 +1111,16 @@ private slots:
         QVERIFY(QFile::setPermissions(installed, QFile::ReadOwner | QFile::WriteOwner));
         QVERIFY(FileLauncher::isTrusted(installed));
 
-        // Outside the menu the same file needs the executable bit.
+        // Outside the menu the same file never runs, executable or not.
         const QString copy = dir.filePath("installed.desktop");
         QVERIFY(QFile::copy(installed, copy));
-        QVERIFY(QFile::setPermissions(copy, QFile::ReadOwner | QFile::WriteOwner));
+        QVERIFY(QFile::setPermissions(copy, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
         QVERIFY(!FileLauncher::isTrusted(copy));
+
+        // A link into the menu, as the launcher's Send to desktop makes, runs.
+        const QString link = dir.filePath("link.desktop");
+        QVERIFY(QFile::link(installed, link));
+        QVERIFY(FileLauncher::isTrusted(link));
     }
 
     void emptyTrashProgressUsesShortDelay()

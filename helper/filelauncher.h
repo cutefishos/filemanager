@@ -22,11 +22,11 @@ public:
 
     /**
      * Whether @p path may run without asking: a launcher in an applications
-     * directory, or a file its owner marked executable.
+     * directory, or a program its owner marked executable. No other launcher runs.
      */
     static bool isTrusted(const QString &path);
 
-    /** Marks @p path executable for its owner, as the user agreed to, then runs it. */
+    /** Marks the program at @p path executable for its owner, as the user agreed to, then runs it. */
     Q_INVOKABLE bool trustAndLaunch(const QString &path);
 };
 

@@ -8,7 +8,6 @@
 #include <QDBusMessage>
 #include <QDBusPendingCallWatcher>
 #include <QFileInfo>
-#include <QMimeDatabase>
 #include <QPointer>
 #include <QProcess>
 #include <QQuickWindow>
@@ -92,12 +91,9 @@ QQuickWindow *confirmLaunch(WindowManager *manager, const QString &path, QWindow
         return nullptr;
 
     const QFileInfo info(path);
-    const bool desktopFile =
-            QMimeDatabase().mimeTypeForFile(info).inherits(QStringLiteral("application/x-desktop"));
     return manager->create(launchDialog,
                            {{QStringLiteral("path"), info.absoluteFilePath()},
-                            {QStringLiteral("name"), info.fileName()},
-                            {QStringLiteral("desktopFile"), desktopFile}},
+                            {QStringLiteral("name"), info.fileName()}},
                            owner, WindowManager::CloseWithOwner);
 }
 

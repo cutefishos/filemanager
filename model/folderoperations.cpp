@@ -321,10 +321,14 @@ void FolderModel::openSelected()
 
         QString mimeType = item.mimetype();
 
-        // Launchers and programs run only once trusted, so a downloaded one
-        // does not run on a double-click.
-        if (mimeType == "application/x-desktop" || mimeType == "application/x-executable"
-            || mimeType == "application/x-sharedlib"
+        // Installed launchers run; any other one opens as text like a plain file.
+        if (mimeType == "application/x-desktop" && FileLauncher::isTrusted(url.toLocalFile())) {
+            FileLauncher::self()->launchFile(url.toLocalFile());
+            continue;
+        }
+
+        // Programs run only once trusted, so a downloaded one does not run on a double-click.
+        if (mimeType == "application/x-executable" || mimeType == "application/x-sharedlib"
             || mimeType == "application/x-iso9660-appimage"
             || mimeType == "application/vnd.appimage") {
             const QString path = url.toLocalFile();

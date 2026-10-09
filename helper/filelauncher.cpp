@@ -114,8 +114,9 @@ bool FileLauncher::launchFile(const QString &path)
 
 bool FileLauncher::isTrusted(const QString &path)
 {
-    if (isDesktopFile(path) && isInApplicationsDirectory(path))
-        return true;
+    // A launcher's Name and Icon can pose as anything, so only installed ones run.
+    if (isDesktopFile(path))
+        return isInApplicationsDirectory(path);
 
     const QFileInfo info(path);
     if (!info.isFile() || !(info.permissions() & QFile::ExeOwner))
@@ -131,7 +132,7 @@ bool FileLauncher::isTrusted(const QString &path)
 bool FileLauncher::trustAndLaunch(const QString &path)
 {
     QFile file(path);
-    if (!file.exists())
+    if (!file.exists() || isDesktopFile(path))
         return false;
 
     // Fails on mounts without permissions; the user agreed to run it all the same.
