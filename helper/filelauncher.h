@@ -21,8 +21,8 @@ public:
     bool launchFile(const QString &path);
 
     /**
-     * Whether @p path may run without asking: a launcher in an applications
-     * directory, or a program its owner marked executable. No other launcher runs.
+     * Whether @p path may run without asking: only a launcher in an applications
+     * directory. No other launcher runs, and a program always asks.
      */
     static bool isTrusted(const QString &path);
 

@@ -9,8 +9,8 @@ FishUI.ConfirmDialog {
     required property string path
     required property string name
 
-    title: qsTr("Untrusted Program")
-    text: qsTr("“%1” is a program that is not marked as executable. Only run it if you trust where it came from.").arg(name)
+    title: qsTr("Run Program")
+    text: qsTr("“%1” is a program. Only run it if you trust where it came from.").arg(name)
     cancelText: qsTr("Cancel")
     confirmText: qsTr("Run")
 

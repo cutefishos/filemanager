@@ -1010,6 +1010,10 @@ private slots:
         const QString program = dir.filePath("program");
         QVERIFY(QFile::copy("/bin/true", program));
         QVERIFY(QFile::setPermissions(program, QFile::ReadOwner | QFile::WriteOwner));
+        // Executable, owned by the user, on a medium that keeps both: still asks.
+        const QString executable = dir.filePath("executable");
+        QVERIFY(QFile::copy("/bin/true", executable));
+        QVERIFY(QFile::setPermissions(executable, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
         const QString marker = dir.filePath("launched");
         const QString launcher = dir.filePath("launcher.desktop");
         QFile entry(launcher);
@@ -1020,6 +1024,7 @@ private slots:
         QVERIFY(QFile::setPermissions(launcher, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
 
         QVERIFY(!FileLauncher::isTrusted(program));
+        QVERIFY(!FileLauncher::isTrusted(executable));
         QVERIFY(!FileLauncher::isTrusted(launcher));
 
         // An untrusted launcher goes to the launcher type's default application, like a plain file.
@@ -1064,22 +1069,27 @@ private slots:
 
         FolderModel folder;
         folder.setUrl(QUrl::fromLocalFile(dir.path()).toString());
-        QTRY_COMPARE(folder.count(), 2);
+        QTRY_COMPARE(folder.count(), 3);
         folder.selectAll();
         folder.openSelected();
 
-        // The program asks first; the launcher never runs and never asks.
-        QTRY_COMPARE(launchDialogs().size(), 1);
+        // Programs ask first; the launcher never runs and never asks.
+        QTRY_COMPARE(launchDialogs().size(), 2);
         QTRY_VERIFY(QFileInfo::exists(opened));
         QTest::qWait(300);
         QVERIFY(!QFileInfo::exists(marker));
         QVERIFY(!(QFile::permissions(program) & QFile::ExeOwner));
 
-        QWindow *programDialog = launchDialogs().first();
-        QCOMPARE(programDialog->property("name").toString(), QString("program"));
+        QWindow *programDialog = nullptr;
+        for (QWindow *dialog : launchDialogs()) {
+            if (dialog->property("name").toString() == "program")
+                programDialog = dialog;
+        }
+        QVERIFY(programDialog);
         QVERIFY(QMetaObject::invokeMethod(programDialog, "accepted"));
         QTRY_VERIFY(QFile::permissions(program) & QFile::ExeOwner);
-        QVERIFY(FileLauncher::isTrusted(program));
+        // Running it once does not make it trusted.
+        QVERIFY(!FileLauncher::isTrusted(program));
         QVERIFY(!FileLauncher::self()->trustAndLaunch(launcher));
         QTest::qWait(100);
         QVERIFY(!QFileInfo::exists(marker));
@@ -1095,10 +1105,9 @@ private slots:
         QVERIFY(dir.isValid());
         const QString program = dir.filePath("program");
         QVERIFY(QFile::copy("/bin/true", program));
-        QVERIFY(QFile::setPermissions(program, QFile::ReadOwner | QFile::WriteOwner));
-        QVERIFY(!FileLauncher::isTrusted(program));
         QVERIFY(QFile::setPermissions(program, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner));
-        QVERIFY(FileLauncher::isTrusted(program));
+        // A program always asks, whatever its mode bits.
+        QVERIFY(!FileLauncher::isTrusted(program));
 
         // Menu entries are launchers by definition, executable or not.
         QVERIFY(QDir().mkpath(m_data.filePath("applications")));

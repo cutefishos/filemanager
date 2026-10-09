@@ -327,16 +327,11 @@ void FolderModel::openSelected()
             continue;
         }
 
-        // Programs run only once trusted, so a downloaded one does not run on a double-click.
+        // A program's mode bits and owner come with the medium it is on, so every one asks first.
         if (mimeType == "application/x-executable" || mimeType == "application/x-sharedlib"
             || mimeType == "application/x-iso9660-appimage"
             || mimeType == "application/vnd.appimage") {
-            const QString path = url.toLocalFile();
-            if (FileLauncher::isTrusted(path))
-                FileLauncher::self()->launchFile(path);
-            else
-                CutefishFM::Dialogs::confirmLaunch(windowManager(), path, dialogOwner());
-
+            CutefishFM::Dialogs::confirmLaunch(windowManager(), url.toLocalFile(), dialogOwner());
             continue;
         }
 

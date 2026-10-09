@@ -12,14 +12,6 @@
 #include <QMimeDatabase>
 #include <QStandardPaths>
 
-#include <linux/magic.h>
-#include <sys/vfs.h>
-#include <unistd.h>
-
-// Not in linux/magic.h: the ntfs3 driver and the old in-kernel ntfs.
-static constexpr long NTFS3_SUPER_MAGIC = 0x7366746e;
-static constexpr long NTFS_SB_MAGIC = 0x5346544e;
-
 static bool isDesktopFile(const QString &path)
 {
     return QMimeDatabase().mimeTypeForFile(path).inherits(QStringLiteral("application/x-desktop"));
@@ -38,25 +30,6 @@ static bool isInApplicationsDirectory(const QString &path)
     }
 
     return false;
-}
-
-// These mounts show every file as executable, so the bit says nothing about the user's intent.
-static bool keepsPermissions(const QString &path)
-{
-    struct statfs fs;
-    if (::statfs(QFile::encodeName(path).constData(), &fs) != 0)
-        return false;
-
-    switch (fs.f_type) {
-    case MSDOS_SUPER_MAGIC:
-    case EXFAT_SUPER_MAGIC:
-    case NTFS3_SUPER_MAGIC:
-    case NTFS_SB_MAGIC:
-    case FUSE_SUPER_MAGIC:
-        return false;
-    default:
-        return true;
-    }
 }
 
 FileLauncher *SELF = nullptr;
@@ -115,18 +88,7 @@ bool FileLauncher::launchFile(const QString &path)
 bool FileLauncher::isTrusted(const QString &path)
 {
     // A launcher's Name and Icon can pose as anything, so only installed ones run.
-    if (isDesktopFile(path))
-        return isInApplicationsDirectory(path);
-
-    const QFileInfo info(path);
-    if (!info.isFile() || !(info.permissions() & QFile::ExeOwner))
-        return false;
-
-    // Someone else's executable file says nothing about what this user wants to run.
-    if (info.ownerId() != ::getuid() && info.ownerId() != 0)
-        return false;
-
-    return keepsPermissions(path);
+    return isDesktopFile(path) && isInApplicationsDirectory(path);
 }
 
 bool FileLauncher::trustAndLaunch(const QString &path)
