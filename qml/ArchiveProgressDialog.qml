@@ -5,7 +5,7 @@ import QtQuick.Window 2.12
 
 import FishUI 1.0 as FishUI
 
-FishUI.Window {
+FishUI.DialogWindow {
     id: control
 
     property QtObject archiveModel
@@ -16,17 +16,11 @@ FishUI.Window {
 
     flags: Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     modality: Qt.NonModal
-    windowButtonsTopMargin: 8
-    windowButtonsRightMargin: 8
-    minimizeButtonVisible: false
     visible: archiveModel !== null && archiveModel.archiveBusy
+    title: archiveModel === null ? qsTr("File operation") : archiveModel.archiveOperation
 
     width: 420
-    height: 178
-    minimumWidth: width
-    minimumHeight: height
-    maximumWidth: width
-    maximumHeight: height
+    contentHeight: 178 - header.height
 
     DragHandler {
         parent: control.contentItem
@@ -41,22 +35,8 @@ FishUI.Window {
     x: hostWindow ? hostWindow.x + Math.round((hostWindow.width - width) / 2) : 0
     y: hostWindow ? hostWindow.y + Math.round((hostWindow.height - height) / 2) : 0
 
-    header.height: 44
     headerBackground.color: FishUI.Theme.secondBackgroundColor
     background.color: FishUI.Theme.secondBackgroundColor
-
-    headerItem: Item {
-        FishUI.Label {
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 64
-            text: control.archiveModel === null ? qsTr("File operation")
-                                                 : control.archiveModel.archiveOperation
-            elide: Text.ElideRight
-            font: Qt.font({ family: FishUI.Theme.fontFamily, pixelSize: 14, weight: Font.DemiBold })
-        }
-    }
 
     ColumnLayout {
         anchors.fill: parent
