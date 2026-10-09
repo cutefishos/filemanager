@@ -33,6 +33,9 @@ FishUI.Window {
     readonly property int minimumImageWidth: 400
     readonly property int minimumImageHeight: 200
     readonly property int textColumns: 100
+    // PreviewTextView pads the text with 20 px on each side.
+    readonly property int textPageWidth: Math.min(Math.floor(Screen.width * 0.75),
+                                                  Math.ceil(fixedMetrics.advanceWidth("0") * textColumns) + 40)
     // The requesting window's: it opens on the same output, and until this
     // window has been on screen its own ratio is the rounded-up integer scale.
     readonly property real displayRatio: controller.sourceRatio > 0 ? controller.sourceRatio
@@ -77,9 +80,7 @@ FishUI.Window {
     // An image at its own pixels, shrunk to fit a large share of the screen.
     function sizeFor(file) {
         if (file.kind === "text")
-            return Qt.size(Math.min(Math.floor(Screen.width * 0.75),
-                                    Math.ceil(fixedMetrics.advanceWidth("0") * textColumns) + 40),
-                           Math.floor(Screen.height * 0.8))
+            return Qt.size(textPageWidth, Math.floor(Screen.height * 0.8))
         if (file.kind !== "image")
             return Qt.size(480, multiple ? 168 : 144)
         if (!isImage(file))
@@ -149,6 +150,12 @@ FishUI.Window {
     FontMetrics {
         id: fixedMetrics
         font: controller.fixedFont
+    }
+
+    Binding {
+        target: controller
+        property: "textWidth"
+        value: preview.textPageWidth - 40
     }
 
     // Its source, size, orientation and fill mode match PreviewImageView's

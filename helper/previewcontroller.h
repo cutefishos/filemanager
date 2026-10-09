@@ -24,6 +24,8 @@ class PreviewController : public QObject
     Q_PROPERTY(qreal sourceRatio READ sourceRatio NOTIFY changed)
     // Read again for each file, so a changed system font applies to the next one.
     Q_PROPERTY(QFont fixedFont READ fixedFont NOTIFY fileChanged)
+    // The width text wraps at in the window, where long paragraphs are split.
+    Q_PROPERTY(qreal textWidth MEMBER m_textWidth NOTIFY textWidthChanged)
 
 public:
     explicit PreviewController(QObject *parent = nullptr);
@@ -53,6 +55,7 @@ signals:
     void showRequested();
     void navigateRequested(int key, int modifiers);
     void closed();
+    void textWidthChanged();
 
 protected:
     bool eventFilter(QObject *object, QEvent *event) override;
@@ -76,4 +79,5 @@ private:
     bool m_loading = false;
     bool m_showPending = false;
     qreal m_sourceRatio = 0;
+    qreal m_textWidth = 0;
 };

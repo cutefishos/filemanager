@@ -26,9 +26,10 @@ private:
         return file.fileName();
     }
 
-    QVariantMap describe(const QString &path)
+    QVariantMap describe(const QString &path, qreal textWidth = 0)
     {
         PreviewController controller;
+        controller.setProperty("textWidth", textWidth);
         controller.present({QVariantMap{{"url", QUrl::fromLocalFile(path)}}}, 0, false);
         if (!QTest::qWaitFor([&] { return !controller.loading(); }))
             return {};
@@ -164,6 +165,53 @@ private slots:
 
         for (const QString &paragraph : text.split(QLatin1Char('\n')))
             QVERIFY(paragraph.size() <= 4000);
+    }
+
+    void longParagraphsWrapAsOne_data()
+    {
+        QTest::addColumn<QString>("line");
+
+        QTest::newRow("words") << QStringLiteral("lorem ipsum dolor sit amet, ").repeated(600);
+        QTest::newRow("no spaces") << QString(12000, QLatin1Char('x'));
+        QTest::newRow("tabs") << QStringLiteral("key\tvalue\t").repeated(1200);
+        QTest::newRow("cjk") << QStringLiteral("中文段落，没有空格的长文本。").repeated(800);
+    }
+
+    // A split paragraph wraps into as many lines as the whole one: each
+    // inserted break falls where a line wraps anyway.
+    void longParagraphsWrapAsOne()
+    {
+        QFETCH(QString, line);
+
+        const qreal width = 700;
+        const QString original = line + QLatin1Char('\n');
+        const QVariantMap file = describe(write("wrap.txt", original.toUtf8()), width);
+        QVERIFY(!file.value("breaks").toList().isEmpty());
+
+        QQmlEngine engine;
+        QQmlComponent component(&engine);
+        component.setData("import QtQuick\n"
+                          "Window { width: 740; height: 400; visible: true\n"
+                          "    property alias font: view.font\n"
+                          "    PreviewTextView { id: view; objectName: \"view\"; anchors.fill: parent } }",
+                          QUrl("qrc:/qml/WrapTest.qml"));
+        std::unique_ptr<QObject> window(component.create());
+        QVERIFY2(window, qPrintable(component.errorString()));
+        window->setProperty("font", PreviewController().fixedFont());
+        auto *view = window->findChild<QQuickItem *>("view");
+        auto *edit = window->findChild<QQuickItem *>("previewText");
+        QVERIFY(view && edit);
+        QTRY_COMPARE(edit->width() - 40, width);
+
+        const auto lineCount = [&](const QVariantMap &file) {
+            view->setProperty("file", file);
+            if (!QTest::qWaitFor([&] { return view->property("complete").toBool(); }, 10000))
+                return -1;
+            return edit->property("lineCount").toInt();
+        };
+        const int whole = lineCount({{"text", original}});
+        QVERIFY(whole > 1);
+        QCOMPARE(lineCount(file), whole);
     }
 
     void shortParagraphsAreKept()

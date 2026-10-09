@@ -9,6 +9,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFontDatabase>
+#include <QFontMetricsF>
 #include <QFutureWatcher>
 #include <QGuiApplication>
 #include <QImageReader>
@@ -16,6 +17,9 @@
 #include <QLocale>
 #include <QMimeDatabase>
 #include <QStringDecoder>
+#include <QTextBlock>
+#include <QTextDocument>
+#include <QTextLayout>
 #include <QtConcurrentRun>
 #include <filesystem.h>
 #include <memory>
@@ -28,9 +32,39 @@ static constexpr qint64 textLimit = 256 * 1024;
 // rebuilds the paragraphs in view on every scroll step.
 static constexpr qsizetype paragraphLimit = 4000;
 
-// Breaks longer paragraphs, after a space near the limit where there is one,
-// and returns the positions of the line breaks it inserted.
-static QVariantList splitLongParagraphs(QString *text)
+// Where PreviewTextView's TextEdit starts each wrapped line of a paragraph.
+static QList<int> lineStarts(QStringView paragraph, const QFont &font, qreal width)
+{
+    // TextEdit rounds the font to half points, and with the theme's
+    // Text.QtRendering it lays out with design metrics.
+    QFont rounded = font;
+    if (rounded.pointSizeF() > 0)
+        rounded.setPointSizeF(qRound(rounded.pointSizeF() * 2) / 2.0);
+    QTextOption option;
+    option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+    option.setUseDesignMetrics(true);
+    option.setTabStopDistance(QFontMetricsF(font).horizontalAdvance(QLatin1Char(' ')) * 8);
+
+    QTextDocument document;
+    document.setDocumentMargin(0);
+    document.setDefaultFont(rounded);
+    document.setDefaultTextOption(option);
+    document.setTextWidth(width);
+    document.setPlainText(paragraph.toString());
+    // Lays out the whole document, which otherwise happens lazily.
+    document.size();
+
+    QList<int> starts;
+    const QTextLayout *layout = document.firstBlock().layout();
+    for (int i = 1; i < layout->lineCount(); ++i)
+        starts.append(layout->lineAt(i).textStart());
+    return starts;
+}
+
+// Breaks longer paragraphs where TextEdit wraps a line at `width`, so a
+// paragraph reads as one, or without a width after a space near the limit
+// where there is one. Returns the positions of the line breaks it inserted.
+static QVariantList splitLongParagraphs(QString *text, const QFont &font, qreal width)
 {
     QVariantList breaks;
     QString result;
@@ -39,10 +73,20 @@ static QVariantList splitLongParagraphs(QString *text)
     while (start < text->size()) {
         qsizetype end = text->indexOf(QLatin1Char('\n'), start);
         end = end < 0 ? text->size() : end + 1;
+        QList<int> starts;
+        if (end - start > paragraphLimit && width > 0)
+            starts = lineStarts(QStringView(*text).sliced(start, end - start), font, width);
+        const qsizetype paragraph = start;
+        auto line = starts.cbegin();
         while (end - start > paragraphLimit) {
             qsizetype cut = start + paragraphLimit;
+            while (line != starts.cend() && paragraph + *line <= cut)
+                ++line;
+            const qsizetype wrap = line == starts.cbegin() ? -1 : paragraph + *(line - 1);
             const qsizetype space = text->lastIndexOf(QLatin1Char(' '), cut - 1);
-            if (space >= cut - 200 && space > start)
+            if (wrap > start)
+                cut = wrap;
+            else if (space >= cut - 200 && space > start)
                 cut = space + 1;
             else if (text->at(cut).isLowSurrogate())
                 --cut;
@@ -130,7 +174,7 @@ static std::optional<QString> readText(const QString &path, bool *truncated)
     return text;
 }
 
-static QVariantMap describeFile(const QUrl &url)
+static QVariantMap describeFile(const QUrl &url, const QFont &font, qreal textWidth)
 {
     QVariantMap result{{"url", url}, {"name", url.fileName()}, {"kind", "generic"}};
     if (!url.isLocalFile()) {
@@ -184,7 +228,7 @@ static QVariantMap describeFile(const QUrl &url)
         auto text = readText(info.filePath(), &truncated);
         if (text) {
             result.insert("kind", "text");
-            result.insert("breaks", splitLongParagraphs(&*text));
+            result.insert("breaks", splitLongParagraphs(&*text, font, textWidth));
             result.insert("text", *text);
             result.insert("truncated", truncated);
         }
@@ -452,7 +496,7 @@ void PreviewController::load()
         }
         watcher->deleteLater();
     });
-    watcher->setFuture(QtConcurrent::run(describeFile, url));
+    watcher->setFuture(QtConcurrent::run(describeFile, url, fixedFont(), m_textWidth));
 }
 
 void PreviewController::stopFolderSize()
