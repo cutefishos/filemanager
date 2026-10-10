@@ -233,6 +233,10 @@ int Positioner::nearestItem(int currentIndex, Qt::ArrowType direction)
         return firstRow();
     }
 
+    if (m_perStripe <= 0) {
+        return -1;
+    }
+
     int hDirection = 0;
     int vDirection = 0;
 
@@ -804,7 +808,13 @@ void Positioner::sourceRowsAboutToBeRemoved(const QModelIndex &parent, int first
         int oldLast = lastRow();
 
         for (int i = first; i <= last; ++i) {
-            int proxyRow = m_sourceToProxy.take(i);
+            // A row that never got a cell must not free cell 0.
+            const auto mapped = m_sourceToProxy.constFind(i);
+            if (mapped == m_sourceToProxy.cend()) {
+                continue;
+            }
+            const int proxyRow = mapped.value();
+            m_sourceToProxy.erase(mapped);
             m_proxyToSource.remove(proxyRow);
             m_pendingChanges << createIndex(proxyRow, 0);
         }
@@ -938,7 +948,7 @@ void Positioner::initMaps()
 }
 
 // Cell of the nth default slot: the rightmost stripe first, filled from its
-// start, then the stripe next to it -- where macOS puts new desktop icons.
+// start, then the stripe next to it, which is where new desktop icons go.
 // Falls back to plain packing while the grid size is still unknown.
 int Positioner::defaultCell(int ordinal) const
 {
