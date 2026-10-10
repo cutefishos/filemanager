@@ -21,7 +21,6 @@
 #include <QQuickWindow>
 #include <QTextStream>
 #include <algorithm>
-#include <sys/stat.h>
 
 static QString uniquePath(const QString &directory, const QString &name, bool directoryPath)
 {
@@ -192,7 +191,6 @@ void FolderModel::newTextFile()
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream stream(&file);
         stream << "\n";
-        ::chmod(m_newDocumentUrl.toLocalFile().toStdString().c_str(), 0700);
         file.close();
     }
 }
