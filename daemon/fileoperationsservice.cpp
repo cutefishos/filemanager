@@ -39,8 +39,9 @@ QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStrin
     const bool registered = QDBusConnection::sessionBus().registerObject(
             path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
     if (!registered) {
+        // The job thread is the task's child; it may only go once the job has stopped.
+        connect(task, &DaemonArchiveTask::Finished, task, &QObject::deleteLater);
         task->Cancel();
-        task->deleteLater();
         return {};
     }
 
@@ -203,6 +204,7 @@ QDBusObjectPath FileOperationsService::Submit(int operation, const QStringList &
     const bool registered = QDBusConnection::sessionBus().registerObject(
             path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
     if (!registered) {
+        task->Cancel();
         task->deleteLater();
         return {};
     }
