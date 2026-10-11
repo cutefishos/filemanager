@@ -100,7 +100,9 @@ Item {
                 cache: false
                 smooth: true
 
-                layer.enabled: visible
+                // Not on visible: a scale change reloads the image, and a layer torn down
+                // while the window hands out the new ratio crashes the walk over its items.
+                layer.enabled: !!row.itemModel.thumbnail
                 layer.effect: FishUI.OpacityMask {
                     maskSource: Item {
                         width: _image.width

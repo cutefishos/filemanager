@@ -235,7 +235,9 @@ Item {
                     source = target
             }
 
-            layer.enabled: _image.visible
+            // Not on visible: a scale change reloads the image, and a layer torn down
+            // while the window hands out the new ratio crashes the walk over its items.
+            layer.enabled: thumbnail !== ""
             layer.effect: FishUI.OpacityMask {
                 maskSource: Item {
                     width: _image.width
