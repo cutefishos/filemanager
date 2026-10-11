@@ -1,9 +1,10 @@
 import QtQuick
 import FishUI 1.0 as FishUI
 
-// The crumbs of a PathBarModel. When they do not fit, the folders between the
-// root and the parent fold into a "…" crumb, then the root does too; the
-// current folder is elided only once there is nothing left to fold.
+// The crumbs of a PathBarModel. When they do not fit, the names between the
+// root and the current folder shorten first, then those folders fold into a
+// "…" crumb, then the root does too; the current folder is elided only once
+// there is nothing left to fold.
 Item {
     id: control
 
@@ -25,6 +26,8 @@ Item {
     readonly property real separatorWidth: 10 + FishUI.Units.smallSpacing
     // One long folder name must not push every other ancestor into the fold.
     readonly property real ancestorMaxTextWidth: FishUI.Units.gridUnit * 8
+    // How short a name between the root and the current folder gets before it folds.
+    readonly property real ancestorMinTextWidth: FishUI.Units.gridUnit * 4
     readonly property real currentMinTextWidth: FishUI.Units.gridUnit * 2
     // The press highlight hugs the text; the crumb keeps the bar's height to hit.
     readonly property real highlightHeight: _foldLabel.implicitHeight + FishUI.Units.smallSpacing
@@ -36,6 +39,8 @@ Item {
     property real foldX: 0
     property var positions: []
     property real currentTextWidth: 0
+    // What the names between the root and the current folder are shortened to.
+    property real middleTextWidth: ancestorMaxTextWidth
 
     clip: true
 
@@ -54,14 +59,15 @@ Item {
             natural.push(item.naturalTextWidth)
         }
 
-        function crumbWidth(i) {
-            var text = i === n - 1 ? natural[i] : Math.min(natural[i], ancestorMaxTextWidth)
+        function crumbWidth(i, middle) {
+            var text = i === n - 1 ? natural[i]
+                                   : Math.min(natural[i], i === 0 ? ancestorMaxTextWidth : middle)
             return text + crumbPadding
         }
 
         var foldWidth = _foldLabel.implicitWidth + crumbPadding
 
-        function totalWidth(fold) {
+        function totalWidth(fold, middle) {
             var width = 0
             var count = 0
             if (fold[0] >= 0) {
@@ -71,7 +77,7 @@ Item {
             for (var i = 0; i < n; ++i) {
                 if (i >= fold[0] && i <= fold[1])
                     continue
-                width += crumbWidth(i)
+                width += crumbWidth(i, middle)
                 ++count
             }
             return width + separatorWidth * Math.max(0, count - 1)
@@ -89,14 +95,30 @@ Item {
 
         var available = width - sideMargin * 2
         var fold = candidates[candidates.length - 1]
+        var middle = ancestorMaxTextWidth
         for (var c = 0; c < candidates.length; ++c) {
-            if (totalWidth(candidates[c]) <= available) {
+            if (totalWidth(candidates[c], ancestorMaxTextWidth) <= available) {
                 fold = candidates[c]
+                break
+            }
+            if (totalWidth(candidates[c], ancestorMinTextWidth) <= available) {
+                // The longest names give way first: the widest cap that fits.
+                var low = ancestorMinTextWidth
+                var high = ancestorMaxTextWidth
+                while (high - low > 0.5) {
+                    var mid = (low + high) / 2
+                    if (totalWidth(candidates[c], mid) <= available)
+                        low = mid
+                    else
+                        high = mid
+                }
+                fold = candidates[c]
+                middle = Math.floor(low)
                 break
             }
         }
 
-        var others = n > 0 ? totalWidth(fold) - crumbWidth(n - 1) : 0
+        var others = n > 0 ? totalWidth(fold, middle) - crumbWidth(n - 1, middle) : 0
         currentTextWidth = n > 0 ? Math.min(natural[n - 1],
                                             Math.max(currentMinTextWidth, available - others - crumbPadding))
                                  : 0
@@ -116,11 +138,12 @@ Item {
                 continue
             }
             xs.push(x)
-            x += (j === n - 1 ? currentTextWidth + crumbPadding : crumbWidth(j)) + separatorWidth
+            x += (j === n - 1 ? currentTextWidth + crumbPadding : crumbWidth(j, middle)) + separatorWidth
         }
 
         foldFirst = fold[0]
         foldLast = fold[1]
+        middleTextWidth = middle
         foldedItems = folded
         positions = xs
     }
@@ -210,7 +233,9 @@ Item {
             FishUI.Label {
                 id: _name
                 anchors.centerIn: parent
-                width: Math.min(implicitWidth, _item.selected ? control.currentTextWidth : control.ancestorMaxTextWidth)
+                width: Math.min(implicitWidth, _item.selected ? control.currentTextWidth
+                                             : _item.index === 0 ? control.ancestorMaxTextWidth
+                                                                 : control.middleTextWidth)
                 text: _item.name
                 textFormat: Text.PlainText
                 // The end of a name, often a version or a suffix, tells folders apart.
