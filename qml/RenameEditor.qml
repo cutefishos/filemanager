@@ -89,9 +89,13 @@ FishUI.TextArea {
         if (finishing || !targetItem)
             return true
 
-        if (!text.trim().length)
-            errorMessage = qsTr("Enter a name.")
-        else if (text === "." || text === "..")
+        // An emptied name keeps the old one, as Escape does.
+        if (!text.trim().length) {
+            cancel()
+            return true
+        }
+
+        if (text === "." || text === "..")
             errorMessage = qsTr("Choose a name other than . or ..")
         else if (/[\/\r\n\u0000]/.test(text))
             errorMessage = qsTr("Names cannot contain / or line breaks.")
