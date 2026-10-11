@@ -12,6 +12,17 @@ Rectangle {
     property real pointerX: 0
     property real dragPos: 0
     property real dragOffset: 0
+    // How far the dragged tab is drawn behind the pointer as it catches up.
+    property real dragLag: 0
+
+    NumberAnimation {
+        id: dragLagAnimation
+        target: control
+        property: "dragLag"
+        to: 0
+        duration: 120
+        easing.type: Easing.OutCubic
+    }
     property int springLoadIndex: -1
     // The page of a tab pulled off the bar, hidden until the window lets it go.
     property var leavingPage: null
@@ -66,8 +77,10 @@ Rectangle {
 
     function updateDrag(x) {
         pointerX = x
-        var limit = Math.max(0, list.contentWidth - list.tabWidth)
-        dragPos = Math.max(0, Math.min(limit, x - list.x + list.contentX - dragOffset))
+        // Whole in view; at an end the others scroll under it.
+        var first = list.contentX
+        dragPos = Math.max(first, Math.min(first + Math.max(0, list.width - list.tabWidth),
+                                           x - list.x + first - dragOffset))
         dropIndex = Math.max(0, Math.min(tabs.length - 1, Math.round(dragPos / list.tabWidth)))
     }
 
@@ -140,6 +153,25 @@ Rectangle {
         color: FishUI.Theme.alternateBackgroundColor
     }
 
+    // The track's pill, as the mask the crowded strip is clipped to.
+    FishUI.RoundedRectangle {
+        id: pill
+        x: list.x
+        y: list.y
+        width: list.width
+        height: list.height
+        radius: height / 2
+        continuousCorners: false
+        color: "black"
+        visible: false
+    }
+
+    ShaderEffectSource {
+        id: pillMask
+        sourceItem: pill
+        visible: false
+    }
+
     Flickable {
         id: list
         anchors.fill: parent
@@ -153,6 +185,22 @@ Rectangle {
         boundsBehavior: Flickable.StopAtBounds
         contentWidth: tabWidth * count
         contentHeight: height
+        // A narrower bar would otherwise leave the current tab cut off at an end.
+        onWidthChanged: ensureVisible(control.currentIndex)
+
+        FishUI.WheelHandler {
+            target: list
+        }
+
+        // Crowded, the strip is clipped to the pill of the track, so both ends stay
+        // round as tabs scroll under them. Sampled texel for texel: a smoothed
+        // layer blurs the titles at fractional scales.
+        layer.enabled: contentWidth > width
+        layer.smooth: false
+        layer.effect: ShaderEffect {
+            property var maskSource: pillMask
+            fragmentShader: "qrc:/fishui/shaders/opacitymask.frag.qsb"
+        }
 
         // A tab dragged in from another window takes a slot of its own; one
         // pulled out gives its slot up before the window lets it go.
@@ -186,7 +234,7 @@ Rectangle {
                 objectName: "folderTab" + index
                 width: list.slotWidth
                 height: list.height
-                x: dragged ? control.dragPos : (slot + slotShift) * list.slotWidth
+                x: dragged ? control.dragPos + control.dragLag : (slot + slotShift) * list.slotWidth
                 z: dragged || landing ? 2 : tab.selected ? 1 : 0
                 // Not `visible`: hiding the item would cancel the press the window drag goes on with.
                 opacity: page !== control.leavingPage ? 1 : 0
@@ -218,7 +266,7 @@ Rectangle {
                 onDraggedChanged: {
                     if (!dragged) {
                         landing = true
-                        glideFrom(control.dragPos / list.slotWidth)
+                        glideFrom((control.dragPos + control.dragLag) / list.slotWidth)
                     }
                 }
 
@@ -276,8 +324,10 @@ Rectangle {
                         if (!(pressedButtons & Qt.LeftButton) || detached)
                             return
                         var position = mapToItem(control, event.x, event.y)
+                        var started = false
                         if (!didDrag && (Math.abs(position.x - pressX) > 8 || Math.abs(position.y - pressY) > 8)) {
                             didDrag = true
+                            started = true
                             settle.restart()
                             control.dragIndex = index
                             control.dropIndex = index
@@ -296,8 +346,14 @@ Rectangle {
                             control.detachRequested(index, mapToItem(null, event.x, event.y))
                             return
                         }
-                        if (didDrag)
+                        if (didDrag) {
                             control.updateDrag(position.x)
+                            // From its slot, rather than jumping the drag threshold at once.
+                            if (started) {
+                                control.dragLag = index * list.tabWidth - control.dragPos
+                                dragLagAnimation.restart()
+                            }
+                        }
                     }
                     onReleased: {
                         // The window kept the tab after all.
@@ -332,8 +388,10 @@ Rectangle {
 
                 FishUI.Label {
                     anchors.fill: parent
-                    anchors.leftMargin: 28
-                    anchors.rightMargin: 28
+                    // A title long enough to reach the close button keeps clear of it
+                    // whether or not the button shows, so hovering never re-elides it.
+                    anchors.leftMargin: implicitWidth > parent.width - 56 ? 28 : 12
+                    anchors.rightMargin: anchors.leftMargin
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     text: tab.page ? tab.page.tabTitle : ""
@@ -408,8 +466,8 @@ Rectangle {
 
             FishUI.Label {
                 anchors.fill: parent
-                anchors.leftMargin: 28
-                anchors.rightMargin: 28
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 text: control.incomingTitle
