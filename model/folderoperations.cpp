@@ -127,12 +127,14 @@ QAction *FolderModel::action(const QString &name) const
 
 void FolderModel::undo()
 {
-    FileOperationsClient::instance()->undo();
+    if (FileOperationsClient::instance()->undoAvailable())
+        FileOperationsClient::instance()->undo();
 }
 
 void FolderModel::redo()
 {
-    FileOperationsClient::instance()->redo();
+    if (FileOperationsClient::instance()->redoAvailable())
+        FileOperationsClient::instance()->redo();
 }
 
 bool FolderModel::supportSetAsWallpaper(const QString &mimeType)

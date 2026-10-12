@@ -519,7 +519,8 @@ OperationTask *FileOperationsClient::history(const char *method,
         QDBusInterface manager(serviceName, managerPath, managerInterface,
                                QDBusConnection::sessionBus());
         const QDBusReply<QDBusObjectPath> reply = manager.call(QString::fromLatin1(method));
-        if (reply.isValid() && !reply.value().path().isEmpty())
+        // "/" means there was nothing to undo or redo.
+        if (reply.isValid() && reply.value().path() != QLatin1String("/"))
             return attachRemoteTask(reply.value().path());
         return nullptr;
     }

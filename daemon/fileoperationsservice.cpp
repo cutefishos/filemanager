@@ -159,8 +159,9 @@ bool FileOperationsService::CanRedo() const
 
 QDBusObjectPath FileOperationsService::publish(Cutefish::IO::Task *history)
 {
+    // An empty path is no valid object path, so the reply would never be sent.
     if (!history)
-        return {};
+        return QDBusObjectPath(QStringLiteral("/"));
 
     const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
     auto *task = new DaemonTask(path, history, this);
