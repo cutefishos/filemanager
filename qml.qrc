@@ -28,6 +28,8 @@
         <file>qml/FolderGridItem.qml</file>
         <file>qml/OptionsMenu.qml</file>
         <file>qml/Dialogs/EmptyTrashDialog.qml</file>
+        <file>qml/Dialogs/ConnectServerDialog.qml</file>
+        <file>qml/Dialogs/ServerPasswordDialog.qml</file>
         <file>qml/Dialogs/OpenWithDialog.qml</file>
         <file>qml/Dialogs/DeleteDialog.qml</file>
         <file>qml/Dialogs/LaunchDialog.qml</file>

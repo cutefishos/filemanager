@@ -3,6 +3,7 @@
 
 #include "placesmodel.h"
 #include "helper/fm.h"
+#include "helper/mountsclient.h"
 #include "operations/fileoperationsclient.h"
 
 #include <fileitem.h>
@@ -11,6 +12,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
+#include <QPointer>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -151,6 +153,192 @@ PlacesModel::PlacesModel(QObject *parent)
     for (PlacesItem *item : m_items) {
         connect(item, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
     }
+
+    connect(MountsClient::instance(), &MountsClient::mountsChanged, this, &PlacesModel::syncMounts);
+    syncMounts();
+}
+
+// Phones and servers have URLs for ids; disks have udisks object paths.
+static bool isMountId(const QString &id)
+{
+    return id.contains(QLatin1String("://"));
+}
+
+void PlacesModel::syncMounts()
+{
+    const auto mounts = MountsClient::instance()->mounts();
+    QSet<QString> present;
+
+    for (const MountsClient::Mount &mount : mounts) {
+        present.insert(mount.id);
+
+        Cutefish::IO::Volume volume;
+        volume.id = mount.id;
+        volume.name = mount.name;
+        volume.icon = mount.icon;
+        volume.filesystem = true;
+        volume.ejectable = mount.device;
+        if (!mount.path.isEmpty())
+            volume.mountPoints = {mount.path};
+
+        PlacesItem *existing = nullptr;
+        for (PlacesItem *item : std::as_const(m_items)) {
+            if (item->udi() == mount.id)
+                existing = item;
+        }
+
+        if (existing) {
+            existing->setVolume(volume);
+            continue;
+        }
+
+        auto *item = new PlacesItem;
+        item->setVolume(volume);
+        insertLocation(item, mount.network ? tr("Network") : tr("Locations"));
+    }
+
+    for (int i = m_items.size() - 1; i >= 0; --i) {
+        const QString id = m_items.at(i)->udi();
+        if (isMountId(id) && !present.contains(id)) {
+            beginRemoveRows(QModelIndex(), i, i);
+            delete m_items.takeAt(i);
+            endRemoveRows();
+        }
+    }
+}
+
+// Sections need their rows together: Locations come before Network.
+void PlacesModel::insertLocation(PlacesItem *item, const QString &category)
+{
+    item->setCategory(category);
+
+    int row = m_items.size();
+    if (category != tr("Network")) {
+        for (int i = 0; i < m_items.size(); ++i) {
+            if (m_items.at(i)->category() == tr("Network")) {
+                row = i;
+                break;
+            }
+        }
+    }
+
+    beginInsertRows(QModelIndex(), row, row);
+    m_items.insert(row, item);
+    endInsertRows();
+    connect(item, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
+}
+
+QStringList PlacesModel::recentServers() const
+{
+    QSettings settings(Preferences::file(QStringLiteral("filemanager")), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("Network"));
+    return settings.value(QStringLiteral("recentServers")).toStringList();
+}
+
+void PlacesModel::addRecentServer(const QString &address)
+{
+    QStringList servers = recentServers();
+    servers.removeAll(address);
+    servers.prepend(address);
+    while (servers.size() > 10)
+        servers.removeLast();
+
+    QSettings settings(Preferences::file(QStringLiteral("filemanager")), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("Network"));
+    settings.setValue(QStringLiteral("recentServers"), servers);
+    emit recentServersChanged();
+}
+
+void PlacesModel::removeRecentServer(const QString &address)
+{
+    QStringList servers = recentServers();
+    if (!servers.removeAll(address))
+        return;
+
+    QSettings settings(Preferences::file(QStringLiteral("filemanager")), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("Network"));
+    settings.setValue(QStringLiteral("recentServers"), servers);
+    emit recentServersChanged();
+}
+
+void PlacesModel::connectToServer(const QString &address)
+{
+    const QString location = MountsClient::normalizedAddress(address);
+    if (location.isEmpty()) {
+        emit deviceOperationFailed(tr("“%1” is not a server address. Enter one such as "
+                                      "smb://server/share or sftp://user@server.")
+                                           .arg(address.trimmed()));
+        return;
+    }
+
+    m_connecting.insert(location, {});
+    mountLocation(location);
+}
+
+void PlacesModel::mountLocation(const QString &address)
+{
+    QPointer<PlacesModel> self(this);
+    MountsClient::instance()->requestMount(
+            address, m_connecting.value(address),
+            [self, address](const QString &status, const QVariantMap &details) {
+                if (!self || !self->m_connecting.contains(address))
+                    return;
+
+                if (status == QLatin1String("password")) {
+                    emit self->passwordRequested(address,
+                                                 details.value(QStringLiteral("user")).toString(),
+                                                 details.value(QStringLiteral("domain")).toString(),
+                                                 details.value(QStringLiteral("needsDomain")).toBool(),
+                                                 details.value(QStringLiteral("anonymousAllowed")).toBool(),
+                                                 details.value(QStringLiteral("retry")).toBool());
+                    return;
+                }
+
+                if (status == QLatin1String("hostkey")) {
+                    emit self->hostKeyRequested(address,
+                                                details.value(QStringLiteral("fingerprint")).toString(),
+                                                details.value(QStringLiteral("changed")).toBool());
+                    return;
+                }
+
+                self->m_connecting.remove(address);
+                if (status == QLatin1String("mounted")) {
+                    self->addRecentServer(address);
+                    emit self->deviceSetupDone(details.value(QStringLiteral("path")).toString());
+                } else {
+                    emit self->deviceOperationFailed(details.value(QStringLiteral("message")).toString());
+                }
+            });
+}
+
+void PlacesModel::answerPassword(const QString &address, const QString &user,
+                                 const QString &domain, const QString &password, bool anonymous,
+                                 bool remember)
+{
+    if (!m_connecting.contains(address))
+        return;
+
+    QVariantMap &options = m_connecting[address];
+    options.insert(QStringLiteral("user"), user);
+    options.insert(QStringLiteral("domain"), domain);
+    options.insert(QStringLiteral("password"), password);
+    options.insert(QStringLiteral("anonymous"), anonymous);
+    options.insert(QStringLiteral("remember"), remember);
+    mountLocation(address);
+}
+
+void PlacesModel::acceptHostKey(const QString &address, const QString &fingerprint)
+{
+    if (!m_connecting.contains(address))
+        return;
+
+    m_connecting[address].insert(QStringLiteral("hostKey"), fingerprint);
+    mountLocation(address);
+}
+
+void PlacesModel::cancelConnection(const QString &address)
+{
+    m_connecting.remove(address);
 }
 
 PlacesModel::~PlacesModel()
@@ -387,20 +575,63 @@ QVariantMap PlacesModel::get(const int &index) const
 
 void PlacesModel::requestSetup(const int &index)
 {
-    if (index >= 0 && index < m_items.size() && m_items.at(index)->isDevice())
-        m_volumeManager->mount(m_items.at(index)->udi());
+    if (index < 0 || index >= m_items.size() || !m_items.at(index)->isDevice())
+        return;
+
+    const QString id = m_items.at(index)->udi();
+    if (!isMountId(id)) {
+        m_volumeManager->mount(id);
+        return;
+    }
+
+    QPointer<PlacesModel> self(this);
+    MountsClient::instance()->requestMount(id, {}, [self](const QString &status,
+                                                          const QVariantMap &details) {
+        if (!self)
+            return;
+        if (status == QLatin1String("mounted"))
+            emit self->deviceSetupDone(details.value(QStringLiteral("path")).toString());
+        else
+            emit self->deviceOperationFailed(details.value(QStringLiteral("message")).toString());
+    });
+}
+
+static void unmountLocation(PlacesModel *model, const QString &id)
+{
+    QPointer<PlacesModel> self(model);
+    MountsClient::instance()->requestUnmount(id, [self](const QString &error) {
+        if (!self || error.isEmpty())
+            return;
+        // fusermount refuses while anything has files open there.
+        emit self->deviceOperationFailed(error.contains(QLatin1String("busy"))
+                                                 ? PlacesModel::tr("It is in use. Close the files "
+                                                                   "open there and try again.")
+                                                 : error);
+    });
 }
 
 void PlacesModel::requestEject(const int &index)
 {
-    if (index >= 0 && index < m_items.size() && m_items.at(index)->isDevice())
-        m_volumeManager->eject(m_items.at(index)->udi());
+    if (index < 0 || index >= m_items.size() || !m_items.at(index)->isDevice())
+        return;
+
+    const QString id = m_items.at(index)->udi();
+    if (isMountId(id))
+        unmountLocation(this, id);
+    else
+        m_volumeManager->eject(id);
 }
 
 void PlacesModel::requestTeardown(const int &index)
 {
-    if (index >= 0 && index < m_items.size() && m_items.at(index)->isDevice())
-        m_volumeManager->unmount(m_items.at(index)->udi());
+    if (index < 0 || index >= m_items.size() || !m_items.at(index)->isDevice())
+        return;
+
+    const QString id = m_items.at(index)->udi();
+    if (isMountId(id))
+        unmountLocation(this, id);
+    else
+        m_volumeManager->unmount(id);
 }
 
 void PlacesModel::onDeviceAdded(const QString &udi)
@@ -418,11 +649,7 @@ void PlacesModel::onDeviceAdded(const QString &udi)
     }
     auto *item = new PlacesItem;
     item->setVolume(volume);
-    item->setCategory(tr("Locations"));
-    beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    m_items.append(item);
-    endInsertRows();
-    connect(item, &PlacesItem::itemChanged, this, &PlacesModel::onItemChanged);
+    insertLocation(item, tr("Locations"));
 }
 
 void PlacesModel::onDeviceRemoved(const QString &udi)

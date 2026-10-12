@@ -9,6 +9,7 @@
 #include "helper/fm.h"
 #include "helper/folderpreferences.h"
 #include "helper/iojobui.h"
+#include "helper/mountsclient.h"
 
 #include <filesystemurl.h>
 #include <thumbnailcache.h>
@@ -274,7 +275,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case IconNameRole:
         return item.iconName();
     case ThumbnailRole: {
-        if (item.isLocalFile()) {
+        // Thumbnails of a phone's or a server's files would read each one whole.
+        if (item.isLocalFile()
+            && MountsClient::instance()->mountAt(item.url().toLocalFile()).path.isEmpty()) {
             // The modification time makes the URL differ once the file is
             // replaced in place; an unchanged source is never reloaded by Image.
             QUrl url = item.url();

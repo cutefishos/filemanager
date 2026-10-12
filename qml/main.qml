@@ -298,6 +298,7 @@ FishUI.Window {
     Shortcut { sequence: "Ctrl+Tab"; onActivated: root.currentTab = (root.currentTab + 1) % root.tabs.length }
     Shortcut { sequence: "Ctrl+Shift+Tab"; onActivated: root.currentTab = (root.currentTab + root.tabs.length - 1) % root.tabs.length }
     Shortcut { sequence: StandardKey.Find; onActivated: _pathBar.openSearch() }
+    Shortcut { sequence: "Ctrl+K"; onActivated: _sideBar.connectToServer() }
 
     Platform.MenuBar {
         id: appMenu
@@ -360,6 +361,15 @@ FishUI.Window {
             Platform.MenuItem {
                 text: qsTr("Select All")
                 onTriggered: root._folderPage.model.selectAll()
+            }
+        }
+
+        Platform.Menu {
+            title: qsTr("Go")
+
+            Platform.MenuItem {
+                text: qsTr("Connect to Server…")
+                onTriggered: _sideBar.connectToServer()
             }
         }
     }

@@ -3,6 +3,7 @@
 
 #include "pathbarmodel.h"
 #include "helper/fm.h"
+#include "helper/mountsclient.h"
 #include <QDir>
 #include <QDebug>
 
@@ -52,6 +53,16 @@ void PathBarModel::setUrl(const QString &url)
                     PathBarItem *item = new PathBarItem;
                     item->name = Fm::standardFolderName(homePath);
                     item->url = QUrl::fromLocalFile(homePath);
+                    m_pathList.append(item);
+                    break;
+                }
+
+                // A phone or server starts from its own name, not the folder it is mounted at.
+                const MountsClient::Mount mount = MountsClient::instance()->mountAt(dir.absolutePath());
+                if (!mount.path.isEmpty() && dir.absolutePath() == mount.path) {
+                    PathBarItem *item = new PathBarItem;
+                    item->name = mount.name;
+                    item->url = QUrl::fromLocalFile(mount.path);
                     m_pathList.append(item);
                     break;
                 }

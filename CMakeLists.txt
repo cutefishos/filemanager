@@ -85,6 +85,7 @@ add_library(cutefish-filemanager-core STATIC
   helper/dialogs.cpp
   helper/pathhistory.cpp
   helper/fm.cpp
+  helper/mountsclient.cpp
   helper/iojobui.cpp
   helper/previewcontroller.cpp
   helper/previewclient.cpp
@@ -218,6 +219,35 @@ target_link_libraries(cutefish-filemanager-daemon PRIVATE
 configure_file(daemon/com.cutefish.FileOperations.service.in
                com.cutefish.FileOperations.service @ONLY)
 
+# Phones and servers mounted with FUSE, so their files are local paths to everything else.
+pkg_check_modules(Fuse3 REQUIRED IMPORTED_TARGET fuse3)
+pkg_check_modules(LibSsh REQUIRED IMPORTED_TARGET libssh)
+pkg_check_modules(SmbClient REQUIRED IMPORTED_TARGET smbclient)
+pkg_check_modules(LibMtp REQUIRED IMPORTED_TARGET libmtp)
+pkg_check_modules(LibUdev REQUIRED IMPORTED_TARGET libudev)
+
+add_executable(cutefish-mountd
+  mountd/main.cpp
+  mountd/mountservice.cpp
+  mountd/fusemount.cpp
+  mountd/keyring.cpp
+  mountd/sftpbackend.cpp
+  mountd/smbbackend.cpp
+  mountd/mtpbackend.cpp
+  mountd/mtpmonitor.cpp
+)
+target_link_libraries(cutefish-mountd PRIVATE
+  Qt6::Core
+  Qt6::DBus
+  PkgConfig::Fuse3
+  PkgConfig::LibSsh
+  PkgConfig::SmbClient
+  PkgConfig::LibMtp
+  PkgConfig::LibUdev
+)
+
+configure_file(mountd/com.cutefish.Mounts1.service.in com.cutefish.Mounts1.service @ONLY)
+
 # ---------------------------------------------------------------------------
 # The desktop, as a QML module for cutefish-shell
 # ---------------------------------------------------------------------------
@@ -233,6 +263,9 @@ configure_file(com.cutefish.FileManager1.service.in com.cutefish.FileManager1.se
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileManager1.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(TARGETS cutefish-filemanager-daemon RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(TARGETS cutefish-mountd RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.Mounts1.service
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileOperations.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(FILES cutefish-filemanager.desktop DESTINATION "/usr/share/applications")

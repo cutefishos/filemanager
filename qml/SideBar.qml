@@ -9,6 +9,7 @@ import QtQuick.Window 2.12
 
 import FishUI 1.0 as FishUI
 import Cutefish.FileManager 1.0
+import "./Dialogs"
 
 Item {
     id: sideBar
@@ -43,6 +44,65 @@ Item {
         }
         onFavoritesChanged: sideBar.updateSelection(sideBar.selectedPath)
         onDeviceSetupDone: sideBar.clicked(filePath)    // Once the device is mounted, act as if it was clicked to open its page
+        onPasswordRequested: function(address, user, domain, needsDomain, anonymousAllowed, retry) {
+            passwordDialog.createObject(sideBar, {
+                placesModel: placesModel,
+                address: address,
+                user: user,
+                domain: domain,
+                needsDomain: needsDomain,
+                anonymousAllowed: anonymousAllowed,
+                retry: retry
+            })
+        }
+        onHostKeyRequested: function(address, fingerprint, changed) {
+            hostKeyDialog.createObject(sideBar, {
+                address: address,
+                fingerprint: fingerprint,
+                changed: changed
+            })
+        }
+    }
+
+    function connectToServer() {
+        connectServerDialog.open()
+    }
+
+    ConnectServerDialog {
+        id: connectServerDialog
+        placesModel: placesModel
+    }
+
+    Component {
+        id: passwordDialog
+
+        ServerPasswordDialog {}
+    }
+
+    Component {
+        id: hostKeyDialog
+
+        FishUI.ConfirmDialog {
+            property string address
+            property string fingerprint
+            property bool changed: false
+
+            parentWindow: sideBar.Window.window
+            title: changed ? qsTr("Server Identity Changed") : qsTr("Unknown Server")
+            text: (changed ? qsTr("The identity of “%1” is not the one it had before. Someone may "
+                                  + "be impersonating it. Connect only if its administrator changed "
+                                  + "its key.").arg(address)
+                           : qsTr("The identity of “%1” cannot be verified. Check that its key "
+                                  + "fingerprint is the one you expect before you connect.")
+                                     .arg(address))
+                  + "\n\n" + fingerprint
+            confirmText: changed ? qsTr("Connect Anyway") : qsTr("Connect")
+            destructive: changed
+
+            onAccepted: placesModel.acceptHostKey(address, fingerprint)
+            onRejected: placesModel.cancelConnection(address)
+            onClosing: destroy()
+        }
     }
 
     FishUI.ConfirmDialog {
