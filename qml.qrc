@@ -21,6 +21,7 @@
         <file>qml/Controls/PathCompletion.qml</file>
         <file>qml/PathBar.qml</file>
         <file>qml/SearchScopeBar.qml</file>
+        <file>qml/TrashBar.qml</file>
         <file>qml/SearchPathStrip.qml</file>
         <file>qml/Desktop/Main.qml</file>
         <file>qml/FolderGridView.qml</file>

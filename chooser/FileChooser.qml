@@ -485,14 +485,6 @@ FishUI.Window {
                         }
                     }
 
-                    FishUI.Label {
-                        anchors.centerIn: parent
-                        visible: !chooser.busy && files.count === 0
-                        text: qsTr("Empty folder")
-                        font.pointSize: 15
-                        color: FishUI.Theme.disabledTextColor
-                    }
-
                     BusyIndicator { anchors.centerIn: parent; running: chooser.busy; visible: running }
                 }
 

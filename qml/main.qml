@@ -547,7 +547,7 @@ FishUI.Window {
             MouseArea {
                 z: 1
                 width: parent.width
-                height: root.headerInset + tabBar.height + scopeBar.height
+                height: root.headerInset + tabBar.height + scopeBar.height + trashBar.height
                 acceptedButtons: Qt.AllButtons
                 hoverEnabled: true
             }
@@ -589,6 +589,18 @@ FishUI.Window {
                 folderName: root._folderPage ? root._folderPage.folderName : ""
             }
 
+            TrashBar {
+                id: trashBar
+                objectName: "trashBar"
+                y: root.headerInset + tabBar.height + scopeBar.height
+                width: parent.width
+                z: 2
+                visible: root._folderPage && root._folderPage.model.trash
+                         && root._folderPage.model.searchText.length === 0
+                height: visible ? 34 : 0
+                folderModel: root._folderPage ? root._folderPage.model : null
+            }
+
             DragDrop.DropArea {
                 id: _contentDragArea
                 anchors.fill: parent
@@ -619,7 +631,7 @@ FishUI.Window {
             anchors.fill: parent
             visible: root._folderPage === this
             enabled: visible
-            headerHeight: root.headerInset + tabBar.height + scopeBar.height
+            headerHeight: root.headerInset + tabBar.height + scopeBar.height + trashBar.height
             onOpenInNewTab: function(path) { root.openTab(path) }
             onCloseRequested: root.closeTab(root.currentTab)
             onCurrentUrlChanged: {

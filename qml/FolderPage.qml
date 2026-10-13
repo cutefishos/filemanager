@@ -73,10 +73,11 @@ Item {
 
     FishUI.Label {
         id: _fileTips
-        text: dirModel.searchText.length > 0 ? qsTr("No Results") : qsTr("Empty folder")
+        text: qsTr("No Results")
         font.pointSize: 15
         anchors.centerIn: parent
-        visible: dirModel.status === FM.FolderModel.Ready
+        visible: dirModel.searchText.length > 0
+                 && dirModel.status === FM.FolderModel.Ready
                  && _viewLoader.status === Loader.Ready
                  && dirModel.count === 0
                  && !dirModel.searchBusy
