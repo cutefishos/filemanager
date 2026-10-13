@@ -4,6 +4,7 @@
 #include "smbbackend.h"
 
 #include <QCoreApplication>
+#include <QUuid>
 
 #include <libsmbclient.h>
 
@@ -419,19 +420,32 @@ int SmbBackend::rename(const std::string &from, const std::string &to, unsigned 
     const bool caseOnly = QString::fromStdString(from).compare(QString::fromStdString(to),
                                                                Qt::CaseInsensitive)
             == 0;
+    const auto renameUrl = smbc_getFunctionRename(m_context);
     if (!caseOnly && smbc_getFunctionStat(m_context)(m_context, target.c_str(), &existing) == 0) {
         if (flags & RENAME_NOREPLACE)
             return -EEXIST;
 
-        const int removed = S_ISDIR(existing.st_mode)
-                ? smbc_getFunctionRmdir(m_context)(m_context, target.c_str())
-                : smbc_getFunctionUnlink(m_context)(m_context, target.c_str());
-        if (removed != 0)
-            return S_ISDIR(existing.st_mode) ? -ENOTEMPTY : -errno;
+        if (S_ISDIR(existing.st_mode)) {
+            if (smbc_getFunctionRmdir(m_context)(m_context, target.c_str()) != 0)
+                return -ENOTEMPTY;
+        } else {
+            // The file replaced waits aside until the rename lands: a server that refuses
+            // the rename after allowing the delete would otherwise lose it.
+            const std::string aside = urlFor(to.substr(0, to.rfind('/') + 1) + ".cutefish-replaced-"
+                                             + QUuid::createUuid().toString(QUuid::Id128).toStdString());
+            if (renameUrl(m_context, target.c_str(), m_context, aside.c_str()) != 0)
+                return -(errno ? errno : EIO);
+            if (renameUrl(m_context, source.c_str(), m_context, target.c_str()) != 0) {
+                const int code = errno;
+                renameUrl(m_context, aside.c_str(), m_context, target.c_str());
+                return -(code ? code : EIO);
+            }
+            smbc_getFunctionUnlink(m_context)(m_context, aside.c_str());
+            return 0;
+        }
     }
 
-    if (smbc_getFunctionRename(m_context)(m_context, source.c_str(), m_context, target.c_str())
-        == 0)
+    if (renameUrl(m_context, source.c_str(), m_context, target.c_str()) == 0)
         return 0;
 
     return -(errno ? errno : EIO);
