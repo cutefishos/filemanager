@@ -121,6 +121,7 @@ add_library(fm-ui STATIC
     src/views/folderview.cpp
     src/views/folderwindow.cpp
     src/views/gridview.cpp
+    src/views/icongridview.cpp
     src/views/listview.cpp
     src/views/pathbar.cpp
     src/views/previewclient.cpp

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "desktop/desktopview.h"
-#include "core/thumbnails.h"
 #include "model/foldermodel.h"
 #include "views/style.h"
 
@@ -15,7 +14,6 @@
 #include "ui/keys.h"
 #include "ui/label.h"
 #include "ui/painter.h"
-#include "ui/path.h"
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
 #include "ui/window.h"
@@ -32,34 +30,6 @@ static constexpr double kLabelSpacing = 5;
 static constexpr double kLabelInset = 6;
 static constexpr double kCellBottomMargin = 8;
 static constexpr double kMinimumIconSize = 22;
-
-static std::string iconOrFallback(const std::string& name, const std::string& fallback, int size)
-{
-    if (!name.empty() && !ui::themeIconPath(name, size).empty())
-        return name;
-    return fallback;
-}
-
-// The selection under the name: a rounded box per line, bridged where lines meet.
-static void addRoundedRect(ui::Path& path, const ui::RectF& rect, double radius)
-{
-    // Quadratic corners.
-    const double r = std::min({radius, rect.width / 2, rect.height / 2});
-    const double x = rect.x;
-    const double y = rect.y;
-    const double w = rect.width;
-    const double h = rect.height;
-    path.moveTo({x + r, y});
-    path.lineTo({x + w - r, y});
-    path.quadTo({x + w, y}, {x + w, y + r});
-    path.lineTo({x + w, y + h - r});
-    path.quadTo({x + w, y + h}, {x + w - r, y + h});
-    path.lineTo({x + r, y + h});
-    path.quadTo({x, y + h}, {x, y + h - r});
-    path.lineTo({x, y + r});
-    path.quadTo({x, y}, {x + r, y});
-    path.close();
-}
 
 // A silhouette of the icon in black, as MultiEffect's brightness -1 makes it.
 class IconSilhouette : public ui::View
@@ -105,27 +75,20 @@ protected:
 };
 
 // One item's cell on the desktop.
-class DesktopItem : public ui::View
+class DesktopItem : public IconItem
 {
 public:
     explicit DesktopItem(DesktopGridView* view)
-        : m_view(view)
+        : IconItem(view, 4, 1)
+        , m_desktop(view)
     {
         m_shadow = addChild<ui::BlurredCopy>(16, 0.5);
         m_silhouette = m_shadow->setContent<IconSilhouette>();
-        m_icon = addChild<ui::ThemeIcon>();
-        m_thumbnail = addChild<ui::ImageView>();
-        m_thumbnail->setFillMode(ui::ImageView::FillMode::Stretch);
-        m_thumbnail->setVisible(false);
-        m_emblem = addChild<ui::ThemeIcon>("emblem-symbolic-link", 16);
-        m_emblem->setImageProviderLookup(true);
-        m_emblem->setVisible(false);
-        m_overlay = addChild<ui::ThemeIcon>();
-        m_overlay->setVisible(false);
+        addIconViews();
         m_halo = addChild<ui::FastBlurredCopy>(6);
         m_haloContent = m_halo->setContent<LabelHalo>();
         m_raised = addChild<ui::Label>();
-        m_label = addChild<ui::Label>();
+        addLabelView();
         for (ui::Label* label : {m_raised, m_label, m_haloContent->label}) {
             label->setWrap(true);
             label->setTextAlignment(ui::Label::TextAlignment::Center);
@@ -137,44 +100,17 @@ public:
         m_haloContent->label->setSubpixelAntialiasing(false);
     }
 
-    void bind(int cell, int row)
+protected:
+    void bindItem(const FileItem&, int row) override
     {
-        const bool fresh = cell != m_cell || row != m_row;
-        m_cell = cell;
-        m_row = row;
-        FolderModel& model = m_view->model();
-        const FileItemPtr item = model.item(row);
-        if (!item)
-            return;
-
-        const double iconSize = m_view->iconSize();
-        m_selected = model.isSelected(row);
-        m_hidden = item->isHidden;
-        m_dropTarget = m_view->isDropTarget(cell);
-        m_dropAllowed = m_view->dropTargetAllowedFor(cell);
+        FolderModel& model = m_desktop->model();
         setVisible(!model.isBlank(row));
+        m_silhouette->icon->setIconName(m_icon->iconName());
+        m_silhouette->icon->setSize(m_desktop->iconSize());
 
-        const std::string icon = iconOrFallback(item->iconName, item->isDir ? "folder" : "unknown", int(iconSize));
-        m_icon->setIconName(icon);
-        m_icon->setSize(iconSize);
-        m_silhouette->icon->setIconName(icon);
-        m_silhouette->icon->setSize(iconSize);
-        m_overlay->setIconName(icon);
-        m_overlay->setSize(iconSize);
-        m_overlay->setColor(ui::Theme::current().highlight);
-
-        const bool thumbnail = model.showsThumbnail(row);
-        if (fresh || thumbnail != m_wantsThumbnail || item->modified != m_modified || item->path != m_path) {
-            m_wantsThumbnail = thumbnail;
-            m_modified = item->modified;
-            m_path = item->path;
-            m_image = {};
-            m_thumbnailBox = {};
-        }
-
-        const double pixelSize = m_view->labelPixelSize();
+        const double pixelSize = m_desktop->labelPixelSize();
         const double labelWidth = geometry().width - kLabelInset * 2;
-        const std::string text = m_view->labelText(model.displayName(row), labelWidth);
+        const std::string text = m_desktop->labelText(model.displayName(row), labelWidth);
         for (ui::Label* label : {m_raised, m_label, m_haloContent->label}) {
             label->setText(text);
             label->setFontSize(pixelSize);
@@ -186,83 +122,26 @@ public:
         // The raised style draws the name and its copy in greyscale; only the plain
         // text on the selection takes subpixel glyphs.
         m_label->setSubpixelAntialiasing(m_selected);
-        m_label->setOpacity(m_hidden ? 0.8 : 1.0);
-        const bool labelShown = m_view->renamingIndex() != cell;
-        m_label->setVisible(labelShown);
+        const bool labelShown = m_label->isVisible();
         // Text.Raised: the name in the style colour a pixel lower, unless selected.
         m_raised->setVisible(labelShown && !m_selected);
         m_raised->setOpacity(m_hidden ? 0.8 : 1.0);
         m_halo->setVisible(labelShown && !m_selected);
         m_halo->setOpacity(m_hidden ? 0.35 : 0.65);
-        m_emblem->setVisible(item->isLink);
-        requestLayout();
-        requestPaint();
     }
 
-    ui::RectF iconRect() const
-    {
-        if (m_thumbnail->isVisible())
-            return m_thumbnail->geometry();
-        return m_icon->geometry();
-    }
-
-    // The name as drawn, narrower than its box when it is short.
-    ui::RectF labelRect() const
-    {
-        const ui::RectF box = m_label->geometry();
-        const double width = paintedWidth();
-        return {box.x + (box.width - width) / 2, box.y, width, box.height};
-    }
-
-    ui::RectF labelBox() const { return m_label->geometry(); }
-
-    bool containsPoint(ui::PointF point) const
-    {
-        const auto inside = [&point](const ui::RectF& rect) {
-            return point.x >= rect.x && point.y >= rect.y && point.x <= rect.x + rect.width
-                    && point.y <= rect.y + rect.height;
-        };
-        return inside(iconRect()) || inside(labelRect());
-    }
-
-    bool intersectsRect(const ui::RectF& rect) const
-    {
-        const auto intersects = [&rect](const ui::RectF& other) {
-            return other.x < rect.x + rect.width && rect.x < other.x + other.width && other.y < rect.y + rect.height
-                    && rect.y < other.y + other.height;
-        };
-        return intersects(iconRect()) || intersects(labelRect());
-    }
-
-protected:
     void layout() override
     {
         const double width = geometry().width;
-        const double iconSize = m_view->iconSize();
+        const double iconSize = m_desktop->iconSize();
         const double iconItemWidth = width - 24;
-        m_iconItem = {centeredStart(width, iconItemWidth), kIconTopMargin, iconItemWidth, iconSize};
-        const ui::RectF iconRect {m_iconItem.x + centeredStart(iconItemWidth, iconSize), m_iconItem.y, iconSize,
-                                  iconSize};
-        m_icon->setGeometry(iconRect);
-        m_overlay->setGeometry(iconRect);
-        m_icon->setOpacity(m_hidden ? 0.5 : 1.0);
-        m_overlay->setOpacity(0.5 * (m_hidden ? 0.5 : 1.0));
+        layoutIcon({centeredStart(width, iconItemWidth), kIconTopMargin, iconItemWidth, iconSize},
+                   std::max(16.0, std::round(iconSize / 4)));
         m_shadow->setGeometry({m_iconItem.x, m_iconItem.y + 1, m_iconItem.width, m_iconItem.height});
         m_shadow->setOpacity(0.15 * (m_hidden ? 0.5 : 1.0));
         m_silhouette->requestLayout();
-
-        layoutThumbnail();
-        const bool thumbnailShown = m_thumbnail->isVisible();
-        m_icon->setVisible(!thumbnailShown);
-        m_silhouette->icon->setVisible(!thumbnailShown);
+        m_silhouette->icon->setVisible(!m_thumbnail->isVisible());
         m_shadow->contentChanged();
-        m_overlay->setVisible(m_selected && !thumbnailShown);
-
-        const ui::RectF anchor = thumbnailShown ? m_thumbnail->geometry() : iconRect;
-        const double emblem = std::max(16.0, std::round(iconSize / 4));
-        m_emblem->setSize(emblem);
-        m_emblem->setGeometry({anchor.x + anchor.width - emblem, anchor.y + anchor.height - emblem, emblem, emblem});
-        m_emblem->setOpacity(m_hidden ? 0.5 : 1.0);
 
         const double labelWidth = width - kLabelInset * 2;
         const double labelHeight = m_label->heightForWidth(labelWidth);
@@ -273,150 +152,17 @@ protected:
         m_halo->setGeometry({label.x - 8, label.y - 8 + 1, label.width + 16, label.height + 16});
     }
 
-    void paint(ui::Painter& painter) override
-    {
-        const ui::Theme& theme = ui::Theme::current();
-        if (m_dropTarget) {
-            const double width = std::max(m_iconItem.width, paintedWidth());
-            const double height = m_iconItem.height + m_label->geometry().height + 12;
-            const ui::Color color = m_dropAllowed ? theme.highlight : style::kDanger;
-            painter.drawRoundedRect({(geometry().width - width) / 2, m_iconItem.y, width, height},
-                                    {theme.mediumRadius, 0, ui::Corners::Circular}, style::withAlpha(color, 0.16), 2,
-                                    color);
-        }
-        if (m_selected && m_label->isVisible()) {
-            const double hPadding = 4;
-            const double vPadding = 1;
-            const ui::RectF box = m_label->geometry();
-            const ui::PointF origin {box.x - hPadding, box.y - vPadding};
-            ui::Path path;
-            std::optional<ui::RectF> previous;
-            for (size_t i = 0;; ++i) {
-                const auto line = m_label->lineGeometry(i);
-                if (!line)
-                    break;
-                const double lineWidth = std::max(0.0, std::min(box.width, line->width));
-                const ui::RectF rect {(box.width - lineWidth) / 2, line->top, lineWidth, line->height};
-                if (rect.width <= 0 || rect.height <= 0)
-                    continue;
-                addRoundedRect(path, {origin.x + rect.x, origin.y + rect.y, rect.width + hPadding * 2,
-                                      rect.height + vPadding * 2},
-                               4);
-                if (previous) {
-                    const double left = std::max(previous->x, rect.x);
-                    const double right = std::min(previous->x + previous->width, rect.x + rect.width) + hPadding * 2;
-                    const double boundary = rect.y + vPadding;
-                    if (right > left)
-                        path.addRect({origin.x + left, origin.y + boundary - 2, right - left, 4});
-                }
-                previous = rect;
-            }
-            painter.fillPath(path, theme.highlight);
-        }
-    }
-
 private:
-    double paintedWidth() const
-    {
-        double width = 0;
-        for (size_t i = 0;; ++i) {
-            const auto line = m_label->lineGeometry(i);
-            if (!line)
-                break;
-            width = std::max(width, line->width);
-        }
-        return std::min(width, m_label->geometry().width);
-    }
-
-    // The thumbnail fills the icon box less 6 px at the top and sides, keeping
-    // its aspect, cut to a tenth of its height at the corners, with a faint
-    // light rim that keeps its edge readable on a wallpaper of the same tone.
-    void layoutThumbnail()
-    {
-        if (!m_wantsThumbnail) {
-            m_thumbnail->setVisible(false);
-            return;
-        }
-        const ui::RectF box {m_iconItem.x + 6, m_iconItem.y + 6, m_iconItem.width - 12, m_iconItem.height - 6};
-        const double scale = window() ? window()->scale() : 1;
-        const int width = int(std::round(std::round(box.width) * scale));
-        const int height = int(std::round(std::round(box.height) * scale));
-        if (width <= 0 || height <= 0) {
-            m_thumbnail->setVisible(false);
-            return;
-        }
-        if (m_thumbnailBox != ui::SizeF(width, height)) {
-            m_thumbnailBox = ui::SizeF(width, height);
-            m_image = thumbnails::cached(m_path, m_modified, width, height);
-            if (m_image.isNull()) {
-                const std::weak_ptr<bool> alive = m_alive;
-                const std::string path = m_path;
-                const int64_t modified = m_modified;
-                thumbnails::load(path, modified, width, height,
-                                 [this, alive, path, modified, width, height, scale](const ui::Bitmap& image) {
-                                     if (alive.expired() || path != m_path || modified != m_modified
-                                         || m_thumbnailBox != ui::SizeF(width, height))
-                                         return;
-                                     m_image = image;
-                                     applyImage(scale);
-                                     requestLayout();
-                                 });
-            }
-            applyImage(scale);
-        }
-        if (m_image.isNull()) {
-            m_thumbnail->setVisible(false);
-            return;
-        }
-        const double imageWidth = m_image.width() / scale;
-        const double imageHeight = m_image.height() / scale;
-        const double fit = std::min(box.width / imageWidth, box.height / imageHeight);
-        const double paintedWidth = std::min(box.width, imageWidth * fit);
-        const double paintedHeight = std::min(box.height, imageHeight * fit);
-        m_thumbnail->setGeometry({box.x + (box.width - paintedWidth) / 2, box.y + (box.height - paintedHeight) / 2,
-                                  paintedWidth, paintedHeight});
-        m_thumbnail->setCornerRadius(paintedHeight * 0.1);
-        m_thumbnail->setOpacity(m_hidden ? 0.5 : 1.0);
-        m_thumbnail->setVisible(true);
-    }
-
-    void applyImage(double scale)
-    {
-        if (m_image.isNull())
-            return;
-        const ui::Bitmap image = m_image.converted(ui::Bitmap::Format::Argb32Premultiplied);
-        m_thumbnail->setPixels(image.width(), image.height(), reinterpret_cast<const uint32_t*>(image.bits()),
-                               image.stride(), true, scale);
-    }
-
-    DesktopGridView* m_view;
-    int m_cell = -1;
-    int m_row = -1;
-    bool m_selected = false;
-    bool m_hidden = false;
-    bool m_dropTarget = false;
-    bool m_dropAllowed = false;
-    bool m_wantsThumbnail = false;
-    std::string m_path;
-    int64_t m_modified = 0;
-    ui::SizeF m_thumbnailBox;
-    ui::Bitmap m_image;
-    ui::RectF m_iconItem;
+    DesktopGridView* m_desktop;
     ui::BlurredCopy* m_shadow;
     IconSilhouette* m_silhouette;
-    ui::ThemeIcon* m_icon;
-    ui::ImageView* m_thumbnail;
-    ui::ThemeIcon* m_emblem;
-    ui::ThemeIcon* m_overlay;
     ui::FastBlurredCopy* m_halo;
     LabelHalo* m_haloContent;
     ui::Label* m_raised;
-    ui::Label* m_label;
-    std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
 };
 
 DesktopGridView::DesktopGridView(FolderModel& model)
-    : FolderView(model)
+    : IconGridView(model)
     , m_positioner(model)
 {
     setName("DesktopGridView");
@@ -432,6 +178,11 @@ DesktopGridView::DesktopGridView(FolderModel& model)
 }
 
 DesktopGridView::~DesktopGridView() = default;
+
+std::unique_ptr<IconItem> DesktopGridView::makeItem()
+{
+    return std::make_unique<DesktopItem>(this);
+}
 
 double DesktopGridView::labelPixelSize() const
 {
@@ -613,34 +364,6 @@ void DesktopGridView::selectRange(int from, int to)
         model().updateSelection(rows, false, false);
 }
 
-DesktopItem* DesktopGridView::itemFor(int cell) const
-{
-    const auto found = m_items.find(cell);
-    return found != m_items.end() ? found->second : nullptr;
-}
-
-bool DesktopGridView::hitsItem(int index, ui::PointF content) const
-{
-    const ui::RectF cell = cellRect(index);
-    if (DesktopItem* item = itemFor(index))
-        return item->containsPoint({content.x - cell.x, content.y - cell.y});
-    return false;
-}
-
-int DesktopGridView::dropRowAt(ui::PointF content) const
-{
-    const int index = indexAt(content);
-    if (index < 0)
-        return -1;
-    const int row = rowOf(index);
-    if (model().isBlank(row))
-        return -1;
-    const FileItemPtr item = model().item(row);
-    if (!item || !item->isDir)
-        return -1;
-    return hitsItem(index, content) ? row : -1;
-}
-
 int DesktopGridView::cellAt(ui::PointF content) const
 {
     if (m_cellWidth <= 0 || m_cellHeight <= 0)
@@ -668,45 +391,13 @@ void DesktopGridView::rectangleSelect(const ui::RectF& band)
     applyRectangleSelection(indices);
 }
 
-std::optional<ui::RectF> DesktopGridView::labelRect(int index) const
-{
-    DesktopItem* item = itemFor(index);
-    if (!item)
-        return std::nullopt;
-    const ui::RectF cell = cellRect(index);
-    const ui::RectF label = item->labelBox();
-    return ui::RectF {cell.x + label.x, cell.y + label.y, label.width, label.height};
-}
-
 void DesktopGridView::updateItems()
 {
-    View* content = contentView();
     const int cells = std::min(m_positioner.cellCount(), m_columns * m_rows);
-    for (auto it = m_items.begin(); it != m_items.end();) {
-        if (it->first >= cells || m_positioner.isBlank(it->first)) {
-            it->second->setVisible(false);
-            m_spare.push_back(it->second);
-            it = m_items.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    recycleItems([this, cells](int cell) { return cell < cells && !m_positioner.isBlank(cell); });
     for (int cell = 0; cell < cells; ++cell) {
-        if (m_positioner.isBlank(cell))
-            continue;
-        DesktopItem* item = itemFor(cell);
-        if (!item) {
-            if (!m_spare.empty()) {
-                item = m_spare.back();
-                m_spare.pop_back();
-                item->setVisible(true);
-            } else {
-                item = content->addChild<DesktopItem>(this);
-            }
-            m_items.emplace(cell, item);
-        }
-        item->setGeometry(cellRect(cell));
-        item->bind(cell, rowOf(cell));
+        if (!m_positioner.isBlank(cell))
+            showItem(cell);
     }
 }
 
@@ -755,21 +446,6 @@ bool DesktopGridView::scroll(const ui::ScrollEvent& event)
         return true;
     }
     return true;
-}
-
-void DesktopGridView::forEachItemView(const std::function<void(int index, ui::View* item)>& visit) const
-{
-    for (const auto& [index, item] : m_items)
-        visit(index, item);
-}
-
-std::optional<ui::RectF> DesktopGridView::dragRect(int index) const
-{
-    return cellRect(index);
-}
-
-void DesktopGridView::paintDragItem(int, ui::Painter&, const ui::RectF&)
-{
 }
 
 ui::PointF DesktopGridView::cellNear(ui::PointF point) const

@@ -3,26 +3,20 @@
 
 #pragma once
 
-#include "views/folderview.h"
-
-#include <map>
-#include <vector>
+#include "views/icongridview.h"
 
 namespace fm {
-
-class GridItem;
 
 // The browser's icon grid. The columns follow the width
 // (at least icon + 48 wide each, sharing the width evenly in 1/64 px), the
 // rows the icon size and two lines of name; items are made for the rows in
 // sight only.
-class FolderGridView : public FolderView
+class FolderGridView : public IconGridView
 {
 public:
     explicit FolderGridView(FolderModel& model);
     ~FolderGridView() override;
 
-    double iconSize() const { return m_iconSize; }
     void setIconSize(double size);
     void increaseIconSize();
     void decreaseIconSize();
@@ -37,28 +31,17 @@ public:
     double topMargin() const { return topInset() + 6; }
     double bottomMargin() const { return 6 + bottomInset(); }
 
-    // An item's cell in content coordinates, its x on the device grid.
-    ui::RectF cellRect(int index) const;
+    // The cell sits on whole device pixels.
+    ui::RectF cellRect(int index) const override;
     void revealIndex(int index) override;
 
-    // For the items.
-    bool isDropTarget(int index) const { return dropTargetIndex() == index; }
-    bool dropTargetAllowedFor(int index) const { return isDropTarget(index) && dropTargetAllowed(); }
-    int renamingIndex() const { return isRenaming() ? currentIndex() : -1; }
-
 protected:
+    std::unique_ptr<IconItem> makeItem() override;
     int indexAt(ui::PointF content) const override;
-    bool hitsItem(int index, ui::PointF content) const override;
-    int dropRowAt(ui::PointF content) const override;
     void rectangleSelect(const ui::RectF& band) override;
-    std::optional<ui::RectF> labelRect(int index) const override;
-    bool centeredRename() const override { return true; }
     void updateItems() override;
     bool navigate(const ui::KeyEvent& event) override;
     double minimumContentHeight() const override;
-    std::optional<ui::RectF> dragRect(int index) const override;
-    void forEachItemView(const std::function<void(int index, ui::View* item)>& visit) const override;
-    void paintDragItem(int index, ui::Painter& painter, const ui::RectF& rect) override;
     void layout() override;
     bool scroll(const ui::ScrollEvent& event) override;
 
@@ -67,14 +50,10 @@ private:
     // A new column count or icon size moves every row; the one at the top
     // of the view stays there instead of whatever lands under it.
     void reflow(int fromColumns, double fromRowHeight);
-    GridItem* itemFor(int index) const;
 
-    double m_iconSize = 64;
     int m_columns = 1;
     double m_cellWidth = 112;
     double m_cellHeight = 0;
-    std::map<int, GridItem*> m_items;
-    std::vector<GridItem*> m_spare;
     base::Subscription m_preferences;
 };
 
