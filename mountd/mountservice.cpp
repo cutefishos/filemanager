@@ -8,88 +8,147 @@
 #include "sftpbackend.h"
 #include "smbbackend.h"
 
-#include <QDBusConnection>
-#include <QDBusMessage>
-#include <QDBusMetaType>
-#include <QDir>
-#include <QFile>
-#include <QProcess>
-#include <QStandardPaths>
+#include "base/event_loop.h"
+#include "base/paths.h"
+#include "base/process.h"
+#include "base/strings.h"
 
+#include <dirent.h>
+#include <sys/stat.h>
 #include <thread>
+#include <unistd.h>
 
-static std::unique_ptr<Backend> createBackend(const QUrl &url)
+using namespace cutefish::base;
+
+static std::unique_ptr<Backend> createBackend(const RemoteUrl &url)
 {
-    const QString scheme = url.scheme();
-    if (scheme == QLatin1String("sftp") || scheme == QLatin1String("ssh"))
+    if (url.scheme == "sftp" || url.scheme == "ssh")
         return std::make_unique<SftpBackend>(url);
-    if (scheme == QLatin1String("smb"))
+    if (url.scheme == "smb")
         return std::make_unique<SmbBackend>(url);
 
     return nullptr;
 }
 
-static int defaultPort(const QString &scheme)
+static int defaultPort(const std::string &scheme)
 {
-    if (scheme == QLatin1String("sftp") || scheme == QLatin1String("ssh"))
+    if (scheme == "sftp" || scheme == "ssh")
         return 22;
-    if (scheme == QLatin1String("smb"))
+    if (scheme == "smb")
         return 445;
     return -1;
 }
 
 // One mount per account on a server: scheme://user@host[:port].
-static QString serverId(const QUrl &url, const QString &user)
+static RemoteUrl serverKey(const RemoteUrl &url, const std::string &user)
 {
-    QUrl id;
-    id.setScheme(url.scheme() == QLatin1String("ssh") ? QStringLiteral("sftp") : url.scheme());
-    id.setHost(url.host().toLower());
-    id.setUserName(user);
-    if (url.port() > 0 && url.port() != defaultPort(id.scheme()))
-        id.setPort(url.port());
-    return id.toString();
+    RemoteUrl id;
+    id.scheme = url.scheme == "ssh" ? "sftp" : url.scheme;
+    id.host = url.host;
+    id.user = user;
+    if (url.port > 0 && url.port != defaultPort(id.scheme))
+        id.port = url.port;
+    return id;
 }
 
-static QString serverName(const QUrl &url, const QString &user)
+static std::string serverId(const RemoteUrl &url, const std::string &user)
 {
-    const QString host = url.port() > 0 && url.port() != defaultPort(url.scheme())
-            ? QStringLiteral("%1:%2").arg(url.host()).arg(url.port())
-            : url.host();
-    return user.isEmpty() ? host : QStringLiteral("%1@%2").arg(user, host);
+    return serverKey(url, user).toString();
 }
 
-static QString joined(const QString &mountPoint, const std::string &path)
+static std::string serverName(const RemoteUrl &url, const std::string &user)
+{
+    const std::string host = url.port > 0 && url.port != defaultPort(url.scheme)
+            ? url.host + ':' + std::to_string(url.port)
+            : url.host;
+    return user.empty() ? host : user + '@' + host;
+}
+
+static std::string joined(const std::string &mountPoint, const std::string &path)
 {
     if (path.empty() || path == "/")
         return mountPoint;
-    return mountPoint + QFile::decodeName(QByteArray::fromStdString(path));
+    return mountPoint + path;
 }
 
-MountService::MountService(QObject *parent)
-    : QObject(parent)
-    , m_root(QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation)
-             + QStringLiteral("/mounts"))
+static bool exists(const std::string &path)
 {
-    qDBusRegisterMetaType<QList<QVariantMap>>();
+    struct stat st;
+    return ::lstat(path.c_str(), &st) == 0;
+}
 
+static std::string optionString(const dbus::VariantMap &options, const std::string &key)
+{
+    const auto found = options.find(key);
+    return found != options.end() ? found->second.value<std::string>() : std::string();
+}
+
+static bool optionBool(const dbus::VariantMap &options, const std::string &key)
+{
+    const auto found = options.find(key);
+    return found != options.end() && found->second.value<bool>();
+}
+
+MountService::MountService(dbus::Connection *bus)
+    : m_bus(bus)
+    , m_object(bus, "/com/cutefish/Mounts1", "com.cutefish.Mounts1")
+    , m_root(paths::runtimeDirectory() + "/mounts")
+{
     // Mounts a crashed run left behind answer nothing; detach them.
-    QDir root(m_root);
-    for (const QString &name : root.entryList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden)) {
-        QProcess::execute(QStringLiteral("fusermount3"),
-                          {QStringLiteral("-u"), QStringLiteral("-z"), root.filePath(name)});
-        root.rmdir(name);
+    if (DIR *root = ::opendir(m_root.c_str())) {
+        std::vector<std::string> names;
+        while (dirent *entry = ::readdir(root)) {
+            const std::string name = entry->d_name;
+            if (name != "." && name != "..")
+                names.push_back(name);
+        }
+        ::closedir(root);
+
+        for (const std::string &name : names) {
+            const std::string path = m_root + '/' + name;
+            Process fusermount;
+            if (fusermount.start("fusermount3", {"-u", "-z", path}))
+                (void)fusermount.waitForFinished(std::chrono::seconds(30));
+            ::rmdir(path.c_str());
+        }
     }
 
-    m_monitor = new MtpMonitor(this);
-    connect(m_monitor, &MtpMonitor::added, this, &MountService::addDevice);
-    connect(m_monitor, &MtpMonitor::removed, this, &MountService::removeDevice);
+    m_monitor = std::make_unique<MtpMonitor>();
+    m_added = m_monitor->added.connect([this](const std::string &id) {
+        addDevice(id);
+    });
+    m_removed = m_monitor->removed.connect([this](const std::string &id) {
+        removeDevice(id);
+    });
     for (const MtpMonitor::Device &device : m_monitor->devices())
         addDevice(device.id);
+
+    m_object.addMethod("Mounts", [this] {
+        return mounts();
+    });
+    m_object.addMethod("Mount", "sa{sv}", "sa{sv}", [this](dbus::MethodCall &call) {
+        mount(call);
+    }, {{"location", "options"}, {"status", "details"}});
+    m_object.addMethod("Unmount", "s", "", [this](dbus::MethodCall &call) {
+        unmount(call);
+    }, {{"id"}, {}});
+    m_object.addSignal("MountsChanged", "");
 }
 
 MountService::~MountService()
 {
+    *m_alive = false;
     detachAll();
+}
+
+bool MountService::publish()
+{
+    return m_object.publish();
+}
+
+void MountService::mountsChanged()
+{
+    m_object.emitSignal("MountsChanged");
 }
 
 void MountService::detachAll()
@@ -100,7 +159,7 @@ void MountService::detachAll()
     }
 }
 
-MountService::Entry *MountService::find(const QString &id)
+MountService::Entry *MountService::find(const std::string &id)
 {
     for (const auto &entry : m_entries) {
         if (entry->id == id)
@@ -109,75 +168,83 @@ MountService::Entry *MountService::find(const QString &id)
     return nullptr;
 }
 
-QVariantMap MountService::describe(const Entry &entry) const
+dbus::VariantMap MountService::describe(const Entry &entry) const
 {
     return {
-        {QStringLiteral("id"), entry.id},
-        {QStringLiteral("kind"), entry.kind},
-        {QStringLiteral("name"), entry.name},
-        {QStringLiteral("icon"), entry.icon},
-        {QStringLiteral("url"), entry.url.toString()},
-        {QStringLiteral("path"), entry.mount ? entry.mount->mountPoint() : QString()},
-        {QStringLiteral("network"), entry.network},
-        {QStringLiteral("device"), entry.device},
+        {"id", dbus::Variant(entry.id)},
+        {"kind", dbus::Variant(entry.kind)},
+        {"name", dbus::Variant(entry.name)},
+        {"icon", dbus::Variant(entry.icon)},
+        {"url", dbus::Variant(entry.id)},
+        {"path", dbus::Variant(entry.mount ? entry.mount->mountPoint() : std::string())},
+        {"network", dbus::Variant(entry.network)},
+        {"device", dbus::Variant(entry.device)},
     };
 }
 
-QList<QVariantMap> MountService::Mounts() const
+std::vector<dbus::VariantMap> MountService::mounts() const
 {
-    QList<QVariantMap> result;
+    std::vector<dbus::VariantMap> result;
     for (const auto &entry : m_entries)
-        result.append(describe(*entry));
+        result.push_back(describe(*entry));
     return result;
 }
 
-QString MountService::mountPointFor(const QString &name) const
+std::string MountService::mountPointFor(const std::string &name) const
 {
-    QString base = name;
-    base.replace(QLatin1Char('/'), QLatin1Char('_'));
-    if (base.isEmpty() || base.startsWith(QLatin1Char('.')))
-        base.prepend(QLatin1Char('_'));
+    std::string base = strings::replaceAll(name, "/", "_");
+    if (base.empty() || base.starts_with('.'))
+        base.insert(base.begin(), '_');
 
-    QString candidate = base;
-    for (int suffix = 2; QFileInfo::exists(m_root + QLatin1Char('/') + candidate); ++suffix)
-        candidate = QStringLiteral("%1 (%2)").arg(base).arg(suffix);
+    std::string candidate = base;
+    for (int suffix = 2; exists(m_root + '/' + candidate); ++suffix)
+        candidate = base + " (" + std::to_string(suffix) + ')';
 
-    return m_root + QLatin1Char('/') + candidate;
+    return m_root + '/' + candidate;
 }
 
-QString MountService::Mount(const QString &location, const QVariantMap &options,
-                            QVariantMap &details)
+void MountService::mount(dbus::MethodCall &call)
 {
+    std::string location;
+    dbus::VariantMap options;
+    if (!call.read(location, options)) {
+        call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unexpected arguments");
+        return;
+    }
+
+    const auto fail = [&call](const std::string &message) {
+        call.reply(std::string("failed"), dbus::VariantMap {{"message", dbus::Variant(message)}});
+    };
+
     Entry *device = find(location);
-    const QUrl url = device ? device->url : QUrl(location);
+    const RemoteUrl url = device ? device->url : RemoteUrl::parse(location);
 
     Credentials credentials;
-    credentials.user = options.value(QStringLiteral("user")).toString();
-    credentials.domain = options.value(QStringLiteral("domain")).toString();
-    credentials.password = options.value(QStringLiteral("password")).toString();
-    credentials.anonymous = options.value(QStringLiteral("anonymous")).toBool();
-    credentials.acceptedHostKey = options.value(QStringLiteral("hostKey")).toString();
-    const bool remember = options.value(QStringLiteral("remember")).toBool();
+    credentials.user = optionString(options, "user");
+    credentials.domain = optionString(options, "domain");
+    credentials.password = optionString(options, "password");
+    credentials.anonymous = optionBool(options, "anonymous");
+    credentials.acceptedHostKey = optionString(options, "hostKey");
+    const bool remember = optionBool(options, "remember");
 
     // A server already mounted for this account opens at once.
-    const QUrl key(device ? QString() : serverId(url, url.userName()));
+    const RemoteUrl key = device ? RemoteUrl() : serverKey(url, url.user);
     for (const auto &entry : m_entries) {
         if (!entry->mount)
             continue;
 
-        const QUrl mounted(entry->id);
+        const RemoteUrl mounted = RemoteUrl::parse(entry->id);
         const bool same = device ? entry.get() == device
-                                 : !entry->device && mounted.scheme() == key.scheme()
-                        && mounted.host() == key.host() && mounted.port() == key.port()
-                        && (key.userName().isEmpty() || mounted.userName() == key.userName());
+                                 : !entry->device && mounted.scheme == key.scheme && mounted.host == key.host
+                        && mounted.port == key.port && (key.user.empty() || mounted.user == key.user);
         if (!same)
             continue;
 
-        const std::string path = url.path().isEmpty() || url.path() == QLatin1String("/")
-                ? entry->mount->backend()->initialPath()
-                : url.path().toStdString();
-        details.insert(QStringLiteral("path"), joined(entry->mount->mountPoint(), path));
-        return QStringLiteral("mounted");
+        const std::string path = url.path.empty() || url.path == "/" ? entry->mount->backend()->initialPath()
+                                                                      : url.path;
+        call.reply(std::string("mounted"),
+                   dbus::VariantMap {{"path", dbus::Variant(joined(entry->mount->mountPoint(), path))}});
+        return;
     }
 
     std::unique_ptr<Backend> backend;
@@ -185,35 +252,37 @@ QString MountService::Mount(const QString &location, const QVariantMap &options,
         const MtpMonitor::Device found = m_monitor->device(device->id);
         if (found.bus)
             backend = std::make_unique<MtpBackend>(found.bus, found.number);
-    } else {
+    } else if (url.isValid() && !url.host.empty()) {
         backend = createBackend(url);
     }
 
     if (!backend) {
-        details.insert(QStringLiteral("message"),
-                       tr("“%1” is not a location that can be connected to.").arg(location));
-        return QStringLiteral("failed");
+        fail("“" + location + "” is not a location that can be connected to.");
+        return;
     }
 
-    const QString pendingKey = device ? device->id : serverId(url, credentials.user);
+    const std::string pendingKey = device ? device->id : serverId(url, credentials.user);
     if (m_pending.contains(pendingKey)) {
-        details.insert(QStringLiteral("message"), tr("Already connecting to “%1”.").arg(location));
-        return QStringLiteral("failed");
+        fail("Already connecting to “" + location + "”.");
+        return;
     }
     m_pending.insert(pendingKey);
 
-    setDelayedReply(true);
-    const QDBusMessage request = message();
-    const QString deviceId = device ? device->id : QString();
+    const std::string deviceId = device ? device->id : std::string();
+    LoopHandle loop = EventLoop::current()->handle();
+    auto shared = std::make_shared<std::unique_ptr<Backend>>(std::move(backend));
+    // The call stays on this thread: sd-bus messages are not to be released on another.
+    const int callId = m_nextCall++;
+    m_calls.emplace(callId, call);
 
-    std::thread([this, request, url, deviceId, pendingKey, credentials, remember,
-                 backend = std::move(backend)]() mutable {
+    std::thread([this, alive = m_alive, loop, callId, url, deviceId, pendingKey, credentials, remember,
+                 shared]() mutable {
         Credentials attempt = credentials;
         bool fromKeyring = false;
-        if (attempt.password.isEmpty() && !attempt.anonymous && deviceId.isEmpty())
+        if (attempt.password.empty() && !attempt.anonymous && deviceId.empty())
             fromKeyring = Keyring::find(url, &attempt);
 
-        ConnectResult result = backend->connect(attempt);
+        ConnectResult result = (*shared)->connect(attempt);
 
         // A saved password that no longer works is asked for again.
         if (result.status == ConnectResult::NeedPassword && fromKeyring)
@@ -222,103 +291,113 @@ QString MountService::Mount(const QString &location, const QVariantMap &options,
         if (result.status == ConnectResult::Connected && remember && !attempt.anonymous)
             Keyring::store(url, attempt);
 
-        QMetaObject::invokeMethod(this, [this, request, url, deviceId, pendingKey, result, attempt,
-                                         credentials, fromKeyring,
-                                         backend = std::move(backend)]() mutable {
-            m_pending.remove(pendingKey);
+        loop.post([this, alive, callId, url, deviceId, pendingKey, result, attempt, credentials, fromKeyring,
+                   shared]() mutable {
+            if (!*alive)
+                return;
+            m_pending.erase(pendingKey);
+            auto node = m_calls.extract(callId);
+            dbus::MethodCall &call = node.mapped();
 
-            QString status;
-            QVariantMap details;
+            std::string status;
+            dbus::VariantMap details;
 
             switch (result.status) {
             case ConnectResult::NeedPassword:
-                status = QStringLiteral("password");
-                details.insert(QStringLiteral("user"),
-                               !attempt.user.isEmpty() ? attempt.user : url.userName());
-                details.insert(QStringLiteral("domain"), attempt.domain);
-                details.insert(QStringLiteral("needsDomain"), result.needsDomain);
-                details.insert(QStringLiteral("anonymousAllowed"), result.anonymousAllowed);
+                status = "password";
+                details["user"] = dbus::Variant(!attempt.user.empty() ? attempt.user : url.user);
+                details["domain"] = dbus::Variant(attempt.domain);
+                details["needsDomain"] = dbus::Variant(result.needsDomain);
+                details["anonymousAllowed"] = dbus::Variant(result.anonymousAllowed);
                 // Typed, or kept from before: either way it was refused.
-                details.insert(QStringLiteral("retry"),
-                               !credentials.password.isEmpty() || fromKeyring);
+                details["retry"] = dbus::Variant(!credentials.password.empty() || fromKeyring);
                 break;
             case ConnectResult::UnknownHostKey:
-                status = QStringLiteral("hostkey");
-                details.insert(QStringLiteral("fingerprint"), result.fingerprint);
-                details.insert(QStringLiteral("changed"), result.hostKeyChanged);
+                status = "hostkey";
+                details["fingerprint"] = dbus::Variant(result.fingerprint);
+                details["changed"] = dbus::Variant(result.hostKeyChanged);
                 break;
             case ConnectResult::Failed:
-                status = QStringLiteral("failed");
-                details.insert(QStringLiteral("message"), result.message);
+                status = "failed";
+                details["message"] = dbus::Variant(result.message);
                 break;
             case ConnectResult::Connected: {
-                Entry *entry = deviceId.isEmpty() ? nullptr : find(deviceId);
+                std::unique_ptr<Backend> backend = std::move(*shared);
+                Entry *entry = deviceId.empty() ? nullptr : find(deviceId);
                 std::unique_ptr<Entry> created;
                 if (!entry) {
                     created = std::make_unique<Entry>();
                     entry = created.get();
-                    const QString user = !attempt.user.isEmpty() ? attempt.user : url.userName();
+                    const std::string user = !attempt.user.empty() ? attempt.user : url.user;
                     entry->id = serverId(url, user);
-                    entry->kind = QUrl(entry->id).scheme();
+                    entry->url = RemoteUrl::parse(entry->id);
+                    entry->kind = entry->url.scheme;
                     entry->name = serverName(url, user);
-                    entry->icon = QStringLiteral("network-server");
-                    entry->url = QUrl(entry->id);
+                    entry->icon = "network-server";
                 }
 
                 // A device is named as it calls itself once it answers.
                 if (auto *mtp = dynamic_cast<MtpBackend *>(backend.get())) {
-                    const QString name = mtp->friendlyName();
-                    if (!name.isEmpty() && name != entry->name) {
+                    const std::string name = mtp->friendlyName();
+                    if (!name.empty() && name != entry->name) {
                         entry->name = name;
-                        emit MountsChanged();
+                        mountsChanged();
                     }
                 }
 
-                const std::string initial = url.path().isEmpty() || url.path() == QLatin1String("/")
-                        ? backend->initialPath()
-                        : url.path().toStdString();
+                const std::string initial = url.path.empty() || url.path == "/" ? backend->initialPath() : url.path;
+                const LoopHandle loop = EventLoop::current()->handle();
                 auto mount = std::make_unique<FuseMount>(
-                        std::move(backend), mountPointFor(entry->name), entry->url.toString(),
-                        [this](FuseMount *mount) {
-                            QMetaObject::invokeMethod(this, [this, mount] {
-                                finished(mount);
+                        std::move(backend), mountPointFor(entry->name), entry->id,
+                        [this, alive, loop](FuseMount *mount) {
+                            loop.post([this, alive, mount] {
+                                if (*alive)
+                                    finished(mount);
                             });
                         });
 
-                QString message;
+                std::string message;
                 if (!mount->start(&message)) {
-                    status = QStringLiteral("failed");
-                    details.insert(QStringLiteral("message"), message);
+                    status = "failed";
+                    details["message"] = dbus::Variant(message);
                     break;
                 }
 
-                status = QStringLiteral("mounted");
-                details.insert(QStringLiteral("path"), joined(mount->mountPoint(), initial));
+                status = "mounted";
+                details["path"] = dbus::Variant(joined(mount->mountPoint(), initial));
                 entry->mount = std::move(mount);
                 if (created)
                     m_entries.push_back(std::move(created));
-                emit MountsChanged();
+                mountsChanged();
                 break;
             }
             }
 
-            QDBusConnection::sessionBus().send(
-                    request.createReply({status, QVariant::fromValue(details)}));
+            call.reply(status, details);
         });
     }).detach();
-
-    return QString();
 }
 
-void MountService::Unmount(const QString &id)
+void MountService::unmount(dbus::MethodCall &call)
 {
-    Entry *entry = find(id);
-    if (!entry || !entry->mount)
+    std::string id;
+    if (!call.read(id)) {
+        call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unexpected arguments");
         return;
+    }
 
-    QString message;
-    if (!entry->mount->stop(false, &message))
-        sendErrorReply(QStringLiteral("com.cutefish.Mounts1.Error.Busy"), message);
+    Entry *entry = find(id);
+    if (!entry || !entry->mount) {
+        call.reply();
+        return;
+    }
+
+    std::string message;
+    if (!entry->mount->stop(false, &message)) {
+        call.replyError("com.cutefish.Mounts1.Error.Busy", message);
+        return;
+    }
+    call.reply();
 }
 
 void MountService::finished(FuseMount *mount)
@@ -338,12 +417,12 @@ void MountService::finished(FuseMount *mount)
         entry->mount.reset();
         if (!entry->device)
             m_entries.erase(it);
-        emit MountsChanged();
+        mountsChanged();
         return;
     }
 }
 
-void MountService::addDevice(const QString &id)
+void MountService::addDevice(const std::string &id)
 {
     if (find(id))
         return;
@@ -351,17 +430,17 @@ void MountService::addDevice(const QString &id)
     const MtpMonitor::Device device = m_monitor->device(id);
     auto entry = std::make_unique<Entry>();
     entry->id = id;
-    entry->kind = QStringLiteral("mtp");
+    entry->kind = "mtp";
     entry->name = device.name;
-    entry->icon = QStringLiteral("phone");
-    entry->url = QUrl(id);
+    entry->icon = "phone";
+    entry->url = RemoteUrl::parse(id);
     entry->network = false;
     entry->device = true;
     m_entries.push_back(std::move(entry));
-    emit MountsChanged();
+    mountsChanged();
 }
 
-void MountService::removeDevice(const QString &id)
+void MountService::removeDevice(const std::string &id)
 {
     for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
         Entry *entry = it->get();
@@ -374,7 +453,7 @@ void MountService::removeDevice(const QString &id)
             m_retiring.push_back(std::move(entry->mount));
         }
         m_entries.erase(it);
-        emit MountsChanged();
+        mountsChanged();
         return;
     }
 }

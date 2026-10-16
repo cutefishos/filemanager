@@ -3,47 +3,52 @@
 
 #pragma once
 
-#include <QHash>
-#include <QObject>
+#include "base/signal.h"
+#include "base/timer.h"
+
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 struct udev;
 struct udev_device;
 struct udev_monitor;
-class QSocketNotifier;
-class QTimer;
 
 // USB devices that speak MTP, as udev marks them.
-class MtpMonitor : public QObject
+class MtpMonitor
 {
-    Q_OBJECT
-
 public:
     struct Device
     {
         // mtp://<udev ID_SERIAL>, which stays the same when the device is plugged in again.
-        QString id;
-        QString name;
+        std::string id;
+        std::string name;
         uint32_t bus = 0;
         uint8_t number = 0;
     };
 
-    explicit MtpMonitor(QObject *parent = nullptr);
-    ~MtpMonitor() override;
+    MtpMonitor();
+    ~MtpMonitor();
 
-    QList<Device> devices() const;
-    Device device(const QString &id) const;
+    MtpMonitor(const MtpMonitor &) = delete;
+    MtpMonitor &operator=(const MtpMonitor &) = delete;
 
-signals:
-    void added(const QString &id);
-    void removed(const QString &id);
+    std::vector<Device> devices() const;
+    Device device(const std::string &id) const;
+
+    cutefish::base::Signal<std::string> added;
+    cutefish::base::Signal<std::string> removed;
 
 private:
     void handle(udev_device *device, bool present);
+    void receive();
 
     struct udev *m_udev = nullptr;
     struct udev_monitor *m_monitor = nullptr;
-    QSocketNotifier *m_notifier = nullptr;
+    int m_watch = 0;
     // By sysfs path, which a removal names.
-    QHash<QString, Device> m_devices;
-    QHash<QString, QTimer *> m_leaving;
+    std::map<std::string, Device> m_devices;
+    std::map<std::string, std::unique_ptr<cutefish::base::Timer>> m_leaving;
 };

@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <QString>
-
 #include <cerrno>
 #include <cstdint>
 #include <string>
@@ -21,12 +19,12 @@ struct DirectoryEntry
 // Credentials for a connection, as typed or found in the keyring.
 struct Credentials
 {
-    QString user;
-    QString domain;
-    QString password;
+    std::string user;
+    std::string domain;
+    std::string password;
     bool anonymous = false;
     // A host key fingerprint the user accepted for this connection.
-    QString acceptedHostKey;
+    std::string acceptedHostKey;
 };
 
 struct ConnectResult
@@ -39,12 +37,12 @@ struct ConnectResult
     };
 
     Status status = Failed;
-    QString message;
+    std::string message;
     // NeedPassword: whether the server takes a domain and guests.
     bool needsDomain = false;
     bool anonymousAllowed = false;
     // UnknownHostKey: the key's SHA256 fingerprint, and whether another key was known.
-    QString fingerprint;
+    std::string fingerprint;
     bool hostKeyChanged = false;
 };
 

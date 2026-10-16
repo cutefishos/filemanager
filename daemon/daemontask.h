@@ -1,53 +1,71 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
-#include <QObject>
-#include <QVariantMap>
+#include "base/dbus.h"
+#include "base/signal.h"
 
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include <task.h>
+namespace cutefish::files {
+class Task;
+struct TaskRequest;
+}
 
-class DaemonTask : public QObject
+class ArchiveJob;
+
+// One task on the bus, com.cutefish.FileOperations.Task1: a file operation
+// of the files library, or a compression or extraction.
+class DaemonTask
 {
-    Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.cutefish.FileOperations.Task1")
-
 public:
-    DaemonTask(const QString &objectPath, const Cutefish::IO::TaskRequest &request,
-               QObject *parent = nullptr);
-    DaemonTask(const QString &objectPath, Cutefish::IO::Task *task, QObject *parent = nullptr);
+    DaemonTask(cutefish::base::dbus::Connection *bus, std::string objectPath, cutefish::files::Task *task);
+    // operation 0 compresses, 1 extracts.
+    DaemonTask(cutefish::base::dbus::Connection *bus, std::string objectPath, int operation,
+               std::vector<std::string> sources, std::string outputPath);
+    ~DaemonTask();
 
-    QString objectPath() const;
-    void setOwner(const QString &owner);
-    QString owner() const;
+    DaemonTask(const DaemonTask &) = delete;
+    DaemonTask &operator=(const DaemonTask &) = delete;
+
+    bool publish();
+    const std::string &objectPath() const { return m_objectPath; }
+    bool isArchive() const { return m_archive != nullptr; }
+    void setOwner(const std::string &owner);
+    std::string owner() const;
     // The submitter left the bus. A task waiting at a conflict is cancelled;
     // one still running is cancelled at its next conflict unless a client
     // adopts it first.
     void orphan();
-    bool isFinished() const;
+    bool isFinished() const { return m_finished; }
+    bool waitingForConflict() const;
     // Whether GetSnapshot was called since the task finished: the client saw
     // the outcome, so the object can leave the bus.
-    bool outcomeRead() const;
-    void setOutcomeReadCallback(std::function<void()> callback);
+    bool outcomeRead() const { return m_outcomeRead; }
+    void setOutcomeReadCallback(std::function<void()> callback) { m_outcomeReadCallback = std::move(callback); }
 
-public slots:
-    QVariantMap GetSnapshot() const;
-    void Cancel();
-    void ResolveConflict(int policy, bool applyToAll);
+    void cancel();
 
-signals:
-    void Changed(const QVariantMap &snapshot);
-    void ConflictRequested(const QString &source, const QString &destination);
-    void Finished(const QVariantMap &snapshot);
+    cutefish::base::Signal<> finished;
 
 private:
     void initialize();
-    QVariantMap progressSnapshot() const;
+    void addMembers();
+    void changed(const cutefish::base::dbus::VariantMap &update);
+    cutefish::base::dbus::VariantMap snapshot();
 
-    QString m_objectPath;
-    Cutefish::IO::Task *m_task;
-    QVariantMap m_snapshot;
+    std::string m_objectPath;
+    cutefish::files::Task *m_task = nullptr;
+    std::unique_ptr<ArchiveJob> m_archive;
+    cutefish::base::dbus::Object m_object;
+    cutefish::base::dbus::VariantMap m_snapshot;
     bool m_finished = false;
-    mutable bool m_outcomeRead = false;
+    bool m_outcomeRead = false;
     std::function<void()> m_outcomeReadCallback;
+    std::vector<cutefish::base::Subscription> m_subscriptions;
+    std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
 };

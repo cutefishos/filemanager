@@ -7,5 +7,5 @@ Comment=Browse and manage your files
 Exec=cutefish-filemanager %u
 MimeType=inode/directory;
 Icon=file-system-manager
-Categories=Qt;System;FileTools;FileManager;
+Categories=System;FileTools;FileManager;
 StartupNotify=true

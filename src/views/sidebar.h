@@ -1,0 +1,78 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#pragma once
+
+#include "core/common.h"
+
+#include "base/signal.h"
+#include "ui/view.h"
+
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace cutefish::ui {
+class ConfirmDialog;
+class Label;
+class Menu;
+class ScrollView;
+}
+
+namespace fm {
+
+class ConnectServerDialog;
+class PlacesModel;
+class ServerPasswordDialog;
+class SidebarList;
+
+// The window's title over the places, favourites first, which
+// take drops and reorder by dragging.
+class SideBar : public ui::View
+{
+public:
+    static constexpr double kWidth = 190;
+
+    // The header's height, which the title fills.
+    explicit SideBar(double headerHeight);
+    ~SideBar() override;
+
+    PlacesModel& places() const { return *m_places; }
+    void setTitle(std::string title);
+    // Lights the place showing the folder.
+    void updateSelection(const std::string& path);
+    // The Connect to Server dialog, over the window.
+    void connectToServer();
+
+    std::function<void(const std::string& path)> onClicked;
+    std::function<void(const std::string& path)> onOpenInNewTab;
+    std::function<void(const std::string& path)> onOpenInNewWindow;
+
+    ui::SizeF sizeHint() const override { return {kWidth, 0}; }
+
+protected:
+    void layout() override;
+    void paint(ui::Painter& painter) override;
+
+private:
+    friend class SidebarList;
+
+    void askPassword(std::string address, std::string user, std::string domain, bool needsDomain,
+                     bool anonymousAllowed, bool retry);
+    void askHostKey(const std::string& address, const std::string& fingerprint, bool changed);
+    void showDeviceError(const std::string& message);
+
+    std::unique_ptr<PlacesModel> m_places;
+    std::unique_ptr<ConnectServerDialog> m_connectDialog;
+    std::vector<std::unique_ptr<ServerPasswordDialog>> m_passwordDialogs;
+    std::vector<std::unique_ptr<ui::ConfirmDialog>> m_confirmDialogs;
+    double m_headerHeight;
+    ui::Label* m_title;
+    ui::ScrollView* m_scroll;
+    SidebarList* m_list;
+    std::string m_selectedPath;
+    std::vector<base::Subscription> m_subscriptions;
+};
+
+} // namespace fm

@@ -3,10 +3,12 @@
 
 #include "smbbackend.h"
 
-#include <QCoreApplication>
-#include <QUuid>
+#include "base/url.h"
+#include "base/uuid.h"
 
 #include <libsmbclient.h>
+#include <unicode/uchar.h>
+#include <unicode/ustring.h>
 
 #include <cstring>
 #include <fcntl.h>
@@ -14,23 +16,51 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+// Equal under full Unicode case folding.
+static bool sameIgnoringCase(const std::string &a, const std::string &b)
+{
+    auto toUtf16 = [](const std::string &text) {
+        std::u16string out(text.size() + 1, u'\0');
+        int32_t length = 0;
+        UErrorCode status = U_ZERO_ERROR;
+        u_strFromUTF8Lenient(reinterpret_cast<UChar *>(out.data()), int32_t(out.size()), &length,
+                             text.data(), int32_t(text.size()), &status);
+        out.resize(U_SUCCESS(status) ? size_t(length) : 0);
+        return out;
+    };
+    const std::u16string first = toUtf16(a);
+    const std::u16string second = toUtf16(b);
+    UErrorCode error = U_ZERO_ERROR;
+    return u_strCaseCompare(reinterpret_cast<const UChar *>(first.data()), int32_t(first.size()),
+                            reinterpret_cast<const UChar *>(second.data()), int32_t(second.size()),
+                            U_FOLD_CASE_DEFAULT, &error)
+            == 0;
+}
+
+// 32 hexadecimal digits without hyphens.
+static std::string hexUuid()
+{
+    std::string text = cutefish::base::Uuid::generate().toString();
+    std::erase(text, '-');
+    return text;
+}
+
 static SMBCFILE *fileFor(uint64_t handle)
 {
     return reinterpret_cast<SMBCFILE *>(handle);
 }
 
-static void copyField(char *field, int length, const QString &value)
+static void copyField(char *field, int length, const std::string &value)
 {
     if (length <= 0)
         return;
 
-    const QByteArray bytes = value.toUtf8();
-    const int count = std::min<int>(bytes.size(), length - 1);
-    std::memcpy(field, bytes.constData(), count);
+    const int count = std::min<int>(value.size(), length - 1);
+    std::memcpy(field, value.data(), count);
     field[count] = '\0';
 }
 
-SmbBackend::SmbBackend(const QUrl &url)
+SmbBackend::SmbBackend(const RemoteUrl &url)
     : m_url(url)
     , m_uid(::getuid())
     , m_gid(::getgid())
@@ -51,14 +81,14 @@ void SmbBackend::authenticate(SMBCCTX *context, const char *, const char *, char
     const Credentials &credentials = self->m_credentials;
 
     if (credentials.anonymous) {
-        copyField(user, userLength, QString());
-        copyField(password, passwordLength, QString());
+        copyField(user, userLength, std::string());
+        copyField(password, passwordLength, std::string());
         return;
     }
 
     copyField(user, userLength, credentials.user);
     copyField(password, passwordLength, credentials.password);
-    if (!credentials.domain.isEmpty())
+    if (!credentials.domain.empty())
         copyField(workgroup, workgroupLength, credentials.domain);
 }
 
@@ -73,10 +103,10 @@ SMBCCTX *SmbBackend::createContext(const Credentials &credentials)
     // An empty user keeps libsmbclient from signing in as the local account by itself.
     smbc_setUser(context, "");
     smbc_setOptionUseKerberos(context, 1);
-    smbc_setOptionFallbackAfterKerberos(context, !credentials.password.isEmpty());
+    smbc_setOptionFallbackAfterKerberos(context, !credentials.password.empty());
     // Without a password only a Kerberos ticket can sign in; with one, a missing ticket
     // cache must not fail the attempt.
-    smbc_setOptionUseCCache(context, credentials.password.isEmpty());
+    smbc_setOptionUseCCache(context, credentials.password.empty());
     smbc_setOptionNoAutoAnonymousLogin(context, !credentials.anonymous);
 
     if (!smbc_init_context(context)) {
@@ -89,13 +119,13 @@ SMBCCTX *SmbBackend::createContext(const Credentials &credentials)
 
 std::string SmbBackend::urlFor(const std::string &path) const
 {
-    QByteArray url = "smb://" + m_url.host(QUrl::FullyEncoded).toUtf8();
-    if (m_url.port() > 0)
-        url += ':' + QByteArray::number(m_url.port());
+    std::string url = "smb://" + cutefish::base::url::percentEncoded(m_url.hostForUrl(), "[]:");
+    if (m_url.port > 0)
+        url += ':' + std::to_string(m_url.port);
 
     // libsmbclient decodes %XX in every name, so a literal % must be encoded.
-    url += QByteArray::fromStdString(path).toPercentEncoding("/!$&'()*+,;=:@ ~");
-    return url.toStdString();
+    url += cutefish::base::url::percentEncoded(path, "/!$&'()*+,;=:@ ~");
+    return url;
 }
 
 bool SmbBackend::isRoot(const std::string &path)
@@ -130,18 +160,17 @@ static ConnectResult failure(int code)
     switch (code) {
     case ENOENT:
     case ENODEV:
-        result.message = QCoreApplication::translate("SmbBackend", "The share does not exist.");
+        result.message = "The share does not exist.";
         break;
     case EHOSTUNREACH:
     case EHOSTDOWN:
     case ECONNREFUSED:
     case ETIMEDOUT:
     case ENETUNREACH:
-        result.message = QCoreApplication::translate("SmbBackend",
-                                                     "The server could not be reached.");
+        result.message = "The server could not be reached.";
         break;
     default:
-        result.message = QString::fromLocal8Bit(std::strerror(code));
+        result.message = std::strerror(code);
         break;
     }
     return result;
@@ -158,9 +187,11 @@ ConnectResult SmbBackend::connect(const Credentials &credentials)
         return failure(errno ? errno : EIO);
 
     // A share in the address is what has to open; otherwise the server's list of shares.
-    const QString path = m_url.path();
-    const QString share = path.section(QLatin1Char('/'), 0, 0, QString::SectionSkipEmpty);
-    const std::string target = urlFor(share.isEmpty() ? "/" : '/' + share.toStdString());
+    const std::string &path = m_url.path;
+    const size_t start = path.find_first_not_of('/');
+    const std::string share = start == std::string::npos ? std::string()
+                                                         : path.substr(start, path.find('/', start) - start);
+    const std::string target = urlFor(share.empty() ? "/" : '/' + share);
 
     // Opening a share's folder may succeed before the share is connected; the first
     // entry read is what proves access.
@@ -181,7 +212,7 @@ ConnectResult SmbBackend::connect(const Credentials &credentials)
 
     const int code = errno;
     // Kerberos without a ticket fails with EINVAL; a password is what is missing then.
-    if (code == EACCES || code == EPERM || (code == EINVAL && credentials.password.isEmpty())) {
+    if (code == EACCES || code == EPERM || (code == EINVAL && credentials.password.empty())) {
         ConnectResult result;
         result.status = ConnectResult::NeedPassword;
         result.needsDomain = true;
@@ -194,8 +225,7 @@ ConnectResult SmbBackend::connect(const Credentials &credentials)
 
 std::string SmbBackend::initialPath() const
 {
-    const QByteArray path = m_url.path().toUtf8();
-    return path.isEmpty() ? std::string("/") : path.toStdString();
+    return m_url.path.empty() ? std::string("/") : m_url.path;
 }
 
 int SmbBackend::listShares(std::vector<DirectoryEntry> *entries)
@@ -417,9 +447,7 @@ int SmbBackend::rename(const std::string &from, const std::string &to, unsigned 
     // libsmbclient does not reliably report an existing target; look first, unless only
     // the case changes on a server that ignores case.
     struct stat existing;
-    const bool caseOnly = QString::fromStdString(from).compare(QString::fromStdString(to),
-                                                               Qt::CaseInsensitive)
-            == 0;
+    const bool caseOnly = sameIgnoringCase(from, to);
     const auto renameUrl = smbc_getFunctionRename(m_context);
     if (!caseOnly && smbc_getFunctionStat(m_context)(m_context, target.c_str(), &existing) == 0) {
         if (flags & RENAME_NOREPLACE)
@@ -432,7 +460,7 @@ int SmbBackend::rename(const std::string &from, const std::string &to, unsigned 
             // The file replaced waits aside until the rename lands: a server that refuses
             // the rename after allowing the delete would otherwise lose it.
             const std::string aside = urlFor(to.substr(0, to.rfind('/') + 1) + ".cutefish-replaced-"
-                                             + QUuid::createUuid().toString(QUuid::Id128).toStdString());
+                                             + hexUuid());
             if (renameUrl(m_context, target.c_str(), m_context, aside.c_str()) != 0)
                 return -(errno ? errno : EIO);
             if (renameUrl(m_context, source.c_str(), m_context, target.c_str()) != 0) {

@@ -1,50 +1,53 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #pragma once
 
-#include <QObject>
-#include <QDBusContext>
-#include <QDBusObjectPath>
+#include "base/dbus.h"
+#include "base/signal.h"
 
-class QDBusServiceWatcher;
+#include <cstdint>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
-namespace Cutefish::IO {
+namespace cutefish::files {
 class Task;
 }
 
 class DaemonTask;
 
-class FileOperationsService : public QObject, protected QDBusContext
+// com.cutefish.FileOperations.Manager1 at /com/cutefish/FileOperations: runs
+// the file manager's operations so they outlive its windows, with one undo
+// history for every client.
+class FileOperationsService
 {
-    Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "com.cutefish.FileOperations.Manager1")
-
 public:
-    explicit FileOperationsService(QObject *parent = nullptr);
+    explicit FileOperationsService(cutefish::base::dbus::Connection *bus);
+    ~FileOperationsService();
 
-public slots:
-    QDBusObjectPath Submit(int operation, const QStringList &sources,
-                           const QString &destination, int conflictPolicy);
-    QDBusObjectPath SubmitArchive(int operation, const QStringList &sources,
-                                  const QString &outputPath);
-    QDBusObjectPath Undo();
-    QDBusObjectPath Redo();
-    bool CanUndo() const;
-    bool CanRedo() const;
-    QStringList TaskPaths() const;
-
-signals:
-    void TaskAdded(const QString &path);
-    void HistoryChanged(bool canUndo, bool canRedo);
+    bool publish();
 
 private:
-    QString caller() const;
-    QDBusObjectPath publish(Cutefish::IO::Task *task);
-    void watchOwner(const QString &owner);
-    void ownerLost(const QString &owner);
-    void retire(const QString &path, DaemonTask *task);
-    void retireArchive(const QString &path, QObject *task);
-    void announce(const QString &path, DaemonTask *task);
+    void submit(cutefish::base::dbus::MethodCall &call);
+    void submitArchive(cutefish::base::dbus::MethodCall &call);
+    void history(cutefish::base::dbus::MethodCall &call, bool undo);
+    std::string nextPath();
+    // Registers the task and announces it; false when it could not go on the bus.
+    bool announce(std::unique_ptr<DaemonTask> task, const std::string &owner);
+    void watchOwner(const std::string &owner);
+    void ownerLost(const std::string &owner);
+    void retire(DaemonTask *task);
+    void remove(DaemonTask *task);
 
-    quint64 m_nextTaskId = 1;
-    QStringList m_taskPaths;
-    QDBusServiceWatcher *m_owners;
+    cutefish::base::dbus::Connection *m_bus;
+    cutefish::base::dbus::Object m_object;
+    uint64_t m_nextTaskId = 1;
+    std::vector<std::string> m_taskPaths;
+    std::vector<std::unique_ptr<DaemonTask>> m_tasks;
+    std::map<std::string, cutefish::base::dbus::NameWatch> m_owners;
+    std::vector<cutefish::base::Subscription> m_subscriptions;
+    std::map<DaemonTask *, cutefish::base::Subscription> m_finishedSubscriptions;
+    std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
 };

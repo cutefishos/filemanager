@@ -1,215 +1,216 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "fileoperationsservice.h"
-
 #include "daemontask.h"
-#include "daemonarchivetask.h"
 
-#include <QDBusConnection>
-#include <QDBusConnectionInterface>
-#include <QDBusMessage>
-#include <QDBusServiceWatcher>
-#include <QTimer>
-#include <QUrl>
+#include "base/event_loop.h"
+#include "base/timer.h"
 
-#include <task.h>
+#include "files/task.h"
 
-FileOperationsService::FileOperationsService(QObject *parent)
-    : QObject(parent)
-    , m_owners(new QDBusServiceWatcher(this))
+#include <algorithm>
+
+using namespace cutefish;
+using base::dbus::ObjectPath;
+
+static void later(std::chrono::milliseconds delay, std::function<void()> action)
 {
-    auto *controller = Cutefish::IO::TaskController::instance();
-    connect(controller, &Cutefish::IO::TaskController::historyChanged, this, [this, controller] {
-        emit HistoryChanged(controller->isUndoAvailable(), controller->isRedoAvailable());
-    });
-
-    m_owners->setConnection(QDBusConnection::sessionBus());
-    m_owners->setWatchMode(QDBusServiceWatcher::WatchForUnregistration);
-    connect(m_owners, &QDBusServiceWatcher::serviceUnregistered, this,
-            &FileOperationsService::ownerLost);
+    auto timer = std::make_shared<base::Timer>();
+    timer->setSingleShot(true);
+    timer->onTimeout = [timer, action = std::move(action)]() mutable {
+        action();
+        // The timer goes on the next turn, not from inside its own callback.
+        base::EventLoop::current()->post([timer] {});
+    };
+    timer->start(delay);
 }
 
-QDBusObjectPath FileOperationsService::SubmitArchive(int operation, const QStringList &sources,
-                                                     const QString &outputPath)
+FileOperationsService::FileOperationsService(base::dbus::Connection *bus)
+    : m_bus(bus)
+    , m_object(bus, "/com/cutefish/FileOperations", "com.cutefish.FileOperations.Manager1")
 {
-    if ((operation != 0 && operation != 1) || sources.isEmpty() || outputPath.isEmpty())
-        return {};
+    auto *controller = files::TaskController::instance();
+    m_subscriptions.push_back(controller->historyChanged.connect([this, controller] {
+        m_object.emitSignal("HistoryChanged", controller->isUndoAvailable(), controller->isRedoAvailable());
+    }));
 
-    const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
-    auto *task = new DaemonArchiveTask(path, operation, sources, outputPath, this);
-    task->setOwner(caller());
-    const bool registered = QDBusConnection::sessionBus().registerObject(
-            path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
-    if (!registered) {
-        // The job thread is the task's child; it may only go once the job has stopped.
-        connect(task, &DaemonArchiveTask::Finished, task, &QObject::deleteLater);
-        task->Cancel();
-        return {};
+    m_object.addMethod("Submit", "iassi", "o", [this](base::dbus::MethodCall &call) { submit(call); },
+                       {{"operation", "sources", "destination", "conflictPolicy"}, {"task"}});
+    m_object.addMethod("SubmitArchive", "iass", "o", [this](base::dbus::MethodCall &call) { submitArchive(call); },
+                       {{"operation", "sources", "outputPath"}, {"task"}});
+    m_object.addMethod("Undo", "", "o", [this](base::dbus::MethodCall &call) { history(call, true); },
+                       {{}, {"task"}});
+    m_object.addMethod("Redo", "", "o", [this](base::dbus::MethodCall &call) { history(call, false); },
+                       {{}, {"task"}});
+    m_object.addMethod("CanUndo", [] { return files::TaskController::instance()->isUndoAvailable(); });
+    m_object.addMethod("CanRedo", [] { return files::TaskController::instance()->isRedoAvailable(); });
+    m_object.addMethod("TaskPaths", [this] { return m_taskPaths; });
+    m_object.addSignal("TaskAdded", "s", {"path"});
+    m_object.addSignal("HistoryChanged", "bb", {"canUndo", "canRedo"});
+}
+
+FileOperationsService::~FileOperationsService()
+{
+    *m_alive = false;
+}
+
+bool FileOperationsService::publish()
+{
+    return m_object.publish();
+}
+
+std::string FileOperationsService::nextPath()
+{
+    return "/com/cutefish/FileOperations/tasks/" + std::to_string(m_nextTaskId++);
+}
+
+void FileOperationsService::submit(base::dbus::MethodCall &call)
+{
+    int32_t operation = 0;
+    std::vector<std::string> sources;
+    std::string destination;
+    int32_t conflict = 0;
+    if (!call.read(operation, sources, destination, conflict) || operation < int(files::Operation::Copy)
+        || operation > int(files::Operation::Size) || conflict < int(files::ConflictPolicy::Fail)
+        || conflict > int(files::ConflictPolicy::Ask)) {
+        call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unexpected arguments");
+        return;
     }
 
-    m_taskPaths.append(path);
-    connect(task, &DaemonArchiveTask::Finished, this,
-            [this, path, task] { retireArchive(path, task); });
-    emit TaskAdded(path);
-    return QDBusObjectPath(path);
+    files::TaskRequest request;
+    request.operation = files::Operation(operation);
+    for (const std::string &source : sources)
+        request.sources.push_back(files::Url(source));
+    request.destination = files::Url(destination);
+    request.conflict = files::ConflictPolicy(conflict);
+
+    const std::string path = nextPath();
+    auto task = std::make_unique<DaemonTask>(m_bus, path, files::TaskController::instance()->submit(request));
+    if (!announce(std::move(task), call.message().sender())) {
+        call.replyError("org.freedesktop.DBus.Error.Failed", "The task could not be published");
+        return;
+    }
+    call.reply(ObjectPath {path});
 }
 
-// The bus name of the client that asked for the task. Clients use it to show
-// progress only for their own tasks, so one paste does not raise a dialog in
-// every process attached to the daemon.
-
-QString FileOperationsService::caller() const
+void FileOperationsService::submitArchive(base::dbus::MethodCall &call)
 {
-    return calledFromDBus() ? message().service() : QString();
+    int32_t operation = 0;
+    std::vector<std::string> sources;
+    std::string outputPath;
+    if (!call.read(operation, sources, outputPath) || (operation != 0 && operation != 1) || sources.empty()
+        || outputPath.empty()) {
+        call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unexpected arguments");
+        return;
+    }
+
+    const std::string path = nextPath();
+    auto task = std::make_unique<DaemonTask>(m_bus, path, operation, sources, outputPath);
+    if (!announce(std::move(task), call.message().sender())) {
+        call.replyError("org.freedesktop.DBus.Error.Failed", "The task could not be published");
+        return;
+    }
+    call.reply(ObjectPath {path});
 }
 
-void FileOperationsService::watchOwner(const QString &owner)
+void FileOperationsService::history(base::dbus::MethodCall &call, bool undo)
 {
-    if (!owner.isEmpty())
-        m_owners->addWatchedService(owner);
+    files::Task *task = undo ? files::TaskController::instance()->undo() : files::TaskController::instance()->redo();
+    // An empty path is no valid object path, so the reply would never be sent.
+    if (!task) {
+        call.reply(ObjectPath {"/"});
+        return;
+    }
+
+    const std::string path = nextPath();
+    if (!announce(std::make_unique<DaemonTask>(m_bus, path, task), call.message().sender())) {
+        call.replyError("org.freedesktop.DBus.Error.Failed", "The task could not be published");
+        return;
+    }
+    call.reply(ObjectPath {path});
 }
 
-// Live clients leave a task to its submitter, so a submitter that leaves the bus
-// mid-question would keep the worker waiting for good; stop the task instead.
-
-void FileOperationsService::ownerLost(const QString &owner)
+bool FileOperationsService::announce(std::unique_ptr<DaemonTask> task, const std::string &owner)
 {
-    m_owners->removeWatchedService(owner);
-    const auto tasks = findChildren<DaemonTask *>(QString(), Qt::FindDirectChildrenOnly);
-    for (auto *task : tasks) {
+    // The bus name of the client that asked for the task. Clients show
+    // progress only for their own tasks, so one paste does not raise a
+    // dialog in every process attached to the daemon.
+    task->setOwner(owner);
+    if (!task->publish()) {
+        task->cancel();
+        DaemonTask *raw = task.get();
+        m_tasks.push_back(std::move(task));
+        // The archive thread ends with the task, once it stopped.
+        base::EventLoop::current()->post([this, alive = m_alive, raw] {
+            if (*alive)
+                remove(raw);
+        });
+        return false;
+    }
+
+    DaemonTask *raw = task.get();
+    m_tasks.push_back(std::move(task));
+    m_taskPaths.push_back(raw->objectPath());
+    watchOwner(owner);
+    m_finishedSubscriptions[raw] = raw->finished.connect([this, raw] {
+        retire(raw);
+    });
+    m_object.emitSignal("TaskAdded", raw->objectPath());
+    return true;
+}
+
+void FileOperationsService::watchOwner(const std::string &owner)
+{
+    if (owner.empty() || m_owners.contains(owner))
+        return;
+    // Called at once with the current owner: a submitter that left between
+    // its call and now is seen gone right away.
+    m_owners[owner] = m_bus->watchName(owner, [this, alive = m_alive, owner](const std::string &current) {
+        if (!current.empty())
+            return;
+        base::EventLoop::current()->post([this, alive, owner] {
+            if (*alive)
+                ownerLost(owner);
+        });
+    });
+}
+
+// Live clients leave a task to its submitter, so a submitter that leaves the
+// bus mid-question would keep the worker waiting for good; the task stops.
+void FileOperationsService::ownerLost(const std::string &owner)
+{
+    m_owners.erase(owner);
+    for (const auto &task : m_tasks) {
         if (task->owner() == owner)
             task->orphan();
     }
-    const auto archives = findChildren<DaemonArchiveTask *>(QString(), Qt::FindDirectChildrenOnly);
-    for (auto *task : archives) {
-        const QVariantMap snapshot = task->GetSnapshot();
-        if (snapshot.value(QStringLiteral("owner")).toString() == owner
-            && snapshot.value(QStringLiteral("waitingForConflict")).toBool()) {
-            task->Cancel();
-        }
-    }
 }
 
-// A client reads the snapshot of a task right after it is announced and runs the
-// operation itself if that fails, so a finished task stays on the bus until its
-// outcome was read, and a while after that for late readers. One nobody reads -
-// its submitter gone - still goes eventually.
-
-void FileOperationsService::retire(const QString &path, DaemonTask *task)
+// A client reads the snapshot of a task right after it is announced, so a
+// finished task stays on the bus until its outcome was read, and a while
+// after that for late readers. One nobody reads still goes eventually.
+void FileOperationsService::retire(DaemonTask *task)
 {
-    m_taskPaths.removeAll(path);
-    const auto unregister = [path, task] {
-        QDBusConnection::sessionBus().unregisterObject(path);
-        task->deleteLater();
+    std::erase(m_taskPaths, task->objectPath());
+    const auto unregister = [this, alive = m_alive, task] {
+        if (*alive)
+            remove(task);
     };
-    const auto linger = [task, unregister] { QTimer::singleShot(10000, task, unregister); };
-    if (task->outcomeRead() || task->owner().isEmpty()) {
+    const auto linger = [unregister] { later(std::chrono::seconds(10), unregister); };
+    if (task->isArchive() || task->outcomeRead() || task->owner().empty()) {
         linger();
         return;
     }
     task->setOutcomeReadCallback(linger);
-    QTimer::singleShot(300000, task, unregister);
+    later(std::chrono::minutes(5), unregister);
 }
 
-void FileOperationsService::retireArchive(const QString &path, QObject *task)
+void FileOperationsService::remove(DaemonTask *task)
 {
-    m_taskPaths.removeAll(path);
-    QTimer::singleShot(10000, task, [path, task] {
-        QDBusConnection::sessionBus().unregisterObject(path);
-        task->deleteLater();
-    });
-}
-
-void FileOperationsService::announce(const QString &path, DaemonTask *task)
-{
-    m_taskPaths.append(path);
-    watchOwner(task->owner());
-    connect(task, &DaemonTask::Finished, this, [this, path, task] { retire(path, task); });
-    emit TaskAdded(path);
-    // A submitter that left between its call and this dispatch is never seen
-    // leaving by the watcher.
-    if (!task->owner().isEmpty()
-        && !QDBusConnection::sessionBus().interface()->isServiceRegistered(task->owner())) {
-        ownerLost(task->owner());
-    }
-}
-
-QStringList FileOperationsService::TaskPaths() const
-{
-    return m_taskPaths;
-}
-
-QDBusObjectPath FileOperationsService::Undo()
-{
-    return publish(Cutefish::IO::TaskController::instance()->undo());
-}
-
-QDBusObjectPath FileOperationsService::Redo()
-{
-    return publish(Cutefish::IO::TaskController::instance()->redo());
-}
-
-bool FileOperationsService::CanUndo() const
-{
-    return Cutefish::IO::TaskController::instance()->isUndoAvailable();
-}
-
-bool FileOperationsService::CanRedo() const
-{
-    return Cutefish::IO::TaskController::instance()->isRedoAvailable();
-}
-
-QDBusObjectPath FileOperationsService::publish(Cutefish::IO::Task *history)
-{
-    // An empty path is no valid object path, so the reply would never be sent.
-    if (!history)
-        return QDBusObjectPath(QStringLiteral("/"));
-
-    const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
-    auto *task = new DaemonTask(path, history, this);
-    task->setOwner(caller());
-    const bool registered = QDBusConnection::sessionBus().registerObject(
-            path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
-    if (!registered) {
-        task->Cancel();
-        task->deleteLater();
-        return {};
-    }
-
-    announce(path, task);
-    return QDBusObjectPath(path);
-}
-
-QDBusObjectPath FileOperationsService::Submit(int operation, const QStringList &sources,
-                                              const QString &destination,
-                                              int conflictPolicy)
-{
-    if (operation < int(Cutefish::IO::Operation::Copy)
-        || operation > int(Cutefish::IO::Operation::Size)) {
-        return {};
-    }
-    if (conflictPolicy < int(Cutefish::IO::ConflictPolicy::Fail)
-        || conflictPolicy > int(Cutefish::IO::ConflictPolicy::Ask)) {
-        return {};
-    }
-
-    QList<QUrl> sourceUrls;
-    sourceUrls.reserve(sources.size());
-    for (const auto &source : sources)
-        sourceUrls.append(QUrl(source));
-
-    const auto request = Cutefish::IO::TaskRequest {
-        Cutefish::IO::Operation(operation), sourceUrls, QUrl(destination),
-        Cutefish::IO::ConflictPolicy(conflictPolicy)};
-    const QString path = QStringLiteral("/com/cutefish/FileOperations/tasks/%1").arg(m_nextTaskId++);
-    auto *task = new DaemonTask(path, request, this);
-    task->setOwner(caller());
-    const bool registered = QDBusConnection::sessionBus().registerObject(
-            path, task, QDBusConnection::ExportAllSlots | QDBusConnection::ExportAllSignals);
-    if (!registered) {
-        task->Cancel();
-        task->deleteLater();
-        return {};
-    }
-
-    announce(path, task);
-    return QDBusObjectPath(path);
+    const auto found = std::find_if(m_tasks.begin(), m_tasks.end(),
+                                    [task](const std::unique_ptr<DaemonTask> &entry) { return entry.get() == task; });
+    m_finishedSubscriptions.erase(task);
+    if (found != m_tasks.end())
+        m_tasks.erase(found);
 }

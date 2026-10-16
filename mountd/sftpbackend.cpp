@@ -59,7 +59,7 @@ static void fillStat(sftp_attributes attributes, struct stat *st)
     st->st_ctim = st->st_mtim;
 }
 
-SftpBackend::SftpBackend(const QUrl &url)
+SftpBackend::SftpBackend(const RemoteUrl &url)
     : m_url(url)
 {
 }
@@ -135,23 +135,20 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
     ConnectResult result;
     m_ssh = ssh_new();
     if (!m_ssh) {
-        result.message = QStringLiteral("Cannot start an SSH session");
+        result.message = "Cannot start an SSH session";
         return result;
     }
 
-    const QByteArray host = m_url.host().toUtf8();
-    ssh_options_set(m_ssh, SSH_OPTIONS_HOST, host.constData());
+    ssh_options_set(m_ssh, SSH_OPTIONS_HOST, m_url.host.c_str());
     // ~/.ssh/config may name another host, port, user or key for this one.
     ssh_options_parse_config(m_ssh, nullptr);
 
-    const QString user = !credentials.user.isEmpty() ? credentials.user : m_url.userName();
-    if (!user.isEmpty()) {
-        const QByteArray userName = user.toUtf8();
-        ssh_options_set(m_ssh, SSH_OPTIONS_USER, userName.constData());
-    }
+    const std::string &user = !credentials.user.empty() ? credentials.user : m_url.user;
+    if (!user.empty())
+        ssh_options_set(m_ssh, SSH_OPTIONS_USER, user.c_str());
 
-    if (m_url.port() > 0) {
-        const unsigned int port = m_url.port();
+    if (m_url.port > 0) {
+        const unsigned int port = m_url.port;
         ssh_options_set(m_ssh, SSH_OPTIONS_PORT, &port);
     }
 
@@ -162,7 +159,7 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
     ssh_options_set(m_ssh, SSH_OPTIONS_NODELAY, &noDelay);
 
     if (ssh_connect(m_ssh) != SSH_OK) {
-        result.message = QString::fromUtf8(ssh_get_error(m_ssh));
+        result.message = std::string(ssh_get_error(m_ssh));
         close();
         return result;
     }
@@ -170,11 +167,11 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
     ssh_key key = nullptr;
     unsigned char *hash = nullptr;
     size_t hashLength = 0;
-    QString fingerprint;
+    std::string fingerprint;
     if (ssh_get_server_publickey(m_ssh, &key) == SSH_OK
         && ssh_get_publickey_hash(key, SSH_PUBLICKEY_HASH_SHA256, &hash, &hashLength) == 0) {
         char *text = ssh_get_fingerprint_hash(SSH_PUBLICKEY_HASH_SHA256, hash, hashLength);
-        fingerprint = QString::fromLatin1(text);
+        fingerprint = text;
         ssh_string_free_char(text);
         ssh_clean_pubkey_hash(&hash);
     }
@@ -182,8 +179,8 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
 
     const auto known = ssh_session_is_known_server(m_ssh);
     if (known != SSH_KNOWN_HOSTS_OK) {
-        if (known == SSH_KNOWN_HOSTS_ERROR || fingerprint.isEmpty()) {
-            result.message = QString::fromUtf8(ssh_get_error(m_ssh));
+        if (known == SSH_KNOWN_HOSTS_ERROR || fingerprint.empty()) {
+            result.message = std::string(ssh_get_error(m_ssh));
             close();
             return result;
         }
@@ -207,11 +204,11 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
     if (auth != SSH_AUTH_SUCCESS && (methods & SSH_AUTH_METHOD_PUBLICKEY))
         auth = ssh_userauth_publickey_auto(m_ssh, nullptr, nullptr);
 
-    if (auth != SSH_AUTH_SUCCESS && !credentials.password.isEmpty()) {
-        const QByteArray password = credentials.password.toUtf8();
+    if (auth != SSH_AUTH_SUCCESS && !credentials.password.empty()) {
+        const std::string &password = credentials.password;
 
         if (methods & SSH_AUTH_METHOD_PASSWORD)
-            auth = ssh_userauth_password(m_ssh, nullptr, password.constData());
+            auth = ssh_userauth_password(m_ssh, nullptr, password.c_str());
 
         // PAM servers often take the password only as a keyboard-interactive answer.
         if (auth != SSH_AUTH_SUCCESS && (methods & SSH_AUTH_METHOD_INTERACTIVE)) {
@@ -221,7 +218,7 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
                 for (int i = 0; i < prompts; ++i) {
                     char echo = 0;
                     ssh_userauth_kbdint_getprompt(m_ssh, i, &echo);
-                    ssh_userauth_kbdint_setanswer(m_ssh, i, echo ? "" : password.constData());
+                    ssh_userauth_kbdint_setanswer(m_ssh, i, echo ? "" : password.c_str());
                 }
                 auth = ssh_userauth_kbdint(m_ssh, nullptr, nullptr);
             }
@@ -231,14 +228,14 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
     if (auth != SSH_AUTH_SUCCESS) {
         const bool canAsk = methods & (SSH_AUTH_METHOD_PASSWORD | SSH_AUTH_METHOD_INTERACTIVE);
         result.status = canAsk ? ConnectResult::NeedPassword : ConnectResult::Failed;
-        result.message = QString::fromUtf8(ssh_get_error(m_ssh));
+        result.message = std::string(ssh_get_error(m_ssh));
         close();
         return result;
     }
 
     m_sftp = sftp_new(m_ssh);
     if (!m_sftp || sftp_init(m_sftp) != SSH_OK) {
-        result.message = QString::fromUtf8(ssh_get_error(m_ssh));
+        result.message = std::string(ssh_get_error(m_ssh));
         close();
         return result;
     }
@@ -274,9 +271,8 @@ bool SftpBackend::ensureConnected()
 
 std::string SftpBackend::initialPath() const
 {
-    const QByteArray path = m_url.path().toUtf8();
-    if (!path.isEmpty() && path != "/")
-        return path.toStdString();
+    if (!m_url.path.empty() && m_url.path != "/")
+        return m_url.path;
 
     return m_home;
 }

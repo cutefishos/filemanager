@@ -3,10 +3,11 @@
 
 #include "mtpbackend.h"
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QFile>
-#include <QStandardPaths>
+#include "base/logging.h"
+#include "base/paths.h"
+#include "base/strings.h"
+
+#include <filesystem>
 
 #include <libmtp.h>
 
@@ -15,6 +16,8 @@
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <unistd.h>
+
+static const cutefish::base::LogCategory lcMtp("cutefish.mountd.mtp");
 
 static constexpr uint32_t kStorageTop = 0xFFFFFFFF;
 // Standard MTP partial reads carry a 32-bit offset; Android's extension a 64-bit one.
@@ -57,10 +60,10 @@ static std::string childOf(const std::string &folder, const std::string &name)
 // videos many gigabytes large.
 static int spoolFile()
 {
-    const QString directory = QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation)
-            + QStringLiteral("/cutefish-mountd");
-    QDir().mkpath(directory);
-    return ::open(QFile::encodeName(directory).constData(), O_TMPFILE | O_RDWR | O_CLOEXEC, 0600);
+    const std::string directory = cutefish::base::paths::cacheHome() + "/cutefish-mountd";
+    std::error_code error;
+    std::filesystem::create_directories(directory, error);
+    return ::open(directory.c_str(), O_TMPFILE | O_RDWR | O_CLOEXEC, 0600);
 }
 
 MtpBackend::MtpBackend(uint32_t bus, uint8_t device)
@@ -86,7 +89,7 @@ int MtpBackend::lastError(int fallback)
     if (m_device) {
         if (LIBMTP_error_t *stack = LIBMTP_Get_Errorstack(m_device)) {
             for (LIBMTP_error_t *error = stack; error; error = error->next)
-                qWarning("libmtp: %s", error->error_text);
+                CF_WARNING(lcMtp) << "libmtp: " << error->error_text;
         }
         LIBMTP_Clear_Errorstack(m_device);
     }
@@ -109,8 +112,7 @@ ConnectResult MtpBackend::connect(const Credentials &)
     free(devices);
 
     if (!m_device) {
-        result.message = QCoreApplication::translate(
-                "MtpBackend", "The device could not be opened. Unplug it and connect it again.");
+        result.message = "The device could not be opened. Unplug it and connect it again.";
         return result;
     }
 
@@ -131,10 +133,8 @@ ConnectResult MtpBackend::connect(const Credentials &)
     if (m_storages.empty()) {
         LIBMTP_Release_Device(m_device);
         m_device = nullptr;
-        result.message = QCoreApplication::translate(
-                "MtpBackend",
-                "The device's files are not available. Unlock it and allow access to its data "
-                "on its screen; if that does not help, choose file transfer in its USB settings.");
+        result.message = "The device's files are not available. Unlock it and allow access to its data "
+                         "on its screen; if that does not help, choose file transfer in its USB settings.";
         return result;
     }
 
@@ -143,10 +143,10 @@ ConnectResult MtpBackend::connect(const Credentials &)
     return result;
 }
 
-QString MtpBackend::friendlyName() const
+std::string MtpBackend::friendlyName() const
 {
     if (!m_device)
-        return QString();
+        return {};
 
     char *name = LIBMTP_Get_Friendlyname(m_device);
     if (!name || !*name) {
@@ -154,7 +154,7 @@ QString MtpBackend::friendlyName() const
         name = LIBMTP_Get_Modelname(m_device);
     }
 
-    const QString result = name ? QString::fromUtf8(name).trimmed() : QString();
+    const std::string result = name ? std::string(cutefish::base::strings::trimmed(name)) : std::string();
     free(name);
     return result;
 }

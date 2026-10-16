@@ -3,56 +3,57 @@
 
 #include "mtpmonitor.h"
 
-#include <QSocketNotifier>
-#include <QTimer>
-#include <QUrl>
+#include "base/event_loop.h"
+#include "base/strings.h"
+#include "base/url.h"
 
 #include <libudev.h>
 
 #include <cstring>
+#include <sys/epoll.h>
+
+using namespace cutefish::base;
 
 // Allowing access on a phone's screen drops it off the bus and brings it back.
 static constexpr int kLeaveDelayMs = 5000;
 
-static QString udevProperty(udev_device *device, const char *name)
+static std::string udevProperty(udev_device *device, const char *name)
 {
     const char *value = udev_device_get_property_value(device, name);
-    return value ? QString::fromUtf8(value) : QString();
+    return value ? std::string(value) : std::string();
 }
 
 // udev's *_ENC values escape bytes as \xNN.
-static QString decoded(const QString &value)
+static std::string decoded(const std::string &bytes)
 {
-    QByteArray result;
-    const QByteArray bytes = value.toUtf8();
-    for (qsizetype i = 0; i < bytes.size(); ++i) {
+    std::string result;
+    for (size_t i = 0; i < bytes.size(); ++i) {
         if (bytes[i] == '\\' && i + 3 < bytes.size() && bytes[i + 1] == 'x') {
-            result.append(char(bytes.mid(i + 2, 2).toInt(nullptr, 16)));
+            result.push_back(char(strings::toNumber<int>(bytes.substr(i + 2, 2), 16).value_or(0)));
             i += 3;
         } else {
-            result.append(bytes[i]);
+            result.push_back(bytes[i]);
         }
     }
-    return QString::fromUtf8(result).trimmed();
+    return std::string(strings::trimmed(result));
 }
 
-static QString nameOf(udev_device *device)
+static std::string nameOf(udev_device *device)
 {
-    const QString player = udevProperty(device, "ID_MEDIA_PLAYER_MODEL");
-    if (!player.isEmpty())
+    const std::string player = udevProperty(device, "ID_MEDIA_PLAYER_MODEL");
+    if (!player.empty())
         return player;
 
     if (const char *product = udev_device_get_sysattr_value(device, "product"))
-        return QString::fromUtf8(product).trimmed();
+        return std::string(strings::trimmed(product));
 
-    const QString name = decoded(udevProperty(device, "ID_VENDOR_ENC")) + QLatin1Char(' ')
+    const std::string name = decoded(udevProperty(device, "ID_VENDOR_ENC")) + ' '
             + decoded(udevProperty(device, "ID_MODEL_ENC"));
-    return name.trimmed();
+    return std::string(strings::trimmed(name));
 }
 
-MtpMonitor::MtpMonitor(QObject *parent)
-    : QObject(parent)
-    , m_udev(udev_new())
+MtpMonitor::MtpMonitor()
+    : m_udev(udev_new())
 {
     if (!m_udev)
         return;
@@ -61,17 +62,8 @@ MtpMonitor::MtpMonitor(QObject *parent)
     udev_monitor_filter_add_match_subsystem_devtype(m_monitor, "usb", "usb_device");
     udev_monitor_enable_receiving(m_monitor);
 
-    m_notifier = new QSocketNotifier(udev_monitor_get_fd(m_monitor), QSocketNotifier::Read, this);
-    connect(m_notifier, &QSocketNotifier::activated, this, [this] {
-        while (udev_device *device = udev_monitor_receive_device(m_monitor)) {
-            const char *action = udev_device_get_action(device);
-            if (action && std::strcmp(action, "remove") == 0)
-                handle(device, false);
-            else if (action && (std::strcmp(action, "add") == 0
-                                || std::strcmp(action, "change") == 0))
-                handle(device, true);
-            udev_device_unref(device);
-        }
+    m_watch = EventLoop::current()->watch(udev_monitor_get_fd(m_monitor), EPOLLIN, [this](uint32_t) {
+        receive();
     });
 
     udev_enumerate *enumerate = udev_enumerate_new(m_udev);
@@ -93,20 +85,37 @@ MtpMonitor::MtpMonitor(QObject *parent)
 
 MtpMonitor::~MtpMonitor()
 {
+    if (m_watch)
+        EventLoop::current()->unwatch(m_watch);
     if (m_monitor)
         udev_monitor_unref(m_monitor);
     if (m_udev)
         udev_unref(m_udev);
 }
 
-QList<MtpMonitor::Device> MtpMonitor::devices() const
+void MtpMonitor::receive()
 {
-    return m_devices.values();
+    while (udev_device *device = udev_monitor_receive_device(m_monitor)) {
+        const char *action = udev_device_get_action(device);
+        if (action && std::strcmp(action, "remove") == 0)
+            handle(device, false);
+        else if (action && (std::strcmp(action, "add") == 0 || std::strcmp(action, "change") == 0))
+            handle(device, true);
+        udev_device_unref(device);
+    }
 }
 
-MtpMonitor::Device MtpMonitor::device(const QString &id) const
+std::vector<MtpMonitor::Device> MtpMonitor::devices() const
 {
-    for (const Device &device : m_devices) {
+    std::vector<Device> result;
+    for (const auto &[path, device] : m_devices)
+        result.push_back(device);
+    return result;
+}
+
+MtpMonitor::Device MtpMonitor::device(const std::string &id) const
+{
+    for (const auto &[path, device] : m_devices) {
         if (device.id == id)
             return device;
     }
@@ -115,57 +124,55 @@ MtpMonitor::Device MtpMonitor::device(const QString &id) const
 
 void MtpMonitor::handle(udev_device *device, bool present)
 {
-    const QString sysPath = QString::fromUtf8(udev_device_get_syspath(device));
+    const std::string sysPath = udev_device_get_syspath(device);
 
     if (!present) {
-        const auto found = m_devices.constFind(sysPath);
-        if (found == m_devices.cend())
+        const auto found = m_devices.find(sysPath);
+        if (found == m_devices.end())
             return;
 
-        const QString id = found->id;
+        const std::string id = found->second.id;
         m_devices.erase(found);
 
-        auto *timer = new QTimer(this);
+        auto timer = std::make_unique<Timer>();
         timer->setSingleShot(true);
-        connect(timer, &QTimer::timeout, this, [this, id, timer] {
-            m_leaving.remove(id);
-            timer->deleteLater();
-            emit removed(id);
-        });
-        timer->start(kLeaveDelayMs);
-        m_leaving.insert(id, timer);
+        timer->onTimeout = [this, id] {
+            // Erasing destroys this callback, captures included.
+            const std::string gone = id;
+            m_leaving.erase(gone);
+            removed.emit(gone);
+        };
+        timer->start(std::chrono::milliseconds(kLeaveDelayMs));
+        m_leaving[id] = std::move(timer);
         return;
     }
 
     // Its interfaces carry the same properties but no bus and device numbers.
     const char *type = udev_device_get_devtype(device);
     if (!type || std::strcmp(type, "usb_device") != 0
-        || udevProperty(device, "ID_MTP_DEVICE") != QLatin1String("1"))
+        || udevProperty(device, "ID_MTP_DEVICE") != "1")
         return;
 
     // The short serial is empty when udev made one up; the full one is always set.
-    const QString serial = udevProperty(device, "ID_SERIAL");
-    if (serial.isEmpty())
+    const std::string serial = udevProperty(device, "ID_SERIAL");
+    if (serial.empty())
         return;
 
     Device entry;
-    entry.id = QStringLiteral("mtp://") + QString::fromLatin1(QUrl::toPercentEncoding(serial));
+    entry.id = "mtp://" + url::percentEncoded(serial);
     entry.name = nameOf(device);
-    entry.bus = udevProperty(device, "BUSNUM").toUInt();
-    entry.number = uint8_t(udevProperty(device, "DEVNUM").toUInt());
+    entry.bus = strings::toNumber<uint32_t>(udevProperty(device, "BUSNUM")).value_or(0);
+    entry.number = uint8_t(strings::toNumber<uint32_t>(udevProperty(device, "DEVNUM")).value_or(0));
 
     // Two devices with one serial cannot be told apart; the first one is kept.
-    for (auto it = m_devices.cbegin(); it != m_devices.cend(); ++it) {
-        if (it->id == entry.id && it.key() != sysPath)
+    for (const auto &[path, known] : m_devices) {
+        if (known.id == entry.id && path != sysPath)
             return;
     }
 
-    const bool returning = m_leaving.contains(entry.id);
-    if (QTimer *timer = m_leaving.take(entry.id))
-        timer->deleteLater();
-
+    const bool returning = m_leaving.erase(entry.id) > 0;
     const bool known = m_devices.contains(sysPath);
-    m_devices.insert(sysPath, entry);
+    m_devices[sysPath] = entry;
     if (!known && !returning)
-        emit added(entry.id);
+        added.emit(entry.id);
 }

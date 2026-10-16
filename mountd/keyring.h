@@ -4,8 +4,7 @@
 #pragma once
 
 #include "backend.h"
-
-#include <QUrl>
+#include "remoteurl.h"
 
 // Server passwords in the user's keyring through the Secret Service. Blocking, for the
 // threads that connect; a locked keyring is passed over rather than prompted for.
@@ -13,7 +12,7 @@ namespace Keyring {
 
 // The user, domain and password saved for url's protocol, server and port, if any. A user
 // named in url (or credentials) narrows the search to that account.
-bool find(const QUrl &url, Credentials *credentials);
-void store(const QUrl &url, const Credentials &credentials);
+bool find(const RemoteUrl &url, Credentials *credentials);
+void store(const RemoteUrl &url, const Credentials &credentials);
 
 } // namespace Keyring

@@ -6,11 +6,12 @@
 #define FUSE_USE_VERSION 31
 #include <fuse.h>
 
-#include <QDir>
-#include <QFile>
-#include <QProcess>
+#include "base/process.h"
+#include "base/strings.h"
 
 #include <cstring>
+#include <filesystem>
+#include <unistd.h>
 
 static FuseMount *current()
 {
@@ -230,8 +231,8 @@ static const struct fuse_operations *operations()
     return &ops;
 }
 
-FuseMount::FuseMount(std::unique_ptr<Backend> backend, const QString &mountPoint,
-                     const QString &source, std::function<void(FuseMount *)> finished)
+FuseMount::FuseMount(std::unique_ptr<Backend> backend, const std::string &mountPoint,
+                     const std::string &source, std::function<void(FuseMount *)> finished)
     : m_backend(std::move(backend))
     , m_mountPoint(mountPoint)
     , m_source(source)
@@ -249,40 +250,40 @@ FuseMount::~FuseMount()
         fuse_destroy(m_fuse);
     }
 
-    QDir().rmdir(m_mountPoint);
+    ::rmdir(m_mountPoint.c_str());
 }
 
 // Commas separate mount options, so the source shown in the mount table escapes them.
-static QByteArray optionValue(const QString &value)
+static std::string optionValue(const std::string &value)
 {
-    QByteArray result = value.toUtf8();
-    result.replace("\\", "\\\\");
-    result.replace(",", "\\,");
-    return result;
+    using cutefish::base::strings::replaceAll;
+    return replaceAll(replaceAll(value, "\\", "\\\\"), ",", "\\,");
 }
 
-bool FuseMount::start(QString *message)
+bool FuseMount::start(std::string *message)
 {
-    if (!QDir().mkpath(m_mountPoint)) {
-        *message = QStringLiteral("Cannot create %1").arg(m_mountPoint);
+    std::error_code error;
+    std::filesystem::create_directories(m_mountPoint, error);
+    if (!std::filesystem::is_directory(m_mountPoint, error)) {
+        *message = "Cannot create " + m_mountPoint;
         return false;
     }
 
-    const QByteArray options = "fsname=" + optionValue(m_source) + ",subtype=cutefish-mountd";
-    const char *argv[] = {"cutefish-mountd", "-o", options.constData()};
+    const std::string options = "fsname=" + optionValue(m_source) + ",subtype=cutefish-mountd";
+    const char *argv[] = {"cutefish-mountd", "-o", options.c_str()};
     struct fuse_args args = FUSE_ARGS_INIT(3, const_cast<char **>(argv));
 
     m_fuse = fuse_new(&args, operations(), sizeof(struct fuse_operations), this);
     if (!m_fuse) {
-        *message = QStringLiteral("Cannot start the FUSE session");
+        *message = "Cannot start the FUSE session";
         return false;
     }
 
-    if (fuse_mount(m_fuse, QFile::encodeName(m_mountPoint).constData()) != 0) {
+    if (fuse_mount(m_fuse, m_mountPoint.c_str()) != 0) {
         fuse_destroy(m_fuse);
         m_fuse = nullptr;
-        QDir().rmdir(m_mountPoint);
-        *message = QStringLiteral("Cannot mount %1").arg(m_mountPoint);
+        ::rmdir(m_mountPoint.c_str());
+        *message = "Cannot mount " + m_mountPoint;
         return false;
     }
 
@@ -296,18 +297,22 @@ bool FuseMount::start(QString *message)
     return true;
 }
 
-bool FuseMount::stop(bool force, QString *message)
+bool FuseMount::stop(bool force, std::string *message)
 {
-    QStringList arguments {QStringLiteral("-u")};
+    std::vector<std::string> arguments {"-u"};
     if (force)
-        arguments.append(QStringLiteral("-z"));
-    arguments.append(m_mountPoint);
+        arguments.push_back("-z");
+    arguments.push_back(m_mountPoint);
 
-    QProcess fusermount;
-    fusermount.start(QStringLiteral("fusermount3"), arguments);
-    if (!fusermount.waitForFinished(10000) || fusermount.exitCode() != 0) {
+    cutefish::base::Process fusermount;
+    int exitCode = -1;
+    fusermount.onFinished = [&exitCode](int code, bool crashed) {
+        exitCode = crashed ? -1 : code;
+    };
+    if (!fusermount.start("fusermount3", arguments) || !fusermount.waitForFinished(std::chrono::seconds(10))
+        || exitCode != 0) {
         if (message)
-            *message = QString::fromLocal8Bit(fusermount.readAllStandardError()).trimmed();
+            *message = std::string(cutefish::base::strings::trimmed(fusermount.standardError()));
         return false;
     }
 

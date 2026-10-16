@@ -6,20 +6,17 @@ Cutefish File Manager, simple to use, beautiful, and retain the classic PC inter
 
 ## Dependencies
 
-### Debian/Ubuntu
+File Manager is built on [cutefish-toolkit](https://github.com/cutefishos/cutefish-toolkit) and
+the files library of [cutefish-framework](https://github.com/cutefishos/cutefish-framework);
+install them first. The mount service needs FUSE, libssh, libsmbclient, libmtp and
+libudev; archives need libarchive and libzip. GoogleTest for the tests.
+
+Debian/Ubuntu:
 
 ```shell
-sudo apt install build-essential cmake libarchive-dev libicu-dev libzip-dev qt6-base-dev qt6-declarative-dev qt6-tools-dev qt6-tools-dev-tools
+sudo apt install build-essential cmake pkg-config libicu-dev libarchive-dev libzip-dev \
+    libfuse3-dev libssh-dev libsmbclient-dev libmtp-dev libudev-dev libgtest-dev
 ```
-
-### ArchLinux
-
-```shell
-sudo pacman -S qt6-base qt6-declarative qt6-tools libarchive libzip icu
-```
-
-[Cutefish Framework](https://github.com/cutefishos/cutefish-framework) needs to
-be installed first.
 
 ## Build
 
@@ -27,6 +24,14 @@ be installed first.
 cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr
 cmake --build build
 sudo cmake --install build
+```
+
+## Tests
+
+```shell
+cmake -S . -B build -DBUILD_TESTING=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
 
 ## License

@@ -1,148 +1,261 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "daemontask.h"
+#include "archivejob.h"
 
-#include <QTimer>
+#include "base/event_loop.h"
 
-static QVariantMap progressMap(const Cutefish::IO::TaskProgress &progress)
+#include "files/task.h"
+
+#include <algorithm>
+
+using namespace cutefish;
+using base::dbus::Variant;
+using base::dbus::VariantMap;
+
+static constexpr char kInterface[] = "com.cutefish.FileOperations.Task1";
+
+static VariantMap progressMap(const files::TaskProgress &progress)
 {
-    return {{QStringLiteral("preparing"), progress.preparing},
-            {QStringLiteral("totalsKnown"), progress.totalsKnown},
-            {QStringLiteral("processedBytes"), progress.processedBytes},
-            {QStringLiteral("totalBytes"), progress.totalBytes},
-            {QStringLiteral("processedItems"), progress.processedItems},
-            {QStringLiteral("totalItems"), progress.totalItems},
-            {QStringLiteral("elapsedMs"), progress.elapsedMs},
-            {QStringLiteral("currentPath"), progress.currentPath}};
+    return {{"preparing", Variant(progress.preparing)},
+            {"totalsKnown", Variant(progress.totalsKnown)},
+            {"processedBytes", Variant(progress.processedBytes)},
+            {"totalBytes", Variant(progress.totalBytes)},
+            {"processedItems", Variant(progress.processedItems)},
+            {"totalItems", Variant(progress.totalItems)},
+            {"elapsedMs", Variant(progress.elapsedMs)},
+            {"currentPath", Variant(progress.currentPath)}};
 }
 
-DaemonTask::DaemonTask(const QString &objectPath, const Cutefish::IO::TaskRequest &request,
-                       QObject *parent)
-    : QObject(parent)
-    , m_objectPath(objectPath)
-    , m_task(Cutefish::IO::TaskController::instance()->submit(request))
+static std::string fileNameOf(const std::string &path)
 {
-    initialize();
+    const size_t slash = path.rfind('/');
+    return slash == std::string::npos ? path : path.substr(slash + 1);
 }
 
-DaemonTask::DaemonTask(const QString &objectPath, Cutefish::IO::Task *task, QObject *parent)
-    : QObject(parent)
-    , m_objectPath(objectPath)
+DaemonTask::DaemonTask(base::dbus::Connection *bus, std::string objectPath, files::Task *task)
+    : m_objectPath(std::move(objectPath))
     , m_task(task)
+    , m_object(bus, m_objectPath, kInterface)
 {
     initialize();
+    addMembers();
+}
+
+DaemonTask::DaemonTask(base::dbus::Connection *bus, std::string objectPath, int operation,
+                       std::vector<std::string> sources, std::string outputPath)
+    : m_objectPath(std::move(objectPath))
+    , m_object(bus, m_objectPath, kInterface)
+{
+    m_snapshot = {
+        {"operationName", Variant(std::string(operation == 0 ? "compress" : "extract"))},
+        {"sourceCount", Variant(int32_t(sources.size()))},
+        {"sourceName", Variant(sources.empty() ? std::string() : fileNameOf(sources.front()))},
+        {"destinationName", Variant(fileNameOf(outputPath))},
+        {"progress", Variant(VariantMap {{"preparing", Variant(true)},
+                                         {"totalsKnown", Variant(false)},
+                                         {"processedItems", Variant(int32_t(0))},
+                                         {"totalItems", Variant(int32_t(100))},
+                                         {"currentPath", Variant(std::string())}})},
+        {"finished", Variant(false)},
+        {"waitingForConflict", Variant(false)},
+        {"canceled", Variant(false)},
+        {"errorCode", Variant(int32_t(0))},
+        {"errorString", Variant(std::string())},
+        {"outputs", Variant(std::vector<std::string>())},
+    };
+
+    m_archive = std::make_unique<ArchiveJob>(operation == 0 ? ArchiveJob::Compress : ArchiveJob::Extract,
+                                             std::move(sources), std::move(outputPath));
+    const base::LoopHandle loop = base::EventLoop::current()->handle();
+    const auto progress = [this](const std::function<void(VariantMap &)> &edit) {
+        VariantMap info = m_snapshot["progress"].value<VariantMap>();
+        edit(info);
+        m_snapshot["progress"] = Variant(info);
+        changed({{"progress", Variant(info)}});
+    };
+    m_archive->onProgress = [this, loop, progress, alive = m_alive](int value) {
+        loop.post([alive, progress, value] {
+            if (!*alive)
+                return;
+            progress([value](VariantMap &info) {
+                info["preparing"] = Variant(value < 0);
+                info["totalsKnown"] = Variant(value >= 0);
+                info["processedItems"] = Variant(int32_t(std::max(0, value)));
+            });
+        });
+    };
+    m_archive->onCurrentFile = [loop, progress, alive = m_alive](const std::string &path) {
+        loop.post([alive, progress, path] {
+            if (*alive)
+                progress([&path](VariantMap &info) { info["currentPath"] = Variant(path); });
+        });
+    };
+    m_archive->onCompleted = [this, loop, alive = m_alive](bool success, bool canceled, const std::string &error,
+                                                           const std::string &output) {
+        loop.post([this, alive, success, canceled, error, output] {
+            if (!*alive)
+                return;
+            m_snapshot["finished"] = Variant(true);
+            m_snapshot["canceled"] = Variant(canceled);
+            m_snapshot["errorCode"] = Variant(int32_t(success || canceled ? 0 : 1));
+            m_snapshot["errorString"] = Variant(error);
+            m_snapshot["outputs"] = Variant(output.empty() ? std::vector<std::string>() : std::vector<std::string> {output});
+            m_finished = true;
+            m_object.emitSignal("Finished", m_snapshot);
+            finished.emit();
+        });
+    };
+    addMembers();
+    m_archive->start();
+}
+
+DaemonTask::~DaemonTask()
+{
+    *m_alive = false;
+    // The job's thread ends before its callbacks' captures go.
+    m_archive.reset();
 }
 
 void DaemonTask::initialize()
 {
-    m_snapshot = {{QStringLiteral("operationName"), m_task->operationName()},
-                  {QStringLiteral("sourceCount"), m_task->sourceCount()},
-                  {QStringLiteral("sourceName"), m_task->sourceName()},
-                  {QStringLiteral("destinationName"), m_task->destinationName()},
-                  {QStringLiteral("progress"), progressMap(m_task->progressInfo())},
-                  {QStringLiteral("finished"), false},
-                  {QStringLiteral("waitingForConflict"), false},
-                  {QStringLiteral("conflictSource"), QString()},
-                  {QStringLiteral("conflictPath"), QString()},
-                  {QStringLiteral("canceled"), false},
-                  {QStringLiteral("errorCode"), 0},
-                  {QStringLiteral("errorString"), QString()}};
+    m_snapshot = {{"operationName", Variant(m_task->operationName())},
+                  {"sourceCount", Variant(int32_t(m_task->sourceCount()))},
+                  {"sourceName", Variant(m_task->sourceName())},
+                  {"destinationName", Variant(m_task->destinationName())},
+                  {"progress", Variant(progressMap(m_task->progressInfo()))},
+                  {"finished", Variant(false)},
+                  {"waitingForConflict", Variant(false)},
+                  {"conflictSource", Variant(std::string())},
+                  {"conflictPath", Variant(std::string())},
+                  {"canceled", Variant(false)},
+                  {"errorCode", Variant(int32_t(0))},
+                  {"errorString", Variant(std::string())}};
 
-    connect(m_task, &Cutefish::IO::Task::progressInfoChanged, this, [this] {
-        const auto update = progressSnapshot();
-        m_snapshot.insert(QStringLiteral("progress"), update.value(QStringLiteral("progress")));
-        emit Changed(update);
-    });
-    connect(m_task, &Cutefish::IO::Task::conflictRequested, this,
-            [this](const QString &source, const QString &destination) {
+    m_subscriptions.push_back(m_task->progressInfoChanged.connect([this] {
+        const Variant progress(progressMap(m_task->progressInfo()));
+        m_snapshot["progress"] = progress;
+        changed({{"progress", progress}});
+    }));
+    m_subscriptions.push_back(
+            m_task->conflictRequested.connect([this](const std::string &source, const std::string &destination) {
                 // Nobody is left to answer: a worker must not wait for good.
-                if (owner().isEmpty()) {
+                if (owner().empty()) {
                     m_task->cancel();
                     return;
                 }
-                m_snapshot.insert(QStringLiteral("waitingForConflict"), true);
-                m_snapshot.insert(QStringLiteral("conflictSource"), source);
-                m_snapshot.insert(QStringLiteral("conflictPath"), destination);
-                emit Changed({{QStringLiteral("waitingForConflict"), true},
-                              {QStringLiteral("conflictSource"), source},
-                              {QStringLiteral("conflictPath"), destination}});
-                emit ConflictRequested(source, destination);
-            });
-    connect(m_task, &Cutefish::IO::Task::result, this, [this](Cutefish::IO::Task *task) {
-        const auto error = task->outcome().error;
-        m_snapshot.insert(QStringLiteral("progress"), progressMap(task->progressInfo()));
-        m_snapshot.insert(QStringLiteral("finished"), true);
-        m_snapshot.insert(QStringLiteral("waitingForConflict"), false);
-        m_snapshot.insert(QStringLiteral("canceled"), task->wasCanceled());
-        m_snapshot.insert(QStringLiteral("errorCode"), error.code);
-        m_snapshot.insert(QStringLiteral("errorString"), task->errorString());
+                m_snapshot["waitingForConflict"] = Variant(true);
+                m_snapshot["conflictSource"] = Variant(source);
+                m_snapshot["conflictPath"] = Variant(destination);
+                changed({{"waitingForConflict", Variant(true)},
+                         {"conflictSource", Variant(source)},
+                         {"conflictPath", Variant(destination)}});
+                m_object.emitSignal("ConflictRequested", source, destination);
+            }));
+    m_task->whenFinished([this, alive = m_alive](files::Task *task) {
+        if (!*alive)
+            return;
+        m_snapshot["progress"] = Variant(progressMap(task->progressInfo()));
+        m_snapshot["finished"] = Variant(true);
+        m_snapshot["waitingForConflict"] = Variant(false);
+        m_snapshot["canceled"] = Variant(task->wasCanceled());
+        m_snapshot["errorCode"] = Variant(int32_t(task->outcome().error.code));
+        m_snapshot["errorString"] = Variant(task->errorString());
         m_finished = true;
-        emit Finished(m_snapshot);
+        m_subscriptions.clear();
+        // The controller destroys the task once its result is out.
         m_task = nullptr;
+        m_object.emitSignal("Finished", m_snapshot);
+        finished.emit();
     });
 }
 
-QString DaemonTask::objectPath() const
+void DaemonTask::addMembers()
 {
-    return m_objectPath;
+    m_object.addMethod("GetSnapshot", [this] {
+        return snapshot();
+    });
+    m_object.addMethod("Cancel", [this] {
+        cancel();
+    });
+    m_object.addMethod("ResolveConflict", "ib", "", [this](base::dbus::MethodCall &call) {
+        int32_t policy = 0;
+        bool applyToAll = false;
+        // Ask is no answer: the worker would ignore it and wait on unseen.
+        if (!call.read(policy, applyToAll) || policy < int32_t(files::ConflictPolicy::Fail)
+            || policy >= int32_t(files::ConflictPolicy::Ask)) {
+            call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unknown conflict policy");
+            return;
+        }
+        call.reply();
+        if (!m_task)
+            return;
+        m_snapshot["waitingForConflict"] = Variant(false);
+        changed({{"waitingForConflict", Variant(false)}});
+        m_task->resolveConflict(policy, applyToAll);
+    }, {{"policy", "applyToAll"}, {}});
+    m_object.addSignal("Changed", "a{sv}", {"snapshot"});
+    m_object.addSignal("ConflictRequested", "ss", {"source", "destination"});
+    m_object.addSignal("Finished", "a{sv}", {"snapshot"});
 }
 
-void DaemonTask::setOwner(const QString &owner)
+bool DaemonTask::publish()
 {
-    m_snapshot.insert(QStringLiteral("owner"), owner);
+    return m_object.publish();
 }
 
-QString DaemonTask::owner() const
+void DaemonTask::changed(const VariantMap &update)
 {
-    return m_snapshot.value(QStringLiteral("owner")).toString();
+    m_object.emitSignal("Changed", update);
 }
 
-void DaemonTask::orphan()
-{
-    setOwner(QString());
-    if (m_task && m_snapshot.value(QStringLiteral("waitingForConflict")).toBool())
-        m_task->cancel();
-}
-
-bool DaemonTask::isFinished() const
-{
-    return m_finished;
-}
-
-bool DaemonTask::outcomeRead() const
-{
-    return m_outcomeRead;
-}
-
-void DaemonTask::setOutcomeReadCallback(std::function<void()> callback)
-{
-    m_outcomeReadCallback = std::move(callback);
-}
-
-QVariantMap DaemonTask::GetSnapshot() const
+VariantMap DaemonTask::snapshot()
 {
     if (m_finished && !m_outcomeRead) {
         m_outcomeRead = true;
         if (m_outcomeReadCallback)
-            QTimer::singleShot(0, this, m_outcomeReadCallback);
+            base::EventLoop::current()->post([alive = m_alive, callback = m_outcomeReadCallback] {
+                if (*alive)
+                    callback();
+            });
     }
     return m_snapshot;
 }
 
-void DaemonTask::Cancel()
+void DaemonTask::setOwner(const std::string &owner)
 {
-    if (m_task)
+    m_snapshot["owner"] = Variant(owner);
+}
+
+std::string DaemonTask::owner() const
+{
+    const auto found = m_snapshot.find("owner");
+    return found != m_snapshot.end() ? found->second.value<std::string>() : std::string();
+}
+
+bool DaemonTask::waitingForConflict() const
+{
+    const auto found = m_snapshot.find("waitingForConflict");
+    return found != m_snapshot.end() && found->second.value<bool>();
+}
+
+void DaemonTask::orphan()
+{
+    if (m_archive) {
+        if (waitingForConflict())
+            m_archive->cancel();
+        return;
+    }
+    setOwner({});
+    if (m_task && waitingForConflict())
         m_task->cancel();
 }
 
-void DaemonTask::ResolveConflict(int policy, bool applyToAll)
+void DaemonTask::cancel()
 {
-    if (m_task) {
-        m_snapshot.insert(QStringLiteral("waitingForConflict"), false);
-        emit Changed({{QStringLiteral("waitingForConflict"), false}});
-        m_task->resolveConflict(policy, applyToAll);
-    }
-}
-
-QVariantMap DaemonTask::progressSnapshot() const
-{
-    return {{QStringLiteral("progress"), progressMap(m_task->progressInfo())}};
+    if (m_task)
+        m_task->cancel();
+    if (m_archive)
+        m_archive->cancel();
 }

@@ -1,32 +1,29 @@
+// SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 #include "fileoperationsservice.h"
 
-#include <QCoreApplication>
-#include <QDBusConnection>
-#include <QDBusError>
-#include <QDebug>
+#include "base/dbus.h"
+#include "base/event_loop.h"
 
-int main(int argc, char *argv[])
+#include <cstdio>
+
+using namespace cutefish;
+
+int main()
 {
-    QCoreApplication app(argc, argv);
-    app.setApplicationName(QStringLiteral("cutefish-filemanager-daemon"));
-
-    auto bus = QDBusConnection::sessionBus();
-    if (!bus.isConnected()) {
-        qCritical() << "Cannot connect to the session D-Bus.";
-        return 1;
-    }
-    if (!bus.registerService(QStringLiteral("com.cutefish.FileOperations"))) {
-        qCritical() << bus.lastError().message();
+    base::EventLoop loop;
+    base::dbus::Connection *bus = base::dbus::Connection::session(&loop);
+    if (!bus) {
+        std::fprintf(stderr, "Cannot connect to the session D-Bus.\n");
         return 1;
     }
 
-    FileOperationsService service;
-    if (!bus.registerObject(QStringLiteral("/com/cutefish/FileOperations"), &service,
-                            QDBusConnection::ExportAllSlots
-                                    | QDBusConnection::ExportAllSignals)) {
-        qCritical() << bus.lastError().message();
+    FileOperationsService service(bus);
+    if (!service.publish() || !bus->requestName("com.cutefish.FileOperations")) {
+        std::fprintf(stderr, "Cannot own com.cutefish.FileOperations.\n");
         return 1;
     }
 
-    return app.exec();
+    return loop.run();
 }

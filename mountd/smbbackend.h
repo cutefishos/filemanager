@@ -5,7 +5,7 @@
 
 #include "backend.h"
 
-#include <QUrl>
+#include "remoteurl.h"
 
 typedef struct _SMBCCTX SMBCCTX;
 
@@ -13,7 +13,7 @@ typedef struct _SMBCCTX SMBCCTX;
 class SmbBackend : public Backend
 {
 public:
-    explicit SmbBackend(const QUrl &url);
+    explicit SmbBackend(const RemoteUrl &url);
     ~SmbBackend() override;
 
     ConnectResult connect(const Credentials &credentials) override;
@@ -46,7 +46,7 @@ private:
     int listShares(std::vector<DirectoryEntry> *entries);
     void fillStat(struct stat *st) const;
 
-    QUrl m_url;
+    RemoteUrl m_url;
     Credentials m_credentials;
     SMBCCTX *m_context = nullptr;
     uid_t m_uid;

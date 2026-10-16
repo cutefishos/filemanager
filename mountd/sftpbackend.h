@@ -5,7 +5,7 @@
 
 #include "backend.h"
 
-#include <QUrl>
+#include "remoteurl.h"
 
 typedef struct ssh_session_struct *ssh_session;
 typedef struct sftp_session_struct *sftp_session;
@@ -13,7 +13,7 @@ typedef struct sftp_session_struct *sftp_session;
 class SftpBackend : public Backend
 {
 public:
-    explicit SftpBackend(const QUrl &url);
+    explicit SftpBackend(const RemoteUrl &url);
     ~SftpBackend() override;
 
     ConnectResult connect(const Credentials &credentials) override;
@@ -43,7 +43,7 @@ private:
     bool ensureConnected();
     int error(int fallback = EIO);
 
-    QUrl m_url;
+    RemoteUrl m_url;
     Credentials m_credentials;
     ssh_session m_ssh = nullptr;
     sftp_session m_sftp = nullptr;

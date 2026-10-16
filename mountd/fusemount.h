@@ -5,8 +5,7 @@
 
 #include "backend.h"
 
-#include <QString>
-
+#include <string>
 #include <atomic>
 #include <functional>
 #include <memory>
@@ -20,17 +19,17 @@ class FuseMount
 {
 public:
     // finished runs on the session's thread once the mount has gone, whoever unmounted it.
-    FuseMount(std::unique_ptr<Backend> backend, const QString &mountPoint, const QString &source,
+    FuseMount(std::unique_ptr<Backend> backend, const std::string &mountPoint, const std::string &source,
               std::function<void(FuseMount *)> finished);
     ~FuseMount();
 
     // Mounts and starts serving; false with message when the kernel mount fails.
-    bool start(QString *message);
+    bool start(std::string *message);
     // Unmounts unless something has files open there; force detaches it regardless, and the
     // session ends once the last file there is closed.
-    bool stop(bool force, QString *message);
+    bool stop(bool force, std::string *message);
 
-    const QString &mountPoint() const
+    const std::string &mountPoint() const
     {
         return m_mountPoint;
     }
@@ -50,8 +49,8 @@ public:
 
 private:
     std::unique_ptr<Backend> m_backend;
-    QString m_mountPoint;
-    QString m_source;
+    std::string m_mountPoint;
+    std::string m_source;
     struct fuse *m_fuse = nullptr;
     std::thread m_thread;
     std::mutex m_lock;

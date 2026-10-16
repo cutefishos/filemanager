@@ -3,175 +3,146 @@
 
 #include "keyring.h"
 
-#include <QDBusArgument>
-#include <QDBusConnection>
-#include <QDBusMessage>
-#include <QDBusMetaType>
-#include <QDBusObjectPath>
-#include <QDBusVariant>
+#include "base/dbus.h"
+#include "base/event_loop.h"
 
-static const QString s_service = QStringLiteral("org.freedesktop.secrets");
-static const QString s_servicePath = QStringLiteral("/org/freedesktop/secrets");
-static const QString s_serviceInterface = QStringLiteral("org.freedesktop.Secret.Service");
-static const QString s_schema = QStringLiteral("com.cutefish.ServerPassword");
+#include <map>
 
-using Attributes = QMap<QString, QString>;
+using namespace cutefish::base;
 
-struct KeyringSecret
+static const char s_service[] = "org.freedesktop.secrets";
+static const char s_servicePath[] = "/org/freedesktop/secrets";
+static const char s_serviceInterface[] = "org.freedesktop.Secret.Service";
+static const char s_schema[] = "com.cutefish.ServerPassword";
+static constexpr std::chrono::seconds kTimeout(5);
+
+using Attributes = std::map<std::string, std::string>;
+// (session, parameters, value, content type)
+using Secret = std::tuple<dbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>;
+
+namespace {
+
+// A connection of the calling thread's own, which the connecting threads block on.
+struct Bus
 {
-    QDBusObjectPath session;
-    QByteArray parameters;
-    QByteArray value;
-    QString contentType;
+    EventLoop loop;
+    std::unique_ptr<dbus::Connection> connection = dbus::Connection::open(dbus::Connection::Bus::Session, &loop);
+
+    template<typename... Args>
+    dbus::Reply call(const std::string &path, const std::string &interface, const std::string &method,
+                     const Args &...args)
+    {
+        if (!connection)
+            return {};
+        dbus::Message message = connection->newMethodCall(s_service, path, interface, method);
+        message.append(args...);
+        return connection->call(message, kTimeout);
+    }
 };
 
-Q_DECLARE_METATYPE(KeyringSecret)
+} // namespace
 
-static QDBusArgument &operator<<(QDBusArgument &argument, const KeyringSecret &secret)
+static std::string openSession(Bus &bus)
 {
-    argument.beginStructure();
-    argument << secret.session << secret.parameters << secret.value << secret.contentType;
-    argument.endStructure();
-    return argument;
+    const dbus::Reply reply = bus.call(s_servicePath, s_serviceInterface, "OpenSession", std::string("plain"),
+                                       dbus::Variant(std::string()));
+    const auto session = reply.value<dbus::ObjectPath>(1);
+    return session ? session->path : std::string();
 }
 
-static const QDBusArgument &operator>>(const QDBusArgument &argument, KeyringSecret &secret)
+static void closeSession(Bus &bus, const std::string &session)
 {
-    argument.beginStructure();
-    argument >> secret.session >> secret.parameters >> secret.value >> secret.contentType;
-    argument.endStructure();
-    return argument;
+    bus.call(session, "org.freedesktop.Secret.Session", "Close");
 }
 
-static void registerTypes()
-{
-    static const bool registered = [] {
-        qDBusRegisterMetaType<KeyringSecret>();
-        qDBusRegisterMetaType<Attributes>();
-        return true;
-    }();
-    (void)registered;
-}
-
-static QDBusMessage call(const QString &path, const QString &interface, const QString &method,
-                         const QVariantList &arguments)
-{
-    auto message = QDBusMessage::createMethodCall(s_service, path, interface, method);
-    message.setArguments(arguments);
-    return QDBusConnection::sessionBus().call(message, QDBus::Block, 5000);
-}
-
-static QString openSession()
-{
-    const QDBusMessage reply = call(s_servicePath, s_serviceInterface, QStringLiteral("OpenSession"),
-                                    {QStringLiteral("plain"),
-                                     QVariant::fromValue(QDBusVariant(QString()))});
-    if (reply.type() != QDBusMessage::ReplyMessage)
-        return QString();
-
-    return reply.arguments().value(1).value<QDBusObjectPath>().path();
-}
-
-static void closeSession(const QString &session)
-{
-    call(session, QStringLiteral("org.freedesktop.Secret.Session"), QStringLiteral("Close"), {});
-}
-
-static Attributes attributesFor(const QUrl &url)
+static Attributes attributesFor(const RemoteUrl &url)
 {
     Attributes attributes {
-        {QStringLiteral("xdg:schema"), s_schema},
-        {QStringLiteral("protocol"), url.scheme()},
-        {QStringLiteral("server"), url.host().toLower()},
+        {"xdg:schema", s_schema},
+        {"protocol", url.scheme},
+        {"server", url.host},
     };
-    if (url.port() > 0)
-        attributes.insert(QStringLiteral("port"), QString::number(url.port()));
+    if (url.port > 0)
+        attributes["port"] = std::to_string(url.port);
 
     return attributes;
 }
 
-bool Keyring::find(const QUrl &url, Credentials *credentials)
+bool Keyring::find(const RemoteUrl &url, Credentials *credentials)
 {
-    registerTypes();
+    Bus bus;
+    if (!bus.connection)
+        return false;
 
     Attributes attributes = attributesFor(url);
-    const QString user = !credentials->user.isEmpty() ? credentials->user : url.userName();
-    if (!user.isEmpty())
-        attributes.insert(QStringLiteral("user"), user);
+    const std::string user = !credentials->user.empty() ? credentials->user : url.user;
+    if (!user.empty())
+        attributes["user"] = user;
 
-    const QDBusMessage search = call(s_servicePath, s_serviceInterface,
-                                     QStringLiteral("SearchItems"),
-                                     {QVariant::fromValue(attributes)});
-    if (search.type() != QDBusMessage::ReplyMessage)
+    const auto items = bus.call(s_servicePath, s_serviceInterface, "SearchItems", attributes)
+                               .value<std::vector<dbus::ObjectPath>>(0);
+    if (!items || items->empty())
         return false;
 
-    const auto items = qdbus_cast<QList<QDBusObjectPath>>(search.arguments().value(0));
-    if (items.isEmpty())
+    const std::string session = openSession(bus);
+    if (session.empty())
         return false;
 
-    const QString session = openSession();
-    if (session.isEmpty())
+    const std::string item = items->front().path;
+    const dbus::Reply secretReply =
+            bus.call(item, "org.freedesktop.Secret.Item", "GetSecret", dbus::ObjectPath{session});
+    const dbus::Reply attributesReply = bus.call(item, "org.freedesktop.DBus.Properties", "Get",
+                                                 std::string("org.freedesktop.Secret.Item"),
+                                                 std::string("Attributes"));
+    closeSession(bus, session);
+
+    const auto secret = secretReply.value<Secret>(0);
+    if (!secret)
         return false;
 
-    const QString item = items.first().path();
-    const QDBusMessage secretReply = call(item, QStringLiteral("org.freedesktop.Secret.Item"),
-                                          QStringLiteral("GetSecret"),
-                                          {QVariant::fromValue(QDBusObjectPath(session))});
+    Attributes stored;
+    if (const auto value = attributesReply.value<dbus::Variant>(0))
+        stored = value->value<Attributes>();
 
-    auto properties = QDBusMessage::createMethodCall(s_service, item,
-                                                     QStringLiteral("org.freedesktop.DBus.Properties"),
-                                                     QStringLiteral("Get"));
-    properties.setArguments({QStringLiteral("org.freedesktop.Secret.Item"),
-                             QStringLiteral("Attributes")});
-    const QDBusMessage attributesReply = QDBusConnection::sessionBus().call(properties,
-                                                                            QDBus::Block, 5000);
-    closeSession(session);
-
-    if (secretReply.type() != QDBusMessage::ReplyMessage)
-        return false;
-
-    const auto secret = qdbus_cast<KeyringSecret>(secretReply.arguments().value(0));
-    const auto stored = qdbus_cast<Attributes>(
-            attributesReply.arguments().value(0).value<QDBusVariant>().variant());
-
-    credentials->user = stored.value(QStringLiteral("user"), user);
-    credentials->domain = stored.value(QStringLiteral("domain"));
-    credentials->password = QString::fromUtf8(secret.value);
+    const auto storedUser = stored.find("user");
+    credentials->user = storedUser != stored.end() ? storedUser->second : user;
+    credentials->domain = stored.contains("domain") ? stored["domain"] : std::string();
+    const std::vector<uint8_t> &value = std::get<2>(*secret);
+    credentials->password.assign(value.begin(), value.end());
     return true;
 }
 
-void Keyring::store(const QUrl &url, const Credentials &credentials)
+void Keyring::store(const RemoteUrl &url, const Credentials &credentials)
 {
-    registerTypes();
-
-    const QDBusMessage alias = call(s_servicePath, s_serviceInterface, QStringLiteral("ReadAlias"),
-                                    {QStringLiteral("default")});
-    const QString collection = alias.arguments().value(0).value<QDBusObjectPath>().path();
-    if (alias.type() != QDBusMessage::ReplyMessage || collection == QLatin1String("/"))
+    Bus bus;
+    if (!bus.connection)
         return;
 
-    const QString session = openSession();
-    if (session.isEmpty())
+    const auto collection =
+            bus.call(s_servicePath, s_serviceInterface, "ReadAlias", std::string("default")).value<dbus::ObjectPath>(0);
+    if (!collection || collection->path == "/")
+        return;
+
+    const std::string session = openSession(bus);
+    if (session.empty())
         return;
 
     Attributes attributes = attributesFor(url);
-    attributes.insert(QStringLiteral("user"), credentials.user);
-    if (!credentials.domain.isEmpty())
-        attributes.insert(QStringLiteral("domain"), credentials.domain);
+    attributes["user"] = credentials.user;
+    if (!credentials.domain.empty())
+        attributes["domain"] = credentials.domain;
 
-    const QString account = credentials.domain.isEmpty()
-            ? credentials.user
-            : credentials.domain + QLatin1Char('\\') + credentials.user;
-    const QVariantMap properties {
-        {QStringLiteral("org.freedesktop.Secret.Item.Label"),
-         QStringLiteral("%1 on %2").arg(account, url.host())},
-        {QStringLiteral("org.freedesktop.Secret.Item.Attributes"), QVariant::fromValue(attributes)},
+    const std::string account =
+            credentials.domain.empty() ? credentials.user : credentials.domain + '\\' + credentials.user;
+    const dbus::VariantMap properties {
+        {"org.freedesktop.Secret.Item.Label", dbus::Variant(account + " on " + url.host)},
+        {"org.freedesktop.Secret.Item.Attributes", dbus::Variant(attributes)},
     };
-    const KeyringSecret secret {QDBusObjectPath(session), {}, credentials.password.toUtf8(),
-                                QStringLiteral("text/plain")};
+    const Secret secret {dbus::ObjectPath{session}, {},
+                         std::vector<uint8_t>(credentials.password.begin(), credentials.password.end()),
+                         std::string("text/plain")};
 
     // A locked collection answers with a prompt, which is left unanswered.
-    call(collection, QStringLiteral("org.freedesktop.Secret.Collection"),
-         QStringLiteral("CreateItem"), {properties, QVariant::fromValue(secret), true});
-    closeSession(session);
+    bus.call(collection->path, "org.freedesktop.Secret.Collection", "CreateItem", properties, secret, true);
+    closeSession(bus, session);
 }

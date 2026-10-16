@@ -5,8 +5,6 @@
 
 #include "backend.h"
 
-#include <QHash>
-
 #include <map>
 
 typedef struct LIBMTP_mtpdevice_struct LIBMTP_mtpdevice_t;
@@ -22,7 +20,7 @@ public:
 
     ConnectResult connect(const Credentials &credentials) override;
     // The device's own name, once connected.
-    QString friendlyName() const;
+    std::string friendlyName() const;
 
     int stat(const std::string &path, struct stat *st) override;
     int list(const std::string &path, std::vector<DirectoryEntry> *entries) override;
