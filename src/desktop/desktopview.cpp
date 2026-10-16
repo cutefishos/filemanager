@@ -353,20 +353,16 @@ private:
                 const std::string path = m_path;
                 const int64_t modified = m_modified;
                 thumbnails::load(path, modified, width, height,
-                                 [this, alive, path, modified, width, height](const ui::Bitmap& image) {
+                                 [this, alive, path, modified, width, height, scale](const ui::Bitmap& image) {
                                      if (alive.expired() || path != m_path || modified != m_modified
                                          || m_thumbnailBox != ui::SizeF(width, height))
                                          return;
                                      m_image = image;
-                                     m_thumbnailBox = {};
+                                     applyImage(scale);
                                      requestLayout();
                                  });
             }
-            if (!m_image.isNull()) {
-                const ui::Bitmap image = m_image.converted(ui::Bitmap::Format::Argb32Premultiplied);
-                m_thumbnail->setPixels(image.width(), image.height(), reinterpret_cast<const uint32_t*>(image.bits()),
-                                       image.stride(), true, scale);
-            }
+            applyImage(scale);
         }
         if (m_image.isNull()) {
             m_thumbnail->setVisible(false);
@@ -382,6 +378,15 @@ private:
         m_thumbnail->setCornerRadius(paintedHeight * 0.1);
         m_thumbnail->setOpacity(m_hidden ? 0.5 : 1.0);
         m_thumbnail->setVisible(true);
+    }
+
+    void applyImage(double scale)
+    {
+        if (m_image.isNull())
+            return;
+        const ui::Bitmap image = m_image.converted(ui::Bitmap::Format::Argb32Premultiplied);
+        m_thumbnail->setPixels(image.width(), image.height(), reinterpret_cast<const uint32_t*>(image.bits()),
+                               image.stride(), true, scale);
     }
 
     DesktopGridView* m_view;
