@@ -856,6 +856,8 @@ void FolderModel::updateSearch()
         m_lister.openUrl(resolvedUrl());
     else
         m_lister.search(root, m_searchText);
+
+    selectionChanged.emit();
 }
 
 void FolderModel::showInFolder()

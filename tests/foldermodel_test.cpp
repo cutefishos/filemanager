@@ -156,6 +156,26 @@ TEST(FolderModelTest, SortingKeepsTheSelection)
     EXPECT_EQ(selected, (std::vector<std::string> {url(directory.filePath("b.txt")), url(directory.filePath("d.txt"))}));
 }
 
+TEST(FolderModelTest, SearchingClearsTheSelection)
+{
+    TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+    for (const char* name : {"a.txt", "b.txt"})
+        ASSERT_TRUE(writeFile(directory.filePath(name)));
+
+    FolderModel folder;
+    folder.setUrl(directory.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(folder) && folder.count() == 2; }));
+    folder.setSelected(folder.rowForUrl(url(directory.filePath("a.txt"))));
+    ASSERT_EQ(folder.selectedPath(), directory.filePath("a.txt"));
+
+    int changes = 0;
+    const base::Subscription subscription = folder.selectionChanged.connect([&] { ++changes; });
+    folder.setSearchText("b");
+    EXPECT_GT(changes, 0);
+    EXPECT_TRUE(folder.selectedPath().empty());
+}
+
 TEST(FolderModelTest, OpeningAFileShowsItsFolder)
 {
     TemporaryDir directory;
