@@ -22,6 +22,7 @@ static void later(std::chrono::milliseconds delay, std::function<void()> action)
         action();
         // The timer goes on the next turn, not from inside its own callback.
         base::EventLoop::current()->post([timer] {});
+        timer.reset();
     };
     timer->start(delay);
 }
@@ -142,9 +143,9 @@ bool FileOperationsService::announce(std::unique_ptr<DaemonTask> task, const std
         DaemonTask *raw = task.get();
         m_tasks.push_back(std::move(task));
         // The archive thread ends with the task, once it stopped.
-        base::EventLoop::current()->post([this, alive = m_alive, raw] {
+        base::EventLoop::current()->post([this, alive = m_alive, path = raw->objectPath()] {
             if (*alive)
-                remove(raw);
+                remove(path);
         });
         return false;
     }
@@ -193,9 +194,11 @@ void FileOperationsService::ownerLost(const std::string &owner)
 void FileOperationsService::retire(DaemonTask *task)
 {
     std::erase(m_taskPaths, task->objectPath());
-    const auto unregister = [this, alive = m_alive, task] {
+    // By path, which no later task reuses: whichever of the two timers comes
+    // second finds the task gone.
+    const auto unregister = [this, alive = m_alive, path = task->objectPath()] {
         if (*alive)
-            remove(task);
+            remove(path);
     };
     const auto linger = [unregister] { later(std::chrono::seconds(10), unregister); };
     if (task->isArchive() || task->outcomeRead() || task->owner().empty()) {
@@ -206,11 +209,13 @@ void FileOperationsService::retire(DaemonTask *task)
     later(std::chrono::minutes(5), unregister);
 }
 
-void FileOperationsService::remove(DaemonTask *task)
+void FileOperationsService::remove(const std::string &path)
 {
-    const auto found = std::find_if(m_tasks.begin(), m_tasks.end(),
-                                    [task](const std::unique_ptr<DaemonTask> &entry) { return entry.get() == task; });
-    m_finishedSubscriptions.erase(task);
-    if (found != m_tasks.end())
-        m_tasks.erase(found);
+    const auto found = std::find_if(m_tasks.begin(), m_tasks.end(), [&path](const std::unique_ptr<DaemonTask> &entry) {
+        return entry->objectPath() == path;
+    });
+    if (found == m_tasks.end())
+        return;
+    m_finishedSubscriptions.erase(found->get());
+    m_tasks.erase(found);
 }

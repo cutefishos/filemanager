@@ -39,7 +39,7 @@ private:
     void watchOwner(const std::string &owner);
     void ownerLost(const std::string &owner);
     void retire(DaemonTask *task);
-    void remove(DaemonTask *task);
+    void remove(const std::string &path);
 
     cutefish::base::dbus::Connection *m_bus;
     cutefish::base::dbus::Object m_object;
