@@ -373,6 +373,10 @@ OperationTaskPtr OperationsClient::attach(const std::string& path, OperationTask
             return existing;
     }
 
+    // Every task has a path of its own: the ones nobody holds any more would
+    // otherwise stay for the session.
+    std::erase_if(m_tasks, [](const auto& entry) { return entry.second.expired(); });
+
     if (!task) {
         // Announced by the daemon: presented here only when its submitter is
         // gone, so a task never runs unseen; the submitter presents its own.
