@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 
 namespace fm {
 
@@ -39,6 +40,8 @@ static constexpr double kLargeSpacing = 12;
 static constexpr double kButtonSize = 32;
 static constexpr double kButtonsTopMargin = 4;
 static constexpr double kBarHeight = 34;
+static constexpr double kMinimumWidth = 600;
+static constexpr double kMinimumContentWidth = kMinimumWidth - SideBar::kDefaultWidth;
 
 // Where a search looks, home or the folder it started from.
 class SearchScopeBar : public ui::View
@@ -253,12 +256,13 @@ public:
     PathBar* pathBar;
     ui::HeaderButton* search;
     ui::HeaderButton* options;
+    double sidebarWidth = SideBar::kDefaultWidth;
 
 protected:
     void layout() override
     {
         const double spacing = 1;
-        double x = SideBar::kWidth + kSmallSpacing * 1.5;
+        double x = sidebarWidth + kSmallSpacing * 1.5;
         const double right = geometry().width;
         back->setGeometry({x, kButtonsTopMargin, kButtonSize, kButtonSize});
         x += kButtonSize + spacing;
@@ -270,6 +274,64 @@ protected:
         const double pathEnd = end - kButtonSize * 2 - spacing * 2;
         pathBar->setGeometry({x, kButtonsTopMargin, std::max(0.0, pathEnd - x), kButtonSize});
     }
+};
+
+// The sidebar's edge, which resizes it; a double click puts it back to the
+// default width.
+class SidebarDivider : public ui::View
+{
+public:
+    static constexpr double kWidth = 9;
+
+    // The width being dragged to, and when the drag ends, the width kept.
+    std::function<void(double width)> onResized;
+    std::function<void(double width)> onFinished;
+    double width = SideBar::kDefaultWidth;
+
+    bool acceptsPointer() const override { return true; }
+    ui::CursorShape cursorShape() const override { return ui::CursorShape::ResizeHorizontal; }
+
+protected:
+    void pointerPress(const ui::PointerEvent& event) override
+    {
+        if (event.button != ui::MouseButton::Left)
+            return;
+        if (event.clickCount == 2) {
+            m_dragging = false;
+            if (onFinished)
+                onFinished(SideBar::kDefaultWidth);
+            return;
+        }
+        m_dragging = true;
+        m_startWidth = width;
+        m_startX = mapToWindow(event.position).x;
+    }
+
+    void pointerMove(const ui::PointerEvent& event) override
+    {
+        if (!m_dragging || !onResized)
+            return;
+        onResized(clamped(m_startWidth + mapToWindow(event.position).x - m_startX));
+    }
+
+    void pointerRelease(const ui::PointerEvent& event) override
+    {
+        if (!m_dragging)
+            return;
+        m_dragging = false;
+        if (onFinished)
+            onFinished(clamped(m_startWidth + mapToWindow(event.position).x - m_startX));
+    }
+
+private:
+    static double clamped(double width)
+    {
+        return std::clamp(std::round(width), SideBar::kMinimumWidth, SideBar::kMaximumWidth);
+    }
+
+    bool m_dragging = false;
+    double m_startWidth = 0;
+    double m_startX = 0;
 };
 
 class FolderWindowRoot : public ui::View
@@ -286,9 +348,24 @@ public:
         trashBar = addChild<TrashBar>();
         header = addChild<ui::WindowHeader>(FolderWindow::kHeaderInset);
         row = header->setContent<HeaderRow>();
+        divider = addChild<SidebarDivider>();
+        divider->setName("sidebarDivider");
+        sidebarWidth = std::clamp(Preferences::instance().sidebarWidth(), SideBar::kMinimumWidth,
+                                  SideBar::kMaximumWidth);
+        divider->onResized = [this](double width) {
+            sidebarWidth = width;
+            requestLayout();
+        };
+        divider->onFinished = [this](double width) {
+            sidebarWidth = width;
+            requestLayout();
+            Preferences::instance().setSidebarWidth(width);
+        };
     }
 
     SideBar* sidebar;
+    SidebarDivider* divider;
+    double sidebarWidth;
     ui::View* pages;
     FolderTabBar* tabBar;
     SearchScopeBar* scopeBar;
@@ -310,8 +387,16 @@ protected:
     {
         const double width = geometry().width;
         const double height = geometry().height;
-        const double left = SideBar::kWidth;
+        // The folder view keeps the width it has at the window's minimum size.
+        const double widest = std::max(SideBar::kMinimumWidth,
+                                       std::min(SideBar::kMaximumWidth, width - kMinimumContentWidth));
+        const double left = std::min(sidebarWidth, widest);
         sidebar->setGeometry({0, 0, left, height});
+        row->sidebarWidth = left;
+        row->requestLayout();
+        divider->width = left;
+        divider->setGeometry({left - SidebarDivider::kWidth / 2, FolderWindow::kHeaderInset, SidebarDivider::kWidth,
+                              std::max(0.0, height - FolderWindow::kHeaderInset)});
         const ui::RectF content {left, 0, std::max(0.0, width - left), height};
         pages->setGeometry(content);
         for (const auto& page : pages->children())
@@ -340,7 +425,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
 {
     m_window->setTitle("Files");
     m_window->resize({900, 580});
-    m_window->setMinimumSize({600, 500});
+    m_window->setMinimumSize({kMinimumWidth, 500});
     m_window->setRestoresSize("main");
 
     auto root = std::make_unique<FolderWindowRoot>(this);

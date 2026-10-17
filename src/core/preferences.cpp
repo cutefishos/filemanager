@@ -35,6 +35,7 @@ Preferences::Preferences(const std::string& path)
     m_maximumIconSize = int(s.intValue("maximumIconSize", m_maximumIconSize));
     m_minimumIconSize = int(s.intValue("minimumIconSize", m_minimumIconSize));
     m_gridIconSize = s.doubleValue("gridIconSize", m_gridIconSize);
+    m_sidebarWidth = s.doubleValue("sidebarWidth", m_sidebarWidth);
     // Type sorting used to be stored as 6, which is not a model column.
     if (m_sortMode == 6)
         m_sortMode = Type;
@@ -61,6 +62,7 @@ void Preferences::save()
     s.setValue("maximumIconSize", m_maximumIconSize);
     s.setValue("minimumIconSize", m_minimumIconSize);
     s.setValue("gridIconSize", m_gridIconSize);
+    s.setValue("sidebarWidth", m_sidebarWidth);
     s.sync();
     changed.emit();
 }
@@ -108,6 +110,14 @@ void Preferences::setGridIconSize(double size)
     if (m_gridIconSize == size)
         return;
     m_gridIconSize = size;
+    save();
+}
+
+void Preferences::setSidebarWidth(double width)
+{
+    if (m_sidebarWidth == width)
+        return;
+    m_sidebarWidth = width;
     save();
 }
 

@@ -63,6 +63,10 @@ public:
     double gridIconSize() const { return m_gridIconSize; }
     void setGridIconSize(double size);
 
+    // The width new windows open their sidebar at.
+    double sidebarWidth() const { return m_sidebarWidth; }
+    void setSidebarWidth(double width);
+
     // [Network] recentServers, newest first, at most ten.
     std::vector<std::string> recentServers() const;
     void addRecentServer(const std::string& address);
@@ -90,6 +94,7 @@ private:
     int m_maximumIconSize = 256;
     int m_minimumIconSize = 64;
     double m_gridIconSize = 64;
+    double m_sidebarWidth = 190;
 };
 
 } // namespace fm

@@ -33,7 +33,10 @@ class UnlockVolumeDialog;
 class SideBar : public ui::View
 {
 public:
-    static constexpr double kWidth = 190;
+    // Dragging its edge resizes it in this range.
+    static constexpr double kDefaultWidth = 190;
+    static constexpr double kMinimumWidth = 140;
+    static constexpr double kMaximumWidth = 400;
 
     // The header's height, which the title fills.
     explicit SideBar(double headerHeight);
@@ -50,7 +53,7 @@ public:
     std::function<void(const std::string& path)> onOpenInNewTab;
     std::function<void(const std::string& path)> onOpenInNewWindow;
 
-    ui::SizeF sizeHint() const override { return {kWidth, 0}; }
+    ui::SizeF sizeHint() const override { return {kDefaultWidth, 0}; }
 
 protected:
     void layout() override;
