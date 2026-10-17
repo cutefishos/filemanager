@@ -28,6 +28,9 @@ add_executable(filemanager-tests testmain.cpp chooser_test.cpp foldermodel_test.
     desktopmenu_test.cpp launcher_test.cpp positioner_test.cpp shortcut_test.cpp header_test.cpp)
 pkg_check_modules(FilemanagerTestSystemd REQUIRED IMPORTED_TARGET libsystemd)
 target_link_libraries(filemanager-tests PRIVATE fm-ui GTest::gtest PkgConfig::FilemanagerTestSystemd)
+target_compile_definitions(filemanager-tests PRIVATE
+    FILEMANAGER_DAEMON="$<TARGET_FILE:cutefish-filemanager-daemon>")
+add_dependencies(filemanager-tests cutefish-filemanager-daemon)
 add_test(NAME filemanager
          COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} --config-file=${CMAKE_CURRENT_SOURCE_DIR}/dbus-session.conf
                  -- $<TARGET_FILE:filemanager-tests>)

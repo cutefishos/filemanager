@@ -5,9 +5,13 @@
 
 #include "core/preferences.h"
 #include "model/foldermodel.h"
+#include "ops/operations.h"
 
+#include "base/dbus.h"
+#include "base/process.h"
 #include "base/url.h"
 #include "ui/application.h"
+#include "ui/clipboard.h"
 
 #include <gtest/gtest.h>
 
@@ -313,3 +317,109 @@ TEST(FolderModelTest, ContextMenuActionsFollowTheSelection)
     EXPECT_TRUE(folder.action("newTextFile").visible);
 }
 
+
+// The clipboard's URLs while it holds a cut; empty otherwise.
+static std::vector<std::string> cutUrls()
+{
+    const auto types = ui::Clipboard::mimeTypes();
+    if (std::find(types.begin(), types.end(), "application/x-cutefish-cutselection") == types.end())
+        return {};
+    std::vector<std::string> urls;
+    ui::Clipboard::requestData("text/uri-list", [&](std::optional<std::string> data) {
+        ui::MimeData mime;
+        mime.setData("text/uri-list", data.value_or(""));
+        urls = mime.urls();
+    });
+    return urls;
+}
+
+// Cuts the named files of the source and pastes them into the destination;
+// the move it submitted.
+static fm::OperationTaskPtr cutAndPaste(FolderModel& source, const std::vector<std::string>& names,
+                                        FolderModel& destination)
+{
+    source.clearSelection();
+    for (const std::string& name : names)
+        source.setSelected(source.rowForUrl(url(source.rootItem().path + "/" + name)));
+    source.prepareContextMenu();
+    source.cut();
+
+    fm::OperationTaskPtr move;
+    const base::Subscription added = fm::OperationsClient::instance().taskAdded.connect(
+            [&](fm::OperationTaskPtr task) { move = task; });
+    destination.paste();
+    runUntil(loop(), [&] { return move != nullptr; });
+    return move;
+}
+
+// A cut stays until its move is done: one that fails leaves it whole.
+TEST(FolderModelTest, FailedMoveKeepsTheCut)
+{
+    TemporaryDir from;
+    TemporaryDir to;
+    ASSERT_TRUE(writeFile(from.filePath("a")));
+    FolderModel source;
+    source.setUrl(from.path());
+    FolderModel destination;
+    destination.setUrl(to.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(source) && source.count() == 1 && ready(destination); }));
+
+    // The test bus has no operations daemon, so the move fails.
+    const fm::OperationTaskPtr move = cutAndPaste(source, {"a"}, destination);
+    ASSERT_TRUE(move);
+    ASSERT_TRUE(runUntil(loop(), [&] { return move->isFinished(); }));
+    EXPECT_NE(move->error(), 0);
+    EXPECT_EQ(cutUrls(), std::vector<std::string> {url(from.filePath("a"))});
+    ui::Clipboard::clear();
+}
+
+// A move cancelled at a conflict leaves the cut holding what it did not
+// move; one that succeeds clears it.
+TEST(FolderModelTest, CutFollowsWhatTheMoveLeft)
+{
+    fm::OperationsClient::instance();
+    base::Process daemon;
+    ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
+    auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &loop());
+    ASSERT_TRUE(bus);
+    const base::dbus::Proxy manager(bus.get(), "com.cutefish.FileOperations", "/com/cutefish/FileOperations",
+                                    "com.cutefish.FileOperations.Manager1");
+    ASSERT_TRUE(runUntil(loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
+
+    TemporaryDir from;
+    TemporaryDir to;
+    TemporaryDir other;
+    ASSERT_TRUE(writeFile(from.filePath("a"), "a"));
+    ASSERT_TRUE(writeFile(from.filePath("b"), "new b"));
+    ASSERT_TRUE(writeFile(to.filePath("b"), "old b"));
+    FolderModel source;
+    source.setUrl(from.path());
+    FolderModel destination;
+    destination.setUrl(to.path());
+    FolderModel elsewhere;
+    elsewhere.setUrl(other.path());
+    ASSERT_TRUE(runUntil(loop(), [&] {
+        return ready(source) && source.count() == 2 && ready(destination) && ready(elsewhere);
+    }));
+
+    const fm::OperationTaskPtr cancelled = cutAndPaste(source, {"a", "b"}, destination);
+    ASSERT_TRUE(cancelled);
+    ASSERT_TRUE(runUntil(loop(), [&] { return cancelled->waitingForConflict(); }));
+    EXPECT_EQ(cutUrls().size(), 2u);
+    cancelled->cancel();
+    ASSERT_TRUE(runUntil(loop(), [&] { return cancelled->isFinished(); }));
+    EXPECT_TRUE(std::filesystem::exists(to.filePath("a")));
+    EXPECT_EQ(cutUrls(), std::vector<std::string> {url(from.filePath("b"))});
+
+    fm::OperationTaskPtr moved;
+    const base::Subscription added = fm::OperationsClient::instance().taskAdded.connect(
+            [&](fm::OperationTaskPtr task) { moved = task; });
+    elsewhere.paste();
+    ASSERT_TRUE(runUntil(loop(), [&] { return moved && moved->isFinished(); }));
+    EXPECT_EQ(moved->error(), 0);
+    EXPECT_TRUE(std::filesystem::exists(other.filePath("b")));
+    EXPECT_TRUE(ui::Clipboard::mimeTypes().empty());
+
+    daemon.terminate();
+    EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
+}

@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <fcntl.h>
+#include <functional>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -964,6 +965,59 @@ void FolderModel::newTextFile()
     }
 }
 
+// Calls settle once the task ends, unless alive is set and false by then.
+static void whenFinished(const OperationTaskPtr& task, const std::shared_ptr<bool>& alive,
+                         std::function<void(const OperationTask&)> settle)
+{
+    if (task->isFinished()) {
+        settle(*task);
+        return;
+    }
+
+    std::weak_ptr<OperationTask> weak = task;
+    auto subscription = std::make_shared<base::Subscription>();
+    *subscription = task->finished.connect([alive, weak, subscription, settle = std::move(settle)] {
+        if (const OperationTaskPtr finished = weak.lock(); finished && (!alive || *alive))
+            settle(*finished);
+        // The subscription goes with the next loop turn, not inside its own call.
+        base::EventLoop::current()->post([subscription] { subscription->reset(); });
+    });
+}
+
+// A cut stays on the clipboard until its move is done: after a move that
+// failed or was cancelled, it holds what is still in its place, so pasting
+// again moves the rest. Nothing changes once something else was put there.
+static void settleCut(const std::string& uriList, const std::vector<std::string>& urls, const OperationTask& move)
+{
+    std::vector<std::string> remaining;
+    if (move.error() || move.wasCanceled()) {
+        struct stat st;
+        for (const std::string& url : urls) {
+            const std::string path = localPathOf(url);
+            if (path.empty() || ::lstat(path.c_str(), &st) == 0)
+                remaining.push_back(url);
+        }
+    }
+    if (remaining.size() == urls.size())
+        return;
+
+    const auto types = ui::Clipboard::mimeTypes();
+    if (std::find(types.begin(), types.end(), kCutSelection) == types.end())
+        return;
+    ui::Clipboard::requestData("text/uri-list", [uriList, remaining](std::optional<std::string> data) {
+        if (!data || *data != uriList)
+            return;
+        if (remaining.empty()) {
+            ui::Clipboard::clear();
+            return;
+        }
+        ui::MimeData mime;
+        mime.setUrls(remaining);
+        mime.setData(kCutSelection, "1");
+        ui::Clipboard::setMimeData(mime);
+    });
+}
+
 void FolderModel::rename(int row, const std::string& name)
 {
     if (row < 0 || name.empty() || name == "." || name == ".." || name.find('/') != std::string::npos
@@ -978,22 +1032,9 @@ void FolderModel::rename(int row, const std::string& name)
     m_contents.expectRename(file->url, destination);
     renaming.emit(file->url, destination);
     const OperationTaskPtr task = OperationsClient::instance().rename(file->url, destination);
-    const auto settle = [this, from = file->url, destination](const OperationTask& outcome) {
+    whenFinished(task, m_alive, [this, from = file->url, destination](const OperationTask& outcome) {
         if (outcome.error() || outcome.wasCanceled())
             renameFailed.emit(from, destination);
-    };
-    if (task->isFinished()) {
-        settle(*task);
-        return;
-    }
-
-    std::weak_ptr<OperationTask> weak = task;
-    auto subscription = std::make_shared<base::Subscription>();
-    *subscription = task->finished.connect([alive = m_alive, weak, subscription, settle] {
-        if (const OperationTaskPtr finished = weak.lock(); finished && *alive)
-            settle(*finished);
-        // The subscription goes with the next loop turn, not inside its own call.
-        base::EventLoop::current()->post([subscription] { subscription->reset(); });
     });
 }
 
@@ -1039,13 +1080,13 @@ void FolderModel::paste()
             return;
         for (const std::string& url : urls)
             m_needSelectUrls.push_back(base::url::fromLocalFile(folder + '/' + fileName(localPathOf(url))));
-        if (cut)
-            OperationsClient::instance().move(urls, destination);
-        else
+        if (!cut) {
             OperationsClient::instance().copy(urls, destination);
-        // A cut is pasted once.
-        if (cut)
-            ui::Clipboard::clear();
+            return;
+        }
+        // The clipboard is settled even after this view has gone.
+        whenFinished(OperationsClient::instance().move(urls, destination), nullptr,
+                     [uriList = *data, urls](const OperationTask& move) { settleCut(uriList, urls, move); });
     });
 }
 
