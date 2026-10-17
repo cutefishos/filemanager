@@ -9,7 +9,7 @@
 
 #include "base/dbus.h"
 #include "base/url.h"
-#include "files/volumemanager.h"
+#include "cutefish/files/volume_manager.h"
 #include "ui/application.h"
 
 #include <gtest/gtest.h>

@@ -8,9 +8,9 @@
 
 #include "base/signal.h"
 
-#include "files/directorylister.h"
-#include "files/fileitem.h"
-#include "files/url.h"
+#include "cutefish/files/directory_lister.h"
+#include "cutefish/files/file_item.h"
+#include "cutefish/files/url.h"
 
 #include <memory>
 #include <string>

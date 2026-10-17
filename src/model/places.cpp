@@ -14,8 +14,8 @@
 #include "base/url.h"
 #include "ui/drag.h"
 
-#include "files/fileitem.h"
-#include "files/volumemanager.h"
+#include "cutefish/files/file_item.h"
+#include "cutefish/files/volume_manager.h"
 
 #include <algorithm>
 #include <set>
