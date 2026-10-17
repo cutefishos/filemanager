@@ -46,7 +46,7 @@ private:
     void open();
     void destroy();
     void stage(const PreviewFile& file);
-    void present(const PreviewFile& file);
+    void present(PreviewFile file);
     bool keyPressed(uint32_t key, uint32_t modifiers, bool repeat);
 
     double displayRatio() const;

@@ -661,13 +661,14 @@ void PreviewWindow::stage(const PreviewFile& file)
         m_stall.start();
 }
 
-void PreviewWindow::present(const PreviewFile& file)
+// By value: callers pass *m_pending, which is reset below.
+void PreviewWindow::present(PreviewFile file)
 {
     m_pending.reset();
     m_stall.stop();
     const ui::SizeF size = sizeFor(file);
     const ui::SizeF prepared = file.isImage() && !file.animated ? fittedPixels(file, size) : ui::SizeF();
-    m_shown = file;
+    m_shown = std::move(file);
     if (!m_window)
         open();
     // The contents first, then one resize: size, title and picture change in one frame.
