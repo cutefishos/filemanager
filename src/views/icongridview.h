@@ -110,6 +110,7 @@ protected:
 
 private:
     void layoutThumbnail();
+    void loadThumbnail(double scale);
     void applyImage(double scale);
 
     double m_selectionHPadding;
@@ -121,6 +122,7 @@ private:
     std::string m_path;
     int64_t m_modified = 0;
     ui::SizeF m_thumbnailBox;
+    ui::SizeF m_thumbnailRequest;
     ui::Bitmap m_image;
     ui::ThemeIcon* m_emblem = nullptr;
     std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);

@@ -149,7 +149,7 @@ void IconItem::addIconViews()
 {
     m_icon = addChild<ui::ThemeIcon>();
     m_thumbnail = addChild<ui::ImageView>();
-    m_thumbnail->setFillMode(ui::ImageView::FillMode::Stretch);
+    m_thumbnail->setFillMode(ui::ImageView::FillMode::PreserveAspectCrop);
     m_thumbnail->setVisible(false);
     m_emblem = addChild<ui::ThemeIcon>("emblem-symbolic-link", 16);
     m_emblem->setImageProviderLookup(true);
@@ -323,8 +323,15 @@ double IconItem::paintedWidth() const
     return std::min(width, m_label->geometry().width);
 }
 
+// Neither side of a thumbnail is drawn shorter than this share of the box.
+static constexpr double kThumbnailMinimumShare = 1.0 / 3;
+
+// The largest thumbnail the cache keeps.
+static constexpr double kThumbnailMaximumRequest = 1024;
+
 // The thumbnail fills the icon box less 6 px at the top and sides, keeping
-// its aspect, cut to a tenth of its height at the corners.
+// its aspect, cut to a tenth of its height at the corners. A picture too
+// narrow or too flat for the minimum is cropped about its centre.
 void IconItem::layoutThumbnail()
 {
     if (!m_wantsThumbnail) {
@@ -345,22 +352,9 @@ void IconItem::layoutThumbnail()
 
     if (m_thumbnailBox != ui::SizeF(width, height)) {
         m_thumbnailBox = ui::SizeF(width, height);
-        m_image = thumbnails::cached(m_path, m_modified, width, height);
-        if (m_image.isNull()) {
-            const std::weak_ptr<bool> alive = m_alive;
-            const std::string path = m_path;
-            const int64_t modified = m_modified;
-            thumbnails::load(path, modified, width, height,
-                             [this, alive, path, modified, width, height, scale](const ui::Bitmap& image) {
-                                 if (alive.expired() || path != m_path || modified != m_modified
-                                     || m_thumbnailBox != ui::SizeF(width, height))
-                                     return;
-                                 m_image = image;
-                                 applyImage(scale);
-                                 requestLayout();
-                             });
-        }
-        applyImage(scale);
+        m_thumbnailRequest = m_thumbnailBox;
+        m_image = {};
+        loadThumbnail(scale);
     }
 
     if (m_image.isNull()) {
@@ -368,17 +362,58 @@ void IconItem::layoutThumbnail()
         return;
     }
 
-    // PreserveAspectFit, centred in the box.
+    // PreserveAspectFit, centred in the box, then widened or heightened to
+    // the minimum.
     const double imageWidth = m_image.width() / scale;
     const double imageHeight = m_image.height() / scale;
     const double fit = std::min(box.width / imageWidth, box.height / imageHeight);
-    const double paintedWidth = std::min(box.width, imageWidth * fit);
-    const double paintedHeight = std::min(box.height, imageHeight * fit);
+    const double fittedWidth = std::min(box.width, imageWidth * fit);
+    const double fittedHeight = std::min(box.height, imageHeight * fit);
+    const double paintedWidth = std::max(fittedWidth, box.width * kThumbnailMinimumShare);
+    const double paintedHeight = std::max(fittedHeight, box.height * kThumbnailMinimumShare);
     m_thumbnail->setGeometry({box.x + (box.width - paintedWidth) / 2, box.y + (box.height - paintedHeight) / 2,
                               paintedWidth, paintedHeight});
+
+    // A cropped picture is drawn larger than it fits the box: a larger
+    // thumbnail keeps it sharp, up to the largest the cache has.
+    const double crop = std::max(paintedWidth / fittedWidth, paintedHeight / fittedHeight);
+    const double limit = kThumbnailMaximumRequest / std::max(m_thumbnailBox.width, m_thumbnailBox.height);
+    const double grow = std::max(1.0, std::min(crop, limit));
+    const ui::SizeF request(std::round(m_thumbnailBox.width * grow), std::round(m_thumbnailBox.height * grow));
+    if (request != m_thumbnailRequest) {
+        m_thumbnailRequest = request;
+        loadThumbnail(scale);
+    }
+
     m_thumbnail->setCornerRadius(paintedHeight * 0.1);
     m_thumbnail->setOpacity(m_hidden ? 0.5 : 1.0);
     m_thumbnail->setVisible(true);
+}
+
+// The picture shown stays until the requested size arrives.
+void IconItem::loadThumbnail(double scale)
+{
+    const int width = int(m_thumbnailRequest.width);
+    const int height = int(m_thumbnailRequest.height);
+    const ui::Bitmap cached = thumbnails::cached(m_path, m_modified, width, height);
+    if (!cached.isNull()) {
+        m_image = cached;
+        applyImage(scale);
+        return;
+    }
+
+    const std::weak_ptr<bool> alive = m_alive;
+    const std::string path = m_path;
+    const int64_t modified = m_modified;
+    thumbnails::load(path, modified, width, height,
+                     [this, alive, path, modified, width, height, scale](const ui::Bitmap& image) {
+                         if (alive.expired() || image.isNull() || path != m_path || modified != m_modified
+                             || m_thumbnailRequest != ui::SizeF(width, height))
+                             return;
+                         m_image = image;
+                         applyImage(scale);
+                         requestLayout();
+                     });
 }
 
 void IconItem::applyImage(double scale)
