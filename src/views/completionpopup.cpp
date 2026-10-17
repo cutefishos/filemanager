@@ -4,6 +4,7 @@
 #include "views/completionpopup.h"
 #include "views/style.h"
 
+#include "ui/color_provider.h"
 #include "ui/icon.h"
 #include "ui/keys.h"
 #include "ui/label.h"
@@ -105,7 +106,7 @@ protected:
         const double y = current * (kRowHeight + kSpacing) - m_scroll;
         painter.drawRoundedRect({kHighlightInset, y + 1, geometry().width - kHighlightInset * 2, kRowHeight - 2},
                                 {theme.mediumRadius - kPadding - kHighlightInset, 0, ui::Corners::Circular},
-                                theme.highlight.withAlpha(theme.darkMode ? 0.82 : 0.9));
+                                ui::color(ui::ColorId::MenuHighlight));
     }
 
     bool scroll(const ui::ScrollEvent& event) override

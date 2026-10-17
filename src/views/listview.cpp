@@ -1,12 +1,14 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "views/colors.h"
 #include "views/listview.h"
 #include "core/preferences.h"
 #include "core/thumbnails.h"
 #include "model/foldermodel.h"
 #include "views/style.h"
 
+#include "ui/color_provider.h"
 #include "ui/icon.h"
 #include "ui/icon_image.h"
 #include "ui/image_view.h"
@@ -179,13 +181,12 @@ protected:
 
     void paint(ui::Painter& painter) override
     {
-        const ui::Theme& theme = ui::Theme::current();
         if (m_background)
             painter.fillRect(localRect(), *m_background);
         const double left = m_list->leftMargin();
         const double right = m_list->rightMargin();
         painter.drawRoundedRect({left, geometry().height - 1, geometry().width - left - right, 1}, {},
-                                style::textAlpha(theme.darkMode ? 0.12 : 0.08));
+                                ui::color(ui::ColorId::HeaderSeparator));
 
         // The handles' dividers, snapped so every one is as wide.
         const ListColumns& c = m_list->columns();
@@ -422,7 +423,7 @@ protected:
         if (m_selected)
             fill = theme.highlight;
         else if (m_index % 2 == 1)
-            fill = style::textAlpha(theme.darkMode ? 0.03 : 0.025);
+            fill = ui::color(FmColor::AlternateRow);
         if (fill.a == 0)
             return;
 

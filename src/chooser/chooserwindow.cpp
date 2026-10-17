@@ -5,6 +5,7 @@
 #include "chooser/filechooser.h"
 #include "model/pathbarmodel.h"
 #include "model/places.h"
+#include "views/colors.h"
 #include "views/completionpopup.h"
 #include "views/listview.h"
 #include "views/pathbar.h"
@@ -13,6 +14,7 @@
 #include "base/event_loop.h"
 #include "base/url.h"
 #include "ui/check_box.h"
+#include "ui/color_provider.h"
 #include "ui/combo_box.h"
 #include "ui/dialog_window.h"
 #include "ui/header_button.h"
@@ -143,7 +145,7 @@ protected:
                 continue;
             ui::Color fill {0, 0, 0, 0};
             if (&row - m_rows.data() == m_pressed)
-                fill = style::textAlpha(theme.darkMode ? 0.05 : 0.1);
+                fill = ui::color(ui::ColorId::ItemPressed);
             else if (row.checked)
                 fill = style::textAlpha(0.05);
             if (fill.a)
@@ -511,7 +513,7 @@ protected:
         bottom = buttonsY - kLargeSpacing * 2;
 
         if (error->isVisible()) {
-            error->setColor(theme.darkMode ? ui::Color::rgb(0xff453a) : ui::Color::rgb(0xd92d20));
+            error->setColor(ui::color(ui::ColorId::DestructiveAction));
             const double height = error->heightForWidth(inner);
             error->setGeometry({left + kLargeSpacing, bottom - height, inner, height});
             bottom -= height + kLargeSpacing;
@@ -584,8 +586,7 @@ protected:
     {
         const ui::Theme& theme = ui::Theme::current();
         const ui::RectF rect = localRect();
-        painter.fillRect({0, 0, kSideBarWidth, rect.height},
-                         theme.darkMode ? theme.background.lighter(1.35) : theme.background.darker(1.04));
+        painter.fillRect({0, 0, kSideBarWidth, rect.height}, ui::color(FmColor::ChooserSidebarBackground));
         painter.fillRect({kSideBarWidth, 0, rect.width - kSideBarWidth, rect.height}, theme.secondBackground);
     }
 

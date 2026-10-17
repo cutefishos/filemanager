@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "views/colors.h"
 #include "views/folderwindow.h"
 #include "core/preferences.h"
 #include "views/folderview.h"
@@ -12,6 +13,7 @@
 #include "views/tabbar.h"
 
 #include "base/event_loop.h"
+#include "ui/color_provider.h"
 #include "ui/progress_bar.h"
 #include "ui/dialog_window.h"
 #include "ui/header_button.h"
@@ -112,11 +114,10 @@ protected:
 
     void paint(ui::Painter& painter) override
     {
-        const ui::Theme& theme = ui::Theme::current();
         const auto plate = [&](const ui::RectF& rect, bool selected, int index) {
             ui::Color fill {0, 0, 0, 0};
             if (selected)
-                fill = style::withAlpha(theme.highlight, theme.darkMode ? 0.3 : 0.15);
+                fill = ui::color(FmColor::SearchScopeSelected);
             else if (m_pressed == index)
                 fill = style::textAlpha(0.1);
             else if (m_hovered == index)
@@ -607,13 +608,12 @@ void FolderWindow::updateBackground()
 {
     const ui::Theme& theme = ui::Theme::current();
     const bool active = m_window->isActive();
-    // Inactive windows keep the blur and halve the see-through instead of going opaque.
-    const double alpha = theme.darkMode ? (active ? 0.85 : 0.92) : (active ? 0.8 : 0.9);
-    m_window->setBackgroundColor(theme.background.withAlpha(alpha));
+    m_window->setBackgroundColor(ui::color(active ? ui::ColorId::TranslucentWindowBackground
+                                                  : ui::ColorId::TranslucentWindowBackgroundInactive));
     const ui::SizeF size = m_window->size();
     m_window->setBackgroundBlur({0, 0, size.width, size.height}, theme.windowRadius);
-    m_root->requestLayout();
-    m_root->sidebar->requestLayout();
+    // Views colour their text by it as they lay out.
+    m_window->requestLayout();
 }
 
 void FolderWindow::showContextMenu(ui::PointF position)

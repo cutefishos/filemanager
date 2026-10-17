@@ -8,6 +8,7 @@
 #include "base/event_loop.h"
 #include "base/url.h"
 #include "ui/application.h"
+#include "ui/color_provider.h"
 #include "ui/glyph_run.h"
 #include "ui/header_button.h"
 #include "ui/icon.h"
@@ -96,8 +97,7 @@ protected:
 
     void paint(ui::Painter& painter) override
     {
-        const ui::Color tint = ui::Theme::current().darkMode ? ui::Color {255, 255, 255, 255}
-                                                             : ui::Color {0x32, 0x32, 0x38, 255};
+        const ui::Color tint = ui::color(ui::ColorId::HeaderButtonTint);
         const double alpha = m_pressed ? 0.21 : isHovered() ? 0.14 : 0.07;
         painter.drawRoundedRect(localRect(), {geometry().height / 2, 0, ui::Corners::Circular},
                                 style::withAlpha(tint, alpha));

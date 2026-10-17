@@ -9,6 +9,7 @@
 #include "base/event_loop.h"
 #include "base/url.h"
 #include "ui/clipboard.h"
+#include "ui/color_provider.h"
 #include "ui/dialog_window.h"
 #include "ui/drag.h"
 #include "ui/icon.h"
@@ -235,7 +236,7 @@ protected:
             if (rejected)
                 fill = style::withAlpha(style::kDanger, 0.16);
             else if (pressed || dropTarget || menu)
-                fill = style::textAlpha(theme.darkMode ? 0.05 : 0.1);
+                fill = ui::color(ui::ColorId::ItemPressed);
             else if (checked)
                 fill = style::textAlpha(0.05);
             const double border = dropTarget || rejected || menu ? 2 : 0;
@@ -695,7 +696,6 @@ void SideBar::layout()
 
     const double top = m_headerHeight + kSmallSpacing;
     m_scroll->setGeometry({0, top, width, std::max(0.0, geometry().height - top)});
-    m_list->requestLayout();
 }
 
 void SideBar::paint(ui::Painter& painter)

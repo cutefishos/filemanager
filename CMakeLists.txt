@@ -115,6 +115,7 @@ target_link_libraries(fm-core PUBLIC Cutefish::Toolkit Cutefish::Files Cutefish:
 
 # The browser window, its views and dialogs.
 add_library(fm-ui STATIC
+    src/views/colors.cpp
     src/views/completionpopup.cpp
     src/views/foldermenu.cpp
     src/views/folderpage.cpp

@@ -6,6 +6,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "ui/color_provider.h"
 #include "ui/header_button.h"
 #include "ui/icon.h"
 #include "ui/label.h"
@@ -327,7 +328,7 @@ void FolderTabBar::paint(ui::Painter& painter)
     const ui::Color pressed = style::textAlpha(0.10);
     const ui::Color hover = style::textAlpha(0.05);
     // Translucent, so the tabs sliding aside show through the one being dragged.
-    const ui::Color selected = theme.darkMode ? ui::Color {255, 255, 255, 33} : ui::Color {255, 255, 255, 204};
+    const ui::Color selected = ui::color(ui::ColorId::WindowTabBarSelected);
 
     painter.save();
     // Crowded, the strip stays inside the track's pill.
@@ -354,9 +355,9 @@ void FolderTabBar::paint(ui::Painter& painter)
             fill = selected;
         else if (int(i) == m_hoverIndex || int(i) == m_springLoadIndex)
             fill = hover;
-        const double border = isSelected && !theme.darkMode ? 1 : 0;
-        if (fill.a || border)
-            painter.drawSmoothRectangle(rect, rect.height / 2, fill, border, ui::Color {0, 0, 0, 15});
+        const ui::Color edge = isSelected ? ui::color(ui::ColorId::WindowTabBarSelectedEdge) : ui::Color {0, 0, 0, 0};
+        if (fill.a || edge.a)
+            painter.drawSmoothRectangle(rect, rect.height / 2, fill, edge.a ? 1 : 0, edge);
         // The close button's plate, under its glyph.
         if (int(i) == m_hoverIndex && m_closeHovered && tab.close->isVisible())
             painter.fillRoundedRect(tab.close->geometry(), 8, m_closePressed ? pressed : hover);

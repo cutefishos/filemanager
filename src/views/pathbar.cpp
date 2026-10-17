@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "views/colors.h"
 #include "views/pathbar.h"
 #include "model/foldermodel.h"
 #include "views/completionpopup.h"
 #include "views/style.h"
 
+#include "ui/color_provider.h"
 #include "ui/icon.h"
 #include "ui/keys.h"
 #include "ui/label.h"
@@ -211,7 +213,7 @@ void Breadcrumbs::layout()
 void Breadcrumbs::paint(ui::Painter& painter)
 {
     const ui::Theme& theme = ui::Theme::current();
-    const ui::Color pressed = style::textAlpha(theme.darkMode ? 0.05 : 0.1);
+    const ui::Color pressed = ui::color(ui::ColorId::ItemPressed);
     const double height = geometry().height - 4;
     const double plate = highlightHeight();
     const auto drawPlate = [&](double x, double width) {
@@ -569,7 +571,7 @@ void PathBar::layout()
     // Lower than the header buttons, centred on them.
     const double height = 28;
     m_editor->setGeometry({0, centeredStart(rect.height, height), rect.width, height});
-    m_editor->setTextColor(theme.darkMode ? ui::Color::rgb(0xffffff) : ui::Color::rgb(0x000000));
+    m_editor->setTextColor(ui::color(FmColor::PathEditorText));
     const double clearX = rect.width - kSmallSpacing * 1.5 - 16;
     m_clear->setGeometry({clearX, centeredStart(rect.height, 16), 16, 16});
     static_cast<ui::Icon*>(m_clear)->setColor(theme.disabledText);
@@ -582,7 +584,7 @@ void PathBar::paint(ui::Painter& painter)
         return;
     const ui::Theme& theme = ui::Theme::current();
     const ui::RectF field = m_editor->geometry();
-    const ui::Color background = theme.darkMode ? theme.secondBackground.lighter(1.7) : theme.secondBackground;
+    const ui::Color background = ui::color(FmColor::PathEditorBackground);
     // A search left showing keeps a faint outline, so it still reads as a field.
     const ui::Color border = m_editor->hasFocus() ? theme.highlight : style::textAlpha(0.15);
     painter.drawRoundedRect(field, {theme.smallRadius, 0, ui::Corners::Circular}, background, 1, border);

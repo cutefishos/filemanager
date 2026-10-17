@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "views/colors.h"
 #include "views/folderview.h"
 #include "model/foldermodel.h"
 #include "views/renameeditor.h"
@@ -10,6 +11,7 @@
 #include "base/url.h"
 #include "ui/bitmap_painter.h"
 #include "ui/clipboard.h"
+#include "ui/color_provider.h"
 #include "ui/drag.h"
 #include "ui/header_backdrop.h"
 #include "ui/keys.h"
@@ -106,10 +108,9 @@ protected:
                                     style::withAlpha(white, 0.12), 1.0 / painter.scale(), style::withAlpha(white, 0.7));
             return;
         }
-        const ui::Color base = theme.darkMode ? ui::Color::rgb(0xffffff) : theme.disabledText;
         painter.drawRoundedRect(localRect(), {theme.smallRadius, 0, ui::Corners::Circular},
-                                style::withAlpha(base, theme.darkMode ? 0.12 : 0.08), 1.0 / painter.scale(),
-                                style::withAlpha(base, theme.darkMode ? 0.7 : 0.5));
+                                ui::color(FmColor::RubberBandFill), 1.0 / painter.scale(),
+                                ui::color(FmColor::RubberBandBorder));
     }
 
 private:
