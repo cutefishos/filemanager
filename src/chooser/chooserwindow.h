@@ -21,6 +21,7 @@ namespace fm {
 
 class ChooserRoot;
 class FileChooser;
+class UnlockVolumeDialog;
 
 // The places, the path bar, the list, the save
 // and type fields and the buttons, in a fixed window over the application
@@ -44,6 +45,7 @@ private:
     ChooserRoot* m_root = nullptr;
     std::unique_ptr<ui::ConfirmDialog> m_overwrite;
     std::unique_ptr<ui::ConfirmDialog> m_deviceError;
+    std::unique_ptr<UnlockVolumeDialog> m_unlock;
     std::unique_ptr<ui::DialogWindow> m_newFolder;
     std::vector<base::Subscription> m_subscriptions;
 };

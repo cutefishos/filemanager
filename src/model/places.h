@@ -21,8 +21,9 @@ struct Volume;
 namespace fm {
 
 // PlacesModel: the sidebar's rows. Favourites (kept in filemanager.conf
-// [Sidebar] favorites), the trash, disks under Locations and the phones and
-// servers cutefish-mountd serves, under Locations and Network.
+// [Sidebar] favorites), the trash, removable disks under Locations, internal
+// ones under Internal Drives, and the phones and servers cutefish-mountd
+// serves, under Locations and Network.
 class PlacesModel
 {
 public:
@@ -38,19 +39,23 @@ public:
         bool opticalDisc = false;
         bool canEject = false;
         bool hasFilesystem = false;
+        // An encrypted disk that takes a passphrase before it can be mounted.
+        bool locked = false;
         bool accessible = false;
 
         bool isDevice() const { return !udi.empty(); }
-        bool setupNeeded() const { return hasFilesystem && !accessible; }
+        bool setupNeeded() const { return (hasFilesystem || locked) && !accessible; }
         // A local path, or the URL for the trash.
         std::string path() const;
         // The name shown: "Computer" for the root folder.
         std::string displayName() const;
     };
 
-    // The volume manager on the system bus unless given; null leaves disks out (tests).
-    // filemanager.conf unless another settings file is given (tests).
-    explicit PlacesModel(bool volumes = true, std::string settingsFile = {});
+    // Disks from UDisks2 on the system bus unless another bus is given, or
+    // none (tests). filemanager.conf unless another settings file is given
+    // (tests).
+    explicit PlacesModel(bool volumes = true, std::string settingsFile = {},
+                         base::dbus::Connection* volumeBus = nullptr);
     ~PlacesModel();
 
     int count() const { return int(m_items.size()); }
@@ -64,6 +69,7 @@ public:
     bool dropInto(const std::vector<std::string>& urls, int row, uint32_t action);
     void removeFavorite(int row);
 
+    // A locked disk asks for its passphrase through passphraseRequested.
     void requestSetup(int row);
     void requestEject(int row);
     void requestTeardown(int row);
@@ -76,6 +82,8 @@ public:
                         const std::string& password, bool anonymous, bool remember);
     void acceptHostKey(const std::string& address, const std::string& fingerprint);
     void cancelConnection(const std::string& address);
+    // Unlocks the encrypted disk and mounts it; a wrong passphrase asks again.
+    void answerPassphrase(const std::string& udi, const std::string& passphrase);
 
     base::Signal<> changed;
     base::Signal<> favoritesChanged;
@@ -86,6 +94,8 @@ public:
     base::Signal<std::string, std::string, std::string, bool, bool, bool> passwordRequested;
     // address, fingerprint, changed
     base::Signal<std::string, std::string, bool> hostKeyRequested;
+    // udi, name, retry
+    base::Signal<std::string, std::string, bool> passphraseRequested;
 
 private:
     std::string m_settingsFile;

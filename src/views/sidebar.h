@@ -26,6 +26,7 @@ class ConnectServerDialog;
 class PlacesModel;
 class ServerPasswordDialog;
 class SidebarList;
+class UnlockVolumeDialog;
 
 // The window's title over the places, favourites first, which
 // take drops and reorder by dragging.
@@ -61,11 +62,13 @@ private:
     void askPassword(std::string address, std::string user, std::string domain, bool needsDomain,
                      bool anonymousAllowed, bool retry);
     void askHostKey(const std::string& address, const std::string& fingerprint, bool changed);
+    void askPassphrase(std::string udi, std::string name, bool retry);
     void showDeviceError(const std::string& message);
 
     std::unique_ptr<PlacesModel> m_places;
     std::unique_ptr<ConnectServerDialog> m_connectDialog;
     std::vector<std::unique_ptr<ServerPasswordDialog>> m_passwordDialogs;
+    std::vector<std::unique_ptr<UnlockVolumeDialog>> m_unlockDialogs;
     std::vector<std::unique_ptr<ui::ConfirmDialog>> m_confirmDialogs;
     double m_headerHeight;
     ui::Label* m_title;

@@ -30,6 +30,7 @@ using cutefish::base::paths::UserDirectory;
 
 static const char kFavorites[] = "Favorites";
 static const char kLocations[] = "Locations";
+static const char kInternalDrives[] = "Internal Drives";
 static const char kNetwork[] = "Network";
 
 static std::string settingsPath()
@@ -74,7 +75,7 @@ std::string PlacesModel::Place::displayName() const
     return path() == "/" ? std::string("Computer") : name;
 }
 
-PlacesModel::PlacesModel(bool volumes, std::string settingsFile)
+PlacesModel::PlacesModel(bool volumes, std::string settingsFile, base::dbus::Connection* volumeBus)
     : m_settingsFile(settingsFile.empty() ? settingsPath() : std::move(settingsFile))
 {
     using base::paths::userDirectory;
@@ -115,14 +116,15 @@ PlacesModel::PlacesModel(bool volumes, std::string settingsFile)
         place.category = kFavorites;
 
     if (volumes) {
-        m_volumes = std::make_unique<files::VolumeManager>();
+        m_volumes = volumeBus ? std::make_unique<files::VolumeManager>(volumeBus)
+                              : std::make_unique<files::VolumeManager>();
         m_subscriptions.push_back(m_volumes->volumeAdded.connect([this](const std::string& id) { deviceAdded(id); }));
         m_subscriptions.push_back(
                 m_volumes->volumeRemoved.connect([this](const std::string& id) { deviceRemoved(id); }));
         m_subscriptions.push_back(m_volumes->volumeChanged.connect([this](const std::string& id) { deviceAdded(id); }));
         m_subscriptions.push_back(m_volumes->operationFinished.connect(
                 [this](const std::string& id, const std::string& operation, const std::string& path) {
-                    if (operation != "mount" || path.empty())
+                    if ((operation != "mount" && operation != "unlock") || path.empty())
                         return;
                     for (Place& place : m_items) {
                         if (place.udi != id)
@@ -139,6 +141,9 @@ PlacesModel::PlacesModel(bool volumes, std::string settingsFile)
                 [this](const std::string&, const std::string&, const std::string& message) {
                     deviceOperationFailed.emit(message);
                 }));
+        m_subscriptions.push_back(m_volumes->passphraseRejected.connect([this](const std::string& id) {
+            passphraseRequested.emit(id, m_volumes->volume(id).name, true);
+        }));
     }
 
     Place trash;
@@ -168,6 +173,7 @@ void PlacesModel::setVolume(Place& place, const files::Volume& volume)
     place.opticalDisc = volume.optical;
     place.canEject = volume.ejectable || volume.canPowerOff;
     place.hasFilesystem = volume.filesystem;
+    place.locked = volume.locked();
     place.accessible = !volume.mountPoints.empty();
     place.url = place.accessible ? base::url::fromLocalFile(volume.mountPoints.front()) : std::string();
 }
@@ -211,22 +217,29 @@ void PlacesModel::syncMounts()
     changed.emit();
 }
 
-// Sections need their rows together: Locations come before Network.
+// Sections need their rows together: Locations, then Internal Drives, then Network.
+static int sectionOrder(const std::string& category)
+{
+    if (category == kNetwork)
+        return 3;
+    if (category == kInternalDrives)
+        return 2;
+    return category == kLocations ? 1 : 0;
+}
+
 void PlacesModel::insertLocation(Place place, const std::string& category)
 {
     place.category = category;
-    auto at = m_items.end();
-    if (category != kNetwork) {
-        at = std::find_if(m_items.begin(), m_items.end(),
-                          [](const Place& existing) { return existing.category == kNetwork; });
-    }
+    const auto at = std::find_if(m_items.begin(), m_items.end(), [&category](const Place& existing) {
+        return sectionOrder(existing.category) > sectionOrder(category);
+    });
     m_items.insert(at, std::move(place));
 }
 
 void PlacesModel::deviceAdded(const std::string& id)
 {
     const files::Volume volume = m_volumes->volume(id);
-    if (!volume.filesystem && !volume.optical) {
+    if (!volume.filesystem && !volume.optical && !volume.locked()) {
         deviceRemoved(id);
         return;
     }
@@ -239,7 +252,7 @@ void PlacesModel::deviceAdded(const std::string& id)
     }
     Place place;
     setVolume(place, volume);
-    insertLocation(place, kLocations);
+    insertLocation(place, volume.system ? kInternalDrives : kLocations);
     changed.emit();
 }
 
@@ -345,6 +358,12 @@ void PlacesModel::acceptHostKey(const std::string& address, const std::string& f
 void PlacesModel::cancelConnection(const std::string& address)
 {
     m_connecting.erase(address);
+}
+
+void PlacesModel::answerPassphrase(const std::string& udi, const std::string& passphrase)
+{
+    if (m_volumes)
+        m_volumes->unlock(udi, passphrase);
 }
 
 bool PlacesModel::canAddFavorites(const std::vector<std::string>& urls) const
@@ -462,6 +481,10 @@ void PlacesModel::requestSetup(int row)
     if (row < 0 || row >= count() || !at(row).isDevice())
         return;
     const std::string id = at(row).udi;
+    if (at(row).locked) {
+        passphraseRequested.emit(id, at(row).name, false);
+        return;
+    }
     if (!isMountId(id)) {
         if (m_volumes)
             m_volumes->mount(id);

@@ -26,7 +26,8 @@ target_link_libraries(filemanager-capture PRIVATE fm-ui)
 # The models and the UI on a headless application, on a bus of their own.
 add_executable(filemanager-tests testmain.cpp chooser_test.cpp foldermodel_test.cpp places_test.cpp preview_test.cpp
     desktopmenu_test.cpp launcher_test.cpp positioner_test.cpp shortcut_test.cpp header_test.cpp)
-target_link_libraries(filemanager-tests PRIVATE fm-ui GTest::gtest)
+pkg_check_modules(FilemanagerTestSystemd REQUIRED IMPORTED_TARGET libsystemd)
+target_link_libraries(filemanager-tests PRIVATE fm-ui GTest::gtest PkgConfig::FilemanagerTestSystemd)
 add_test(NAME filemanager
          COMMAND ${DBUS_RUN_SESSION_EXECUTABLE} --config-file=${CMAKE_CURRENT_SOURCE_DIR}/dbus-session.conf
                  -- $<TARGET_FILE:filemanager-tests>)

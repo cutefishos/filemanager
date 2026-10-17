@@ -136,6 +136,7 @@ add_library(fm-ui STATIC
     src/dialogs/openwithdialog.cpp
     src/dialogs/propertiesdialog.cpp
     src/dialogs/serverdialogs.cpp
+    src/dialogs/unlockdialog.cpp
     src/chooser/chooserwindow.cpp
     src/desktop/desktopmenuexporter.cpp
     src/desktop/desktopview.cpp

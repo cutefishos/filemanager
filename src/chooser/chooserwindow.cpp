@@ -3,6 +3,7 @@
 
 #include "chooser/chooserwindow.h"
 #include "chooser/filechooser.h"
+#include "dialogs/unlockdialog.h"
 #include "model/pathbarmodel.h"
 #include "model/places.h"
 #include "views/colors.h"
@@ -417,6 +418,11 @@ public:
         m_subscriptions.push_back(chooser.folder().statusChanged.connect([this] { updateBusy(); }));
         m_subscriptions.push_back(m_places->changed.connect([this] { places->rebuild(); }));
         m_subscriptions.push_back(m_places->deviceSetupDone.connect([this](const std::string& path) { m_chooser.navigate(path); }));
+        m_subscriptions.push_back(m_places->passphraseRequested.connect([this](std::string udi, std::string name, bool retry) {
+            m_owner->m_unlock = std::make_unique<UnlockVolumeDialog>(this->window(), *m_places, std::move(udi),
+                                                                     std::move(name), retry);
+            m_owner->m_unlock->show();
+        }));
         m_subscriptions.push_back(m_places->deviceOperationFailed.connect([this](const std::string& message) {
             m_owner->m_deviceError = std::make_unique<ui::ConfirmDialog>(this->window(), "Device unavailable", message);
             m_owner->m_deviceError->setConfirmText("Close");

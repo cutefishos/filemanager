@@ -3,6 +3,7 @@
 
 #include "views/sidebar.h"
 #include "dialogs/serverdialogs.h"
+#include "dialogs/unlockdialog.h"
 #include "model/places.h"
 #include "views/style.h"
 
@@ -551,6 +552,10 @@ SideBar::SideBar(double headerHeight)
             [this](const std::string& address, const std::string& fingerprint, bool changed) {
                 askHostKey(address, fingerprint, changed);
             }));
+    m_subscriptions.push_back(m_places->passphraseRequested.connect(
+            [this](std::string udi, std::string name, bool retry) {
+                askPassphrase(std::move(udi), std::move(name), retry);
+            }));
     m_subscriptions.push_back(m_places->deviceOperationFailed.connect(
             [this](const std::string& message) { showDeviceError(message); }));
     m_list->rebuild();
@@ -593,6 +598,23 @@ void SideBar::askPassword(std::string address, std::string user, std::string dom
         base::EventLoop::current()->post([gone] {});
     };
     m_passwordDialogs.push_back(std::move(dialog));
+    raw->show();
+}
+
+void SideBar::askPassphrase(std::string udi, std::string name, bool retry)
+{
+    auto dialog = std::make_unique<UnlockVolumeDialog>(window(), *m_places, std::move(udi), std::move(name), retry);
+    UnlockVolumeDialog* raw = dialog.get();
+    raw->onDone = [this, raw] {
+        auto it = std::find_if(m_unlockDialogs.begin(), m_unlockDialogs.end(),
+                               [raw](const auto& dialog) { return dialog.get() == raw; });
+        if (it == m_unlockDialogs.end())
+            return;
+        std::shared_ptr<UnlockVolumeDialog> gone(std::move(*it));
+        m_unlockDialogs.erase(it);
+        base::EventLoop::current()->post([gone] {});
+    };
+    m_unlockDialogs.push_back(std::move(dialog));
     raw->show();
 }
 
