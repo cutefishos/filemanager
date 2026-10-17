@@ -57,7 +57,7 @@ public:
     const std::vector<std::unique_ptr<FolderWindow>>& windows() const { return m_windows; }
 
     // FileManagerHost.
-    void openFolderWindow(const FolderPage::Start& start, ui::Window* from) override;
+    FolderWindow* openFolderWindow(const FolderPage::Start& start, ui::Window* from) override;
     void openFolders(const std::vector<std::string>& paths) override;
     void showProperties(const FileItemList& items, ui::Window* parent) override;
     void showOpenWith(const std::string& url, ui::Window* parent) override;

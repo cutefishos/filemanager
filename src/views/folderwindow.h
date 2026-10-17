@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -20,11 +21,11 @@ class HeaderButton;
 class Menu;
 class Toast;
 class Window;
+class WindowTabBar;
 }
 
 namespace fm {
 
-class FolderTabBar;
 class FolderWindowRoot;
 class PathBar;
 class SideBar;
@@ -35,7 +36,8 @@ class FileManagerHost
 public:
     virtual ~FileManagerHost() = default;
 
-    virtual void openFolderWindow(const FolderPage::Start& start, ui::Window* from) = 0;
+    // Shown at once; with `from`, at its size rather than the one restored.
+    virtual class FolderWindow* openFolderWindow(const FolderPage::Start& start, ui::Window* from) = 0;
     virtual void openFolders(const std::vector<std::string>& paths) = 0;
     virtual void showProperties(const FileItemList& items, ui::Window* parent) = 0;
     virtual void showOpenWith(const std::string& url, ui::Window* parent) = 0;
@@ -51,7 +53,8 @@ public:
 class FolderWindow : public FolderModelHost
 {
 public:
-    FolderWindow(FileManagerHost* host, const FolderPage::Start& start);
+    // An empty size restores the last window's.
+    FolderWindow(FileManagerHost* host, const FolderPage::Start& start, ui::SizeF size = {});
     ~FolderWindow() override;
 
     ui::Window& window() const { return *m_window; }
@@ -78,17 +81,22 @@ public:
 
     // The header's height: buttons 32 with 4 above and below.
     static constexpr double kHeaderInset = 40;
+    static constexpr double kTabBarHeight = 38;
 
 private:
     friend class FolderWindowRoot;
 
     struct Tab
     {
-        int id;
         FolderPage* page;
         std::vector<base::Subscription> subscriptions;
     };
 
+    void insertTab(Tab tab, int index);
+    void detachTab(int index, ui::PointF position);
+    void adoptTab(FolderWindow* source, int index);
+    void setIncoming(bool incoming);
+    void showTabMenu(int index, ui::PointF position);
     void syncNavigation();
     void updateHeader();
     void updateBackground();
@@ -103,13 +111,20 @@ private:
     FolderWindowRoot* m_root = nullptr;
     SideBar* m_sidebar = nullptr;
     PathBar* m_pathBar = nullptr;
-    FolderTabBar* m_tabBar = nullptr;
+    ui::WindowTabBar* m_tabBar = nullptr;
     ui::HeaderButton* m_back = nullptr;
     ui::HeaderButton* m_forward = nullptr;
     ui::HeaderButton* m_options = nullptr;
     std::vector<Tab> m_tabs;
     int m_currentTab = 0;
-    int m_nextTabId = 1;
+    // A tab pulled out into the window it is carried in, kept until the drag
+    // ends so that Escape or a drop back here puts it back as it was.
+    std::optional<Tab> m_detachedTab;
+    int m_detachedIndex = -1;
+    FolderWindow* m_detachedWindow = nullptr;
+    bool m_detaching = false;
+    bool m_incoming = false;
+    bool m_closed = false;
     std::unique_ptr<ui::Menu> m_menu;
     std::unique_ptr<ui::Toast> m_toast;
     std::unique_ptr<class ArchiveProgressDialog> m_archiveDialog;

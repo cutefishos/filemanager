@@ -243,12 +243,13 @@ FolderWindow* Application::openWindow(const std::string& path, const std::vector
     return raw;
 }
 
-void Application::openFolderWindow(const FolderPage::Start& start, ui::Window*)
+FolderWindow* Application::openFolderWindow(const FolderPage::Start& start, ui::Window* from)
 {
-    auto window = std::make_unique<FolderWindow>(this, start);
+    auto window = std::make_unique<FolderWindow>(this, start, from ? from->size() : ui::SizeF {});
     FolderWindow* raw = window.get();
     m_windows.push_back(std::move(window));
     raw->show();
+    return raw;
 }
 
 void Application::openFolders(const std::vector<std::string>& paths)

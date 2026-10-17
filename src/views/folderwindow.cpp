@@ -10,7 +10,6 @@
 #include "views/pathbar.h"
 #include "views/sidebar.h"
 #include "views/style.h"
-#include "views/tabbar.h"
 
 #include "base/event_loop.h"
 #include "ui/color_provider.h"
@@ -24,8 +23,10 @@
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
 #include "ui/toast.h"
+#include "ui/drag.h"
 #include "ui/window.h"
 #include "ui/window_header.h"
+#include "ui/window_tab_bar.h"
 
 #include <algorithm>
 #include <cmath>
@@ -42,6 +43,8 @@ static constexpr double kButtonsTopMargin = 4;
 static constexpr double kBarHeight = 34;
 static constexpr double kMinimumWidth = 600;
 static constexpr double kMinimumContentWidth = kMinimumWidth - SideBar::kDefaultWidth;
+static constexpr double kNewTabButtonSize = 28;
+static constexpr const char* kTabMimeType = "application/x-cutefish-filemanager-tab";
 
 // Where a search looks, home or the folder it started from.
 class SearchScopeBar : public ui::View
@@ -343,7 +346,14 @@ public:
         sidebar = addChild<SideBar>(FolderWindow::kHeaderInset);
         pages = addChild<ui::View>();
         pages->setName("pages");
-        tabBar = addChild<FolderTabBar>();
+        tabBar = addChild<ui::WindowTabBar>();
+        tabBar->setName("folderTabBar");
+        tabBar->setTabWidthRange(140, 0);
+        tabBar->setTrackInsets({kSmallSpacing, 4, kSmallSpacing + kNewTabButtonSize + kSmallSpacing, 4});
+        tabBar->setPressedFeedback(true);
+        newTab = addChild<ui::HeaderButton>("add", kNewTabButtonSize);
+        newTab->setName("newTab");
+        newTab->setPlateAlphas({0.05, 0.10}, {0.05, 0.10});
         scopeBar = addChild<SearchScopeBar>();
         trashBar = addChild<TrashBar>();
         header = addChild<ui::WindowHeader>(FolderWindow::kHeaderInset);
@@ -367,7 +377,8 @@ public:
     SidebarDivider* divider;
     double sidebarWidth;
     ui::View* pages;
-    FolderTabBar* tabBar;
+    ui::WindowTabBar* tabBar;
+    ui::HeaderButton* newTab;
     SearchScopeBar* scopeBar;
     TrashBar* trashBar;
     ui::WindowHeader* header;
@@ -378,7 +389,7 @@ public:
 
     double barsHeight() const
     {
-        return FolderWindow::kHeaderInset + (tabsShown ? FolderTabBar::kHeight : 0) + (scopeShown ? kBarHeight : 0)
+        return FolderWindow::kHeaderInset + (tabsShown ? FolderWindow::kTabBarHeight : 0) + (scopeShown ? kBarHeight : 0)
                 + (trashShown ? kBarHeight : 0);
     }
 
@@ -403,9 +414,14 @@ protected:
             page->setGeometry({0, 0, content.width, content.height});
 
         double y = FolderWindow::kHeaderInset;
+        const double tabBarHeight = tabsShown ? FolderWindow::kTabBarHeight : 0;
         tabBar->setVisible(tabsShown);
-        tabBar->setGeometry({left, y, content.width, tabsShown ? FolderTabBar::kHeight : 0});
-        y += tabsShown ? FolderTabBar::kHeight : 0;
+        tabBar->setGeometry({left, y, content.width, tabBarHeight});
+        newTab->setVisible(tabsShown);
+        newTab->setGeometry({left + content.width - kSmallSpacing - kNewTabButtonSize,
+                             y + centeredStart(tabBarHeight, kNewTabButtonSize), kNewTabButtonSize,
+                             kNewTabButtonSize});
+        y += tabBarHeight;
         scopeBar->setVisible(scopeShown);
         scopeBar->setGeometry({left, y, content.width, scopeShown ? kBarHeight : 0});
         y += scopeShown ? kBarHeight : 0;
@@ -415,18 +431,82 @@ protected:
         header->setGeometry({0, 0, width, FolderWindow::kHeaderInset});
     }
 
+    // Takes a tab pulled out of a window of this process over the header or
+    // the tabs; while it is there the tab bar shows it where it would drop.
+    bool canDrop(const ui::DropOffer& offer) const override
+    {
+        return sourceOf(offer) != nullptr;
+    }
+
+    void dragEnter(const ui::DragEvent& event) override
+    {
+        dragUpdate(event);
+    }
+
+    uint32_t dragUpdate(const ui::DragEvent& event) override
+    {
+        const double bottom = FolderWindow::kHeaderInset + (tabsShown ? FolderWindow::kTabBarHeight : 0);
+        const bool over = event.position.y < bottom;
+        const double x = event.position.x - tabBar->geometry().x;
+        if (over && !m_window->m_incoming) {
+            FolderWindow* source = sourceOf(*event.offer);
+            FolderPage* page = source ? source->currentPage() : nullptr;
+            m_window->setIncoming(true);
+            tabBar->beginIncoming(page ? page->tabTitle() : std::string(), x);
+        } else if (over) {
+            tabBar->setIncomingX(x);
+        } else if (m_window->m_incoming) {
+            dragLeave();
+        }
+        return over ? ui::MoveAction : ui::NoAction;
+    }
+
+    void dragLeave() override
+    {
+        if (!m_window->m_incoming)
+            return;
+        tabBar->endIncoming(false);
+        m_window->setIncoming(false);
+    }
+
+    uint32_t drop(const ui::DragEvent& event) override
+    {
+        FolderWindow* source = sourceOf(*event.offer);
+        if (!source || !m_window->m_incoming) {
+            dragLeave();
+            return ui::NoAction;
+        }
+        const int index = tabBar->incomingIndex();
+        tabBar->endIncoming(true);
+        m_window->m_incoming = false;
+        m_window->adoptTab(source, index);
+        return ui::MoveAction;
+    }
+
 private:
+    FolderWindow* sourceOf(const ui::DropOffer& offer) const
+    {
+        const ui::DragSource* source = offer.localSource();
+        if (!source || !offer.hasMimeType(kTabMimeType) || source->context == m_window)
+            return nullptr;
+        return static_cast<FolderWindow*>(const_cast<void*>(source->context));
+    }
+
     FolderWindow* m_window;
 };
 
-FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start)
+FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start, ui::SizeF size)
     : m_host(host)
     , m_window(std::make_unique<ui::Window>())
 {
     m_window->setTitle("Files");
-    m_window->resize({900, 580});
     m_window->setMinimumSize({kMinimumWidth, 500});
-    m_window->setRestoresSize("main");
+    if (size.width > 0 && size.height > 0) {
+        m_window->resize(size);
+    } else {
+        m_window->resize({900, 580});
+        m_window->setRestoresSize("main");
+    }
 
     auto root = std::make_unique<FolderWindowRoot>(this);
     m_root = root.get();
@@ -479,17 +559,22 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
             page->model().openInNewWindow(path);
     };
 
-    m_tabBar->onSelected = [this](int index) { setCurrentTab(index); };
-    m_tabBar->onCloseRequested = [this](int index) { closeTab(index); };
-    m_tabBar->onNewRequested = [this] {
+    m_root->newTab->onClicked = [this] {
         if (FolderPage* page = currentPage())
             openTab(page->currentUrl());
     };
-    m_tabBar->onDuplicateRequested = [this](int index) {
-        if (index >= 0 && index < int(m_tabs.size()))
-            openTab(m_tabs[size_t(index)].page->currentUrl());
-    };
+    m_tabBar->onCurrentChanged = [this](int index) { setCurrentTab(index); };
+    m_tabBar->onCloseRequested = [this](int index) { closeTab(index); };
     m_tabBar->onMoveRequested = [this](int from, int to) { moveTab(from, to); };
+    m_tabBar->onContextMenuRequested = [this](int index, ui::PointF position) { showTabMenu(index, position); };
+    m_tabBar->onDetachRequested = [this](int index, ui::PointF position) {
+        // Later, not from inside the tab bar's own handler: taking the tab out
+        // changes the tabs it is running over.
+        base::EventLoop::current()->post([this, alive = m_alive, index, position] {
+            if (*alive)
+                detachTab(index, position);
+        });
+    };
 
     m_window->onActiveChanged = [this] {
         updateBackground();
@@ -525,6 +610,7 @@ void FolderWindow::show()
 void FolderWindow::close()
 {
     // The window goes on the next turn, not from inside its own handlers.
+    m_closed = true;
     m_window->hide();
     base::EventLoop::current()->post([this, alive = m_alive] {
         if (*alive)
@@ -561,7 +647,7 @@ void FolderWindow::openTabSelecting(const FolderPage::Start& start, int index)
     FolderPage* raw = page.get();
     m_root->pages->addChild(std::move(page));
 
-    Tab tab {m_nextTabId++, raw, {}};
+    Tab tab {raw, {}};
     tab.subscriptions.push_back(raw->currentUrlChanged.connect([this, raw] {
         if (currentPage() == raw)
             syncNavigation();
@@ -588,10 +674,132 @@ void FolderWindow::openTabSelecting(const FolderPage::Start& start, int index)
     raw->onRequestPathEditor = [this] { m_pathBar->openEditor(); };
     raw->onContextMenu = [this](ui::PointF position) { showContextMenu(position); };
 
-    const int at = index < 0 || index > int(m_tabs.size()) ? int(m_tabs.size()) : index;
+    insertTab(std::move(tab), index < 0 || index > int(m_tabs.size()) ? int(m_tabs.size()) : index);
+}
+
+void FolderWindow::insertTab(Tab tab, int index)
+{
+    const int at = std::clamp(index, 0, int(m_tabs.size()));
+    const std::string title = tab.page->tabTitle();
     m_tabs.insert(m_tabs.begin() + at, std::move(tab));
+    m_tabBar->insertTab(at, title);
     m_currentTab = at;
     syncNavigation();
+}
+
+// Opens the tab in a window of its own, which follows the pointer until it is
+// dropped; Escape puts the tab back. `position` is the pointer in this window.
+void FolderWindow::detachTab(int index, ui::PointF position)
+{
+    if (index < 0 || index >= tabCount() || tabCount() < 2 || m_detachedTab) {
+        m_tabBar->cancelDetach();
+        return;
+    }
+
+    m_detaching = true;
+    m_detachedIndex = index;
+    m_detachedTab = std::move(m_tabs[size_t(index)]);
+    m_tabs.erase(m_tabs.begin() + index);
+    m_tabBar->removeTab(index);
+    m_currentTab = std::max(0, m_currentTab - (index <= m_currentTab ? 1 : 0));
+    FolderPage* page = m_detachedTab->page;
+    page->setVisible(false);
+    syncNavigation();
+
+    const FolderModel::TabState state = page->model().tabState();
+    FolderWindow* detached = m_host->openFolderWindow({page->currentUrl(), state.selection, state.back, state.forward},
+                                                      m_window.get());
+    const auto putBack = [this] {
+        Tab tab = std::move(*m_detachedTab);
+        m_detachedTab.reset();
+        m_detachedWindow = nullptr;
+        m_detaching = false;
+        insertTab(std::move(tab), m_detachedIndex);
+    };
+    if (!detached) {
+        putBack();
+        return;
+    }
+    m_detachedWindow = detached;
+
+    // The pointer stays over the new window's header, as far across as it
+    // is over this one.
+    ui::DragSource source;
+    source.mimeTypes = {kTabMimeType};
+    source.data = [](const std::string&) { return std::string(); };
+    source.actions = ui::MoveAction;
+    source.attachedWindow = &detached->window();
+    source.attachedOffset = {std::min(position.x, detached->window().size().width - 1), kHeaderInset / 2};
+    source.context = detached;
+
+    // Escape puts the tab back; let go anywhere, it stays in its window.
+    source.onEnded = [this, alive = m_alive, detached, detachedAlive = detached->m_alive,
+                      putBack](ui::DropAction, bool dropped) {
+        if (!*alive)
+            return;
+        m_detaching = false;
+        const bool open = *detachedAlive && !detached->m_closed;
+        if (m_detachedTab && !dropped && open) {
+            detached->close();
+            putBack();
+            return;
+        }
+        if (m_detachedTab) {
+            std::shared_ptr<ui::View> gone = m_root->pages->takeChild(m_detachedTab->page);
+            base::EventLoop::current()->post([gone] {});
+            m_detachedTab.reset();
+        }
+        m_detachedWindow = nullptr;
+        updateHeader();
+        if (open)
+            detached->window().activate();
+    };
+
+    if (!m_tabBar->startDrag(std::move(source))) {
+        detached->close();
+        putBack();
+        return;
+    }
+    updateHeader();
+}
+
+// Takes the tab of a window pulled out of another, which closes; the window
+// it came from gets its own tab back as it was.
+void FolderWindow::adoptTab(FolderWindow* source, int index)
+{
+    if (index < 0)
+        index = tabCount();
+    if (m_detachedTab && m_detachedWindow == source) {
+        Tab tab = std::move(*m_detachedTab);
+        m_detachedTab.reset();
+        m_detachedWindow = nullptr;
+        insertTab(std::move(tab), index);
+    } else if (FolderPage* page = source->currentPage()) {
+        const FolderModel::TabState state = page->model().tabState();
+        openTabSelecting({page->currentUrl(), state.selection, state.back, state.forward}, index);
+    }
+    source->close();
+    updateHeader();
+    m_window->activate();
+}
+
+void FolderWindow::setIncoming(bool incoming)
+{
+    m_incoming = incoming;
+    updateHeader();
+}
+
+void FolderWindow::showTabMenu(int index, ui::PointF position)
+{
+    if (index < 0 || index >= tabCount())
+        return;
+    m_menu = std::make_unique<ui::Menu>();
+    m_menu->addItem("Open In New Tab", [this, index] {
+        if (index < tabCount())
+            openTab(m_tabs[size_t(index)].page->currentUrl());
+    });
+    m_menu->addItem("Close Tab", [this, index] { closeTab(index); });
+    m_menu->popup(m_window.get(), position);
 }
 
 void FolderWindow::closeTab(int index)
@@ -604,6 +812,7 @@ void FolderWindow::closeTab(int index)
     }
     FolderPage* page = m_tabs[size_t(index)].page;
     m_tabs.erase(m_tabs.begin() + index);
+    m_tabBar->removeTab(index);
     m_currentTab = std::max(0, m_currentTab - (index <= m_currentTab ? 1 : 0));
     std::shared_ptr<ui::View> gone = m_root->pages->takeChild(page);
     base::EventLoop::current()->post([gone] {});
@@ -629,6 +838,7 @@ void FolderWindow::moveTab(int from, int to)
     Tab tab = std::move(m_tabs[size_t(from)]);
     m_tabs.erase(m_tabs.begin() + from);
     m_tabs.insert(m_tabs.begin() + to, std::move(tab));
+    m_tabBar->moveTab(from, to);
     for (size_t i = 0; i < m_tabs.size(); ++i) {
         if (m_tabs[i].page == active)
             m_currentTab = int(i);
@@ -657,11 +867,13 @@ void FolderWindow::syncNavigation()
 
 void FolderWindow::updateTabBar()
 {
-    std::vector<std::pair<int, std::string>> tabs;
-    for (const Tab& tab : m_tabs)
-        tabs.push_back({tab.id, tab.page->tabTitle()});
-    m_tabBar->setTabs(tabs);
-    m_tabBar->setCurrentIndex(m_currentTab);
+    for (int i = 0; i < tabCount() && i < m_tabBar->count(); ++i) {
+        const std::string title = m_tabs[size_t(i)].page->tabTitle();
+        if (m_tabBar->tabTitle(i) != title)
+            m_tabBar->setTabTitle(i, title);
+    }
+    if (m_tabBar->currentIndex() != m_currentTab)
+        m_tabBar->setCurrentIndex(m_currentTab);
 }
 
 double FolderWindow::headerHeight() const
@@ -678,7 +890,9 @@ void FolderWindow::updateHeader()
     m_back->setEnabled(model.canGoBack());
     m_forward->setEnabled(model.canGoForward());
 
-    m_root->tabsShown = m_tabs.size() > 1;
+    // A tab being dragged out or in keeps the bar up even with one tab, so
+    // it can be dragged back.
+    m_root->tabsShown = m_tabs.size() > 1 || m_incoming || m_detaching;
     m_root->scopeShown = !model.searchText().empty();
     m_root->trashShown = model.isTrash() && model.searchText().empty();
     m_root->scopeBar->setModel(&model, page->folderName());

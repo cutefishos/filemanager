@@ -129,7 +129,6 @@ add_library(fm-ui STATIC
     src/views/renameeditor.cpp
     src/views/sidebar.cpp
     src/views/style.cpp
-    src/views/tabbar.cpp
     src/dialogs/archivepassworddialog.cpp
     src/dialogs/archiveprogressdialog.cpp
     src/dialogs/framelessdialog.cpp

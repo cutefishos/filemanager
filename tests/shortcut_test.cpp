@@ -46,7 +46,7 @@ public:
 class WindowHost : public fm::FileManagerHost
 {
 public:
-    void openFolderWindow(const fm::FolderPage::Start&, ui::Window*) override {}
+    fm::FolderWindow* openFolderWindow(const fm::FolderPage::Start&, ui::Window*) override { return nullptr; }
     void openFolders(const std::vector<std::string>&) override {}
     void showProperties(const fm::FileItemList&, ui::Window*) override {}
     void showOpenWith(const std::string&, ui::Window*) override {}
