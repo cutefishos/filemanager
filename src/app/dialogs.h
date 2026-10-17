@@ -54,8 +54,9 @@ private:
 
     void add(std::unique_ptr<FramelessDialog> dialog, ui::Window* parent);
     void remove(FramelessDialog* dialog);
-    void confirm(ui::Window* parent, std::string title, std::string text, std::string confirmText, bool destructive,
-                 std::function<void()> accepted);
+    // The dialog, shown.
+    ui::ConfirmDialog* confirm(ui::Window* parent, std::string title, std::string text, std::string confirmText,
+                               bool destructive, std::function<void()> accepted);
     void removeConfirm(ui::ConfirmDialog* dialog);
 
     std::vector<std::pair<std::unique_ptr<FramelessDialog>, ui::Window*>> m_dialogs;

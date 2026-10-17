@@ -49,8 +49,16 @@ void Dialogs::confirmDelete(const std::vector<std::string>& urls, ui::Window* pa
 
 void Dialogs::confirmEmptyTrash(ui::Window* parent)
 {
-    confirm(parent, "Empty Trash", "Do you want to permanently delete all files from the Trash?", "Empty Trash",
-            true, [] { OperationsClient::instance().emptyTrash(); });
+    ui::ConfirmDialog* dialog =
+            confirm(parent, "Empty Trash", "Do you want to permanently delete all files from the Trash?",
+                    "Empty Trash", true, [] { OperationsClient::instance().emptyTrash(); });
+    // Opened from the dock or the desktop it has no window of the file
+    // manager's to belong to: it stays off the task list and the menu bar,
+    // and above other windows.
+    if (ui::Window* window = dialog->window()) {
+        window->setSkipTaskbar(true);
+        window->setAlwaysOnTop(true);
+    }
 }
 
 void Dialogs::confirmLaunch(const std::string& path, ui::Window* parent)
@@ -138,8 +146,8 @@ void Dialogs::remove(FramelessDialog* dialog)
         onChanged();
 }
 
-void Dialogs::confirm(ui::Window* parent, std::string title, std::string text, std::string confirmText,
-                      bool destructive, std::function<void()> accepted)
+ui::ConfirmDialog* Dialogs::confirm(ui::Window* parent, std::string title, std::string text,
+                                    std::string confirmText, bool destructive, std::function<void()> accepted)
 {
     auto dialog = std::make_unique<ui::ConfirmDialog>(parent, std::move(title), std::move(text));
     ui::ConfirmDialog* raw = dialog.get();
@@ -155,6 +163,7 @@ void Dialogs::confirm(ui::Window* parent, std::string title, std::string text, s
     raw->show();
     if (onChanged)
         onChanged();
+    return raw;
 }
 
 void Dialogs::removeConfirm(ui::ConfirmDialog* dialog)
