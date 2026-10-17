@@ -220,6 +220,8 @@ public:
     base::Signal<> urlChanged;
     // A rename was asked for: the file shows under the second URL once done.
     base::Signal<std::string, std::string> renaming;
+    // That rename failed or was cancelled: the file keeps its first URL.
+    base::Signal<std::string, std::string> renameFailed;
     base::Signal<> statusChanged;
     base::Signal<> historyChanged;
     base::Signal<> selectionChanged;

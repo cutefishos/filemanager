@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <set>
 
 using namespace cutefish;
 using fm::FolderModel;
@@ -238,4 +239,32 @@ TEST(PositionerTest, UnrecordedFilesFillFromTheRight)
     EXPECT_EQ(desktop.cellOf(directory, "a"), 5);
     EXPECT_EQ(desktop.cellOf(directory, "b"), 2);
     EXPECT_EQ(desktop.cellOf(directory, "d"), 3);
+}
+
+// A rename that never happened leaves no record: the old file going later
+// does not hand its cell, not even for a moment, to the file that has the
+// name it asked for.
+TEST(PositionerTest, FailedRenameIsForgotten)
+{
+    TemporaryDir directory;
+    fmtest::writeFile(directory.filePath("a"));
+    fmtest::writeFile(directory.filePath("z"));
+    Desktop desktop(directory);
+    desktop.positioner.setGrid(3, 3);
+    ASSERT_TRUE(desktop.listed(2));
+    const int cell = desktop.cellOf(directory, "z");
+
+    bool failed = false;
+    const base::Subscription renameFailed = desktop.model.renameFailed.connect(
+            [&](const std::string&, const std::string&) { failed = true; });
+    // The test bus has no operations daemon, so the rename fails.
+    desktop.model.rename(desktop.model.rowForUrl(base::url::fromLocalFile(directory.filePath("a"))), "z");
+    ASSERT_TRUE(runUntil(s_app->loop(), [&] { return failed; }));
+
+    std::set<int> cells;
+    const base::Subscription changed = desktop.positioner.changed.connect(
+            [&] { cells.insert(desktop.cellOf(directory, "z")); });
+    std::filesystem::remove(directory.filePath("a"));
+    ASSERT_TRUE(runUntil(s_app->loop(), [&] { return desktop.model.count() == 1; }));
+    EXPECT_EQ(cells, std::set<int> {cell});
 }

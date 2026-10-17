@@ -52,6 +52,10 @@ Positioner::Positioner(FolderModel& model)
     m_subscriptions.push_back(model.renaming.connect([this](const std::string& from, const std::string& to) {
         m_renames[from] = to;
     }));
+    m_subscriptions.push_back(model.renameFailed.connect([this](const std::string& from, const std::string& to) {
+        if (const auto found = m_renames.find(from); found != m_renames.end() && found->second == to)
+            m_renames.erase(found);
+    }));
     initMaps();
 }
 

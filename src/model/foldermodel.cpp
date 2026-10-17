@@ -977,7 +977,24 @@ void FolderModel::rename(int row, const std::string& name)
     const std::string destination = base::url::fromLocalFile(parentPath(file->path) + '/' + name);
     m_contents.expectRename(file->url, destination);
     renaming.emit(file->url, destination);
-    OperationsClient::instance().rename(file->url, destination);
+    const OperationTaskPtr task = OperationsClient::instance().rename(file->url, destination);
+    const auto settle = [this, from = file->url, destination](const OperationTask& outcome) {
+        if (outcome.error() || outcome.wasCanceled())
+            renameFailed.emit(from, destination);
+    };
+    if (task->isFinished()) {
+        settle(*task);
+        return;
+    }
+
+    std::weak_ptr<OperationTask> weak = task;
+    auto subscription = std::make_shared<base::Subscription>();
+    *subscription = task->finished.connect([alive = m_alive, weak, subscription, settle] {
+        if (const OperationTaskPtr finished = weak.lock(); finished && *alive)
+            settle(*finished);
+        // The subscription goes with the next loop turn, not inside its own call.
+        base::EventLoop::current()->post([subscription] { subscription->reset(); });
+    });
 }
 
 void FolderModel::copy()
