@@ -158,12 +158,12 @@ add_executable(cutefish-filemanager
 )
 target_link_libraries(cutefish-filemanager PRIVATE fm-ui)
 install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-configure_file(com.cutefish.FileManager1.service.in com.cutefish.FileManager1.service @ONLY)
-configure_file(src/app/com.cutefish.FilePreview.service.in com.cutefish.FilePreview.service @ONLY)
+configure_file(data/com.cutefish.FileManager1.service.in com.cutefish.FileManager1.service @ONLY)
+configure_file(data/com.cutefish.FilePreview.service.in com.cutefish.FilePreview.service @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileManager1.service
               ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FilePreview.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
-install(FILES cutefish-filemanager.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES data/cutefish-filemanager.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
