@@ -172,6 +172,7 @@ public:
     void copy();
     void cut();
     void paste();
+    void pasteIntoSelection();
     void openSelected();
     void showOpenWithDialog();
     void deleteSelected();
@@ -265,6 +266,7 @@ private:
     void rememberNewDocumentPosition(const std::string& name);
     void startArchive(OperationTaskPtr task, const std::string& operation, const std::string& outputPath);
     void archiveFinished(bool success, bool canceled, const std::string& outputPath);
+    void pasteTo(const std::string& destination, const std::string& selectIn);
     void createActions();
     void updateActions();
     std::string rootUrl() const;

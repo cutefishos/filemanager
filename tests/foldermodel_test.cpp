@@ -305,12 +305,18 @@ TEST(FolderModelTest, ContextMenuActionsFollowTheSelection)
     EXPECT_TRUE(folder.action("copy").enabled);
     EXPECT_TRUE(folder.action("rename").visible);
     EXPECT_EQ(folder.action("compress").text, "Compress “notes.txt”");
+    EXPECT_FALSE(folder.action("pasteInto").visible);
 
     folder.clearSelection();
     folder.setSelected(folder.rowForUrl(url(directory.filePath("folder"))));
     folder.prepareContextMenu();
     EXPECT_FALSE(folder.action("open").visible);
     EXPECT_FALSE(folder.action("openWith").visible);
+    EXPECT_TRUE(folder.action("pasteInto").visible);
+
+    folder.setSelected(folder.rowForUrl(url(directory.filePath("notes.txt"))));
+    folder.prepareContextMenu();
+    EXPECT_FALSE(folder.action("pasteInto").visible);
 
     folder.clearSelection();
     folder.prepareContextMenu();

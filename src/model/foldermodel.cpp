@@ -1068,16 +1068,35 @@ void FolderModel::cut()
 
 void FolderModel::paste()
 {
+    if (rootItem().path.empty() || !rootItem().isWritable)
+        return;
+
+    pasteTo(resolvedUrl(), rootItem().path);
+}
+
+void FolderModel::pasteIntoSelection()
+{
+    const auto rows = selectedRows();
+    if (rows.size() != 1 || isTrash())
+        return;
+
+    const FileItemPtr folder = item(rows.front());
+    if (!folder->isDir || folder->path.empty() || !folder->isWritable)
+        return;
+
+    pasteTo(folder->url, {});
+}
+
+void FolderModel::pasteTo(const std::string& destination, const std::string& selectIn)
+{
     const auto types = ui::Clipboard::mimeTypes();
     const bool hasUrls = std::find(types.begin(), types.end(), "text/uri-list") != types.end();
-    if (!hasUrls || rootItem().path.empty() || !rootItem().isWritable)
+    if (!hasUrls)
         return;
 
     const bool cut = std::find(types.begin(), types.end(), kCutSelection) != types.end();
-    const std::string destination = resolvedUrl();
-    const std::string folder = rootItem().path;
     ui::Clipboard::requestData("text/uri-list", [this, alive = m_alive, cut, destination,
-                                                 folder](std::optional<std::string> data) {
+                                                 selectIn](std::optional<std::string> data) {
         if (!*alive || !data)
             return;
         ui::MimeData mime;
@@ -1085,8 +1104,10 @@ void FolderModel::paste()
         const std::vector<std::string> urls = mime.urls();
         if (urls.empty())
             return;
-        for (const std::string& url : urls)
-            m_needSelectUrls.push_back(base::url::fromLocalFile(folder + '/' + fileName(localPathOf(url))));
+        if (!selectIn.empty()) {
+            for (const std::string& url : urls)
+                m_needSelectUrls.push_back(base::url::fromLocalFile(selectIn + '/' + fileName(localPathOf(url))));
+        }
         if (!cut) {
             OperationsClient::instance().copy(urls, destination);
             return;
@@ -1580,6 +1601,7 @@ void FolderModel::createActions()
         {"cut", "Cut"},
         {"copy", "Copy"},
         {"paste", "Paste"},
+        {"pasteInto", "Paste"},
         {"newFolder", "New Folder"},
         {"newTextFile", "New Text"},
         {"trash", "Move To Trash"},
@@ -1660,6 +1682,9 @@ void FolderModel::updateActions()
     const bool clipboardUrls
             = std::find(m_clipboardTypes.begin(), m_clipboardTypes.end(), "text/uri-list") != m_clipboardTypes.end();
     set("paste", !trash && !searching, clipboardUrls && !rootItem().path.empty() && rootItem().isWritable);
+    const bool singleFolder = rows.size() == 1 && hasDir;
+    set("pasteInto", singleFolder && !trash && !hasRemoteFiles,
+        singleFolder && clipboardUrls && items.front()->isWritable);
     m_clipboardTypes.clear();
 
     set("rename", !trash && !(items.front()->isLocalFile() && isStandardFolder(items.front()->path)), canMoveItems);

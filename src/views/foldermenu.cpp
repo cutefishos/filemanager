@@ -23,6 +23,7 @@ void triggerAction(FolderModel& model, const std::string& name)
         {"cut", [](FolderModel& m) { m.cut(); }},
         {"copy", [](FolderModel& m) { m.copy(); }},
         {"paste", [](FolderModel& m) { m.paste(); }},
+        {"pasteInto", [](FolderModel& m) { m.pasteIntoSelection(); }},
         {"newFolder", [](FolderModel& m) { m.newFolder(); }},
         {"newTextFile", [](FolderModel& m) { m.newTextFile(); }},
         {"trash", [](FolderModel& m) { m.moveSelectedToTrash(); }},
@@ -152,7 +153,7 @@ std::unique_ptr<ui::Menu> createFolderMenu(FolderModel& model)
                   || model.action("del").visible || model.action("rename").visible));
     item("cut", selection);
     item("copy", selection);
-    item("paste", selection);
+    item("pasteInto", selection);
     item("trash", selection);
     item("del", selection);
     item("rename", selection);
