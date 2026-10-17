@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "dialogs/archiveprogressdialog.h"
+#include "dialogs/archivepassworddialog.h"
 #include "model/foldermodel.h"
 
+#include "base/event_loop.h"
 #include "ui/dialog_window.h"
 #include "ui/label.h"
 #include "ui/progress_bar.h"
@@ -92,6 +94,10 @@ ArchiveProgressDialog::~ArchiveProgressDialog() = default;
 
 void ArchiveProgressDialog::setModel(FolderModel* model, ui::Window* host)
 {
+    if (model != m_model) {
+        dismissPassword();
+        m_passwordRequest = 0;
+    }
     m_model = model;
     m_host = host;
     m_changed.reset();
@@ -103,11 +109,20 @@ void ArchiveProgressDialog::setModel(FolderModel* model, ui::Window* host)
 void ArchiveProgressDialog::update()
 {
     const bool busy = m_model && m_model->archiveBusy();
-    if (!busy) {
+    // A request stays open while the daemon tries the password given.
+    const uint32_t request = busy ? m_model->archivePasswordId() : 0;
+    if (request == 0)
+        dismissPassword();
+    // Each job numbers its requests from 1.
+    if (!busy)
+        m_passwordRequest = 0;
+    if (!busy || request != 0) {
         if (isShown()) {
             m_content = nullptr;
             hide();
         }
+        if (request != 0)
+            askPassword(request);
         return;
     }
     setHeaderTitle(m_model->archiveOperation());
@@ -130,6 +145,31 @@ void ArchiveProgressDialog::update()
     m_content->cancel->setText(m_model->archiveCancelling() ? "Cancelling…" : "Cancel");
     m_content->cancel->setEnabled(!m_model->archiveCancelling());
     m_content->requestLayout();
+}
+
+void ArchiveProgressDialog::askPassword(uint32_t request)
+{
+    if (request == m_passwordRequest || m_model->archiveCancelling())
+        return;
+    dismissPassword();
+    m_passwordRequest = request;
+    m_password = std::make_unique<ArchivePasswordDialog>(m_host, *m_model, request, m_model->archiveSourceName(),
+                                                         m_model->archivePasswordRetry());
+    ArchivePasswordDialog* raw = m_password.get();
+    raw->onDone = [this, raw] {
+        if (m_password.get() != raw)
+            return;
+        // Not from inside the dialog's own callback.
+        std::shared_ptr<ArchivePasswordDialog> gone(std::move(m_password));
+        base::EventLoop::current()->post([gone] {});
+    };
+    raw->show();
+}
+
+void ArchiveProgressDialog::dismissPassword()
+{
+    if (m_password)
+        m_password->dismiss();
 }
 
 } // namespace fm

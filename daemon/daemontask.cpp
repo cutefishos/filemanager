@@ -60,6 +60,9 @@ DaemonTask::DaemonTask(base::dbus::Connection *bus, std::string objectPath, int 
                                          {"currentPath", Variant(std::string())}})},
         {"finished", Variant(false)},
         {"waitingForConflict", Variant(false)},
+        {"waitingForPassword", Variant(false)},
+        {"passwordId", Variant(uint32_t(0))},
+        {"passwordRetry", Variant(false)},
         {"canceled", Variant(false)},
         {"errorCode", Variant(int32_t(0))},
         {"errorString", Variant(std::string())},
@@ -92,11 +95,36 @@ DaemonTask::DaemonTask(base::dbus::Connection *bus, std::string objectPath, int 
                 progress([&path](VariantMap &info) { info["currentPath"] = Variant(path); });
         });
     };
+    m_archive->onPasswordRequested = [this, loop, alive = m_alive](uint32_t request, bool retry) {
+        loop.post([this, alive, request, retry] {
+            if (!*alive)
+                return;
+            // Nobody is left to answer: the job must not wait for good.
+            if (owner().empty()) {
+                m_archive->cancel();
+                return;
+            }
+            m_snapshot["waitingForPassword"] = Variant(true);
+            m_snapshot["passwordId"] = Variant(request);
+            m_snapshot["passwordRetry"] = Variant(retry);
+            changed({{"waitingForPassword", Variant(true)},
+                     {"passwordId", Variant(request)},
+                     {"passwordRetry", Variant(retry)}});
+        });
+    };
+    m_archive->onPasswordAccepted = [this, loop, alive = m_alive] {
+        loop.post([this, alive] {
+            if (*alive)
+                passwordSettled();
+        });
+    };
     m_archive->onCompleted = [this, loop, alive = m_alive](bool success, bool canceled, const std::string &error,
                                                            const std::string &output) {
         loop.post([this, alive, success, canceled, error, output] {
             if (!*alive)
                 return;
+            m_snapshot["waitingForPassword"] = Variant(false);
+            m_snapshot["passwordId"] = Variant(uint32_t(0));
             m_snapshot["finished"] = Variant(true);
             m_snapshot["canceled"] = Variant(canceled);
             m_snapshot["errorCode"] = Variant(int32_t(success || canceled ? 0 : 1));
@@ -205,6 +233,21 @@ void DaemonTask::addMembers()
         m_snapshot["conflictId"] = Variant(uint32_t(0));
         changed({{"waitingForConflict", Variant(false)}, {"conflictId", Variant(uint32_t(0))}});
     }, {{"conflict", "policy", "applyToAll"}, {}});
+    m_object.addMethod("AnswerPassword", "us", "", [this](base::dbus::MethodCall &call) {
+        uint32_t request = 0;
+        std::string password;
+        if (!call.read(request, password)) {
+            call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unexpected arguments");
+            return;
+        }
+        // A second answer, or one to a request already gone, must not reach
+        // the request asked next.
+        if (!m_archive || !m_archive->answerPassword(request, password)) {
+            call.replyError("org.freedesktop.DBus.Error.Failed", "No such password request is waiting");
+            return;
+        }
+        call.reply();
+    }, {{"request", "password"}, {}});
     m_object.addSignal("Changed", "a{sv}", {"snapshot"});
     m_object.addSignal("ConflictRequested", "uss", {"conflict", "source", "destination"});
     m_object.addSignal("Finished", "a{sv}", {"snapshot"});
@@ -250,16 +293,28 @@ bool DaemonTask::waitingForConflict() const
     return found != m_snapshot.end() && found->second.value<bool>();
 }
 
+bool DaemonTask::waitingForPassword() const
+{
+    const auto found = m_snapshot.find("waitingForPassword");
+    return found != m_snapshot.end() && found->second.value<bool>();
+}
+
+void DaemonTask::passwordSettled()
+{
+    if (!waitingForPassword())
+        return;
+    m_snapshot["waitingForPassword"] = Variant(false);
+    m_snapshot["passwordId"] = Variant(uint32_t(0));
+    changed({{"waitingForPassword", Variant(false)}, {"passwordId", Variant(uint32_t(0))}});
+}
+
 void DaemonTask::orphan()
 {
-    if (m_archive) {
-        if (waitingForConflict())
-            m_archive->cancel();
-        return;
-    }
     setOwner({});
     if (m_task && waitingForConflict())
         m_task->cancel();
+    if (m_archive && waitingForPassword())
+        m_archive->cancel();
 }
 
 void DaemonTask::cancel()

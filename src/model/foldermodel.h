@@ -189,6 +189,7 @@ public:
     void compressSelected();
     void extractSelectedArchive();
     void cancelArchive();
+    void answerArchivePassword(uint32_t request, const std::string& password);
     void undo();
     void redo();
     bool openWithApplication(const std::string& desktopFile) const;
@@ -200,6 +201,10 @@ public:
     int archiveProgress() const { return m_archiveProgress; }
     const std::string& archiveOperation() const { return m_archiveOperation; }
     const std::string& archiveCurrentFile() const { return m_archiveCurrentFile; }
+    std::string archiveSourceName() const { return m_archive ? m_archive->sourceName() : std::string(); }
+    // The password request waiting for an answer; 0 when none is.
+    uint32_t archivePasswordId() const { return m_archivePasswordId; }
+    bool archivePasswordRetry() const { return m_archivePasswordRetry; }
 
     // Drops: the folder of row, or the folder shown for -1.
     std::string dropTargetUrl(int row) const;
@@ -259,7 +264,7 @@ private:
     void updateNeedSelectUrls();
     void rememberNewDocumentPosition(const std::string& name);
     void startArchive(OperationTaskPtr task, const std::string& operation, const std::string& outputPath);
-    void archiveFinished(bool success, bool canceled, const std::string& error, const std::string& outputPath);
+    void archiveFinished(bool success, bool canceled, const std::string& outputPath);
     void createActions();
     void updateActions();
     std::string rootUrl() const;
@@ -312,6 +317,8 @@ private:
     std::string m_archiveOperation;
     std::string m_archiveCurrentFile;
     std::string m_archiveOutputPath;
+    uint32_t m_archivePasswordId = 0;
+    bool m_archivePasswordRetry = false;
     base::Subscription m_archiveChanged;
     base::Subscription m_archiveFinished;
 

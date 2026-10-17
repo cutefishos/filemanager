@@ -168,6 +168,21 @@ std::string OperationTask::conflictPath() const
     return value<std::string>(m_snapshot, "conflictPath");
 }
 
+bool OperationTask::waitingForPassword() const
+{
+    return value<bool>(m_snapshot, "waitingForPassword");
+}
+
+uint32_t OperationTask::passwordId() const
+{
+    return value<uint32_t>(m_snapshot, "passwordId");
+}
+
+bool OperationTask::passwordRetry() const
+{
+    return value<bool>(m_snapshot, "passwordRetry");
+}
+
 std::string OperationTask::owner() const
 {
     return value<std::string>(m_snapshot, "owner");
@@ -212,6 +227,13 @@ void OperationTask::resolveConflict(uint32_t conflict, ConflictPolicy policy, bo
     if (conflict == conflictId())
         apply({{"waitingForConflict", Variant(false)}, {"conflictId", Variant(uint32_t(0))}});
     m_proxy.send("ResolveConflict", conflict, int32_t(policy), applyToAll);
+}
+
+void OperationTask::answerPassword(uint32_t request, const std::string& password)
+{
+    if (m_path.empty() || m_finished || request == 0)
+        return;
+    m_proxy.send("AnswerPassword", request, password);
 }
 
 void OperationTask::attach(base::dbus::Connection* bus, const std::string& path)

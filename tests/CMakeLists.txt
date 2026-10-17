@@ -9,7 +9,7 @@ target_link_libraries(mountd-tests PRIVATE mountd-core GTest::gtest_main)
 gtest_discover_tests(mountd-tests)
 
 add_executable(fileoperationsdaemon-tests fileoperationsdaemon_test.cpp)
-target_link_libraries(fileoperationsdaemon-tests PRIVATE Cutefish::ToolkitBase GTest::gtest_main)
+target_link_libraries(fileoperationsdaemon-tests PRIVATE Cutefish::ToolkitBase PkgConfig::LibArchive GTest::gtest_main)
 target_compile_definitions(fileoperationsdaemon-tests PRIVATE
     FILEMANAGER_DAEMON="$<TARGET_FILE:cutefish-filemanager-daemon>")
 add_dependencies(fileoperationsdaemon-tests cutefish-filemanager-daemon)
@@ -27,7 +27,7 @@ target_link_libraries(filemanager-capture PRIVATE fm-ui)
 add_executable(filemanager-tests testmain.cpp chooser_test.cpp foldermodel_test.cpp places_test.cpp preview_test.cpp
     desktopmenu_test.cpp launcher_test.cpp positioner_test.cpp shortcut_test.cpp header_test.cpp)
 pkg_check_modules(FilemanagerTestSystemd REQUIRED IMPORTED_TARGET libsystemd)
-target_link_libraries(filemanager-tests PRIVATE fm-ui GTest::gtest PkgConfig::FilemanagerTestSystemd)
+target_link_libraries(filemanager-tests PRIVATE fm-ui GTest::gtest PkgConfig::FilemanagerTestSystemd PkgConfig::LibArchive)
 target_compile_definitions(filemanager-tests PRIVATE
     FILEMANAGER_DAEMON="$<TARGET_FILE:cutefish-filemanager-daemon>")
 add_dependencies(filemanager-tests cutefish-filemanager-daemon)

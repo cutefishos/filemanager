@@ -90,17 +90,45 @@ static std::string zipOpenError(int errorCode)
 
 using ArchiveReader = std::unique_ptr<struct archive, decltype(&archive_read_free)>;
 
-static std::string archiveError(struct archive *reader)
-{
-    // An encrypted entry or header fails with a format-specific message.
-    if (archive_read_has_encrypted_entries(reader) > 0)
-        return "Password-protected archives are not supported";
+static constexpr char kEncryptedRar[] = "Password-protected RAR archives are not supported";
 
-    const char *message = archive_error_string(reader);
-    return message ? std::string(message) : std::string("Unknown archive error");
+static int baseFormat(struct archive *reader)
+{
+    return archive_format(reader) & ARCHIVE_FORMAT_BASE_MASK;
 }
 
-static ArchiveReader openArchiveReader(const std::string &archivePath, std::string *error)
+static std::string encryptionUnsupported(struct archive *reader)
+{
+    switch (baseFormat(reader)) {
+    case ARCHIVE_FORMAT_7ZIP:
+        return "Password-protected 7z archives are not supported";
+    case ARCHIVE_FORMAT_RAR:
+    case ARCHIVE_FORMAT_RAR_V5:
+        return kEncryptedRar;
+    case ARCHIVE_FORMAT_ZIP:
+        return "This kind of ZIP encryption is not supported";
+    default:
+        return "Password-protected archives of this format are not supported";
+    }
+}
+
+static std::string archiveError(struct archive *reader)
+{
+    const bool encrypted = archive_read_has_encrypted_entries(reader) > 0;
+    // Only ZIP entries are decrypted; the other formats fail on an encrypted
+    // entry or header with a message of their own.
+    if (encrypted && baseFormat(reader) != ARCHIVE_FORMAT_ZIP)
+        return encryptionUnsupported(reader);
+
+    if (const char *message = archive_error_string(reader))
+        return message;
+
+    // An encrypted ZIP central directory fails without a message.
+    return encrypted ? encryptionUnsupported(reader) : std::string("Unknown archive error");
+}
+
+static ArchiveReader openArchiveReader(const std::vector<std::string> &volumes, archive_passphrase_callback *password,
+                                       void *passwordState, std::string *error)
 {
     ArchiveReader reader(archive_read_new(), &archive_read_free);
     if (!reader) {
@@ -126,7 +154,14 @@ static ArchiveReader openArchiveReader(const std::string &archivePath, std::stri
     archive_read_support_filter_xz(reader.get());
     archive_read_support_filter_zstd(reader.get());
 
-    if (archive_read_open_filename(reader.get(), archivePath.c_str(), 64 * 1024) != ARCHIVE_OK) {
+    archive_read_set_passphrase_callback(reader.get(), passwordState, password);
+
+    std::vector<const char *> names;
+    for (const std::string &volume : volumes)
+        names.push_back(volume.c_str());
+    names.push_back(nullptr);
+
+    if (archive_read_open_filenames(reader.get(), names.data(), 64 * 1024) != ARCHIVE_OK) {
         *error = archiveError(reader.get());
         reader.reset();
     }
@@ -134,10 +169,153 @@ static ArchiveReader openArchiveReader(const std::string &archivePath, std::stri
     return reader;
 }
 
-static bool isArchiveVolume(const std::string &archivePath)
+static bool isRegularFile(const std::string &path)
 {
-    static const std::regex volume(R"(\.(part\d+\.rar|7z\.\d+)$)", std::regex::icase);
-    return std::regex_search(fileNameOf(archivePath), volume);
+    struct stat st;
+    return ::stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode);
+}
+
+static std::string numbered(unsigned number, size_t width)
+{
+    std::string digits = std::to_string(number);
+    if (digits.size() < width)
+        digits.insert(0, width - digits.size(), '0');
+    return digits;
+}
+
+// The parts of the archive in order, from the first whichever part is named:
+// name.partN.rar, name.rar followed by name.r00, name.7z.NNN and name.zip.NNN.
+static bool archiveVolumes(const std::string &archivePath, std::vector<std::string> *volumes, std::string *error)
+{
+    static const std::regex rarPart(R"(^(.*\.part)(\d+)(\.rar)$)", std::regex::icase);
+    static const std::regex splitPart(R"(^(.*\.(?:7z|zip)\.)(\d{3,})$)", std::regex::icase);
+    static const std::regex rar(R"(^.*\.(r)ar$)", std::regex::icase);
+    static constexpr unsigned kMaxVolumes = 10000;
+
+    const auto collect = [volumes](const std::string &prefix, size_t width, const std::string &suffix,
+                                   unsigned first) {
+        for (unsigned number = first; number < first + kMaxVolumes; ++number) {
+            const std::string volume = prefix + numbered(number, width) + suffix;
+            if (!isRegularFile(volume))
+                break;
+            volumes->push_back(volume);
+        }
+    };
+
+    std::smatch match;
+    if (std::regex_match(archivePath, match, rarPart))
+        collect(match.str(1), size_t(match.length(2)), match.str(3), 1);
+    else if (std::regex_match(archivePath, match, splitPart))
+        collect(match.str(1), size_t(match.length(2)), {}, 1);
+    else {
+        volumes->push_back(archivePath);
+        if (std::regex_match(archivePath, match, rar))
+            collect(archivePath.substr(0, archivePath.size() - 3) + match.str(1), 2, {}, 0);
+        return true;
+    }
+
+    if (volumes->empty()) {
+        *error = "The first part of this multi-part archive is missing";
+        return false;
+    }
+    return true;
+}
+
+static bool readVint(const std::vector<unsigned char> &data, size_t *offset, uint64_t *value)
+{
+    *value = 0;
+    for (int shift = 0; shift < 64 && *offset < data.size(); shift += 7) {
+        const unsigned char byte = data[(*offset)++];
+        *value |= uint64_t(byte & 0x7f) << shift;
+        if (!(byte & 0x80))
+            return true;
+    }
+    return false;
+}
+
+// libarchive 3.7 reads a RAR5 entry past its encryption record as if its data
+// were plain, and fails on it later with a decoding error; the headers tell.
+static bool isEncryptedRar5(const std::string &archivePath)
+{
+    static constexpr unsigned char kSignature[] = {'R', 'a', 'r', '!', 0x1a, 0x07, 0x01, 0x00};
+    static constexpr uint64_t kMaxHeaderSize = 2 * 1024 * 1024;
+    enum : uint64_t {
+        FileHeader = 2,
+        ServiceHeader = 3,
+        EncryptionHeader = 4,
+        EndHeader = 5,
+        EncryptionRecord = 1,
+    };
+
+    const int fd = ::open(archivePath.c_str(), O_RDONLY | O_CLOEXEC);
+    if (fd < 0)
+        return false;
+    struct Closer {
+        int fd;
+        ~Closer() { ::close(fd); }
+    } closer {fd};
+
+    unsigned char signature[sizeof(kSignature)];
+    if (::pread(fd, signature, sizeof(signature), 0) != ssize_t(sizeof(signature))
+        || std::memcmp(signature, kSignature, sizeof(kSignature)) != 0)
+        return false;
+
+    uint64_t position = sizeof(kSignature);
+    for (int block = 0; block < 100000; ++block) {
+        // The CRC32, then the header size as a variable-length integer.
+        std::vector<unsigned char> prefix(4 + 3);
+        const ssize_t prefixRead = ::pread(fd, prefix.data(), prefix.size(), off_t(position));
+        if (prefixRead < 5)
+            return false;
+        prefix.resize(size_t(prefixRead));
+        size_t offset = 4;
+        uint64_t headerSize = 0;
+        if (!readVint(prefix, &offset, &headerSize) || headerSize == 0 || headerSize > kMaxHeaderSize)
+            return false;
+
+        const uint64_t headerStart = position + offset;
+        std::vector<unsigned char> header(headerSize);
+        if (::pread(fd, header.data(), header.size(), off_t(headerStart)) != ssize_t(header.size()))
+            return false;
+
+        offset = 0;
+        uint64_t type = 0;
+        uint64_t flags = 0;
+        uint64_t extraSize = 0;
+        uint64_t dataSize = 0;
+        if (!readVint(header, &offset, &type) || !readVint(header, &offset, &flags))
+            return false;
+        if ((flags & 0x0001) && !readVint(header, &offset, &extraSize))
+            return false;
+        if ((flags & 0x0002) && !readVint(header, &offset, &dataSize))
+            return false;
+
+        if (type == EncryptionHeader)
+            return true;
+        if (type == EndHeader)
+            return false;
+
+        if ((type == FileHeader || type == ServiceHeader) && extraSize > 0 && extraSize <= headerSize) {
+            // The extra area ends the header: records of a size, then a type.
+            size_t record = size_t(headerSize - extraSize);
+            while (record < header.size()) {
+                uint64_t recordSize = 0;
+                uint64_t recordType = 0;
+                if (!readVint(header, &record, &recordSize) || recordSize == 0 || recordSize > header.size())
+                    return false;
+                const size_t next = record + size_t(recordSize);
+                if (!readVint(header, &record, &recordType))
+                    return false;
+                if (recordType == EncryptionRecord)
+                    return true;
+                record = next;
+            }
+        }
+
+        position = headerStart + headerSize + dataSize;
+    }
+
+    return false;
 }
 
 static std::string entryPathName(struct archive_entry *entry)
@@ -223,11 +401,65 @@ void ArchiveJob::start()
 void ArchiveJob::cancel()
 {
     m_cancelRequested.store(true);
+    std::lock_guard lock(m_passwordMutex);
+    m_passwordCondition.notify_all();
+}
+
+bool ArchiveJob::answerPassword(uint32_t request, std::string password)
+{
+    std::lock_guard lock(m_passwordMutex);
+    if (request == 0 || request != m_passwordRequest || m_answer)
+        return false;
+
+    m_answer = std::move(password);
+    m_passwordCondition.notify_all();
+    return true;
 }
 
 bool ArchiveJob::isCanceled() const
 {
     return m_cancelRequested.load();
+}
+
+// libarchive asks again, before it returns, while the passwords it has do
+// not open the entry; a null answer fails the entry.
+const char *ArchiveJob::requestPassword()
+{
+    std::unique_lock lock(m_passwordMutex);
+    if (isCanceled())
+        return nullptr;
+
+    const uint32_t request = ++m_lastPasswordRequest;
+    m_passwordRequest = request;
+    m_answer.reset();
+    const bool retry = m_passwordsGiven > 0;
+    lock.unlock();
+    if (onPasswordRequested)
+        onPasswordRequested(request, retry);
+    lock.lock();
+
+    m_passwordCondition.wait(lock, [this] { return m_answer.has_value() || isCanceled(); });
+    m_passwordRequest = 0;
+    if (isCanceled()) {
+        m_answer.reset();
+        return nullptr;
+    }
+
+    m_password = std::move(*m_answer);
+    m_answer.reset();
+    ++m_passwordsGiven;
+    m_passwordPending = true;
+    return m_password.c_str();
+}
+
+void ArchiveJob::settlePassword()
+{
+    if (!m_passwordPending)
+        return;
+
+    m_passwordPending = false;
+    if (onPasswordAccepted)
+        onPasswordAccepted();
 }
 
 void ArchiveJob::progressChanged(int progress)
@@ -487,6 +719,8 @@ bool ArchiveJob::extractEntryData(struct archive *reader, int fd, uint64_t total
             return false;
         }
 
+        settlePassword();
+
         if (bytesRead == 0)
             return true;
 
@@ -549,26 +783,38 @@ bool ArchiveJob::extract(std::string *error)
         return false;
     }
 
-    const std::string archivePath = m_inputs.front();
-    if (isArchiveVolume(archivePath)) {
-        *error = "Multi-part archives are not supported";
+    std::vector<std::string> volumes;
+    if (!archiveVolumes(m_inputs.front(), &volumes, error))
+        return false;
+
+    if (!isDirectory(absoluteParent(m_outputPath))) {
+        *error = "The destination folder does not exist: " + absoluteParent(m_outputPath);
         return false;
     }
 
+    if (extractVolumes(volumes, error))
+        return true;
+
+    if (!isCanceled() && isEncryptedRar5(volumes.front()))
+        *error = kEncryptedRar;
+    return false;
+}
+
+bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::string *error)
+{
     const std::string parentPath = absoluteParent(m_outputPath);
-    if (!isDirectory(parentPath)) {
-        *error = "The destination folder does not exist: " + parentPath;
-        return false;
-    }
-
-    ArchiveReader reader = openArchiveReader(archivePath, error);
+    ArchiveReader reader = openArchiveReader(volumes, &ArchiveJob::passwordCallback, this, error);
     if (!reader)
         return false;
 
     // A compressed stream cannot be sized without decompressing it, so
-    // progress follows how much of the archive file has been read.
-    struct stat archiveStat;
-    const uint64_t total = ::stat(archivePath.c_str(), &archiveStat) == 0 ? uint64_t(archiveStat.st_size) : 0;
+    // progress follows how much of the archive files has been read.
+    uint64_t total = 0;
+    for (const std::string &volume : volumes) {
+        struct stat volumeStat;
+        if (::stat(volume.c_str(), &volumeStat) == 0)
+            total += uint64_t(volumeStat.st_size);
+    }
     progressChanged(0);
 
     struct archive_entry *entry = nullptr;
@@ -635,8 +881,8 @@ bool ArchiveJob::extract(std::string *error)
             return false;
         }
 
-        if (archive_entry_is_encrypted(entry)) {
-            *error = "Password-protected archives are not supported";
+        if (archive_entry_is_encrypted(entry) && baseFormat(reader.get()) != ARCHIVE_FORMAT_ZIP) {
+            *error = encryptionUnsupported(reader.get());
             return false;
         }
 
@@ -776,4 +1022,10 @@ int ArchiveJob::zipCancelCallback(zip_t *, void *state)
 {
     auto *job = static_cast<ArchiveJob *>(state);
     return job && job->isCanceled() ? 1 : 0;
+}
+
+const char *ArchiveJob::passwordCallback(struct archive *, void *state)
+{
+    auto *job = static_cast<ArchiveJob *>(state);
+    return job ? job->requestPassword() : nullptr;
 }

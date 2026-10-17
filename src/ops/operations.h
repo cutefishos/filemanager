@@ -73,6 +73,12 @@ public:
     uint32_t conflictId() const;
     std::string conflictSource() const;
     std::string conflictPath() const;
+    // An extraction waiting for a password, until the job accepts one.
+    bool waitingForPassword() const;
+    // The password request waiting for an answer; 0 when none is.
+    uint32_t passwordId() const;
+    // Whether the passwords given so far did not fit.
+    bool passwordRetry() const;
     bool isFinished() const { return m_finished; }
     // The bus name of the process that submitted it.
     std::string owner() const;
@@ -86,6 +92,9 @@ public:
     // Answers the conflict with this id; applyToAll answers every later
     // conflict. The daemon refuses an answer to a conflict no longer waiting.
     void resolveConflict(uint32_t conflict, ConflictPolicy policy, bool applyToAll = false);
+    // Answers the password request with this id. A wrong password opens a
+    // request of a new id; the right one ends the waiting.
+    void answerPassword(uint32_t request, const std::string& password);
 
     base::Signal<> changed;
     // The conflict's id, source and destination.

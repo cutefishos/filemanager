@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "archives.h"
 #include "testutil.h"
 
 #include "core/preferences.h"
@@ -419,6 +420,63 @@ TEST(FolderModelTest, CutFollowsWhatTheMoveLeft)
     EXPECT_EQ(moved->error(), 0);
     EXPECT_TRUE(std::filesystem::exists(other.filePath("b")));
     EXPECT_TRUE(ui::Clipboard::mimeTypes().empty());
+
+    daemon.terminate();
+    EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
+}
+
+// Opening any part of a split archive extracts the whole of it, named without
+// the part's suffix; an encrypted one asks until the password fits.
+TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)
+{
+    fm::OperationsClient::instance();
+    base::Process daemon;
+    ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
+    auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &loop());
+    ASSERT_TRUE(bus);
+    const base::dbus::Proxy manager(bus.get(), "com.cutefish.FileOperations", "/com/cutefish/FileOperations",
+                                    "com.cutefish.FileOperations.Manager1");
+    ASSERT_TRUE(runUntil(loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
+
+    TemporaryDir directory;
+    const std::string payload = fmtest::noise(300 * 1024);
+    ASSERT_TRUE(fmtest::writeArchive(directory.filePath("data.7z"), "7zip", {{"noise.bin", payload}}));
+    ASSERT_EQ(fmtest::splitFile(directory.filePath("data.7z"), 128 * 1024), 3);
+    ASSERT_TRUE(fmtest::writeArchive(directory.filePath("secret.zip"), "zip", {{"a.txt", "alpha"}},
+                                     "zip:encryption=aes256", "right"));
+
+    FolderModel folder;
+    folder.setUrl(directory.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(folder) && folder.count() == 4; }));
+    const auto open = [&](const std::string& name) {
+        const std::vector<std::string> listed = names(folder);
+        const auto found = std::find(listed.begin(), listed.end(), name);
+        ASSERT_NE(found, listed.end());
+        folder.clearSelection();
+        folder.setSelected(int(found - listed.begin()));
+        folder.openSelected();
+        EXPECT_TRUE(folder.archiveBusy());
+    };
+
+    open("data.7z.002");
+    ASSERT_TRUE(runUntil(loop(), [&] { return !folder.archiveBusy(); }, 10000));
+    std::ifstream extracted(directory.filePath("data/noise.bin"), std::ios::binary);
+    EXPECT_TRUE(std::string(std::istreambuf_iterator<char>(extracted), std::istreambuf_iterator<char>()) == payload);
+
+    open("secret.zip");
+    ASSERT_TRUE(runUntil(loop(), [&] { return folder.archivePasswordId() != 0; }));
+    const uint32_t first = folder.archivePasswordId();
+    EXPECT_FALSE(folder.archivePasswordRetry());
+    EXPECT_EQ(folder.archiveSourceName(), "secret.zip");
+    folder.answerArchivePassword(first, "wrong");
+    ASSERT_TRUE(runUntil(loop(), [&] {
+        return folder.archivePasswordId() != 0 && folder.archivePasswordId() != first;
+    }));
+    EXPECT_TRUE(folder.archivePasswordRetry());
+    folder.answerArchivePassword(folder.archivePasswordId(), "right");
+    ASSERT_TRUE(runUntil(loop(), [&] { return !folder.archiveBusy(); }, 10000));
+    std::ifstream secret(directory.filePath("secret/a.txt"));
+    EXPECT_EQ(std::string(std::istreambuf_iterator<char>(secret), std::istreambuf_iterator<char>()), "alpha");
 
     daemon.terminate();
     EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));

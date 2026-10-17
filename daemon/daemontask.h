@@ -37,12 +37,13 @@ public:
     bool isArchive() const { return m_archive != nullptr; }
     void setOwner(const std::string &owner);
     std::string owner() const;
-    // The submitter left the bus. A task waiting at a conflict is cancelled;
-    // one still running is cancelled at its next conflict unless a client
-    // adopts it first.
+    // The submitter left the bus. A task waiting at a conflict or for a
+    // password is cancelled; one still running is cancelled at its next
+    // conflict or password request unless a client adopts it first.
     void orphan();
     bool isFinished() const { return m_finished; }
     bool waitingForConflict() const;
+    bool waitingForPassword() const;
     // Whether GetSnapshot was called since the task finished: the client saw
     // the outcome, so the object can leave the bus.
     bool outcomeRead() const { return m_outcomeRead; }
@@ -56,6 +57,7 @@ private:
     void initialize();
     void addMembers();
     void changed(const cutefish::base::dbus::VariantMap &update);
+    void passwordSettled();
     cutefish::base::dbus::VariantMap snapshot();
 
     std::string m_objectPath;

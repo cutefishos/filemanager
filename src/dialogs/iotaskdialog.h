@@ -95,6 +95,7 @@ private:
     int m_sourceCount = 0;
     bool m_finished = false;
     bool m_conflict = false;
+    bool m_password = false;
     bool m_dismissed = false;
     bool m_canceling = false;
     std::string m_errorMessage;

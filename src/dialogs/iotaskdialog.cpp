@@ -177,7 +177,7 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
     m_delay.setSingleShot(true);
     m_delay.setInterval(std::chrono::milliseconds(m_operation == "emptyTrash" ? 300 : 750));
     m_delay.onTimeout = [this] {
-        if (!m_finished && !m_conflict && !m_dismissed)
+        if (!m_finished && !m_conflict && !m_password && !m_dismissed)
             show();
     };
 
@@ -196,6 +196,8 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
         }
     } else if (m_task->waitingForConflict()) {
         askConflict(m_task->conflictId(), m_task->conflictSource(), m_task->conflictPath());
+    } else if (m_task->waitingForPassword()) {
+        m_password = true;
     } else {
         m_delay.start();
     }
@@ -209,6 +211,18 @@ void IoTaskDialog::taskChanged()
     // or instead of, the signal.
     if (m_task->waitingForConflict() && !m_conflict && !m_finished)
         askConflict(m_task->conflictId(), m_task->conflictSource(), m_task->conflictPath());
+    // The archive's password dialog stands in for the progress window, as
+    // the conflict dialog does.
+    const bool password = m_task->waitingForPassword() && !m_finished;
+    if (password != m_password) {
+        m_password = password;
+        if (password) {
+            m_delay.stop();
+            hide();
+        } else if (!m_conflict) {
+            m_delay.start();
+        }
+    }
     m_operation = m_task->operationName().empty() ? m_operation : m_task->operationName();
     update();
 }

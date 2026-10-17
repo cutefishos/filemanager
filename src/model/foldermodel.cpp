@@ -5,7 +5,6 @@
 #include "core/config.h"
 #include "core/dates.h"
 #include "core/launcher.h"
-#include "core/notifications.h"
 #include "core/preferences.h"
 #include "core/standardfolders.h"
 #include "core/thumbnails.h"
@@ -25,6 +24,7 @@
 #include <algorithm>
 #include <fcntl.h>
 #include <functional>
+#include <regex>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -61,10 +61,17 @@ static const std::vector<std::string> kFolderArchiveSuffixes = {
 static const std::vector<std::string> kSingleFileSuffixes = {".gz", ".bz2", ".xz", ".zst", ".lzma"};
 
 // The suffix extraction drops: "a.tar.gz" becomes the folder "a", while
-// "a.txt.gz" becomes the file "a.txt".
+// "a.txt.gz" becomes the file "a.txt". Every part of a multi-part archive
+// ("a.part2.rar", "a.7z.002") extracts the whole of it to "a".
 static std::string archiveSuffix(const std::string& name, bool* singleFile)
 {
     using base::strings::CaseSensitivity;
+    static const std::regex part(R"((\.part\d+\.rar|\.(7z|zip)\.\d{3,})$)", std::regex::icase);
+    std::smatch match;
+    if (std::regex_search(name, match, part)) {
+        *singleFile = false;
+        return match.str(1);
+    }
     for (const std::string& suffix : kFolderArchiveSuffixes) {
         if (base::strings::endsWith(name, suffix, CaseSensitivity::Insensitive)) {
             *singleFile = false;
@@ -1306,6 +1313,8 @@ void FolderModel::startArchive(OperationTaskPtr task, const std::string& operati
     m_archiveOperation = operation;
     m_archiveOutputPath = outputPath;
     m_archiveCurrentFile.clear();
+    m_archivePasswordId = 0;
+    m_archivePasswordRetry = false;
     archiveChanged.emit();
 
     m_archiveChanged = task->changed.connect([this] {
@@ -1313,9 +1322,14 @@ void FolderModel::startArchive(OperationTaskPtr task, const std::string& operati
             return;
         const TaskProgress progress = m_archive->progress();
         const int value = progress.totalsKnown ? int(progress.processedItems) : -1;
-        if (value != m_archiveProgress || progress.currentPath != m_archiveCurrentFile) {
+        const uint32_t passwordId = m_archive->waitingForPassword() ? m_archive->passwordId() : 0;
+        const bool passwordRetry = m_archive->passwordRetry();
+        if (value != m_archiveProgress || progress.currentPath != m_archiveCurrentFile
+            || passwordId != m_archivePasswordId || passwordRetry != m_archivePasswordRetry) {
             m_archiveProgress = value;
             m_archiveCurrentFile = progress.currentPath;
+            m_archivePasswordId = passwordId;
+            m_archivePasswordRetry = passwordRetry;
             archiveChanged.emit();
         }
     });
@@ -1323,8 +1337,7 @@ void FolderModel::startArchive(OperationTaskPtr task, const std::string& operati
         const OperationTaskPtr task = m_archive;
         if (!task)
             return;
-        archiveFinished(!task->error() && !task->wasCanceled(), task->wasCanceled(), task->errorString(),
-                        m_archiveOutputPath);
+        archiveFinished(!task->error() && !task->wasCanceled(), task->wasCanceled(), m_archiveOutputPath);
     });
 }
 
@@ -1388,8 +1401,13 @@ void FolderModel::cancelArchive()
     m_archive->cancel();
 }
 
-void FolderModel::archiveFinished(bool success, bool canceled, const std::string& error,
-                                  const std::string& outputPath)
+void FolderModel::answerArchivePassword(uint32_t request, const std::string& password)
+{
+    if (m_archive && request != 0 && request == m_archivePasswordId)
+        m_archive->answerPassword(request, password);
+}
+
+void FolderModel::archiveFinished(bool success, bool canceled, const std::string& outputPath)
 {
     const std::string operation = m_archiveOperation;
     m_archive.reset();
@@ -1397,6 +1415,8 @@ void FolderModel::archiveFinished(bool success, bool canceled, const std::string
     m_archiveCancelling = false;
     m_archiveProgress = success ? 100 : -1;
     m_archiveCurrentFile.clear();
+    m_archivePasswordId = 0;
+    m_archivePasswordRetry = false;
     archiveChanged.emit();
     updateActions();
 
@@ -1414,16 +1434,8 @@ void FolderModel::archiveFinished(bool success, bool canceled, const std::string
         timer->start(std::chrono::milliseconds(100));
     } else if (canceled) {
         notification.emit(operation + " canceled.");
-    } else {
-        // Errors leave the window for the notification centre; the in-window
-        // message is the fallback without one.
-        const std::string message = operation + " failed: " + error;
-        notifications::show("cutefish-filemanager", "system-file-manager", message, 5000,
-                            [this, alive = m_alive, message] {
-                                if (*alive)
-                                    notification.emit(message);
-                            });
     }
+    // A failure is shown by the task's own dialog.
 }
 
 std::string FolderModel::dropTargetUrl(int row) const
