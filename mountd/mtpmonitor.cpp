@@ -127,23 +127,7 @@ void MtpMonitor::handle(udev_device *device, bool present)
     const std::string sysPath = udev_device_get_syspath(device);
 
     if (!present) {
-        const auto found = m_devices.find(sysPath);
-        if (found == m_devices.end())
-            return;
-
-        const std::string id = found->second.id;
-        m_devices.erase(found);
-
-        auto timer = std::make_unique<Timer>();
-        timer->setSingleShot(true);
-        timer->onTimeout = [this, id] {
-            // Erasing destroys this callback, captures included.
-            const std::string gone = id;
-            m_leaving.erase(gone);
-            removed.emit(gone);
-        };
-        timer->start(std::chrono::milliseconds(kLeaveDelayMs));
-        m_leaving[id] = std::move(timer);
+        leave(sysPath);
         return;
     }
 
@@ -163,7 +147,32 @@ void MtpMonitor::handle(udev_device *device, bool present)
     entry.name = nameOf(device);
     entry.bus = strings::toNumber<uint32_t>(udevProperty(device, "BUSNUM")).value_or(0);
     entry.number = uint8_t(strings::toNumber<uint32_t>(udevProperty(device, "DEVNUM")).value_or(0));
+    arrive(sysPath, entry);
+}
 
+void MtpMonitor::leave(const std::string &sysPath)
+{
+    const auto found = m_devices.find(sysPath);
+    if (found == m_devices.end())
+        return;
+
+    const std::string id = found->second.id;
+    m_devices.erase(found);
+
+    auto timer = std::make_unique<Timer>();
+    timer->setSingleShot(true);
+    timer->onTimeout = [this, id] {
+        // Erasing destroys this callback, captures included.
+        const std::string gone = id;
+        m_leaving.erase(gone);
+        removed.emit(gone);
+    };
+    timer->start(std::chrono::milliseconds(kLeaveDelayMs));
+    m_leaving[id] = std::move(timer);
+}
+
+void MtpMonitor::arrive(const std::string &sysPath, const Device &entry)
+{
     // Two devices with one serial cannot be told apart; the first one is kept.
     for (const auto &[path, known] : m_devices) {
         if (known.id == entry.id && path != sysPath)
@@ -173,6 +182,12 @@ void MtpMonitor::handle(udev_device *device, bool present)
     const bool returning = m_leaving.erase(entry.id) > 0;
     const bool known = m_devices.contains(sysPath);
     m_devices[sysPath] = entry;
-    if (!known && !returning)
-        added.emit(entry.id);
+    if (known)
+        return;
+
+    // A device back on the bus starts a new session: one opened before it left answers
+    // nothing any more, so it goes, and the entry stays listed.
+    if (returning)
+        removed.emit(entry.id);
+    added.emit(entry.id);
 }

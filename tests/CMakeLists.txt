@@ -4,7 +4,7 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(mountd-tests remoteurl_test.cpp)
+add_executable(mountd-tests mtpmonitor_test.cpp remoteurl_test.cpp)
 target_link_libraries(mountd-tests PRIVATE mountd-core GTest::gtest_main)
 gtest_discover_tests(mountd-tests)
 

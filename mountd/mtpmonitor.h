@@ -38,6 +38,10 @@ public:
     std::vector<Device> devices() const;
     Device device(const std::string &id) const;
 
+    // udev's events for a USB device: one that leaves is removed only once it stayed away a while.
+    void arrive(const std::string &sysPath, const Device &device);
+    void leave(const std::string &sysPath);
+
     cutefish::base::Signal<std::string> added;
     cutefish::base::Signal<std::string> removed;
 
