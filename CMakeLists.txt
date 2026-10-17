@@ -164,6 +164,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileManager1.service
               ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FilePreview.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(FILES data/cutefish-filemanager.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES data/60-cutefish-filemanager.rules DESTINATION ${CMAKE_INSTALL_DATADIR}/polkit-1/rules.d)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
