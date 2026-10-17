@@ -136,7 +136,7 @@ TEST_F(FileOperationsDaemonTest, LiveTasksAreDiscoverable)
     ASSERT_TRUE(paths);
     EXPECT_NE(std::find(paths->begin(), paths->end(), path), paths->end());
 
-    task(path).call("ResolveConflict", int32_t(1), false);
+    EXPECT_FALSE(task(path).call("ResolveConflict", waiting["conflictId"].value<uint32_t>(), int32_t(1), false).isError());
     EXPECT_TRUE(waitFor([&] {
         const auto current = snapshot(path);
         return current && flag(*current, "finished");
@@ -213,8 +213,9 @@ TEST_F(FileOperationsDaemonTest, UnknownConflictAnswerKeepsWaiting)
             return current && flag(*current, "waitingForConflict");
         }, 3000));
 
+        const uint32_t conflict = snapshot(path)->at("conflictId").value<uint32_t>();
         for (const int32_t policy : {int32_t(-1), int32_t(4), int32_t(99)})
-            EXPECT_TRUE(task(path).call("ResolveConflict", policy, false).isError()) << policy;
+            EXPECT_TRUE(task(path).call("ResolveConflict", conflict, policy, false).isError()) << policy;
         const auto current = snapshot(path);
         ASSERT_TRUE(current);
         EXPECT_TRUE(flag(*current, "waitingForConflict"));
@@ -231,4 +232,57 @@ TEST_F(FileOperationsDaemonTest, UnknownConflictAnswerKeepsWaiting)
     }, 3000));
     EXPECT_TRUE(flag(result, "canceled"));
     EXPECT_EQ(file::read(destination).value_or(""), "old");
+}
+
+// An answer counts only for the conflict it names: a repeated answer, or one
+// to a conflict already answered, never reaches the next conflict.
+TEST_F(FileOperationsDaemonTest, StaleConflictAnswerIsRefused)
+{
+    file::TemporaryDirectory directory(paths::runtimeDirectory(), "stale");
+    const std::string target = directory.path() + "/target";
+    ASSERT_EQ(::mkdir(target.c_str(), 0700), 0);
+    for (const std::string name : {"a", "b"}) {
+        ASSERT_TRUE(file::writeAtomically(directory.path() + "/" + name, "new " + name));
+        ASSERT_TRUE(file::writeAtomically(target + "/" + name, "old " + name));
+    }
+
+    const std::string path = submit(0, {url::fromLocalFile(directory.path() + "/a"),
+                                        url::fromLocalFile(directory.path() + "/b")},
+                                    url::fromLocalFile(target), 4);
+    ASSERT_FALSE(path.empty());
+    const auto waitingAt = [&](const std::string& name) {
+        uint32_t conflict = 0;
+        const bool waiting = waitFor([&] {
+            const auto current = snapshot(path);
+            if (!current || !flag(*current, "waitingForConflict")
+                || current->at("conflictPath").value<std::string>() != target + "/" + name)
+                return false;
+            conflict = current->at("conflictId").value<uint32_t>();
+            return true;
+        }, 3000);
+        return waiting ? conflict : 0;
+    };
+
+    const uint32_t first = waitingAt("a");
+    ASSERT_NE(first, 0u);
+    EXPECT_TRUE(task(path).call("ResolveConflict", first + 1, int32_t(3), false).isError());
+    EXPECT_FALSE(task(path).call("ResolveConflict", first, int32_t(3), false).isError());
+
+    const uint32_t second = waitingAt("b");
+    ASSERT_NE(second, 0u);
+    EXPECT_NE(second, first);
+    EXPECT_TRUE(task(path).call("ResolveConflict", first, int32_t(3), false).isError());
+    const auto current = snapshot(path);
+    ASSERT_TRUE(current);
+    EXPECT_TRUE(flag(*current, "waitingForConflict"));
+    EXPECT_FALSE(flag(*current, "finished"));
+    EXPECT_EQ(file::read(target + "/b").value_or(""), "old b");
+
+    EXPECT_FALSE(task(path).call("ResolveConflict", second, int32_t(1), false).isError());
+    ASSERT_TRUE(waitFor([&] {
+        const auto finished = snapshot(path);
+        return finished && flag(*finished, "finished");
+    }, 3000));
+    EXPECT_EQ(file::read(target + "/a").value_or(""), "new a");
+    EXPECT_EQ(file::read(target + "/b").value_or(""), "old b");
 }

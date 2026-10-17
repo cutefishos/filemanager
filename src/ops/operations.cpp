@@ -153,6 +153,11 @@ bool OperationTask::waitingForConflict() const
     return value<bool>(m_snapshot, "waitingForConflict");
 }
 
+uint32_t OperationTask::conflictId() const
+{
+    return value<uint32_t>(m_snapshot, "conflictId");
+}
+
 std::string OperationTask::conflictSource() const
 {
     return value<std::string>(m_snapshot, "conflictSource");
@@ -200,12 +205,13 @@ void OperationTask::cancel()
     m_proxy.send("Cancel");
 }
 
-void OperationTask::resolveConflict(ConflictPolicy policy, bool applyToAll)
+void OperationTask::resolveConflict(uint32_t conflict, ConflictPolicy policy, bool applyToAll)
 {
-    if (m_path.empty() || m_finished)
+    if (m_path.empty() || m_finished || conflict == 0)
         return;
-    apply({{"waitingForConflict", Variant(false)}});
-    m_proxy.send("ResolveConflict", int32_t(policy), applyToAll);
+    if (conflict == conflictId())
+        apply({{"waitingForConflict", Variant(false)}, {"conflictId", Variant(uint32_t(0))}});
+    m_proxy.send("ResolveConflict", conflict, int32_t(policy), applyToAll);
 }
 
 void OperationTask::attach(base::dbus::Connection* bus, const std::string& path)
@@ -217,13 +223,15 @@ void OperationTask::attach(base::dbus::Connection* bus, const std::string& path)
             apply(*snapshot);
     });
     m_conflict = m_proxy.onSignal("ConflictRequested", [this](const base::dbus::Message& message) {
+        uint32_t conflict = 0;
         std::string source;
         std::string destination;
-        if (message.read(source, destination)) {
+        if (message.read(conflict, source, destination)) {
             apply({{"waitingForConflict", Variant(true)},
+                   {"conflictId", Variant(conflict)},
                    {"conflictSource", Variant(source)},
                    {"conflictPath", Variant(destination)}});
-            conflictRequested.emit(source, destination);
+            conflictRequested.emit(conflict, source, destination);
         }
     });
     m_finishedSignal = m_proxy.onSignal("Finished", [this](const base::dbus::Message& message) {

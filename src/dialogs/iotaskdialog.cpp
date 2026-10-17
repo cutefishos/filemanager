@@ -182,7 +182,9 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
     };
 
     m_subscriptions.push_back(m_task->conflictRequested.connect(
-            [this](const std::string& source, const std::string& destination) { askConflict(source, destination); }));
+            [this](uint32_t conflict, const std::string& source, const std::string& destination) {
+                askConflict(conflict, source, destination);
+            }));
     m_subscriptions.push_back(m_task->changed.connect([this] { taskChanged(); }));
     m_subscriptions.push_back(m_task->finished.connect([this] { finished(); }));
 
@@ -193,7 +195,7 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
             show();
         }
     } else if (m_task->waitingForConflict()) {
-        askConflict(m_task->conflictSource(), m_task->conflictPath());
+        askConflict(m_task->conflictId(), m_task->conflictSource(), m_task->conflictPath());
     } else {
         m_delay.start();
     }
@@ -206,7 +208,7 @@ void IoTaskDialog::taskChanged()
     // A remote task may announce its conflict through its snapshot before,
     // or instead of, the signal.
     if (m_task->waitingForConflict() && !m_conflict && !m_finished)
-        askConflict(m_task->conflictSource(), m_task->conflictPath());
+        askConflict(m_task->conflictId(), m_task->conflictSource(), m_task->conflictPath());
     m_operation = m_task->operationName().empty() ? m_operation : m_task->operationName();
     update();
 }
@@ -253,8 +255,9 @@ void IoTaskDialog::cancelTask()
 
 // The conflict dialog stands in for the progress window, which comes back
 // through the usual delay once the task runs again.
-void IoTaskDialog::askConflict(const std::string& source, const std::string& destination)
+void IoTaskDialog::askConflict(uint32_t conflict, const std::string& source, const std::string& destination)
 {
+    m_conflictId = conflict;
     m_conflictPath = destination;
     m_conflict = true;
     m_delay.stop();
@@ -268,7 +271,7 @@ void IoTaskDialog::resolve(int policy, bool applyToAll)
     if (policy < 0)
         cancelTask();
     else
-        m_task->resolveConflict(ConflictPolicy(policy), applyToAll);
+        m_task->resolveConflict(m_conflictId, ConflictPolicy(policy), applyToAll);
     if (!m_finished)
         m_delay.start();
 }

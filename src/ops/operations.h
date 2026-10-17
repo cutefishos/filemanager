@@ -69,6 +69,8 @@ public:
     std::string sourceName() const;
     std::string destinationName() const;
     bool waitingForConflict() const;
+    // The conflict waiting for an answer; 0 when none is.
+    uint32_t conflictId() const;
     std::string conflictSource() const;
     std::string conflictPath() const;
     bool isFinished() const { return m_finished; }
@@ -81,11 +83,13 @@ public:
     const std::string& path() const { return m_path; }
 
     void cancel();
-    // policy is a ConflictPolicy; applyToAll answers every later conflict.
-    void resolveConflict(ConflictPolicy policy, bool applyToAll = false);
+    // Answers the conflict with this id; applyToAll answers every later
+    // conflict. The daemon refuses an answer to a conflict no longer waiting.
+    void resolveConflict(uint32_t conflict, ConflictPolicy policy, bool applyToAll = false);
 
     base::Signal<> changed;
-    base::Signal<std::string, std::string> conflictRequested;
+    // The conflict's id, source and destination.
+    base::Signal<uint32_t, std::string, std::string> conflictRequested;
     base::Signal<> finished;
 
 private:

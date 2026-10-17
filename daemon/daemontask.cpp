@@ -127,6 +127,7 @@ void DaemonTask::initialize()
                   {"progress", Variant(progressMap(m_task->progressInfo()))},
                   {"finished", Variant(false)},
                   {"waitingForConflict", Variant(false)},
+                  {"conflictId", Variant(uint32_t(0))},
                   {"conflictSource", Variant(std::string())},
                   {"conflictPath", Variant(std::string())},
                   {"canceled", Variant(false)},
@@ -139,19 +140,22 @@ void DaemonTask::initialize()
         changed({{"progress", progress}});
     }));
     m_subscriptions.push_back(
-            m_task->conflictRequested.connect([this](const std::string &source, const std::string &destination) {
+            m_task->conflictRequested.connect([this](uint32_t conflict, const std::string &source,
+                                                     const std::string &destination) {
                 // Nobody is left to answer: a worker must not wait for good.
                 if (owner().empty()) {
                     m_task->cancel();
                     return;
                 }
                 m_snapshot["waitingForConflict"] = Variant(true);
+                m_snapshot["conflictId"] = Variant(conflict);
                 m_snapshot["conflictSource"] = Variant(source);
                 m_snapshot["conflictPath"] = Variant(destination);
                 changed({{"waitingForConflict", Variant(true)},
+                         {"conflictId", Variant(conflict)},
                          {"conflictSource", Variant(source)},
                          {"conflictPath", Variant(destination)}});
-                m_object.emitSignal("ConflictRequested", source, destination);
+                m_object.emitSignal("ConflictRequested", conflict, source, destination);
             }));
     m_task->whenFinished([this, alive = m_alive](files::Task *task) {
         if (!*alive)
@@ -159,6 +163,7 @@ void DaemonTask::initialize()
         m_snapshot["progress"] = Variant(progressMap(task->progressInfo()));
         m_snapshot["finished"] = Variant(true);
         m_snapshot["waitingForConflict"] = Variant(false);
+        m_snapshot["conflictId"] = Variant(uint32_t(0));
         m_snapshot["canceled"] = Variant(task->wasCanceled());
         m_snapshot["errorCode"] = Variant(int32_t(task->outcome().error.code));
         m_snapshot["errorString"] = Variant(task->errorString());
@@ -179,24 +184,29 @@ void DaemonTask::addMembers()
     m_object.addMethod("Cancel", [this] {
         cancel();
     });
-    m_object.addMethod("ResolveConflict", "ib", "", [this](base::dbus::MethodCall &call) {
+    m_object.addMethod("ResolveConflict", "uib", "", [this](base::dbus::MethodCall &call) {
+        uint32_t conflict = 0;
         int32_t policy = 0;
         bool applyToAll = false;
         // Ask is no answer: the worker would ignore it and wait on unseen.
-        if (!call.read(policy, applyToAll) || policy < int32_t(files::ConflictPolicy::Fail)
+        if (!call.read(conflict, policy, applyToAll) || policy < int32_t(files::ConflictPolicy::Fail)
             || policy >= int32_t(files::ConflictPolicy::Ask)) {
             call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unknown conflict policy");
             return;
         }
-        call.reply();
-        if (!m_task)
+        // A second answer, or one to a conflict another client answered, must
+        // not reach the conflict asked next.
+        if (!m_task || !m_task->resolveConflict(conflict, policy, applyToAll)) {
+            call.replyError("org.freedesktop.DBus.Error.Failed", "No such conflict is waiting");
             return;
+        }
+        call.reply();
         m_snapshot["waitingForConflict"] = Variant(false);
-        changed({{"waitingForConflict", Variant(false)}});
-        m_task->resolveConflict(policy, applyToAll);
-    }, {{"policy", "applyToAll"}, {}});
+        m_snapshot["conflictId"] = Variant(uint32_t(0));
+        changed({{"waitingForConflict", Variant(false)}, {"conflictId", Variant(uint32_t(0))}});
+    }, {{"conflict", "policy", "applyToAll"}, {}});
     m_object.addSignal("Changed", "a{sv}", {"snapshot"});
-    m_object.addSignal("ConflictRequested", "ss", {"source", "destination"});
+    m_object.addSignal("ConflictRequested", "uss", {"conflict", "source", "destination"});
     m_object.addSignal("Finished", "a{sv}", {"snapshot"});
 }
 

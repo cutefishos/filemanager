@@ -78,7 +78,7 @@ private:
     void update();
     void taskChanged();
     void finished();
-    void askConflict(const std::string& source, const std::string& destination);
+    void askConflict(uint32_t conflict, const std::string& source, const std::string& destination);
     void resolve(int policy, bool applyToAll);
     void cancelTask();
     void close();
@@ -98,6 +98,7 @@ private:
     bool m_dismissed = false;
     bool m_canceling = false;
     std::string m_errorMessage;
+    uint32_t m_conflictId = 0;
     std::string m_conflictPath;
     base::Timer m_delay;
     ConflictDialog m_conflictDialog;
