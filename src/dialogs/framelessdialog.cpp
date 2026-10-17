@@ -37,7 +37,7 @@ public:
             m_title->setVerticallyCentered(true);
         }
         m_title->setText(text);
-        m_title->setColor(ui::Theme::current().text);
+        m_title->setColor(ui::ColorId::Text);
         requestLayout();
     }
 
@@ -182,7 +182,7 @@ void FramelessDialog::show()
     auto root = std::make_unique<Root>(this, m_closeButton);
     m_root = root.get();
     m_window->setContentView(std::move(root));
-    m_window->setBackgroundColor(ui::Theme::current().secondBackground);
+    m_window->setBackgroundColor(ui::ColorId::SecondBackground);
     m_window->onCloseRequested = [this] {
         if (onCloseRequested)
             onCloseRequested();

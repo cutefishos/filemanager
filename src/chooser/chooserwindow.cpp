@@ -337,7 +337,7 @@ public:
         list = addChild<FolderListView>(chooser.folder());
         list->setName("fileList");
         list->setChooserMode(chooser.multiple());
-        list->setBackdropBase(ui::Theme::current().background);
+        list->setBackdropBase(ui::ColorId::Background);
         list->onActivated = [this](int row) { m_chooser.activate(row); };
         list->onKeyPressed = [this](const ui::KeyEvent& event) { return listKey(event); };
         busy = addChild<ui::BusyIndicator>();
@@ -720,7 +720,7 @@ ChooserWindow::ChooserWindow(FileChooser& chooser)
     m_window->setMaximumSize({kWidth, kHeight});
     m_window->resize({kWidth, kHeight});
     // Opaque on purpose: the chooser does not use the blurred window background.
-    m_window->setBackgroundColor(ui::Theme::current().background);
+    m_window->setBackgroundColor(ui::ColorId::Background);
     auto root = std::make_unique<ChooserRoot>(this, chooser);
     m_root = root.get();
     m_window->setContentView(std::move(root));
@@ -753,7 +753,7 @@ void ChooserWindow::beginNewFolder()
 {
     m_newFolder = std::make_unique<ui::DialogWindow>(m_window.get(), "New Folder", 340);
     if (ui::Window* window = m_newFolder->window())
-        window->setBackgroundColor(ui::Theme::current().secondBackground);
+        window->setBackgroundColor(ui::ColorId::SecondBackground);
 
     class Content : public ui::ColumnLayout
     {

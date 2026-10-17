@@ -107,7 +107,6 @@ PropertiesDialog::~PropertiesDialog()
 
 std::unique_ptr<ui::View> PropertiesDialog::createContent()
 {
-    const ui::Theme& theme = ui::Theme::current();
     auto layout = std::make_unique<ui::ColumnLayout>();
     layout->setSpacing(kLargeSpacing);
 
@@ -157,7 +156,7 @@ std::unique_ptr<ui::View> PropertiesDialog::createContent()
         if (!shown)
             continue;
         auto* label = form->addChild<ui::Label>(row.label);
-        label->setColor(theme.disabledText);
+        label->setColor(ui::ColorId::DisabledText);
         label->setTextAlignment(ui::Label::TextAlignment::Right);
         label->setLayoutHints({.preferredWidth = labelWidth, .horizontalAlignment = ui::Alignment::End});
         auto* value = form->addChild<ui::Label>(row.value);

@@ -22,7 +22,7 @@
 
 namespace fm {
 
-static ui::Label* addLabel(ui::View* parent, double pixelSize, int weight, ui::Color color, bool wrap)
+static ui::Label* addLabel(ui::View* parent, double pixelSize, int weight, ui::ColorId color, bool wrap)
 {
     auto* label = parent->addChild<ui::Label>();
     label->setFontSize(pixelSize);
@@ -86,7 +86,6 @@ void ConflictDialog::answer(int policy)
 
 std::unique_ptr<ui::View> ConflictDialog::createContent()
 {
-    const ui::Theme& theme = ui::Theme::current();
     const std::string itemName = !m_existing.name.empty() ? m_existing.name : fileName(m_destinationPath);
     int age = 0;
     if (m_existing.exists && m_incoming.exists && std::abs(m_existing.modified - m_incoming.modified) >= 1000)
@@ -126,11 +125,11 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     texts->setLayoutHints(textHints);
     // The close button sits over the content: the text keeps 32 px clear of it.
     const double textWidth = 480 - 20 * 2 - 64 - 16 - 32;
-    ui::Label* title = addLabel(texts, 13, 600, theme.text, true);
+    ui::Label* title = addLabel(texts, 13, 600, ui::ColorId::Text, true);
     title->setName("conflictHeading");
     title->setText(heading);
     title->setLayoutHints({.preferredWidth = textWidth});
-    ui::Label* body = addLabel(texts, 12, 400, theme.disabledText, true);
+    ui::Label* body = addLabel(texts, 12, 400, ui::ColorId::DisabledText, true);
     body->setText(question);
     body->setLayoutHints({.preferredWidth = textWidth});
 
@@ -382,7 +381,6 @@ std::string IoTaskDialog::summary() const
 
 std::unique_ptr<ui::View> IoTaskDialog::createContent()
 {
-    const ui::Theme& theme = ui::Theme::current();
     auto layout = std::make_unique<ui::ColumnLayout>();
     layout->setSpacing(16);
     auto* row = layout->addChild<ui::RowLayout>();
@@ -393,18 +391,18 @@ std::unique_ptr<ui::View> IoTaskDialog::createContent()
     auto* column = row->addChild<ui::ColumnLayout>();
     column->setSpacing(4);
     column->setLayoutHints({.fillWidth = true});
-    m_heading = addLabel(column, 14, 600, theme.text, true);
+    m_heading = addLabel(column, 14, 600, ui::ColorId::Text, true);
     m_heading->setName("ioOperationHeading");
     m_heading->setMaximumLineCount(2);
     m_heading->setLayoutHints({.fillWidth = true});
-    m_detail = addLabel(column, 12, 400, theme.disabledText, false);
+    m_detail = addLabel(column, 12, 400, ui::ColorId::DisabledText, false);
     m_detail->setLayoutHints({.fillWidth = true});
     m_progress = column->addChild<ui::ProgressBar>();
     m_progress->setName("ioProgressBar");
     ui::LayoutHints progressHints {.fillWidth = true};
     progressHints.margins.top = 4;
     m_progress->setLayoutHints(progressHints);
-    m_summary = addLabel(column, 11, 400, theme.disabledText, true);
+    m_summary = addLabel(column, 11, 400, ui::ColorId::DisabledText, true);
     m_summary->setName("ioProgressSummary");
     m_summary->setLayoutHints({.fillWidth = true});
 

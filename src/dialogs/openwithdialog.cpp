@@ -35,8 +35,7 @@ public:
         m_selected = selected;
         m_icon->setIconName(application.icon);
         m_name->setText(application.name);
-        const ui::Theme& theme = ui::Theme::current();
-        m_name->setColor(selected ? theme.highlightedText : theme.text);
+        m_name->setColor(selected ? ui::ColorId::HighlightedText : ui::ColorId::Text);
         requestLayout();
         requestPaint();
     }
@@ -99,14 +98,13 @@ void OpenWithDialog::openApplication()
 
 std::unique_ptr<ui::View> OpenWithDialog::createContent()
 {
-    const ui::Theme& theme = ui::Theme::current();
     auto layout = std::make_unique<ui::ColumnLayout>();
     layout->setSpacing(16);
 
     auto* title = layout->addChild<ui::Label>("Open With");
     title->setFontSize(14);
     title->setWeight(600);
-    title->setColor(theme.text);
+    title->setColor(ui::ColorId::Text);
     ui::LayoutHints titleHints {.fillWidth = true};
     titleHints.margins.right = 32;
     title->setLayoutHints(titleHints);

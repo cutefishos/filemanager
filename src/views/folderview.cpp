@@ -196,7 +196,7 @@ void FolderView::setBottomInset(double inset)
     m_content->requestLayout();
 }
 
-void FolderView::setBackdropBase(std::optional<ui::Color> color)
+void FolderView::setBackdropBase(std::optional<ui::ColorRecipe> color)
 {
     m_backdropBase = color;
     if (m_backdrop)

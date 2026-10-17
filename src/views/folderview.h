@@ -6,6 +6,7 @@
 #include "core/common.h"
 
 #include "base/signal.h"
+#include "ui/color_mixer.h"
 #include "ui/frame_client.h"
 #include "ui/scroll_view.h"
 
@@ -66,7 +67,7 @@ public:
     double bottomInset() const { return m_bottomInset; }
     // Where the visible rows start: under the bars and any column header.
     virtual double headerHeight() const { return m_topInset; }
-    void setBackdropBase(std::optional<ui::Color> color);
+    void setBackdropBase(std::optional<ui::ColorRecipe> color);
 
     int currentIndex() const { return m_currentIndex; }
     // The current item's model row, or -1.
@@ -216,7 +217,7 @@ private:
     FolderModel& m_model;
     Content* m_content;
     ui::HeaderBackdrop* m_backdrop = nullptr;
-    std::optional<ui::Color> m_backdropBase;
+    std::optional<ui::ColorRecipe> m_backdropBase;
     double m_topInset = 0;
     double m_bottomInset = 0;
 

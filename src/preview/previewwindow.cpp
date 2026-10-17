@@ -156,10 +156,10 @@ public:
         next->setEnabled(m_controller.currentIndex() + 1 < int(m_controller.items().size()));
         position->setText(std::to_string(m_controller.currentIndex() + 1) + " of "
                           + std::to_string(m_controller.items().size()));
-        position->setColor(ui::Theme::current().text);
+        position->setColor(ui::ColorId::Text);
         title->setVisible(pageMode);
         title->setText(shown.name);
-        title->setColor(ui::Theme::current().text);
+        title->setColor(ui::ColorId::Text);
         // A single compact preview has no header row to hold it.
         open->setVisible(shown.application.has_value() && (pageMode || multiple));
         if (shown.application)
@@ -501,6 +501,7 @@ protected:
         preloader->setGeometry({0, 0, 1, 1});
         if (window())
             window()->setBackgroundBlur(rect, ui::Theme::current().windowRadius);
+        m_preview->updateGlass();
     }
 
     bool keyPress(const ui::KeyEvent& event) override
@@ -696,21 +697,9 @@ void PreviewWindow::open()
     m_window->setResizeAroundCenter(true);
     // Each Space maps a new window; it opens where the last one was left.
     m_window->setRestoreId("quickLook");
-    const ui::Theme& theme = ui::Theme::current();
     m_window->setBackgroundColor(ui::Color {0, 0, 0, 0});
-    ui::GlassMaterial glass;
-    glass.blurSigma = 4.4;
-    glass.displacement = 21.6;
-    glass.chroma = 0.03;
-    if (theme.darkMode) {
-        glass.tintRed = 0.18;
-        glass.tintGreen = 0.18;
-        glass.tintBlue = 0.20;
-    } else {
-        glass.tintRed = glass.tintGreen = glass.tintBlue = 1;
-    }
-    glass.tintAlpha = 0.7;
-    m_window->setBackgroundGlass(glass);
+    m_glassDarkMode.reset();
+    updateGlass();
     auto root = std::make_unique<PreviewRoot>(this);
     m_root = root.get();
     m_window->setContentView(std::move(root));
@@ -721,6 +710,27 @@ void PreviewWindow::open()
         if (m_root)
             m_root->updateHeader();
     };
+}
+
+void PreviewWindow::updateGlass()
+{
+    const bool darkMode = ui::Theme::current().darkMode;
+    if (!m_window || m_glassDarkMode == darkMode)
+        return;
+    m_glassDarkMode = darkMode;
+    ui::GlassMaterial glass;
+    glass.blurSigma = 4.4;
+    glass.displacement = 21.6;
+    glass.chroma = 0.03;
+    if (darkMode) {
+        glass.tintRed = 0.18;
+        glass.tintGreen = 0.18;
+        glass.tintBlue = 0.20;
+    } else {
+        glass.tintRed = glass.tintGreen = glass.tintBlue = 1;
+    }
+    glass.tintAlpha = 0.7;
+    m_window->setBackgroundGlass(glass);
 }
 
 void PreviewWindow::destroy()

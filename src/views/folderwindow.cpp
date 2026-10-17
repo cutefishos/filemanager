@@ -907,8 +907,8 @@ void FolderWindow::updateBackground()
 {
     const ui::Theme& theme = ui::Theme::current();
     const bool active = m_window->isActive();
-    m_window->setBackgroundColor(ui::color(active ? ui::ColorId::TranslucentWindowBackground
-                                                  : ui::ColorId::TranslucentWindowBackgroundInactive));
+    m_window->setBackgroundColor(active ? ui::ColorId::TranslucentWindowBackground
+                                        : ui::ColorId::TranslucentWindowBackgroundInactive);
     const ui::SizeF size = m_window->size();
     m_window->setBackgroundBlur({0, 0, size.width, size.height}, theme.windowRadius);
     // Views colour their text by it as they lay out.

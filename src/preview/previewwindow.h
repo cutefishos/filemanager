@@ -44,6 +44,7 @@ private:
     friend class PreviewRoot;
 
     void open();
+    void updateGlass();
     void destroy();
     void stage(const PreviewFile& file);
     void present(PreviewFile file);
@@ -64,6 +65,7 @@ private:
     PreviewFile m_shown;
     std::optional<PreviewFile> m_pending;
     bool m_opening = false;
+    std::optional<bool> m_glassDarkMode;
     // Decodes the next image into the cache before it is shown.
     std::unique_ptr<ui::ImageView> m_preloader;
     base::Timer m_stall;

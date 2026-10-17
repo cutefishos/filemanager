@@ -131,7 +131,7 @@ public:
 
         recentTitle = addChild<ui::Label>("Recent Servers");
         recentTitle->setFontSize(12);
-        recentTitle->setColor(ui::Theme::current().disabledText);
+        recentTitle->setColor(ui::ColorId::DisabledText);
         ui::LayoutHints titleHints;
         titleHints.margins.top = 4;
         recentTitle->setLayoutHints(titleHints);
@@ -214,7 +214,7 @@ ConnectServerDialog::ConnectServerDialog(ui::Window* parent, PlacesModel& places
         if (onDone)
             onDone();
     };
-    m_dialog->window()->setBackgroundColor(ui::Theme::current().secondBackground);
+    m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] { m_dialog->close(); });
     m_field = content->field;
 }
@@ -235,7 +235,6 @@ public:
         : m_dialog(dialog)
     {
         const Request& request = dialog->m_request;
-        const ui::Theme& theme = ui::Theme::current();
         setSpacing(12);
         // The dialog pads the sides and the bottom; the top takes 16 more.
         setPadding({0, 16, 0, 0});
@@ -245,7 +244,7 @@ public:
                                                             + "” is incorrect. Try again."
                                                     : "Enter your name and password for “" + request.address + "”.");
         message->setWrap(true);
-        message->setColor(theme.disabledText);
+        message->setColor(ui::ColorId::DisabledText);
         message->setLayoutHints({.fillWidth = true});
 
         auto* who = addChild<ui::RowLayout>();
@@ -352,7 +351,7 @@ ServerPasswordDialog::ServerPasswordDialog(ui::Window* parent, PlacesModel& plac
         if (onDone)
             onDone();
     };
-    m_dialog->window()->setBackgroundColor(ui::Theme::current().secondBackground);
+    m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] { m_dialog->close(); });
     content->focusFirst();
 }

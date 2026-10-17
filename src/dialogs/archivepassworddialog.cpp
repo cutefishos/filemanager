@@ -21,7 +21,6 @@ public:
     explicit Content(ArchivePasswordDialog* dialog)
         : m_dialog(dialog)
     {
-        const ui::Theme& theme = ui::Theme::current();
         setSpacing(12);
         // The dialog pads the sides and the bottom; the top takes 16 more.
         setPadding({0, 16, 0, 0});
@@ -31,7 +30,7 @@ public:
                                                             + "” is incorrect. Try again."
                                                     : "Enter the password to extract “" + dialog->m_name + "”.");
         message->setWrap(true);
-        message->setColor(theme.disabledText);
+        message->setColor(ui::ColorId::DisabledText);
         message->setLayoutHints({.fillWidth = true});
 
         password = addChild<ui::TextField>();
@@ -85,7 +84,7 @@ ArchivePasswordDialog::ArchivePasswordDialog(ui::Window* parent, FolderModel& mo
         if (onDone)
             onDone();
     };
-    m_dialog->window()->setBackgroundColor(ui::Theme::current().secondBackground);
+    m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] { m_dialog->close(); });
     content->password->setFocus();
 }
