@@ -140,6 +140,11 @@ FolderView::FolderView(FolderModel& model)
     m_subscriptions.push_back(model.rowDataChanged.connect([this](int) {
         updateItems();
     }));
+    // The dragged items are blank on the desktop until the drag ends, which
+    // comes after a drop into the same view has moved them.
+    m_subscriptions.push_back(model.draggingChanged.connect([this] {
+        updateItems();
+    }));
     m_subscriptions.push_back(model.scrollToItem.connect([this](int row) {
         setCurrentIndex(indexOfRow(row));
     }));

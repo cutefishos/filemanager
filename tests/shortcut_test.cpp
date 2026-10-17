@@ -15,6 +15,7 @@
 #include "base/dbus.h"
 #include "base/url.h"
 #include "ui/application.h"
+#include "ui/drag.h"
 #include "ui/keys.h"
 #include "ui/text_area.h"
 #include "ui/window.h"
@@ -272,4 +273,44 @@ TEST(ShortcutTest, DesktopRenamesANewDocumentOnItsCell)
     ASSERT_TRUE(runUntil(loop, [&] { return view.isRenaming(); }));
     EXPECT_EQ(view.positioner().cellOfUrl(base::url::fromLocalFile(directory.filePath("New Text"))), 1);
     EXPECT_EQ(view.currentIndex(), 1);
+}
+
+// An icon dragged to another cell of the desktop shows there once the drag
+// ends: the drop moves it while the drag still blanks it.
+TEST(ShortcutTest, DesktopIconShowsWhereItWasDropped)
+{
+    base::EventLoop& loop = s_app->loop();
+    fmtest::TemporaryDir directory;
+    fmtest::writeFile(directory.filePath("a.txt"));
+    WindowHost host;
+    fm::DesktopWindow desktop(nullptr, host);
+    fm::FolderModel& model = desktop.model();
+    model.setUrl(base::url::fromLocalFile(directory.path()));
+    desktop.window()->resize({1280, 800});
+    desktop.window()->show();
+    ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready && model.count() == 1; }));
+    desktop.window()->grab();
+    fm::DesktopGridView& view = *desktop.view();
+    ASSERT_GT(view.columns(), 2);
+    const std::string url = base::url::fromLocalFile(directory.filePath("a.txt"));
+    const auto shownCells = [&] {
+        std::vector<ui::RectF> cells;
+        for (const auto& child : view.contentView()->children()) {
+            if (child->isVisible())
+                cells.push_back(child->geometry());
+        }
+        return cells;
+    };
+
+    model.setSelected(0);
+    model.setDragging(true);
+    EXPECT_TRUE(shownCells().empty());
+
+    const ui::RectF target = view.cellRect(view.rows() * 2);
+    model.drop({url}, -1, ui::MoveAction, int(target.x + target.width / 2), int(target.y + target.height / 2));
+    model.setDragging(false);
+    EXPECT_EQ(view.positioner().cellOfUrl(url), view.rows() * 2);
+    const std::vector<ui::RectF> shown = shownCells();
+    ASSERT_EQ(shown.size(), 1u);
+    EXPECT_EQ(shown.front(), target);
 }
