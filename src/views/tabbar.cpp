@@ -77,7 +77,10 @@ FolderTabBar::FolderTabBar()
     };
 }
 
-FolderTabBar::~FolderTabBar() = default;
+FolderTabBar::~FolderTabBar()
+{
+    *m_alive = false;
+}
 
 ui::RectF FolderTabBar::listRect() const
 {
@@ -132,7 +135,10 @@ void FolderTabBar::setTabs(const std::vector<std::pair<int, std::string>>& tabs)
     raiseChild(m_add);
     requestLayout();
     requestPaint();
-    base::EventLoop::current()->post([this] { ensureVisible(m_currentIndex); });
+    base::EventLoop::current()->post([this, alive = m_alive] {
+        if (*alive)
+            ensureVisible(m_currentIndex);
+    });
 }
 
 void FolderTabBar::setCurrentIndex(int index)

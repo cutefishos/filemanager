@@ -107,6 +107,7 @@ private:
     std::unique_ptr<FrameTicker> m_ticker;
     base::Timer m_autoScroll;
     std::unique_ptr<ui::Menu> m_menu;
+    std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
 };
 
 } // namespace fm

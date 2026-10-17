@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <memory>
 
 using namespace cutefish;
 using fmtest::runUntil;
@@ -102,4 +103,26 @@ TEST(HeaderTest, PathBarDragsMoveTheWindow)
     window.grab();
     EXPECT_TRUE(editor->isVisible());
     EXPECT_EQ(ui::TestInput::moveRequests(window), 2);
+}
+
+// A window can go in the turn its tabs changed: what the tab bar left for the
+// next turn must not reach it.
+TEST(HeaderTest, WindowGoesRightAfterItsTabsChange)
+{
+    base::EventLoop& loop = s_app->loop();
+    fmtest::TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+    const std::string url = base::url::fromLocalFile(directory.path());
+
+    WindowHost host;
+    fm::FolderPage::Start start;
+    start.url = url;
+    auto folderWindow = std::make_unique<fm::FolderWindow>(&host, start);
+    folderWindow->show();
+    fmtest::runFor(loop, 50);
+
+    folderWindow->openTab(url);
+    EXPECT_EQ(folderWindow->tabCount(), 2);
+    folderWindow.reset();
+    fmtest::runFor(loop, 50);
 }
