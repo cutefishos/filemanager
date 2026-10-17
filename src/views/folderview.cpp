@@ -287,6 +287,7 @@ void FolderView::rename()
 
     auto editor = std::make_unique<RenameEditor>(item->name, m_model.fileExtensionBoundary(row), centeredRename());
     m_editor = editor.get();
+    m_editor->setFont(labelPixelSize(), labelWeight());
     const int index = m_currentIndex;
     // The row moves if files come or go while the name is typed.
     m_editor->onSubmitted = [this, url = item->url](const std::string& name) {

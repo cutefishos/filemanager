@@ -60,6 +60,11 @@ RenameEditor::RenameEditor(std::string name, int selectionEnd, bool centered)
     setName("renameEditor");
     m_field = addChild<RenameField>(this);
     m_field->setWrapMode(centered ? ui::TextArea::WrapMode::Wrap : ui::TextArea::WrapMode::NoWrap);
+    m_field->setHorizontalAlignment(centered ? ui::TextArea::HorizontalAlignment::Center
+                                             : ui::TextArea::HorizontalAlignment::Left);
+    m_field->setVerticallyCentered(true);
+    m_field->setSelectionColors(std::nullopt, ui::Color::rgb(0xffffff));
+    m_field->setPersistentSelection(true);
     m_field->onTextChanged = [this] {
         if (!m_error.empty())
             setError({});
@@ -68,6 +73,12 @@ RenameEditor::RenameEditor(std::string name, int selectionEnd, bool centered)
 }
 
 RenameEditor::~RenameEditor() = default;
+
+void RenameEditor::setFont(double pixelSize, int weight)
+{
+    m_field->setFont({}, pixelSize, weight);
+    place();
+}
 
 void RenameEditor::setTarget(const ui::RectF& label, double viewWidth)
 {
@@ -91,9 +102,7 @@ void RenameEditor::place()
         width = std::max(0.0, std::min(m_viewWidth - 8, std::max(120.0, label.width + 8)));
         x = std::max(4.0, std::min(m_viewWidth - width - 4, label.x - kPadding));
     }
-    const double contentHeight = m_field->heightForWidth(width);
-    const double height = std::max(style::fontHeight() + 8, contentHeight);
-    setGeometry({x, label.y - kPadding, width, height});
+    setGeometry({x, label.y - kPadding, width, m_field->heightForWidth(width)});
 }
 
 void RenameEditor::layout()

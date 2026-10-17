@@ -36,7 +36,8 @@ public:
     ui::RectF cellRect(int cell) const override;
 
     // Desktop label metrics, shared with the items.
-    double labelPixelSize() const;
+    double labelPixelSize() const override;
+    int labelWeight() const override { return 600; }
     double labelHeight() const;
     // A name on at most two lines, the middle of the second elided, so a long
     // name keeps how it starts and its extension.

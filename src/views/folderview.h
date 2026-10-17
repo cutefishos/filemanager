@@ -140,6 +140,9 @@ protected:
     // label's rect, and whether the editor centres on it.
     virtual std::optional<ui::RectF> labelRect(int index) const = 0;
     virtual bool centeredRename() const { return false; }
+    // The labels' pixel size (0 for the theme's) and weight, which the editor takes.
+    virtual double labelPixelSize() const { return 0; }
+    virtual int labelWeight() const { return 400; }
     virtual void updateItems() = 0;
     // The arrow keys and the rest of the navigation; true when taken.
     virtual bool navigate(const ui::KeyEvent& event) = 0;

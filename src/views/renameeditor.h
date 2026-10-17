@@ -25,6 +25,8 @@ public:
     RenameEditor(std::string name, int selectionEnd, bool centered);
     ~RenameEditor() override;
 
+    // The label's pixel size (0 for the theme's) and weight.
+    void setFont(double pixelSize, int weight);
     // The label's rect in the parent's coordinates and the parent's width.
     void setTarget(const ui::RectF& label, double viewWidth);
     void begin();
