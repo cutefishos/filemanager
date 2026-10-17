@@ -164,7 +164,7 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
     m_sourceCount = m_task->sourceCount();
     m_destinationName = m_task->destinationName();
 
-    setContentFactory([this] { return createContent(); }, 480, 16);
+    setContentFactory([this] { return createContent(); }, 432, 16);
     // Closing does not cancel: the dialog only goes out of sight, and comes
     // back for a later conflict or error.
     onCloseRequested = [this] { close(); };
