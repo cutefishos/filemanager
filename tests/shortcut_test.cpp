@@ -10,11 +10,13 @@
 #include "views/folderpage.h"
 #include "views/folderwindow.h"
 #include "views/folderview.h"
+#include "views/renameeditor.h"
 
 #include "base/dbus.h"
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/keys.h"
+#include "ui/text_area.h"
 #include "ui/window.h"
 
 #include <gtest/gtest.h>
@@ -80,6 +82,17 @@ private:
 } // namespace
 
 extern ui::Application* s_app;
+
+static ui::View* findView(ui::View* view, const std::string& name)
+{
+    if (view->name() == name)
+        return view;
+    for (const auto& child : view->children()) {
+        if (ui::View* found = findView(child.get(), name))
+            return found;
+    }
+    return nullptr;
+}
 
 static bool press(fm::FolderPage& page, uint32_t key, uint32_t modifiers)
 {
@@ -175,6 +188,44 @@ TEST(ShortcutTest, F2RenamesTheCurrentItem)
     fmtest::runFor(loop, 300);
     window.grab();
     EXPECT_TRUE(page.view()->isRenaming());
+}
+
+// A file that comes in while a name is typed moves the rows; the file renamed stays the one edited.
+TEST(ShortcutTest, RenameFollowsItsFileWhenRowsMove)
+{
+    base::EventLoop& loop = s_app->loop();
+    fmtest::TemporaryDir directory;
+    fmtest::writeFile(directory.filePath("b.txt"));
+    Host host;
+    fm::FolderPage::Start start;
+    start.url = base::url::fromLocalFile(directory.path());
+    ui::Window window;
+    window.resize({900, 580});
+    auto owned = std::make_unique<fm::FolderPage>(&host, start);
+    fm::FolderPage& page = *owned;
+    window.setContentView(std::move(owned));
+    window.show();
+    fm::FolderModel& model = page.model();
+    ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready && model.count() == 1; }));
+    window.grab();
+    page.view()->setCurrentIndex(0);
+    model.setSelected(0);
+    window.grab();
+    press(page, 0xffbf, ui::NoModifier);
+    ASSERT_TRUE(page.view()->isRenaming());
+
+    fmtest::writeFile(directory.filePath("a.txt"));
+    model.refresh();
+    ASSERT_TRUE(runUntil(loop, [&] { return model.count() == 2; }));
+    ASSERT_EQ(model.rowForUrl(base::url::fromLocalFile(directory.filePath("b.txt"))), 1);
+
+    std::string renamed;
+    base::Subscription subscription = model.renaming.connect([&](std::string from, std::string) { renamed = from; });
+    auto* editor = static_cast<fm::RenameEditor*>(findView(page.view(), "renameEditor"));
+    ASSERT_NE(editor, nullptr);
+    static_cast<ui::TextArea*>(editor->children().front().get())->setText("c.txt");
+    editor->commit();
+    EXPECT_EQ(renamed, base::url::fromLocalFile(directory.filePath("b.txt")));
 }
 
 // The desktop takes the file view's keys as the browser does: Ctrl+A selects every icon.
