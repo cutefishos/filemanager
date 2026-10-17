@@ -26,6 +26,26 @@ namespace fm {
 
 static constexpr double kSmallSpacing = 6;
 
+// Where a place is now: disks come and go, and favourites change in other
+// windows, while a menu opened on one stays up.
+static int favoriteRow(const PlacesModel& places, const std::string& url)
+{
+    for (int row = 0; row < places.favoriteCount(); ++row) {
+        if (places.at(row).url == url)
+            return row;
+    }
+    return -1;
+}
+
+static int deviceRow(const PlacesModel& places, const std::string& udi)
+{
+    for (int row = 0; row < places.count(); ++row) {
+        if (places.at(row).udi == udi)
+            return row;
+    }
+    return -1;
+}
+
 // The places: every length on the
 // device grid, so no row lands on half a pixel at a fractional scale.
 class SidebarList : public ui::View
@@ -347,14 +367,28 @@ protected:
         });
         if (favorite) {
             m_menu->addSeparator();
-            m_menu->addItem("Remove from Favorites", [this, row] { m_sidebar->places().removeFavorite(row); });
+            m_menu->addItem("Remove from Favorites", [this, url = place.url] {
+                PlacesModel& places = m_sidebar->places();
+                if (const int current = favoriteRow(places, url); current >= 0)
+                    places.removeFavorite(current);
+            });
         }
         if (eject || unmount)
             m_menu->addSeparator();
-        if (eject)
-            m_menu->addItem("Eject", [this, row] { m_sidebar->places().requestEject(row); });
-        if (unmount)
-            m_menu->addItem("Unmount", [this, row] { m_sidebar->places().requestTeardown(row); });
+        if (eject) {
+            m_menu->addItem("Eject", [this, udi = place.udi] {
+                PlacesModel& places = m_sidebar->places();
+                if (const int current = deviceRow(places, udi); current >= 0)
+                    places.requestEject(current);
+            });
+        }
+        if (unmount) {
+            m_menu->addItem("Unmount", [this, udi = place.udi] {
+                PlacesModel& places = m_sidebar->places();
+                if (const int current = deviceRow(places, udi); current >= 0)
+                    places.requestTeardown(current);
+            });
+        }
         m_menuRow = row;
         m_menu->onClosed = [this] {
             m_menuRow = -1;
