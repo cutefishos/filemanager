@@ -207,7 +207,7 @@ protected:
             row.label->setText(place.displayName());
             row.label->setColor(color);
             const double labelX = snap(iconX + iconSize + kSmallSpacing);
-            const double labelRight = (row.ejectVisible ? row.ejectRect.x : width) - snap(kSmallSpacing);
+            const double labelRight = (row.ejectVisible ? row.ejectRect.x : width - inset) - snap(kSmallSpacing);
             const double labelHeight = row.label->sizeHint().height;
             row.label->setGeometry({labelX, y + snap((rowHeight - labelHeight) / 2),
                                     std::max(0.0, labelRight - labelX), labelHeight});
