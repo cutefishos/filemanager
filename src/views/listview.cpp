@@ -293,6 +293,12 @@ private:
     double m_startX = 0;
 };
 
+// Neither side of a thumbnail is drawn shorter than this share of the box.
+static constexpr double kThumbnailMinimumShare = 1.0 / 3;
+
+// The largest thumbnail the cache keeps.
+static constexpr double kThumbnailMaximumRequest = 1024;
+
 // One item's row in the list.
 class ListRow : public ui::View
 {
@@ -302,6 +308,7 @@ public:
     {
         m_icon = addChild<ui::IconImage>();
         m_thumbnail = addChild<ui::ImageView>();
+        m_thumbnail->setFillMode(ui::ImageView::FillMode::PreserveAspectCrop);
         m_thumbnail->setVisible(false);
         m_emblem = addChild<ui::ThemeIcon>("emblem-symbolic-link", 12);
         m_emblem->setImageProviderLookup(true);
@@ -462,36 +469,68 @@ private:
         // Twice the box, as the row's sourceSize asks.
         const int width = int(std::round(box.width * 2 * scale));
         const int height = int(std::round(box.height * 2 * scale));
-        const std::string key = m_item->path + '\n' + std::to_string(m_item->modified) + '\n' + std::to_string(width);
-        if (key != m_imageKey) {
+        const std::string key = m_item->path + '\n' + std::to_string(m_item->modified);
+        if (key != m_imageKey || m_thumbnailBox != ui::SizeF(width, height)) {
             m_imageKey = key;
-            m_image = thumbnails::cached(m_item->path, m_item->modified, width, height);
-            if (m_image.isNull()) {
-                const std::weak_ptr<bool> alive = m_alive;
-                thumbnails::load(m_item->path, m_item->modified, width, height,
-                                 [this, alive, key](const ui::Bitmap& image) {
-                                     if (alive.expired() || key != m_imageKey)
-                                         return;
-                                     m_image = image;
-                                     m_imageKey.clear();
-                                     m_imageKey = key;
-                                     applyImage();
-                                     requestLayout();
-                                 });
-            }
-            applyImage();
+            m_thumbnailBox = ui::SizeF(width, height);
+            m_thumbnailRequest = m_thumbnailBox;
+            m_image = {};
+            loadThumbnail();
         }
         if (m_image.isNull()) {
             m_thumbnail->setVisible(false);
             return;
         }
+
+        // PreserveAspectFit, centred in the box, then widened or heightened
+        // to the minimum: a picture too narrow or too flat for it is cropped
+        // about its centre.
         const double fit = std::min(box.width / m_image.width(), box.height / m_image.height());
-        const double w = m_image.width() * fit;
-        const double h = m_image.height() * fit;
+        const double fittedWidth = m_image.width() * fit;
+        const double fittedHeight = m_image.height() * fit;
+        const double w = std::max(fittedWidth, box.width * kThumbnailMinimumShare);
+        const double h = std::max(fittedHeight, box.height * kThumbnailMinimumShare);
         m_thumbnail->setGeometry({box.x + (box.width - w) / 2, box.y + (box.height - h) / 2, w, h});
+
+        // A cropped picture is drawn larger than it fits the box: a larger
+        // thumbnail keeps it sharp, up to the largest the cache has.
+        const double crop = std::max(w / fittedWidth, h / fittedHeight);
+        const double limit = kThumbnailMaximumRequest / std::max(m_thumbnailBox.width, m_thumbnailBox.height);
+        const double grow = std::max(1.0, std::min(crop, limit));
+        const ui::SizeF request(std::round(m_thumbnailBox.width * grow), std::round(m_thumbnailBox.height * grow));
+        if (request != m_thumbnailRequest) {
+            m_thumbnailRequest = request;
+            loadThumbnail();
+        }
+
         m_thumbnail->setCornerRadius(3);
         m_thumbnail->setOpacity(m_item->isHidden ? 0.5 : 1.0);
         m_thumbnail->setVisible(true);
+    }
+
+    // The picture shown stays until the requested size arrives.
+    void loadThumbnail()
+    {
+        const int width = int(m_thumbnailRequest.width);
+        const int height = int(m_thumbnailRequest.height);
+        const ui::Bitmap cached = thumbnails::cached(m_item->path, m_item->modified, width, height);
+        if (!cached.isNull()) {
+            m_image = cached;
+            applyImage();
+            return;
+        }
+
+        const std::weak_ptr<bool> alive = m_alive;
+        const std::string key = m_imageKey;
+        thumbnails::load(m_item->path, m_item->modified, width, height,
+                         [this, alive, key, width, height](const ui::Bitmap& image) {
+                             if (alive.expired() || image.isNull() || key != m_imageKey
+                                 || m_thumbnailRequest != ui::SizeF(width, height))
+                                 return;
+                             m_image = image;
+                             applyImage();
+                             requestLayout();
+                         });
     }
 
     void applyImage()
@@ -512,6 +551,8 @@ private:
     bool m_dropTarget = false;
     bool m_wantsThumbnail = false;
     std::string m_imageKey;
+    ui::SizeF m_thumbnailBox;
+    ui::SizeF m_thumbnailRequest;
     ui::Bitmap m_image;
     ui::IconImage* m_icon;
     ui::ImageView* m_thumbnail;
