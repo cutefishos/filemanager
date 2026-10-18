@@ -100,6 +100,7 @@ private:
     void syncNavigation();
     void updateHeader();
     void updateBackground();
+    void updateBlur();
     void updateTabBar();
     void showContextMenu(ui::PointF position);
     void showOptionsMenu();

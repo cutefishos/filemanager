@@ -429,6 +429,7 @@ protected:
         trashBar->setGeometry({left, y, content.width, trashShown ? kBarHeight : 0});
 
         header->setGeometry({0, 0, width, FolderWindow::kHeaderInset});
+        m_window->updateBlur();
     }
 
     // Takes a tab pulled out of a window of this process over the header or
@@ -905,14 +906,18 @@ void FolderWindow::updateHeader()
 
 void FolderWindow::updateBackground()
 {
-    const ui::Theme& theme = ui::Theme::current();
     const bool active = m_window->isActive();
     m_window->setBackgroundColor(active ? ui::ColorId::TranslucentWindowBackground
                                         : ui::ColorId::TranslucentWindowBackgroundInactive);
-    const ui::SizeF size = m_window->size();
-    m_window->setBackgroundBlur({0, 0, size.width, size.height}, theme.windowRadius);
+    updateBlur();
     // Views colour their text by it as they lay out.
     m_window->requestLayout();
+}
+
+void FolderWindow::updateBlur()
+{
+    const ui::SizeF size = m_window->size();
+    m_window->setBackgroundBlur({0, 0, size.width, size.height}, ui::Theme::current().windowRadius);
 }
 
 void FolderWindow::showContextMenu(ui::PointF position)
