@@ -191,6 +191,46 @@ TEST(ShortcutTest, F2RenamesTheCurrentItem)
     EXPECT_TRUE(page.view()->isRenaming());
 }
 
+// An item selected without becoming current, as a band selects it, is where the arrow keys start.
+TEST(ShortcutTest, ArrowKeysMoveFromTheSelection)
+{
+    base::EventLoop& loop = s_app->loop();
+    fmtest::TemporaryDir directory;
+    fmtest::writeFile(directory.filePath("a.txt"));
+    fmtest::writeFile(directory.filePath("b.txt"));
+    fmtest::writeFile(directory.filePath("c.txt"));
+    fmtest::writeFile(directory.filePath("d.txt"));
+    Host host;
+    fm::FolderPage::Start start;
+    start.url = base::url::fromLocalFile(directory.path());
+    ui::Window window;
+    window.resize({900, 580});
+    auto owned = std::make_unique<fm::FolderPage>(&host, start);
+    fm::FolderPage& page = *owned;
+    window.setContentView(std::move(owned));
+    window.show();
+    fm::FolderModel& model = page.model();
+    ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready && model.count() == 4; }));
+    window.grab();
+    const auto selected = [&] {
+        const std::vector<int> rows = model.selectedRows();
+        return rows.size() == 1 ? model.item(rows.front())->name : std::string();
+    };
+
+    ASSERT_EQ(page.view()->currentIndex(), -1);
+    model.updateSelection({model.rowForUrl(base::url::fromLocalFile(directory.filePath("c.txt")))}, false, false);
+    press(page, ui::key::Left, ui::NoModifier);
+    EXPECT_EQ(selected(), "b.txt");
+
+    model.updateSelection({model.rowForUrl(base::url::fromLocalFile(directory.filePath("d.txt")))}, false, false);
+    press(page, ui::key::Left, ui::NoModifier);
+    EXPECT_EQ(selected(), "c.txt");
+
+    model.updateSelection({0, 1}, false, false);
+    press(page, ui::key::Right, ui::NoModifier);
+    EXPECT_EQ(selected(), "c.txt");
+}
+
 // A file that comes in while a name is typed moves the rows; the file renamed stays the one edited.
 TEST(ShortcutTest, RenameFollowsItsFileWhenRowsMove)
 {

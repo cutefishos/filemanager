@@ -172,6 +172,10 @@ protected:
     uint32_t drop(const ui::DragEvent& event) override;
 
     void updateSelection(uint32_t modifiers);
+    // The index the arrow keys move from: the current item while it is
+    // selected, otherwise the selection's last item going forward and its
+    // first going back, as a band or the model may have selected it.
+    int keyboardIndex(bool forward) const;
     void applyRectangleSelection(const std::vector<int>& indices);
 
     int hoveredIndex() const { return m_hoveredIndex; }

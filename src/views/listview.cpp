@@ -738,16 +738,16 @@ bool FolderListView::navigate(const ui::KeyEvent& event)
         moveCurrentIndex(model().count() - 1, event.modifiers);
         return true;
     case ui::key::PageUp:
-        moveCurrentIndex(std::max(0, currentIndex()) - page, event.modifiers);
+        moveCurrentIndex(std::max(0, keyboardIndex(false)) - page, event.modifiers);
         return true;
     case ui::key::PageDown:
-        moveCurrentIndex(currentIndex() + page, event.modifiers);
+        moveCurrentIndex(keyboardIndex(true) + page, event.modifiers);
         return true;
     case ui::key::Up:
-        moveCurrentIndex(currentIndex() == -1 ? 0 : currentIndex() - 1, event.modifiers);
+        moveCurrentIndex(keyboardIndex(false) == -1 ? 0 : keyboardIndex(false) - 1, event.modifiers);
         return true;
     case ui::key::Down:
-        moveCurrentIndex(currentIndex() + 1, event.modifiers);
+        moveCurrentIndex(keyboardIndex(true) + 1, event.modifiers);
         return true;
     default:
         return false;

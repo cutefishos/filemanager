@@ -431,7 +431,8 @@ bool DesktopGridView::navigate(const ui::KeyEvent& event)
     }
     if (isRenaming())
         return true;
-    const int next = m_positioner.nearestItem(currentIndex(), direction);
+    const bool forward = direction == Positioner::Direction::Right || direction == Positioner::Direction::Down;
+    const int next = m_positioner.nearestItem(keyboardIndex(forward), direction);
     if (next != -1) {
         setCurrentIndex(next);
         updateSelection(event.modifiers);

@@ -332,6 +332,22 @@ void FolderView::updateSelection(uint32_t modifiers)
     }
 }
 
+int FolderView::keyboardIndex(bool forward) const
+{
+    if (m_currentIndex >= 0 && m_model.isSelected(rowOf(m_currentIndex)))
+        return m_currentIndex;
+
+    int found = -1;
+    for (const int row : m_model.selectedRows()) {
+        const int index = indexOfRow(row);
+        if (index < 0)
+            continue;
+        if (found < 0 || (forward ? index > found : index < found))
+            found = index;
+    }
+    return found >= 0 ? found : m_currentIndex;
+}
+
 void FolderView::applyRectangleSelection(const std::vector<int>& indices)
 {
     // Ctrl toggles what the band covers against the selection it started
@@ -834,8 +850,8 @@ bool FolderView::keyPress(const ui::KeyEvent& event)
     }
     if (event.key == style::key::ShiftL || event.key == style::key::ShiftR) {
         m_shiftPressed = true;
-        if (m_currentIndex != -1)
-            m_anchorIndex = m_currentIndex;
+        if (const int index = keyboardIndex(false); index != -1)
+            m_anchorIndex = index;
         return false;
     }
     if (onKeyPressed && onKeyPressed(event))

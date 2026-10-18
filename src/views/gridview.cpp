@@ -306,7 +306,8 @@ bool FolderGridView::navigate(const ui::KeyEvent& event)
     if (count <= 0 || m_columns <= 0)
         return true;
     // A packed grid: plain index arithmetic, nothing past either end.
-    const int next = currentIndex() < 0 ? 0 : currentIndex() + step;
+    const int from = keyboardIndex(step > 0);
+    const int next = from < 0 ? 0 : from + step;
     if (next < 0 || next >= count)
         return true;
     setCurrentIndex(next);
