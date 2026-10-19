@@ -15,6 +15,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/json.h"
 #include "base/paths.h"
 #include "base/settings.h"
@@ -27,6 +28,8 @@
 #include "ui/window.h"
 
 #include <cmath>
+
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -77,7 +80,7 @@ DesktopWindow::DesktopWindow(ui::TrustedConnection* connection, FileManagerHost&
     model.setUrl(base::url::fromLocalFile(desktopPath()));
 
     m_window = connection ? std::make_unique<ui::Window>(*connection) : std::make_unique<ui::Window>();
-    m_window->setTitle("Desktop");
+    m_window->setTitle(tr("Desktop"));
     m_window->setBackgroundColor(ui::Color {0, 0, 0, 0});
     auto root = std::make_unique<DesktopRoot>(this);
     m_root = root.get();
@@ -150,17 +153,17 @@ DesktopWindow::DesktopWindow(ui::TrustedConnection* connection, FileManagerHost&
                     Entry separator;
                     separator.separator = true;
                     Entry newWindow;
-                    newWindow.label = "New Window";
+                    newWindow.label = tr("New Window");
                     // A window opened from the desktop starts at home, not at ~/Desktop.
                     newWindow.action = [&model] { model.openInNewWindow(base::url::fromLocalFile(homePath())); };
                     Entry selectAll;
-                    selectAll.label = "Select All";
+                    selectAll.label = tr("Select All");
                     selectAll.action = [&model] { model.selectAll(); };
                     Entry file;
-                    file.label = "File";
+                    file.label = tr("File");
                     file.children = {newWindow, action("newFolder"), separator, action("properties")};
                     Entry edit;
-                    edit.label = "Edit";
+                    edit.label = tr("Edit");
                     edit.children = {action("undo"), action("redo"), separator, action("cut"), action("copy"),
                                      action("paste"), selectAll};
                     return std::vector<Entry> {file, edit};

@@ -4,6 +4,7 @@
 #include "ops/operations.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/url.h"
 
 #include <algorithm>
@@ -13,6 +14,7 @@ namespace fm {
 
 using base::dbus::Variant;
 using base::dbus::VariantMap;
+using cutefish::i18n::tr;
 
 static constexpr char kService[] = "org.cutefish.FileOperations";
 static constexpr char kManagerPath[] = "/org/cutefish/FileOperations";
@@ -355,7 +357,7 @@ OperationsClient::OperationsClient(base::dbus::Connection* bus)
             for (const OperationTaskPtr& task : active)
                 task->finish({{"finished", Variant(true)},
                               {"errorCode", Variant(int32_t(ECONNRESET))},
-                              {"errorString", Variant(std::string("The file operations service stopped."))}});
+                              {"errorString", Variant(std::string(tr("The file operations service stopped.")))}});
             return;
         }
         queryHistory();
@@ -473,7 +475,7 @@ OperationTaskPtr OperationsClient::submit(Operation operation, const std::vector
     if (!m_bus) {
         task->finish({{"finished", Variant(true)},
                       {"errorCode", Variant(int32_t(ENOTCONN))},
-                      {"errorString", Variant(std::string("The session bus cannot be reached."))}});
+                      {"errorString", Variant(std::string(tr("The session bus cannot be reached.")))}});
         return task;
     }
 

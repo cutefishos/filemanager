@@ -6,6 +6,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/strings.h"
 #include "ui/check_box.h"
 #include "ui/dialog_window.h"
@@ -22,6 +23,9 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trc;
 
 // One recent server: a 32 px row, lit when the field holds it.
 class RecentServer : public ui::View
@@ -122,14 +126,15 @@ public:
         // The dialog pads the sides and the bottom; the top takes 16 more.
         setPadding({0, 16, 0, 0});
         field = addChild<ui::TextField>();
-        field->setPlaceholder("smb://server/share or sftp://user@server");
+        // TRANSLATORS: example addresses; keep the two addresses as they are.
+        field->setPlaceholder(tr("smb://server/share or sftp://user@server"));
         field->setSelectByMouse(true);
         field->setInputPurpose(ui::TextPurpose::Url);
         field->setLayoutHints({.fillWidth = true});
         field->onAccepted = [this] { connectTo(field->text()); };
         field->onTextChanged = [this] { updateRows(); };
 
-        recentTitle = addChild<ui::Label>("Recent Servers");
+        recentTitle = addChild<ui::Label>(tr("Recent Servers"));
         recentTitle->setFontSize(12);
         recentTitle->setColor(ui::ColorId::DisabledText);
         ui::LayoutHints titleHints;
@@ -143,9 +148,9 @@ public:
         ui::LayoutHints actionHints {.horizontalAlignment = ui::Alignment::End};
         actionHints.margins.top = 4;
         actions->setLayoutHints(actionHints);
-        auto* cancel = actions->addChild<ui::DialogButton>("Cancel");
+        auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
         cancel->onClicked = [this] { m_dialog->m_dialog->close(); };
-        connect = actions->addChild<ui::DialogButton>("Connect", true);
+        connect = actions->addChild<ui::DialogButton>(tr("Connect"), true);
         connect->onClicked = [this] { connectTo(field->text()); };
         rebuild();
     }
@@ -208,7 +213,7 @@ private:
 ConnectServerDialog::ConnectServerDialog(ui::Window* parent, PlacesModel& places)
     : m_places(places)
 {
-    m_dialog = std::make_unique<ui::DialogWindow>(parent, "Connect to Server", 420);
+    m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Connect to Server"), 420);
     auto* content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         if (onDone)
@@ -239,10 +244,11 @@ public:
         // The dialog pads the sides and the bottom; the top takes 16 more.
         setPadding({0, 16, 0, 0});
 
-        auto* message = addChild<ui::Label>(request.retry
-                                                    ? "The name or password for “" + request.address
-                                                            + "” is incorrect. Try again."
-                                                    : "Enter your name and password for “" + request.address + "”.");
+        auto* message = addChild<ui::Label>(
+                request.retry ? format(tr("The name or password for “{address}” is incorrect. Try again."),
+                                       {{"address", request.address}})
+                              : format(tr("Enter your name and password for “{address}”."),
+                                       {{"address", request.address}}));
         message->setWrap(true);
         message->setColor(ui::ColorId::DisabledText);
         message->setLayoutHints({.fillWidth = true});
@@ -250,8 +256,8 @@ public:
         auto* who = addChild<ui::RowLayout>();
         who->setSpacing(16);
         who->setVisible(request.anonymousAllowed);
-        registered = who->addChild<ui::RadioButton>("Registered user");
-        guest = who->addChild<ui::RadioButton>("Guest");
+        registered = who->addChild<ui::RadioButton>(tr("Registered user"));
+        guest = who->addChild<ui::RadioButton>(tr("Guest"));
         registered->setGroup(&group);
         guest->setGroup(&group);
         registered->setChecked(true);
@@ -262,17 +268,17 @@ public:
         fields->setSpacing(8);
         fields->setLayoutHints({.fillWidth = true});
         user = fields->addChild<ui::TextField>(request.user);
-        user->setPlaceholder("Name");
+        user->setPlaceholder(trc("user name", "Name"));
         user->setLayoutHints({.fillWidth = true});
         domain = fields->addChild<ui::TextField>(request.domain);
-        domain->setPlaceholder("Domain (optional)");
+        domain->setPlaceholder(tr("Domain (optional)"));
         domain->setVisible(request.needsDomain);
         domain->setLayoutHints({.fillWidth = true});
         password = fields->addChild<ui::TextField>();
-        password->setPlaceholder("Password");
+        password->setPlaceholder(tr("Password"));
         password->setEchoMode(ui::TextField::EchoMode::Password);
         password->setLayoutHints({.fillWidth = true});
-        remember = fields->addChild<ui::CheckBox>("Remember this password");
+        remember = fields->addChild<ui::CheckBox>(tr("Remember this password"));
         remember->setChecked(true);
         user->onAccepted = [this] { password->setFocus(); };
         domain->onAccepted = [this] { password->setFocus(); };
@@ -285,9 +291,9 @@ public:
         ui::LayoutHints actionHints {.horizontalAlignment = ui::Alignment::End};
         actionHints.margins.top = 4;
         actions->setLayoutHints(actionHints);
-        auto* cancel = actions->addChild<ui::DialogButton>("Cancel");
+        auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
         cancel->onClicked = [this] { m_dialog->m_dialog->close(); };
-        connect = actions->addChild<ui::DialogButton>("Connect", true);
+        connect = actions->addChild<ui::DialogButton>(tr("Connect"), true);
         connect->onClicked = [this] { accept(); };
         update();
     }
@@ -342,7 +348,7 @@ ServerPasswordDialog::ServerPasswordDialog(ui::Window* parent, PlacesModel& plac
     : m_places(places)
     , m_request(std::move(request))
 {
-    m_dialog = std::make_unique<ui::DialogWindow>(parent, "Connect to Server", 400);
+    m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Connect to Server"), 400);
     auto* content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         // Closed without an answer: the connection is given up.

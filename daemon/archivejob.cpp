@@ -4,6 +4,7 @@
 #include <archive_entry.h>
 #include <zip.h>
 
+#include "base/i18n.h"
 #include "base/strings.h"
 #include "base/uuid.h"
 
@@ -22,6 +23,9 @@
 #include <unistd.h>
 
 namespace fs = std::filesystem;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trNoop;
 
 static std::string errorString(int code)
 {
@@ -74,7 +78,7 @@ static bool renameNoReplace(const std::string &from, const std::string &to)
 static std::string zipError(zip_t *archive)
 {
     if (!archive)
-        return "Unknown ZIP error";
+        return tr("Unknown ZIP error");
 
     return zip_strerror(archive);
 }
@@ -90,7 +94,7 @@ static std::string zipOpenError(int errorCode)
 
 using ArchiveReader = std::unique_ptr<struct archive, decltype(&archive_read_free)>;
 
-static constexpr char kEncryptedRar[] = "Password-protected RAR archives are not supported";
+static constexpr const char *kEncryptedRar = trNoop("Password-protected RAR archives are not supported");
 
 static int baseFormat(struct archive *reader)
 {
@@ -101,14 +105,14 @@ static std::string encryptionUnsupported(struct archive *reader)
 {
     switch (baseFormat(reader)) {
     case ARCHIVE_FORMAT_7ZIP:
-        return "Password-protected 7z archives are not supported";
+        return tr("Password-protected 7z archives are not supported");
     case ARCHIVE_FORMAT_RAR:
     case ARCHIVE_FORMAT_RAR_V5:
-        return kEncryptedRar;
+        return tr(kEncryptedRar);
     case ARCHIVE_FORMAT_ZIP:
-        return "This kind of ZIP encryption is not supported";
+        return tr("This kind of ZIP encryption is not supported");
     default:
-        return "Password-protected archives of this format are not supported";
+        return tr("Password-protected archives of this format are not supported");
     }
 }
 
@@ -124,7 +128,7 @@ static std::string archiveError(struct archive *reader)
         return message;
 
     // An encrypted ZIP central directory fails without a message.
-    return encrypted ? encryptionUnsupported(reader) : std::string("Unknown archive error");
+    return encrypted ? encryptionUnsupported(reader) : std::string(tr("Unknown archive error"));
 }
 
 static ArchiveReader openArchiveReader(const std::vector<std::string> &volumes, archive_passphrase_callback *password,
@@ -132,7 +136,7 @@ static ArchiveReader openArchiveReader(const std::vector<std::string> &volumes, 
 {
     ArchiveReader reader(archive_read_new(), &archive_read_free);
     if (!reader) {
-        *error = "Could not allocate memory for the archive";
+        *error = tr("Could not allocate memory for the archive");
         return reader;
     }
 
@@ -215,7 +219,7 @@ static bool archiveVolumes(const std::string &archivePath, std::vector<std::stri
     }
 
     if (volumes->empty()) {
-        *error = "The first part of this multi-part archive is missing";
+        *error = tr("The first part of this multi-part archive is missing");
         return false;
     }
     return true;
@@ -512,7 +516,7 @@ bool ArchiveJob::collectCompressionEntries(const std::string &sourcePath, const 
 
     struct stat linkStat;
     if (::lstat(sourcePath.c_str(), &linkStat) != 0) {
-        *error = "The source no longer exists: " + sourcePath;
+        *error = format(tr("The source no longer exists: {path}"), {{"path", sourcePath}});
         return false;
     }
 
@@ -520,7 +524,7 @@ bool ArchiveJob::collectCompressionEntries(const std::string &sourcePath, const 
         char target[16 * 1024];
         const ssize_t length = ::readlink(sourcePath.c_str(), target, sizeof(target));
         if (length <= 0) {
-            *error = "Could not read symbolic link: " + sourcePath;
+            *error = format(tr("Could not read symbolic link: {path}"), {{"path", sourcePath}});
             return false;
         }
 
@@ -554,7 +558,7 @@ bool ArchiveJob::collectCompressionEntries(const std::string &sourcePath, const 
     }
 
     if (!S_ISREG(linkStat.st_mode)) {
-        *error = "The source is not a regular file: " + sourcePath;
+        *error = format(tr("The source is not a regular file: {path}"), {{"path", sourcePath}});
         return false;
     }
 
@@ -565,7 +569,7 @@ bool ArchiveJob::collectCompressionEntries(const std::string &sourcePath, const 
 bool ArchiveJob::compress(std::string *error)
 {
     if (m_inputs.empty()) {
-        *error = "No files were selected";
+        *error = tr("No files were selected");
         return false;
     }
 
@@ -580,7 +584,7 @@ bool ArchiveJob::compress(std::string *error)
 
     const std::string parentPath = absoluteParent(m_outputPath);
     if (!isDirectory(parentPath)) {
-        *error = "The destination folder does not exist: " + parentPath;
+        *error = format(tr("The destination folder does not exist: {path}"), {{"path", parentPath}});
         return false;
     }
 
@@ -627,7 +631,7 @@ bool ArchiveJob::compress(std::string *error)
             const size_t bufferSize = std::max<size_t>(linkTarget.size(), 1);
             char *buffer = static_cast<char *>(std::malloc(bufferSize));
             if (!buffer)
-                return fail("Could not allocate memory for symbolic link");
+                return fail(tr("Could not allocate memory for symbolic link"));
 
             std::memcpy(buffer, linkTarget.data(), linkTarget.size());
             source = zip_source_buffer(archive, buffer, linkTarget.size(), 1);
@@ -667,7 +671,7 @@ bool ArchiveJob::compress(std::string *error)
     if (isCanceled() || !renameNoReplace(tempPath, m_outputPath)) {
         removeFile(tempPath);
         if (!isCanceled())
-            *error = "Could not create " + m_outputPath;
+            *error = format(tr("Could not create {path}"), {{"path", m_outputPath}});
         return false;
     }
 
@@ -747,7 +751,8 @@ bool ArchiveJob::extractSingleFile(struct archive *reader, bool empty, const std
     const std::string tempPath = temporaryPath(parentPath, "cutefish-extract");
     const int fd = ::open(tempPath.c_str(), O_WRONLY | O_CREAT | O_EXCL | O_CLOEXEC, 0666);
     if (fd < 0) {
-        *error = "Could not create " + fileNameOf(m_outputPath) + ": " + errorString(errno);
+        *error = format(tr("Could not create {path}: {error}"),
+                        {{"path", fileNameOf(m_outputPath)}, {"error", errorString(errno)}});
         return false;
     }
 
@@ -767,7 +772,7 @@ bool ArchiveJob::extractSingleFile(struct archive *reader, bool empty, const std
 
     if (isCanceled() || !renameNoReplace(tempPath, m_outputPath)) {
         if (!isCanceled())
-            *error = "Could not create " + m_outputPath;
+            *error = format(tr("Could not create {path}"), {{"path", m_outputPath}});
         removeFile(tempPath);
         return false;
     }
@@ -779,7 +784,7 @@ bool ArchiveJob::extractSingleFile(struct archive *reader, bool empty, const std
 bool ArchiveJob::extract(std::string *error)
 {
     if (m_inputs.size() != 1) {
-        *error = "Only one archive can be extracted at a time";
+        *error = tr("Only one archive can be extracted at a time");
         return false;
     }
 
@@ -788,7 +793,7 @@ bool ArchiveJob::extract(std::string *error)
         return false;
 
     if (!isDirectory(absoluteParent(m_outputPath))) {
-        *error = "The destination folder does not exist: " + absoluteParent(m_outputPath);
+        *error = format(tr("The destination folder does not exist: {path}"), {{"path", absoluteParent(m_outputPath)}});
         return false;
     }
 
@@ -796,7 +801,7 @@ bool ArchiveJob::extract(std::string *error)
         return true;
 
     if (!isCanceled() && isEncryptedRar5(volumes.front()))
-        *error = kEncryptedRar;
+        *error = tr(kEncryptedRar);
     return false;
 }
 
@@ -828,7 +833,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
     if (format == ARCHIVE_FORMAT_RAW || format == ARCHIVE_FORMAT_EMPTY) {
         // Without a compression filter the raw format would take any file.
         if (archive_filter_count(reader.get()) < 2) {
-            *error = "Unrecognized archive format";
+            *error = tr("Unrecognized archive format");
             return false;
         }
 
@@ -837,7 +842,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
 
     const std::string tempPath = temporaryPath(parentPath, "cutefish-extract");
     if (!makePath(tempPath)) {
-        *error = "Could not create a temporary extraction folder";
+        *error = tr("Could not create a temporary extraction folder");
         return false;
     }
 
@@ -877,7 +882,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         std::string relativePath;
         bool directory = false;
         if (!archiveEntryPath(name, &relativePath, &directory)) {
-            *error = "Unsafe path in archive: " + name;
+            *error = cutefish::i18n::format(tr("Unsafe path in archive: {path}"), {{"path", name}});
             return false;
         }
 
@@ -887,7 +892,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         }
 
         if (archive_entry_hardlink(entry)) {
-            *error = "Hard links in archives are not supported: " + name;
+            *error = cutefish::i18n::format(tr("Hard links in archives are not supported: {path}"), {{"path", name}});
             return false;
         }
 
@@ -895,12 +900,12 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         if (type == AE_IFLNK) {
             const std::string target = entryLinkTarget(entry);
             if (directory || relativePath.empty()) {
-                *error = "Invalid symbolic link path in archive: " + name;
+                *error = cutefish::i18n::format(tr("Invalid symbolic link path in archive: {path}"), {{"path", name}});
                 return false;
             }
 
             if (target.empty() || target.size() > 16 * 1024) {
-                *error = "Invalid symbolic link target: " + relativePath;
+                *error = cutefish::i18n::format(tr("Invalid symbolic link target: {path}"), {{"path", relativePath}});
                 return false;
             }
 
@@ -909,7 +914,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         }
 
         if (type != AE_IFREG && type != AE_IFDIR) {
-            *error = "Special files in archives are not supported: " + name;
+            *error = cutefish::i18n::format(tr("Special files in archives are not supported: {path}"), {{"path", name}});
             return false;
         }
 
@@ -922,7 +927,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         currentFileChanged(relativePath);
 
         if (!makePath(absoluteParent(destinationPath))) {
-            *error = "Could not create the parent folder for " + relativePath;
+            *error = cutefish::i18n::format(tr("Could not create the parent folder for {path}"), {{"path", relativePath}});
             return false;
         }
 
@@ -930,7 +935,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
             // A folder first met as a parent keeps the default mode.
             if ((::mkdir(destinationPath.c_str(), permissions | S_IRWXU) != 0 && errno != EEXIST)
                 || !isDirectory(destinationPath)) {
-                *error = "Could not create " + relativePath;
+                *error = cutefish::i18n::format(tr("Could not create {path}"), {{"path", relativePath}});
                 return false;
             }
 
@@ -942,7 +947,8 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         const int fd = ::open(destinationPath.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW | O_CLOEXEC,
                               permissions | S_IRUSR | S_IWUSR);
         if (fd < 0) {
-            *error = "Could not create " + relativePath + ": " + errorString(errno);
+            *error = cutefish::i18n::format(tr("Could not create {path}: {error}"),
+                                            {{"path", relativePath}, {"error", errorString(errno)}});
             return false;
         }
 
@@ -957,7 +963,8 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         }
 
         if (::close(fd) != 0) {
-            *error = "Could not write " + relativePath + ": " + errorString(errno);
+            *error = cutefish::i18n::format(tr("Could not write {path}: {error}"),
+                                            {{"path", relativePath}, {"error", errorString(errno)}});
             return false;
         }
     }
@@ -972,22 +979,22 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
 
         const std::string destinationPath = tempPath + '/' + link.relativePath;
         if (hasSymbolicLinkParent(tempPath, link.relativePath)) {
-            *error = "Symbolic link parent in archive: " + link.relativePath;
+            *error = cutefish::i18n::format(tr("Symbolic link parent in archive: {path}"), {{"path", link.relativePath}});
             return false;
         }
 
         if (!makePath(absoluteParent(destinationPath))) {
-            *error = "Could not create the parent folder for " + link.relativePath;
+            *error = cutefish::i18n::format(tr("Could not create the parent folder for {path}"), {{"path", link.relativePath}});
             return false;
         }
 
         if (existsNoFollow(destinationPath)) {
-            *error = "Duplicate path in archive: " + link.relativePath;
+            *error = cutefish::i18n::format(tr("Duplicate path in archive: {path}"), {{"path", link.relativePath}});
             return false;
         }
 
         if (::symlink(link.target.c_str(), destinationPath.c_str()) != 0) {
-            *error = "Could not restore symbolic link: " + link.relativePath;
+            *error = cutefish::i18n::format(tr("Could not restore symbolic link: {path}"), {{"path", link.relativePath}});
             return false;
         }
     }
@@ -1000,7 +1007,7 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
 
     if (isCanceled() || !renameNoReplace(tempPath, m_outputPath)) {
         if (!isCanceled())
-            *error = "Could not create " + m_outputPath;
+            *error = cutefish::i18n::format(tr("Could not create {path}"), {{"path", m_outputPath}});
         return false;
     }
 

@@ -5,11 +5,14 @@
 #include "core/launcher.h"
 #include "model/foldermodel.h"
 
+#include "base/i18n.h"
 #include "ui/menu.h"
 
 #include <functional>
 #include <map>
 #include <vector>
+
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -82,7 +85,7 @@ std::unique_ptr<ui::Menu> createFolderMenu(FolderModel& model)
             menu->addSeparator();
             pendingSeparator = false;
         }
-        ui::Menu* documents = menu->addSubmenu("New Documents");
+        ui::Menu* documents = menu->addSubmenu(tr("New Documents"));
         const FolderModel::Action& action = model.action("newTextFile");
         FolderModel* target = &model;
         const size_t index = documents->addItem(action.text, [target] { triggerAction(*target, "newTextFile"); });
@@ -98,7 +101,7 @@ std::unique_ptr<ui::Menu> createFolderMenu(FolderModel& model)
             pendingSeparator = false;
         }
         FolderModel* target = &model;
-        menu->addItem("Select All", [target] { target->selectAll(); });
+        menu->addItem(tr("Select All"), [target] { target->selectAll(); });
         rows = true;
     }
     separator(!selection && (model.action("terminal").visible
@@ -142,7 +145,8 @@ std::unique_ptr<ui::Menu> createFolderMenu(FolderModel& model)
                 submenu->setItemIcon(index, application.icon);
             }
             submenu->addSeparator();
-            submenu->addItem("Other", [target] { triggerAction(*target, "openWith"); });
+            // TRANSLATORS: the last item of the Open with submenu, which lists every application.
+            submenu->addItem(tr("Other"), [target] { triggerAction(*target, "openWith"); });
         }
         rows = true;
     }

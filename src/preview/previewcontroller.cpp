@@ -7,6 +7,7 @@
 #include "preview/imageinfo.h"
 
 #include "base/application_registry.h"
+#include "base/i18n.h"
 #include "base/locale.h"
 #include "base/mime_database.h"
 #include "base/url.h"
@@ -18,6 +19,8 @@
 #include <unicode/ucsdet.h>
 
 #include <algorithm>
+
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -171,7 +174,7 @@ PreviewFile describeFile(const std::string& url)
     result.name = fileName(url);
     const auto local = base::url::toLocalFile(url);
     if (!local) {
-        result.message = "Preview is unavailable for this location.";
+        result.message = tr("Preview is unavailable for this location.");
         return result;
     }
 
@@ -179,7 +182,7 @@ PreviewFile describeFile(const std::string& url)
     result.name = fileName(path).empty() ? path : fileName(path);
     struct stat st;
     if (::stat(path.c_str(), &st) != 0 || (!S_ISREG(st.st_mode) && !S_ISDIR(st.st_mode))) {
-        result.message = "This file is no longer available.";
+        result.message = tr("This file is no longer available.");
         return result;
     }
 

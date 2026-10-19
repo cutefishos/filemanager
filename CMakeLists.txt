@@ -163,8 +163,11 @@ configure_file(data/org.cutefish.FilePreview.service.in org.cutefish.FilePreview
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.FileManager1.service
               ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.FilePreview.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
-install(FILES data/cutefish-filemanager.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES data/60-cutefish-filemanager.rules DESTINATION ${CMAKE_INSTALL_DATADIR}/polkit-1/rules.d)
+
+cutefish_add_translations(cutefish-filemanager SOURCES src daemon mountd
+                          DESKTOP_FILES data/cutefish-filemanager.desktop)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cutefish-filemanager.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

@@ -1,7 +1,6 @@
 [Desktop Entry]
 Type=Application
 Name=Files
-Name[zh_CN]=文件
 GenericName=File Manager
 Comment=Browse and manage your files
 Exec=cutefish-filemanager %u

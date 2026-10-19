@@ -3,6 +3,8 @@
 
 #include "sftpbackend.h"
 
+#include "base/i18n.h"
+
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
 
@@ -11,6 +13,8 @@
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <sys/time.h>
+
+using cutefish::i18n::tr;
 
 // OpenSSH drops the session on requests much larger than the 32 KiB the protocol draft
 // promises to accept.
@@ -135,7 +139,7 @@ ConnectResult SftpBackend::establish(const Credentials &credentials)
     ConnectResult result;
     m_ssh = ssh_new();
     if (!m_ssh) {
-        result.message = "Cannot start an SSH session";
+        result.message = tr("Cannot start an SSH session");
         return result;
     }
 

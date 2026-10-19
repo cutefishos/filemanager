@@ -3,6 +3,7 @@
 
 #include "mtpbackend.h"
 
+#include "base/i18n.h"
 #include "base/logging.h"
 #include "base/paths.h"
 #include "base/strings.h"
@@ -16,6 +17,8 @@
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <unistd.h>
+
+using cutefish::i18n::tr;
 
 static const cutefish::base::LogCategory lcMtp("cutefish.mountd.mtp");
 
@@ -112,7 +115,7 @@ ConnectResult MtpBackend::connect(const Credentials &)
     free(devices);
 
     if (!m_device) {
-        result.message = "The device could not be opened. Unplug it and connect it again.";
+        result.message = tr("The device could not be opened. Unplug it and connect it again.");
         return result;
     }
 
@@ -133,8 +136,8 @@ ConnectResult MtpBackend::connect(const Credentials &)
     if (m_storages.empty()) {
         LIBMTP_Release_Device(m_device);
         m_device = nullptr;
-        result.message = "The device's files are not available. Unlock it and allow access to its data "
-                         "on its screen; if that does not help, choose file transfer in its USB settings.";
+        result.message = tr("The device's files are not available. Unlock it and allow access to its data "
+                            "on its screen; if that does not help, choose file transfer in its USB settings.");
         return result;
     }
 

@@ -8,6 +8,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/url.h"
 #include "ui/clipboard.h"
 #include "ui/color_provider.h"
@@ -23,6 +24,9 @@
 
 #include <algorithm>
 #include <cmath>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -57,7 +61,7 @@ public:
         : m_sidebar(sidebar)
     {
         setName("places");
-        m_favorites = addChild<ui::Label>("Favorites");
+        m_favorites = addChild<ui::Label>(tr("Favorites"));
     }
 
     bool acceptsPointer() const override { return true; }
@@ -172,7 +176,7 @@ protected:
             if (place.category != category && !place.category.empty()) {
                 category = place.category;
                 styleSection(row.section);
-                row.section->setText(category);
+                row.section->setText(tr(category.c_str()));
                 row.section->setVisible(true);
                 const double height = snap(36);
                 const double left = snap(inset + kSmallSpacing);
@@ -358,18 +362,18 @@ protected:
         const bool unmount = place.isDevice() && !place.setupNeeded() && !place.path().empty() && place.path() != "/";
 
         m_menu = std::make_unique<ui::Menu>();
-        const size_t newTab = m_menu->addItem("Open In New Tab", [this, target] {
+        const size_t newTab = m_menu->addItem(tr("Open In New Tab"), [this, target] {
             if (m_sidebar->onOpenInNewTab)
                 m_sidebar->onOpenInNewTab(target);
         });
         m_menu->setItemEnabled(newTab, !place.isDevice() || !place.setupNeeded());
-        m_menu->addItem("Open In New Window", [this, target] {
+        m_menu->addItem(tr("Open In New Window"), [this, target] {
             if (m_sidebar->onOpenInNewWindow)
                 m_sidebar->onOpenInNewWindow(target);
         });
         if (favorite) {
             m_menu->addSeparator();
-            m_menu->addItem("Remove from Favorites", [this, url = place.url] {
+            m_menu->addItem(tr("Remove from Favorites"), [this, url = place.url] {
                 PlacesModel& places = m_sidebar->places();
                 if (const int current = favoriteRow(places, url); current >= 0)
                     places.removeFavorite(current);
@@ -378,14 +382,14 @@ protected:
         if (eject || unmount)
             m_menu->addSeparator();
         if (eject) {
-            m_menu->addItem("Eject", [this, udi = place.udi] {
+            m_menu->addItem(tr("Eject"), [this, udi = place.udi] {
                 PlacesModel& places = m_sidebar->places();
                 if (const int current = deviceRow(places, udi); current >= 0)
                     places.requestEject(current);
             });
         }
         if (unmount) {
-            m_menu->addItem("Unmount", [this, udi = place.udi] {
+            m_menu->addItem(tr("Unmount"), [this, udi = place.udi] {
                 PlacesModel& places = m_sidebar->places();
                 if (const int current = deviceRow(places, udi); current >= 0)
                     places.requestTeardown(current);
@@ -620,17 +624,17 @@ void SideBar::askPassphrase(std::string udi, std::string name, bool retry)
 
 void SideBar::askHostKey(const std::string& address, const std::string& fingerprint, bool changed)
 {
-    const std::string text = (changed ? "The identity of “" + address
-                                                + "” is not the one it had before. Someone may be impersonating "
-                                                  "it. Connect only if its administrator changed its key."
-                                      : "The identity of “" + address
-                                                + "” cannot be verified. Check that its key fingerprint is the "
-                                                  "one you expect before you connect.")
+    const std::string text = format(changed ? tr("The identity of “{address}” is not the one it had before. Someone "
+                                                 "may be impersonating it. Connect only if its administrator changed "
+                                                 "its key.")
+                                            : tr("The identity of “{address}” cannot be verified. Check that its key "
+                                                 "fingerprint is the one you expect before you connect."),
+                                    {{"address", address}})
             + "\n\n" + fingerprint;
-    auto dialog = std::make_unique<ui::ConfirmDialog>(window(), changed ? "Server Identity Changed" : "Unknown Server",
-                                                      text);
+    auto dialog = std::make_unique<ui::ConfirmDialog>(
+            window(), changed ? tr("Server Identity Changed") : tr("Unknown Server"), text);
     ui::ConfirmDialog* raw = dialog.get();
-    raw->setConfirmText(changed ? "Connect Anyway" : "Connect");
+    raw->setConfirmText(changed ? tr("Connect Anyway") : tr("Connect"));
     raw->setDestructive(changed);
     auto done = [this, raw] {
         auto it = std::find_if(m_confirmDialogs.begin(), m_confirmDialogs.end(),
@@ -655,9 +659,9 @@ void SideBar::askHostKey(const std::string& address, const std::string& fingerpr
 
 void SideBar::showDeviceError(const std::string& message)
 {
-    auto dialog = std::make_unique<ui::ConfirmDialog>(window(), "Device operation failed", message);
+    auto dialog = std::make_unique<ui::ConfirmDialog>(window(), tr("Device operation failed"), message);
     ui::ConfirmDialog* raw = dialog.get();
-    raw->setConfirmText("Close");
+    raw->setConfirmText(tr("Close"));
     raw->setCancelVisible(false);
     auto done = [this, raw] {
         auto it = std::find_if(m_confirmDialogs.begin(), m_confirmDialogs.end(),

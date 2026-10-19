@@ -7,6 +7,7 @@
 #include "views/completionpopup.h"
 #include "views/style.h"
 
+#include "base/i18n.h"
 #include "ui/color_provider.h"
 #include "ui/icon.h"
 #include "ui/keys.h"
@@ -25,6 +26,7 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::tr;
 
 static constexpr double kSmallSpacing = 6;
 static constexpr double kLargeSpacing = 12;
@@ -292,11 +294,11 @@ void Breadcrumbs::pointerRelease(const ui::PointerEvent& event)
     const std::string path = m_crumbs[size_t(pressed)].path;
     if (m_pressedButton == ui::MouseButton::Right && m_openActions) {
         m_menu = std::make_unique<ui::Menu>();
-        m_menu->addItem("Open In New Tab", [this, path] {
+        m_menu->addItem(tr("Open In New Tab"), [this, path] {
             if (onOpenInNewTab)
                 onOpenInNewTab(path);
         });
-        m_menu->addItem("Open In New Window", [this, path] {
+        m_menu->addItem(tr("Open In New Window"), [this, path] {
             if (onOpenInNewWindow)
                 onOpenInNewWindow(path);
         });
@@ -389,7 +391,7 @@ PathBar::PathBar()
     m_editor = editor;
     m_editor->setName("pathEditor");
     m_editor->setFrameVisible(false);
-    m_editor->setPlaceholder("Search or Enter Path");
+    m_editor->setPlaceholder(tr("Search or Enter Path"));
     m_editor->setSelectByMouse(true);
     m_editor->setVisible(false);
     auto* clear = addChild<ClearButton>();

@@ -5,6 +5,7 @@
 #include "core/lister.h"
 #include "core/standardfolders.h"
 
+#include "base/i18n.h"
 #include "base/locale.h"
 #include "ui/check_box.h"
 #include "ui/dialog_window.h"
@@ -19,6 +20,10 @@
 #include <chrono>
 #include <cmath>
 #include <sys/stat.h>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trn;
 
 namespace fm {
 
@@ -46,7 +51,7 @@ ConflictDialog::Details ConflictDialog::fileDetails(const std::string& path)
 }
 
 ConflictDialog::ConflictDialog()
-    : FramelessDialog("Replace Item", true)
+    : FramelessDialog(tr("Replace Item"), true)
 {
     setContentFactory([this] { return createContent(); }, 480, 20);
     onCloseRequested = [this] {
@@ -94,22 +99,30 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     std::string heading;
     switch (age) {
     case -1:
-        heading = "An older item named “" + itemName + "” already exists in this location.";
+        heading = format(tr("An older item named “{name}” already exists in this location."), {{"name", itemName}});
         break;
     case 1:
-        heading = "A newer item named “" + itemName + "” already exists in this location.";
+        heading = format(tr("A newer item named “{name}” already exists in this location."), {{"name", itemName}});
         break;
     default:
-        heading = "An item named “" + itemName + "” already exists in this location.";
+        heading = format(tr("An item named “{name}” already exists in this location."), {{"name", itemName}});
         break;
     }
-    const std::string verb = m_operation == "move" ? "moving" : m_operation == "restore" ? "restoring" : "copying";
     std::string question;
     if (m_operation == "link")
-        question = "Do you want to replace it with the link you’re creating?";
+        question = tr("Do you want to replace it with the link you’re creating?");
+    else if (m_operation == "move")
+        question = age < 0   ? tr("Do you want to replace it with the newer one you’re moving?")
+                   : age > 0 ? tr("Do you want to replace it with the older one you’re moving?")
+                             : tr("Do you want to replace it with the one you’re moving?");
+    else if (m_operation == "restore")
+        question = age < 0   ? tr("Do you want to replace it with the newer one you’re restoring?")
+                   : age > 0 ? tr("Do you want to replace it with the older one you’re restoring?")
+                             : tr("Do you want to replace it with the one you’re restoring?");
     else
-        question = std::string("Do you want to replace it with the ")
-                + (age < 0 ? "newer one" : age > 0 ? "older one" : "one") + " you’re " + verb + "?";
+        question = age < 0   ? tr("Do you want to replace it with the newer one you’re copying?")
+                   : age > 0 ? tr("Do you want to replace it with the older one you’re copying?")
+                             : tr("Do you want to replace it with the one you’re copying?");
 
     auto layout = std::make_unique<ui::ColumnLayout>();
     layout->setSpacing(20);
@@ -136,7 +149,7 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     auto* actions = layout->addChild<ui::RowLayout>();
     actions->setSpacing(8);
     actions->setLayoutHints({.fillWidth = true});
-    m_applyToAll = actions->addChild<ui::CheckBox>("Apply to All");
+    m_applyToAll = actions->addChild<ui::CheckBox>(tr("Apply to All"));
     m_applyToAll->setPadding({});
     m_applyToAll->setVisible(m_sourceCount > 1);
     actions->addChild<ui::View>()->setLayoutHints({.fillWidth = true});
@@ -147,10 +160,10 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
         item->onClicked = [this, policy] { answer(policy); };
         return item;
     };
-    button("Stop", -1, false);
-    button("Skip", 1, false)->setVisible(m_sourceCount > 1);
-    button("Keep Both", 2, false);
-    button("Replace", 3, true);
+    button(tr("Stop"), -1, false);
+    button(tr("Skip"), 1, false)->setVisible(m_sourceCount > 1);
+    button(tr("Keep Both"), 2, false);
+    button(tr("Replace"), 3, true);
     return layout;
 }
 
@@ -307,33 +320,41 @@ double IoTaskDialog::fraction() const
 
 std::string IoTaskDialog::heading() const
 {
-    const std::string count = std::to_string(m_sourceCount);
+    const uint64_t count = uint64_t(std::max(0, m_sourceCount));
     const bool one = m_sourceCount == 1;
     if (m_operation == "copy")
-        return one ? "Copying “" + m_sourceName + "” to “" + m_destinationName + "”"
-                   : "Copying " + count + " items to “" + m_destinationName + "”";
+        return one ? format(tr("Copying “{name}” to “{destination}”"),
+                            {{"name", m_sourceName}, {"destination", m_destinationName}})
+                   : format(trn("Copying {n} item to “{destination}”", "Copying {n} items to “{destination}”", count),
+                            {{"destination", m_destinationName}});
     if (m_operation == "move")
-        return one ? "Moving “" + m_sourceName + "” to “" + m_destinationName + "”"
-                   : "Moving " + count + " items to “" + m_destinationName + "”";
+        return one ? format(tr("Moving “{name}” to “{destination}”"),
+                            {{"name", m_sourceName}, {"destination", m_destinationName}})
+                   : format(trn("Moving {n} item to “{destination}”", "Moving {n} items to “{destination}”", count),
+                            {{"destination", m_destinationName}});
     if (m_operation == "trash")
-        return one ? "Moving “" + m_sourceName + "” to Trash" : "Moving " + count + " items to Trash";
+        return one ? format(tr("Moving “{name}” to Trash"), {{"name", m_sourceName}})
+                   : trn("Moving {n} item to Trash", "Moving {n} items to Trash", count);
     if (m_operation == "restore")
-        return one ? "Restoring “" + m_sourceName + "”" : "Restoring " + count + " items";
+        return one ? format(tr("Restoring “{name}”"), {{"name", m_sourceName}})
+                   : trn("Restoring {n} item", "Restoring {n} items", count);
     if (m_operation == "delete")
-        return one ? "Deleting “" + m_sourceName + "”" : "Deleting " + count + " items";
+        return one ? format(tr("Deleting “{name}”"), {{"name", m_sourceName}})
+                   : trn("Deleting {n} item", "Deleting {n} items", count);
     if (m_operation == "emptyTrash")
-        return "Emptying Trash";
+        return tr("Emptying Trash");
     if (m_operation == "rename")
-        return "Renaming “" + m_sourceName + "” to “" + m_destinationName + "”";
+        return format(tr("Renaming “{name}” to “{destination}”"),
+                      {{"name", m_sourceName}, {"destination", m_destinationName}});
     if (m_operation == "mkdir")
-        return "Creating “" + m_destinationName + "”";
+        return format(tr("Creating “{name}”"), {{"name", m_destinationName}});
     if (m_operation == "link")
-        return "Creating links in “" + m_destinationName + "”";
+        return format(tr("Creating links in “{destination}”"), {{"destination", m_destinationName}});
     if (m_operation == "compress")
-        return "Compressing to “" + m_destinationName + "”";
+        return format(tr("Compressing to “{destination}”"), {{"destination", m_destinationName}});
     if (m_operation == "extract")
-        return "Extracting to “" + m_destinationName + "”";
-    return "Preparing…";
+        return format(tr("Extracting to “{destination}”"), {{"destination", m_destinationName}});
+    return tr("Preparing…");
 }
 
 std::string IoTaskDialog::timeRemaining() const
@@ -344,9 +365,11 @@ std::string IoTaskDialog::timeRemaining() const
         return {};
     const int64_t seconds = std::max<int64_t>(1, std::llround(progress.elapsedMs / 1000.0 * (1 - done) / done));
     if (seconds < 60)
-        return seconds == 1 ? "About a second remaining" : "About " + std::to_string(seconds) + " seconds remaining";
+        return seconds == 1 ? std::string(tr("About a second remaining"))
+                            : trn("About {n} second remaining", "About {n} seconds remaining", uint64_t(seconds));
     const int64_t minutes = (seconds + 59) / 60;
-    return minutes == 1 ? "About a minute remaining" : "About " + std::to_string(minutes) + " minutes remaining";
+    return minutes == 1 ? std::string(tr("About a minute remaining"))
+                        : trn("About {n} minute remaining", "About {n} minutes remaining", uint64_t(minutes));
 }
 
 // As OperationTask::formattedSize: one decimal, SI units.
@@ -359,24 +382,28 @@ std::string IoTaskDialog::summary() const
 {
     const TaskProgress progress = m_task->progress();
     if (m_canceling)
-        return "Stopping…";
+        return tr("Stopping…");
     if (progress.preparing)
-        return "Preparing…";
+        return tr("Preparing…");
     if (m_conflict)
-        return "Waiting for your choice";
+        return tr("Waiting for your choice");
     const double total = usesBytes() ? double(progress.totalBytes) : double(progress.totalItems);
     if (total > 0 && fraction() >= 1 && !m_finished)
-        return "Finishing…";
+        return tr("Finishing…");
     const std::string current = !progress.currentPath.empty() ? fileName(progress.currentPath) : m_sourceName;
     if (!progress.totalsKnown)
-        return current.empty() ? std::string("Working…") : "Working on “" + current + "”…";
+        return current.empty() ? std::string(tr("Working…")) : format(tr("Working on “{name}”…"), {{"name", current}});
     const std::string amount = usesBytes()
-            ? formattedSize(std::min(progress.processedBytes, progress.totalBytes)) + " of "
-                    + formattedSize(progress.totalBytes)
-            : std::to_string(std::min(progress.processedItems, progress.totalItems)) + " of "
-                    + std::to_string(progress.totalItems) + " items";
+            ? format(tr("{processed} of {total}"),
+                     {{"processed", formattedSize(std::min(progress.processedBytes, progress.totalBytes))},
+                      {"total", formattedSize(progress.totalBytes)}})
+            : format(trn("{processed} of {n} item", "{processed} of {n} items", progress.totalItems),
+                     {{"processed", std::to_string(std::min(progress.processedItems, progress.totalItems))}});
     const std::string remaining = timeRemaining();
-    return remaining.empty() ? amount : amount + " — " + remaining;
+    if (remaining.empty())
+        return amount;
+    // TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+    return format(tr("{amount} — {remaining}"), {{"amount", amount}, {"remaining", remaining}});
 }
 
 std::unique_ptr<ui::View> IoTaskDialog::createContent()
@@ -409,7 +436,7 @@ std::unique_ptr<ui::View> IoTaskDialog::createContent()
     auto* actions = layout->addChild<ui::RowLayout>();
     actions->setSpacing(8);
     actions->setLayoutHints({.horizontalAlignment = ui::Alignment::End});
-    m_button = actions->addChild<ui::DialogButton>("Cancel");
+    m_button = actions->addChild<ui::DialogButton>(tr("Cancel"));
     m_button->setName("ioCancelButton");
     m_button->onClicked = [this] {
         if (m_finished)
@@ -434,7 +461,7 @@ void IoTaskDialog::update()
     if (!m_errorMessage.empty())
         detail = m_errorMessage;
     else if (m_conflict)
-        detail = "“" + fileName(m_conflictPath) + "” already exists in this location.";
+        detail = format(tr("“{name}” already exists in this location."), {{"name", fileName(m_conflictPath)}});
     else
         detail = !progress.currentPath.empty() ? fileName(progress.currentPath) : m_sourceName;
     m_detail->setText(detail);
@@ -448,7 +475,7 @@ void IoTaskDialog::update()
     m_progress->setIndeterminate(!m_canceling && !m_conflict && (progress.preparing || !progress.totalsKnown));
     m_summary->setVisible(!m_finished);
     m_summary->setText(summary());
-    m_button->setText(m_finished ? "Close" : "Cancel");
+    m_button->setText(m_finished ? tr("Close") : tr("Cancel"));
     m_button->setEnabled(m_finished || !m_canceling);
     fit();
 }

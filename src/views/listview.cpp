@@ -8,6 +8,7 @@
 #include "model/foldermodel.h"
 #include "views/style.h"
 
+#include "base/i18n.h"
 #include "ui/color_provider.h"
 #include "ui/icon.h"
 #include "ui/icon_image.h"
@@ -25,6 +26,7 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::tr;
 
 static constexpr double kSmallSpacing = 6;
 
@@ -116,11 +118,12 @@ protected:
     {
         const ListColumns& c = m_list->columns();
         return {
-            {0, c.nameWidth(), true, "Name", 0, false},
-            {c.originX(), c.originWidth, c.showOrigin(), "Original Location", 7, false},
-            {c.dateX(), c.dateWidth, c.showDate(), c.trash ? "Date Deleted" : "Date Modified", c.dateSortMode(), false},
-            {c.sizeX(), c.sizeWidth, c.showSize(), "Size", 1, true},
-            {c.typeX(), c.typeWidth, c.showType(), "Kind", 3, false},
+            {0, c.nameWidth(), true, tr("Name"), 0, false},
+            {c.originX(), c.originWidth, c.showOrigin(), tr("Original Location"), 7, false},
+            {c.dateX(), c.dateWidth, c.showDate(), c.trash ? tr("Date Deleted") : tr("Date Modified"), c.dateSortMode(),
+             false},
+            {c.sizeX(), c.sizeWidth, c.showSize(), tr("Size"), 1, true},
+            {c.typeX(), c.typeWidth, c.showType(), tr("Kind"), 3, false},
         };
     }
 

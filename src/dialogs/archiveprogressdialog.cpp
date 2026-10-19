@@ -6,6 +6,7 @@
 #include "model/foldermodel.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "ui/dialog_window.h"
 #include "ui/label.h"
 #include "ui/progress_bar.h"
@@ -15,6 +16,7 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::tr;
 
 class ArchiveProgressDialog::Content : public ui::View
 {
@@ -27,7 +29,7 @@ public:
         file->setFontSize(14);
         busy = addChild<ui::BusyIndicator>();
         progress = addChild<ui::ProgressBar>();
-        cancel = addChild<ui::DialogButton>("Cancel");
+        cancel = addChild<ui::DialogButton>(tr("Cancel"));
         cancel->onClicked = [this] {
             if (m_dialog->m_model)
                 m_dialog->m_model->cancelArchive();
@@ -73,7 +75,7 @@ private:
 };
 
 ArchiveProgressDialog::ArchiveProgressDialog()
-    : FramelessDialog("File operation", true)
+    : FramelessDialog(tr("File operation"), true)
 {
     setHeader(44, 8);
     setContentFactory(
@@ -125,7 +127,7 @@ void ArchiveProgressDialog::update()
             askPassword(request);
         return;
     }
-    setHeaderTitle(m_model->archiveOperation());
+    setHeaderTitle(tr(m_model->archiveOperation().c_str()));
     if (!isShown()) {
         setParentWindow(m_host);
         show();
@@ -142,7 +144,7 @@ void ArchiveProgressDialog::update()
     m_content->busy->setRunning(progress < 0);
     m_content->progress->setVisible(progress >= 0);
     m_content->progress->setValue(std::max(0, progress) / 100.0);
-    m_content->cancel->setText(m_model->archiveCancelling() ? "Cancelling…" : "Cancel");
+    m_content->cancel->setText(m_model->archiveCancelling() ? tr("Cancelling…") : tr("Cancel"));
     m_content->cancel->setEnabled(!m_model->archiveCancelling());
     m_content->requestLayout();
 }

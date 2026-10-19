@@ -5,13 +5,17 @@
 
 #include "base/dbus.h"
 #include "base/event_loop.h"
+#include "base/i18n.h"
 
+#include <clocale>
 #include <cstdio>
 
 using namespace cutefish;
 
 int main()
 {
+    std::setlocale(LC_ALL, "");
+    i18n::setDomain("cutefish-filemanager");
     base::EventLoop loop;
     base::dbus::Connection *bus = base::dbus::Connection::session(&loop);
     if (!bus) {

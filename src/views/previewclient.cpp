@@ -7,11 +7,15 @@
 #include "views/folderview.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/json.h"
 #include "base/uuid.h"
 #include "ui/application.h"
 #include "ui/keys.h"
 #include "ui/window.h"
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -87,7 +91,8 @@ void PreviewClient::send(const std::string& method, const Args&... args)
                 if (method == "Toggle" && reply.isError()) {
                     setVisible(false);
                     if (m_model)
-                        m_model->notification.emit("Could not open preview: " + reply.error().message);
+                        m_model->notification.emit(
+                                format(tr("Could not open preview: {error}"), {{"error", reply.error().message}}));
                 }
                 // Not from inside the call's own callback.
                 base::EventLoop::current()->post([this, alive, id] {

@@ -3,6 +3,7 @@
 
 #include "core/dates.h"
 
+#include "base/i18n.h"
 #include "base/locale.h"
 
 #include <chrono>
@@ -12,6 +13,9 @@ namespace fm::dates {
 
 using cutefish::base::DateTime;
 using cutefish::base::Locale;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trn;
 
 static int64_t nowMilliseconds()
 {
@@ -30,23 +34,17 @@ std::string friendlyTime(int64_t milliseconds)
 {
     const int64_t minutes = std::llround((nowMilliseconds() - milliseconds) / 1000 / 60.0);
     if (minutes < 1)
-        return "Now";
-    if (minutes == 1)
-        return "1 minute ago";
+        return tr("Now");
     if (minutes < 60)
-        return std::to_string(minutes) + " minutes ago";
+        return trn("{n} minute ago", "{n} minutes ago", uint64_t(minutes));
 
     const int64_t hours = std::llround(minutes / 60.0);
-    if (hours == 1)
-        return "1 hour ago";
     if (hours < 24)
-        return std::to_string(hours) + " hours ago";
+        return trn("{n} hour ago", "{n} hours ago", uint64_t(hours));
 
     const int64_t days = std::llround(hours / 24.0);
-    if (days == 1)
-        return "1 day ago";
     if (days <= 10)
-        return std::to_string(days) + " days ago";
+        return trn("{n} day ago", "{n} days ago", uint64_t(days));
 
     return shortDateTime(milliseconds);
 }
@@ -73,9 +71,9 @@ std::string columnTime(int64_t milliseconds)
     const std::string clock = locale.toString(time.time, Locale::FormatType::Short);
     const int64_t days = dayNumber(now.date) - dayNumber(time.date);
     if (days == 0)
-        return "Today at " + clock;
+        return format(tr("Today at {time}"), {{"time", clock}});
     if (days == 1)
-        return "Yesterday at " + clock;
+        return format(tr("Yesterday at {time}"), {{"time", clock}});
     return locale.toString(time, Locale::FormatType::Short);
 }
 

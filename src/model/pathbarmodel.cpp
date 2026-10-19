@@ -7,12 +7,15 @@
 #include "core/standardfolders.h"
 
 #include "base/collator.h"
+#include "base/i18n.h"
 #include "base/strings.h"
 #include "base/url.h"
 
 #include <algorithm>
 #include <dirent.h>
 #include <sys/stat.h>
+
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -44,7 +47,7 @@ std::vector<Crumb> pathCrumbs(const std::string& url, std::string* resolved)
             break;
         }
         if (directory == "/") {
-            crumbs.push_back({"Computer", "/"});
+            crumbs.push_back({tr("Computer"), "/"});
             break;
         }
         const std::string standard = standardFolderName(directory);

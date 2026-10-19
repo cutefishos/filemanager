@@ -4,6 +4,7 @@
 #include "dialogs/archivepassworddialog.h"
 #include "model/foldermodel.h"
 
+#include "base/i18n.h"
 #include "ui/cell_layout.h"
 #include "ui/dialog_window.h"
 #include "ui/keys.h"
@@ -12,6 +13,9 @@
 #include "ui/text_field.h"
 #include "ui/theme.h"
 #include "ui/window.h"
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -26,15 +30,16 @@ public:
         setPadding({0, 16, 0, 0});
 
         auto* message = addChild<ui::Label>(dialog->m_retry
-                                                    ? "The password for “" + dialog->m_name
-                                                            + "” is incorrect. Try again."
-                                                    : "Enter the password to extract “" + dialog->m_name + "”.");
+                                                    ? format(tr("The password for “{name}” is incorrect. Try again."),
+                                                             {{"name", dialog->m_name}})
+                                                    : format(tr("Enter the password to extract “{name}”."),
+                                                             {{"name", dialog->m_name}}));
         message->setWrap(true);
         message->setColor(ui::ColorId::DisabledText);
         message->setLayoutHints({.fillWidth = true});
 
         password = addChild<ui::TextField>();
-        password->setPlaceholder("Password");
+        password->setPlaceholder(tr("Password"));
         password->setEchoMode(ui::TextField::EchoMode::Password);
         password->setLayoutHints({.fillWidth = true});
         password->onAccepted = [this] { accept(); };
@@ -45,9 +50,9 @@ public:
         ui::LayoutHints actionHints {.horizontalAlignment = ui::Alignment::End};
         actionHints.margins.top = 4;
         actions->setLayoutHints(actionHints);
-        auto* cancel = actions->addChild<ui::DialogButton>("Cancel");
+        auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
         cancel->onClicked = [this] { m_dialog->m_dialog->close(); };
-        extract = actions->addChild<ui::DialogButton>("Extract", true);
+        extract = actions->addChild<ui::DialogButton>(tr("Extract"), true);
         extract->onClicked = [this] { accept(); };
         extract->setEnabled(false);
     }
@@ -75,7 +80,7 @@ ArchivePasswordDialog::ArchivePasswordDialog(ui::Window* parent, FolderModel& mo
     , m_name(std::move(name))
     , m_retry(retry)
 {
-    m_dialog = std::make_unique<ui::DialogWindow>(parent, "Password Required", 400);
+    m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Password Required"), 400);
     auto* content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         // Closed without an answer: the extraction is given up.

@@ -4,6 +4,7 @@
 #include "core/mounts.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/strings.h"
 
 #include "cutefish/files/url.h"
@@ -11,6 +12,7 @@
 namespace fm {
 
 using base::dbus::VariantMap;
+using cutefish::i18n::tr;
 
 // Connecting asks the server and maybe the keyring; a slow server answers late.
 static constexpr std::chrono::seconds kMountTimeout(120);
@@ -36,7 +38,7 @@ void MountsClient::call(const std::string& method, std::function<void(const base
 {
     base::dbus::Connection* bus = m_proxy.connection();
     if (!bus) {
-        done(base::dbus::Reply({}, {"org.freedesktop.DBus.Error.Disconnected", "No session bus"}));
+        done(base::dbus::Reply({}, {"org.freedesktop.DBus.Error.Disconnected", tr("No session bus")}));
         return;
     }
     base::dbus::Message message = bus->newMethodCall(m_proxy.service(), m_proxy.path(), m_proxy.interface(), method);

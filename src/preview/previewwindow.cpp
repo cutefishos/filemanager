@@ -6,6 +6,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/color_provider.h"
@@ -25,6 +26,10 @@
 
 #include <algorithm>
 #include <cmath>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trn;
 
 namespace fm {
 
@@ -154,8 +159,9 @@ public:
         position->setVisible(multiple);
         previous->setEnabled(m_controller.currentIndex() > 0);
         next->setEnabled(m_controller.currentIndex() + 1 < int(m_controller.items().size()));
-        position->setText(std::to_string(m_controller.currentIndex() + 1) + " of "
-                          + std::to_string(m_controller.items().size()));
+        // TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+        position->setText(format(tr("{index} of {count}"), {{"index", std::to_string(m_controller.currentIndex() + 1)},
+                                                            {"count", std::to_string(m_controller.items().size())}}));
         position->setColor(ui::ColorId::Text);
         title->setVisible(pageMode);
         title->setText(shown.name);
@@ -163,7 +169,7 @@ public:
         // A single compact preview has no header row to hold it.
         open->setVisible(shown.application.has_value() && (pageMode || multiple));
         if (shown.application)
-            open->setText("Open with " + shown.application->name);
+            open->setText(format(tr("Open with {application}"), {{"application", shown.application->name}}));
         open->setActive(active);
         requestLayout();
     }
@@ -224,9 +230,9 @@ public:
         icon->setIconName(file.icon.empty() ? "application-octet-stream" : file.icon);
         name->setText(file.name);
         if (file.folder) {
-            const std::string count = file.itemCount == 1 ? std::string("1 item")
-                                                           : std::to_string(file.itemCount) + " items";
-            detail->setText(file.size + ", " + count);
+            const std::string count = trn("{n} item", "{n} items", file.itemCount);
+            // TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+            detail->setText(format(tr("{size}, {count}"), {{"size", file.size}, {"count", count}}));
         } else {
             detail->setText(file.size);
         }
@@ -317,7 +323,7 @@ private:
             text->setFrameVisible(false);
             text->setWrapMode(ui::TextArea::WrapMode::Wrap);
             text->setPadding(ui::Margins::all(kTextMargin));
-            notice = addChild<ui::Label>("The rest of this file is not shown.");
+            notice = addChild<ui::Label>(tr("The rest of this file is not shown."));
             notice->setWrap(true);
             notice->setTextAlignment(ui::Label::TextAlignment::Center);
         }
@@ -359,7 +365,7 @@ public:
         viewer = addChild<ImagePreview>();
         busy = addChild<ui::BusyIndicator>();
         busy->setVisible(false);
-        failed = addChild<ui::Label>("This image could not be displayed.");
+        failed = addChild<ui::Label>(tr("This image could not be displayed."));
         failed->setVisible(false);
         viewer->onStatusChanged = [this] { updateStatus(); };
         m_busyDelay.setSingleShot(true);
@@ -674,7 +680,7 @@ void PreviewWindow::present(PreviewFile file)
         open();
     // The contents first, then one resize: size, title and picture change in one frame.
     m_root->show(m_shown, prepared);
-    m_window->setTitle(m_shown.name.empty() ? std::string("Quick Look") : m_shown.name);
+    m_window->setTitle(m_shown.name.empty() ? std::string(tr("Quick Look")) : m_shown.name);
     m_window->setMinimumSize(size);
     m_window->setMaximumSize(size);
     m_window->resize(size);

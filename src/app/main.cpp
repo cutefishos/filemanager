@@ -7,6 +7,7 @@
 #include "base/command_line.h"
 #include "base/dbus.h"
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/timer.h"
 #include "ui/application.h"
 
@@ -104,6 +105,7 @@ int main(int argc, char** argv)
 
     ui::Application app(argc, argv);
     app.setApplicationId("cutefish-filemanager");
+    i18n::setDomain("cutefish-filemanager");
     fm::Application application(app, daemon, dbusActivated);
 
     if (daemon) {

@@ -3,6 +3,7 @@
 
 #include "dialogs/openwithdialog.h"
 
+#include "base/i18n.h"
 #include "ui/check_box.h"
 #include "ui/dialog_window.h"
 #include "ui/icon.h"
@@ -15,6 +16,7 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::tr;
 
 // One application: its 32 px icon and name in a 52 px row, lit when current.
 class ApplicationRow : public ui::View
@@ -69,7 +71,7 @@ private:
 };
 
 OpenWithDialog::OpenWithDialog(std::string path, std::string mimeType)
-    : FramelessDialog("Open With", true)
+    : FramelessDialog(tr("Open With"), true)
     , m_path(std::move(path))
     , m_mimeType(std::move(mimeType))
 {
@@ -101,7 +103,7 @@ std::unique_ptr<ui::View> OpenWithDialog::createContent()
     auto layout = std::make_unique<ui::ColumnLayout>();
     layout->setSpacing(16);
 
-    auto* title = layout->addChild<ui::Label>("Open With");
+    auto* title = layout->addChild<ui::Label>(tr("Open With"));
     title->setFontSize(14);
     title->setWeight(600);
     title->setColor(ui::ColorId::Text);
@@ -126,22 +128,22 @@ std::unique_ptr<ui::View> OpenWithDialog::createContent()
     };
     m_list->setRowCount(m_applications.size());
     if (m_applications.empty()) {
-        auto* empty = m_list->addChild<ui::Label>("No applications");
+        auto* empty = m_list->addChild<ui::Label>(tr("No applications"));
         const ui::SizeF hint = empty->sizeHint();
         empty->setGeometry({centeredStart(400 - 8, hint.width), centeredStart(250, hint.height), hint.width,
                             hint.height});
     }
 
-    m_default = layout->addChild<ui::CheckBox>("Set as default");
+    m_default = layout->addChild<ui::CheckBox>(tr("Set as default"));
     m_default->setPadding({});
     m_default->setEnabled(!m_applications.empty());
 
     auto* actions = layout->addChild<ui::RowLayout>();
     actions->setSpacing(8);
     actions->setLayoutHints({.horizontalAlignment = ui::Alignment::End});
-    auto* cancel = actions->addChild<ui::DialogButton>("Cancel");
+    auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
     cancel->onClicked = [this] { done(); };
-    auto* open = actions->addChild<ui::DialogButton>("Open", true);
+    auto* open = actions->addChild<ui::DialogButton>(tr("Open"), true);
     open->setEnabled(!m_applications.empty());
     open->onClicked = [this] { openApplication(); };
     return layout;

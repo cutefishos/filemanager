@@ -5,6 +5,7 @@
 #include "core/preferences.h"
 #include "core/standardfolders.h"
 
+#include "base/i18n.h"
 #include "base/mime_database.h"
 #include "base/url.h"
 
@@ -12,6 +13,9 @@
 #include <set>
 #include <sys/stat.h>
 #include <unistd.h>
+
+using cutefish::i18n::tr;
+using cutefish::i18n::trn;
 
 namespace fm {
 
@@ -117,7 +121,7 @@ bool FileChooser::isValidRequest(const base::json::Value& request)
 
 std::string FileChooser::title() const
 {
-    return m_request["title"].toString(saveMode() ? std::string("Save File") : std::string("Open"));
+    return m_request["title"].toString(saveMode() ? std::string(tr("Save File")) : std::string(tr("Open")));
 }
 
 std::string FileChooser::acceptLabel() const
@@ -125,8 +129,8 @@ std::string FileChooser::acceptLabel() const
     std::string label = m_request["accept_label"].toString();
     if (label.empty()) {
         if (m_request["mode"].toString().starts_with("Save"))
-            return "Save";
-        return directoryMode() ? "Select Folder" : "Open";
+            return tr("Save");
+        return directoryMode() ? tr("Select Folder") : tr("Open");
     }
     std::erase(label, '_');
     return label;
@@ -167,8 +171,8 @@ std::string FileChooser::selectionSummary() const
     if (urls.size() == 1)
         return fm::fileName(base::url::toLocalFile(urls.front()).value_or(urls.front()));
     if (urls.empty())
-        return directoryMode() ? directory() : std::string("Select a file");
-    return std::to_string(urls.size()) + " items selected";
+        return directoryMode() ? directory() : std::string(tr("Select a file"));
+    return trn("{n} item selected", "{n} items selected", urls.size());
 }
 
 const base::json::Value::Array& FileChooser::filters() const
@@ -220,7 +224,7 @@ void FileChooser::navigate(const std::string& input)
         path = joinPath(directory(), path);
     path = cleanPath(path);
     if (!isDirectory(path) || ::access(path.c_str(), R_OK | X_OK) != 0) {
-        setError("This folder is unavailable or cannot be read.");
+        setError(tr("This folder is unavailable or cannot be read."));
         return;
     }
     setError({});
@@ -285,7 +289,7 @@ void FileChooser::newFolder(const std::string& name)
 {
     const std::string path = joinPath(directory(), name);
     if (!validName(name) || ::mkdir(path.c_str(), 0777) != 0) {
-        setError("The folder could not be created. Choose another name.");
+        setError(tr("The folder could not be created. Choose another name."));
         return;
     }
     navigate(path);
@@ -299,7 +303,7 @@ void FileChooser::accept(bool overwrite)
     std::vector<std::string> paths;
     if (saveMode()) {
         if (!validName(m_fileName)) {
-            setError("Enter a file name without slashes.");
+            setError(tr("Enter a file name without slashes."));
             return;
         }
         const std::string target = joinPath(directory(), m_fileName);
@@ -309,7 +313,7 @@ void FileChooser::accept(bool overwrite)
         }
         const bool targetExists = exists(target);
         if (::access(directory().c_str(), W_OK) != 0 || (targetExists && ::access(target.c_str(), W_OK) != 0)) {
-            setError("You do not have permission to save here.");
+            setError(tr("You do not have permission to save here."));
             return;
         }
         if (targetExists && (!overwrite || m_overwritePath != target)) {
@@ -323,11 +327,11 @@ void FileChooser::accept(bool overwrite)
         for (const std::string& url : selected) {
             const auto local = base::url::toLocalFile(url);
             if (!local) {
-                setError("Choose a local file or folder.");
+                setError(tr("Choose a local file or folder."));
                 return;
             }
             if (!exists(*local) || ::access(local->c_str(), R_OK) != 0) {
-                setError("The selected item is no longer available.");
+                setError(tr("The selected item is no longer available."));
                 return;
             }
             const bool folder = isDirectory(*local);
@@ -335,7 +339,7 @@ void FileChooser::accept(bool overwrite)
                 if (!directoryMode() && selected.size() == 1)
                     navigate(*local);
                 else
-                    setError(directoryMode() ? "Select folders only." : "Select files only.");
+                    setError(directoryMode() ? tr("Select folders only.") : tr("Select files only."));
                 return;
             }
             paths.push_back(cleanPath(*local));
@@ -343,7 +347,7 @@ void FileChooser::accept(bool overwrite)
         if (paths.empty() && directoryMode())
             paths.push_back(directory());
         if (paths.empty()) {
-            setError("Select a file to open.");
+            setError(tr("Select a file to open."));
             return;
         }
         if (!multiple() && paths.size() > 1)
@@ -352,7 +356,7 @@ void FileChooser::accept(bool overwrite)
     if (m_request["mode"].toString() == "SaveFiles") {
         const std::string folder = paths.front();
         if (::access(folder.c_str(), W_OK) != 0) {
-            setError("You do not have permission to save here.");
+            setError(tr("You do not have permission to save here."));
             return;
         }
         paths.clear();
@@ -360,7 +364,7 @@ void FileChooser::accept(bool overwrite)
         for (const base::json::Value& entry : m_request["files"].toArray()) {
             const std::string name = entry.toString();
             if (!validName(name)) {
-                setError("A suggested file name is invalid.");
+                setError(tr("A suggested file name is invalid."));
                 return;
             }
             std::string candidate = joinPath(folder, name);
@@ -376,7 +380,7 @@ void FileChooser::accept(bool overwrite)
             paths.push_back(candidate);
         }
         if (paths.empty()) {
-            setError("No file names were provided.");
+            setError(tr("No file names were provided."));
             return;
         }
     }

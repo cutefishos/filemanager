@@ -4,6 +4,7 @@
 #include "dialogs/unlockdialog.h"
 #include "model/places.h"
 
+#include "base/i18n.h"
 #include "ui/cell_layout.h"
 #include "ui/dialog_window.h"
 #include "ui/keys.h"
@@ -12,6 +13,9 @@
 #include "ui/text_field.h"
 #include "ui/theme.h"
 #include "ui/window.h"
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -26,15 +30,16 @@ public:
         setPadding({0, 16, 0, 0});
 
         auto* message = addChild<ui::Label>(dialog->m_retry
-                                                    ? "The passphrase for “" + dialog->m_name
-                                                            + "” is incorrect. Try again."
-                                                    : "Enter the passphrase to unlock “" + dialog->m_name + "”.");
+                                                    ? format(tr("The passphrase for “{name}” is incorrect. Try again."),
+                                                             {{"name", dialog->m_name}})
+                                                    : format(tr("Enter the passphrase to unlock “{name}”."),
+                                                             {{"name", dialog->m_name}}));
         message->setWrap(true);
         message->setColor(ui::ColorId::DisabledText);
         message->setLayoutHints({.fillWidth = true});
 
         passphrase = addChild<ui::TextField>();
-        passphrase->setPlaceholder("Passphrase");
+        passphrase->setPlaceholder(tr("Passphrase"));
         passphrase->setEchoMode(ui::TextField::EchoMode::Password);
         passphrase->setLayoutHints({.fillWidth = true});
         passphrase->onAccepted = [this] { accept(); };
@@ -45,9 +50,9 @@ public:
         ui::LayoutHints actionHints {.horizontalAlignment = ui::Alignment::End};
         actionHints.margins.top = 4;
         actions->setLayoutHints(actionHints);
-        auto* cancel = actions->addChild<ui::DialogButton>("Cancel");
+        auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
         cancel->onClicked = [this] { m_dialog->m_dialog->close(); };
-        unlock = actions->addChild<ui::DialogButton>("Unlock", true);
+        unlock = actions->addChild<ui::DialogButton>(tr("Unlock"), true);
         unlock->onClicked = [this] { accept(); };
         unlock->setEnabled(false);
     }
@@ -74,7 +79,7 @@ UnlockVolumeDialog::UnlockVolumeDialog(ui::Window* parent, PlacesModel& places, 
     , m_name(std::move(name))
     , m_retry(retry)
 {
-    m_dialog = std::make_unique<ui::DialogWindow>(parent, "Unlock Volume", 400);
+    m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Unlock Volume"), 400);
     auto* content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         if (onDone)

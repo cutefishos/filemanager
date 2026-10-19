@@ -4,6 +4,7 @@
 #include "dialogs/propertiesdialog.h"
 #include "core/standardfolders.h"
 
+#include "base/i18n.h"
 #include "base/locale.h"
 #include "ui/icon.h"
 #include "ui/label.h"
@@ -13,6 +14,10 @@
 #include <algorithm>
 #include <dirent.h>
 #include <sys/stat.h>
+
+using cutefish::i18n::tr;
+using cutefish::i18n::trn;
+using cutefish::i18n::trNoop;
 
 namespace fm {
 
@@ -52,7 +57,7 @@ static uint64_t totalSize(const std::string& path, const std::atomic_bool& cance
 }
 
 PropertiesDialog::PropertiesDialog(FileItemList items)
-    : FramelessDialog("Properties", true)
+    : FramelessDialog(tr("Properties"), true)
     , m_items(std::move(items))
 {
     const bool multiple = m_items.size() > 1;
@@ -67,7 +72,7 @@ PropertiesDialog::PropertiesDialog(FileItemList items)
         m_modified = textDate(first.modified);
         m_accessed = textDate(first.accessed);
     } else {
-        m_fileName = std::to_string(m_items.size()) + " files";
+        m_fileName = trn("{n} file", "{n} files", m_items.size());
         m_location = parentPath(first.path);
         m_iconName = "unknown";
     }
@@ -118,18 +123,18 @@ std::unique_ptr<ui::View> PropertiesDialog::createContent()
         bool size = false;
     };
     std::vector<Row> rows = {
-        {"Type:", m_mimeType},
-        {"Location:", m_location, true},
-        {"Size:", m_size.empty() ? std::string("Calculating...") : m_size, false, true},
-        {"Created:", m_created},
-        {"Modified:", m_modified},
-        {"Accessed:", m_accessed},
+        {trNoop("Type:"), m_mimeType},
+        {trNoop("Location:"), m_location, true},
+        {trNoop("Size:"), m_size.empty() ? std::string(tr("Calculating...")) : m_size, false, true},
+        {trNoop("Created:"), m_created},
+        {trNoop("Modified:"), m_modified},
+        {trNoop("Accessed:"), m_accessed},
     };
 
     // Hidden rows leave the grid, so the label column is measured over all.
     double labelWidth = 48;
     for (const Row& row : rows) {
-        ui::Label probe(row.label);
+        ui::Label probe(tr(row.label.c_str()));
         if (window())
             probe.setTextLayoutMode(window()->textLayoutMode());
         labelWidth = std::max(labelWidth, probe.sizeHint().width);
@@ -155,7 +160,7 @@ std::unique_ptr<ui::View> PropertiesDialog::createContent()
         const bool shown = !row.value.empty() || row.label == "Location:" || row.size;
         if (!shown)
             continue;
-        auto* label = form->addChild<ui::Label>(row.label);
+        auto* label = form->addChild<ui::Label>(tr(row.label.c_str()));
         label->setColor(ui::ColorId::DisabledText);
         label->setTextAlignment(ui::Label::TextAlignment::Right);
         label->setLayoutHints({.preferredWidth = labelWidth, .horizontalAlignment = ui::Alignment::End});

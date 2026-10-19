@@ -8,6 +8,7 @@
 #include "core/standardfolders.h"
 #include "ops/operations.h"
 
+#include "base/i18n.h"
 #include "base/paths.h"
 #include "base/settings.h"
 #include "base/strings.h"
@@ -27,11 +28,14 @@ namespace fm {
 using base::dbus::Variant;
 using base::dbus::VariantMap;
 using cutefish::base::paths::UserDirectory;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trNoop;
 
-static const char kFavorites[] = "Favorites";
-static const char kLocations[] = "Locations";
-static const char kInternalDrives[] = "Internal Drives";
-static const char kNetwork[] = "Network";
+static constexpr const char* kFavorites = trNoop("Favorites");
+static constexpr const char* kLocations = trNoop("Locations");
+static constexpr const char* kInternalDrives = trNoop("Internal Drives");
+static constexpr const char* kNetwork = trNoop("Network");
 
 static std::string settingsPath()
 {
@@ -72,7 +76,7 @@ std::string PlacesModel::Place::path() const
 
 std::string PlacesModel::Place::displayName() const
 {
-    return path() == "/" ? std::string("Computer") : name;
+    return path() == "/" ? std::string(tr("Computer")) : name;
 }
 
 PlacesModel::PlacesModel(bool volumes, std::string settingsFile, base::dbus::Connection* volumeBus)
@@ -147,7 +151,7 @@ PlacesModel::PlacesModel(bool volumes, std::string settingsFile, base::dbus::Con
     }
 
     Place trash;
-    trash.name = "Trash";
+    trash.name = tr("Trash");
     trash.url = "trash:///";
     trash.iconName = "user-trash";
     m_items.push_back(trash);
@@ -290,9 +294,9 @@ void PlacesModel::connectToServer(const std::string& address)
 {
     const std::string location = MountsClient::normalizedAddress(address);
     if (location.empty()) {
-        deviceOperationFailed.emit("“" + std::string(base::strings::trimmed(address))
-                                   + "” is not a server address. Enter one such as smb://server/share or "
-                                     "sftp://user@server.");
+        deviceOperationFailed.emit(format(tr("“{address}” is not a server address. Enter one such as "
+                                             "smb://server/share or sftp://user@server."),
+                                          {{"address", base::strings::trimmed(address)}}));
         return;
     }
     m_connecting[location] = {};
@@ -510,7 +514,7 @@ void PlacesModel::unmountLocation(const std::string& id)
             return;
         // fusermount refuses while anything has files open there.
         deviceOperationFailed.emit(error.find("busy") != std::string::npos
-                                           ? std::string("It is in use. Close the files open there and try again.")
+                                           ? std::string(tr("It is in use. Close the files open there and try again."))
                                            : error);
     });
 }

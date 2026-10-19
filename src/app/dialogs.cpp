@@ -9,11 +9,15 @@
 #include "dialogs/propertiesdialog.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/url.h"
 #include "base/mime_database.h"
 #include "ui/dialog_window.h"
 
 #include <algorithm>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -43,15 +47,15 @@ void Dialogs::confirmDelete(const std::vector<std::string>& urls, ui::Window* pa
 {
     if (urls.empty())
         return;
-    confirm(parent, "Delete", "Do you want to delete it permanently?", "Delete", true,
+    confirm(parent, tr("Delete"), tr("Do you want to delete it permanently?"), tr("Delete"), true,
             [urls] { OperationsClient::instance().remove(urls); });
 }
 
 void Dialogs::confirmEmptyTrash(ui::Window* parent)
 {
     ui::ConfirmDialog* dialog =
-            confirm(parent, "Empty Trash", "Do you want to permanently delete all files from the Trash?",
-                    "Empty Trash", true, [] { OperationsClient::instance().emptyTrash(); });
+            confirm(parent, tr("Empty Trash"), tr("Do you want to permanently delete all files from the Trash?"),
+                    tr("Empty Trash"), true, [] { OperationsClient::instance().emptyTrash(); });
     // Opened from the dock or the desktop it has no window of the file
     // manager's to belong to: it stays off the task list and the menu bar,
     // and above other windows.
@@ -66,9 +70,10 @@ void Dialogs::confirmLaunch(const std::string& path, ui::Window* parent)
     if (path.empty())
         return;
     const std::string absolute = cleanPath(path);
-    confirm(parent, "Run Program",
-            "“" + fileName(absolute) + "” is a program. Only run it if you trust where it came from.", "Run", false,
-            [absolute] { launcher::trustAndLaunch(absolute); });
+    confirm(parent, tr("Run Program"),
+            format(tr("“{name}” is a program. Only run it if you trust where it came from."),
+                   {{"name", fileName(absolute)}}),
+            tr("Run"), false, [absolute] { launcher::trustAndLaunch(absolute); });
 }
 
 void Dialogs::properties(const FileItemList& items, ui::Window* parent)
@@ -151,7 +156,7 @@ ui::ConfirmDialog* Dialogs::confirm(ui::Window* parent, std::string title, std::
 {
     auto dialog = std::make_unique<ui::ConfirmDialog>(parent, std::move(title), std::move(text));
     ui::ConfirmDialog* raw = dialog.get();
-    raw->setCancelText("Cancel");
+    raw->setCancelText(tr("Cancel"));
     raw->setConfirmText(std::move(confirmText));
     raw->setDestructive(destructive);
     raw->onAccepted = [this, raw, accepted = std::move(accepted)] {

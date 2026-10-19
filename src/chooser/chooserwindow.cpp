@@ -13,6 +13,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/url.h"
 #include "ui/check_box.h"
 #include "ui/color_provider.h"
@@ -35,6 +36,8 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 static constexpr double kWidth = 860;
 static constexpr double kHeight = 520;
@@ -67,7 +70,7 @@ public:
             gone.push_back(takeChild(children().front().get()));
         base::EventLoop::current()->post([gone] {});
 
-        m_favorites = addChild<ui::Label>("Favorites");
+        m_favorites = addChild<ui::Label>(tr("Favorites"));
         m_favorites->setWeight(700);
         m_favorites->setFontSize(9 * 4.0 / 3);
         std::string category = "Favorites";
@@ -78,7 +81,7 @@ public:
             if (place.category != category) {
                 category = place.category;
                 if (!category.empty()) {
-                    row.section = addChild<ui::Label>(category);
+                    row.section = addChild<ui::Label>(tr(category.c_str()));
                     row.section->setWeight(700);
                     row.section->setFontSize(9 * 4.0 / 3);
                 }
@@ -343,13 +346,13 @@ public:
         busy = addChild<ui::BusyIndicator>();
         busy->setVisible(false);
 
-        saveAsLabel = addChild<ui::Label>("Save As:");
+        saveAsLabel = addChild<ui::Label>(tr("Save As:"));
         nameField = addChild<ui::TextField>(chooser.fileName());
         nameField->setName("fileNameField");
         nameField->setSelectByMouse(true);
         nameField->onTextEdited = [this] { m_chooser.setFileName(nameField->text()); };
         nameField->onAccepted = [this] { m_chooser.accept(); };
-        filterLabel = addChild<ui::Label>("File Type:");
+        filterLabel = addChild<ui::Label>(tr("File Type:"));
         std::vector<std::string> filterNames;
         for (const base::json::Value& filter : chooser.filters())
             filterNames.push_back(filter["name"].toString());
@@ -391,13 +394,13 @@ public:
         error->setWrap(true);
         error->setVisible(false);
 
-        newFolder = addChild<ui::DialogButton>("New Folder");
+        newFolder = addChild<ui::DialogButton>(tr("New Folder"));
         newFolder->setVisible(canCreateFolder());
         newFolder->onClicked = [this] { m_owner->beginNewFolder(); };
         summary = addChild<ui::Label>();
         summary->setElide(ui::Label::Elide::Middle);
         summary->setVisible(chooser.multiple());
-        cancel = addChild<ui::DialogButton>("Cancel");
+        cancel = addChild<ui::DialogButton>(tr("Cancel"));
         cancel->setName("cancelButton");
         cancel->onClicked = [this] { m_chooser.cancel(); };
         accept = addChild<ui::DialogButton>(chooser.acceptLabel(), true);
@@ -424,8 +427,9 @@ public:
             m_owner->m_unlock->show();
         }));
         m_subscriptions.push_back(m_places->deviceOperationFailed.connect([this](const std::string& message) {
-            m_owner->m_deviceError = std::make_unique<ui::ConfirmDialog>(this->window(), "Device unavailable", message);
-            m_owner->m_deviceError->setConfirmText("Close");
+            m_owner->m_deviceError
+                    = std::make_unique<ui::ConfirmDialog>(this->window(), tr("Device unavailable"), message);
+            m_owner->m_deviceError->setConfirmText(tr("Close"));
             m_owner->m_deviceError->setCancelVisible(false);
             m_owner->m_deviceError->show();
         }));
@@ -731,9 +735,10 @@ ChooserWindow::ChooserWindow(FileChooser& chooser)
         m_window->setTransientForForeign(parent, chooser.request()["modal"].toBool(true));
 
     m_subscriptions.push_back(chooser.confirmOverwrite.connect([this](const std::string& name) {
-        m_overwrite = std::make_unique<ui::ConfirmDialog>(m_window.get(), "Replace File?",
-                                                          "“" + name + "” already exists. Replace it?");
-        m_overwrite->setConfirmText("Replace");
+        m_overwrite = std::make_unique<ui::ConfirmDialog>(m_window.get(), tr("Replace File?"),
+                                                          format(tr("“{name}” already exists. Replace it?"),
+                                                                 {{"name", name}}));
+        m_overwrite->setConfirmText(tr("Replace"));
         m_overwrite->setDestructive(true);
         m_overwrite->onAccepted = [this] { m_chooser.accept(true); };
         m_overwrite->show();
@@ -751,7 +756,7 @@ void ChooserWindow::show()
 
 void ChooserWindow::beginNewFolder()
 {
-    m_newFolder = std::make_unique<ui::DialogWindow>(m_window.get(), "New Folder", 340);
+    m_newFolder = std::make_unique<ui::DialogWindow>(m_window.get(), tr("New Folder"), 340);
     if (ui::Window* window = m_newFolder->window())
         window->setBackgroundColor(ui::ColorId::SecondBackground);
 
@@ -763,14 +768,14 @@ void ChooserWindow::beginNewFolder()
             setSpacing(16);
             setPadding({0, 8, 0, 0});
             field = addChild<ui::TextField>();
-            field->setPlaceholder("Folder name");
+            field->setPlaceholder(tr("Folder name"));
             field->setSelectByMouse(true);
             field->setLayoutHints({.fillWidth = true});
             auto* actions = addChild<ui::RowLayout>();
             actions->setSpacing(8);
             actions->setLayoutHints({.horizontalAlignment = ui::Alignment::End});
-            auto* cancel = actions->addChild<ui::DialogButton>("Cancel");
-            create = actions->addChild<ui::DialogButton>("Create", true);
+            auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
+            create = actions->addChild<ui::DialogButton>(tr("Create"), true);
             create->setEnabled(false);
             cancel->onClicked = [owner] { owner->m_newFolder->close(); };
             const auto accept = [this, owner] {

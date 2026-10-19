@@ -11,6 +11,7 @@
 
 #include "base/dbus.h"
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/mime_database.h"
 #include "base/paths.h"
 #include "base/settings.h"
@@ -27,6 +28,12 @@
 #include <regex>
 #include <sys/stat.h>
 #include <unistd.h>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
+using cutefish::i18n::trc;
+using cutefish::i18n::trn;
+using cutefish::i18n::trNoop;
 
 namespace fm {
 
@@ -346,7 +353,7 @@ std::string FolderModel::fileSizeText(int row)
         const int64_t count = m_folderSizes.count(file->path);
         if (count < 0)
             return {};
-        return count == 1 ? "1 item" : std::to_string(count) + " items";
+        return trn("{n} item", "{n} items", uint64_t(count));
     }
     return formatSize(file->size);
 }
@@ -369,7 +376,7 @@ std::string FolderModel::fileTypeText(int row) const
     if (!file)
         return {};
     if (file->isDir)
-        return "Folder";
+        return tr("Folder");
     return file->typeDescription.empty() ? file->mimeType : file->typeDescription;
 }
 
@@ -473,7 +480,7 @@ void FolderModel::setUrl(const std::string& url)
 std::string FolderModel::folderName() const
 {
     if (m_url.starts_with("trash:/"))
-        return "Trash";
+        return tr("Trash");
     std::string path = m_url;
     while (path.size() > 1 && path.back() == '/')
         path.pop_back();
@@ -940,7 +947,7 @@ void FolderModel::newFolder()
     if (root.empty())
         return;
 
-    const std::string base = "New Folder";
+    const std::string base = trc("default file name", "New Folder");
     std::string name = base;
     for (int i = 1; exists(root + '/' + name); ++i)
         name = base + std::to_string(i);
@@ -957,7 +964,7 @@ void FolderModel::newTextFile()
     if (root.empty())
         return;
 
-    const std::string base = "New Text";
+    const std::string base = trc("default file name", "New Text");
     std::string name = base;
     for (int i = 1; exists(root + '/' + name); ++i)
         name = base + std::to_string(i);
@@ -1371,7 +1378,7 @@ void FolderModel::compressSelected()
     for (const int row : selectedRows()) {
         const FileItemPtr file = item(row);
         if (!file->isLocalFile() || file->path.empty()) {
-            notification.emit("Only local files can be compressed.");
+            notification.emit(tr("Only local files can be compressed."));
             return;
         }
         paths.push_back(file->path);
@@ -1381,9 +1388,10 @@ void FolderModel::compressSelected()
     if (destination.empty())
         return;
 
-    const std::string baseName = paths.size() == 1 ? fileName(paths.front()) : std::string("Archive");
+    const std::string baseName
+            = paths.size() == 1 ? fileName(paths.front()) : std::string(trc("default file name", "Archive"));
     const std::string outputPath = uniquePath(destination, baseName + ".zip", false);
-    startArchive(OperationsClient::instance().archive(0, paths, outputPath), "Compressing", outputPath);
+    startArchive(OperationsClient::instance().archive(0, paths, outputPath), trNoop("Compressing"), outputPath);
 }
 
 void FolderModel::extractSelectedArchive()
@@ -1407,10 +1415,10 @@ void FolderModel::extractSelectedArchive()
         baseName = file->name.substr(0, file->name.size() - suffix.size());
     }
     if (baseName.empty())
-        baseName = "Extracted";
+        baseName = trc("default file name", "Extracted");
 
     const std::string outputPath = uniquePath(parentPath(file->path), baseName, !singleFile);
-    startArchive(OperationsClient::instance().archive(1, {file->path}, outputPath), "Extracting", outputPath);
+    startArchive(OperationsClient::instance().archive(1, {file->path}, outputPath), trNoop("Extracting"), outputPath);
 }
 
 void FolderModel::cancelArchive()
@@ -1454,7 +1462,7 @@ void FolderModel::archiveFinished(bool success, bool canceled, const std::string
         };
         timer->start(std::chrono::milliseconds(100));
     } else if (canceled) {
-        notification.emit(operation + " canceled.");
+        notification.emit(operation == "Compressing" ? tr("Compressing canceled.") : tr("Extracting canceled."));
     }
     // A failure is shown by the task's own dialog.
 }
@@ -1594,30 +1602,30 @@ const FolderModel::Action& FolderModel::action(const std::string& name) const
 void FolderModel::createActions()
 {
     const std::vector<std::pair<std::string, std::string>> actions = {
-        {"open", "Open"},
-        {"openWith", "Open with"},
-        {"showInFolder", "Show in Enclosing Folder"},
-        {"compress", "Compress"},
-        {"cut", "Cut"},
-        {"copy", "Copy"},
-        {"paste", "Paste"},
-        {"pasteInto", "Paste"},
-        {"newFolder", "New Folder"},
-        {"newTextFile", "New Text"},
-        {"trash", "Move To Trash"},
-        {"emptyTrash", "Empty Trash"},
-        {"del", "Delete"},
-        {"rename", "Rename"},
-        {"terminal", "Open in Terminal"},
-        {"wallpaper", "Set as Wallpaper"},
-        {"properties", "Properties"},
-        {"changeBackground", "Change background"},
-        {"restore", "Restore"},
-        {"showHidden", "Show Hidden Files"},
-        {"openInNewWindow", "Open In New Window"},
-        {"openInNewTab", "Open In New Tab"},
-        {"undo", "Undo"},
-        {"redo", "Redo"},
+        {"open", tr("Open")},
+        {"openWith", tr("Open with")},
+        {"showInFolder", tr("Show in Enclosing Folder")},
+        {"compress", tr("Compress")},
+        {"cut", tr("Cut")},
+        {"copy", tr("Copy")},
+        {"paste", tr("Paste")},
+        {"pasteInto", tr("Paste")},
+        {"newFolder", tr("New Folder")},
+        {"newTextFile", tr("New Text")},
+        {"trash", tr("Move To Trash")},
+        {"emptyTrash", tr("Empty Trash")},
+        {"del", tr("Delete")},
+        {"rename", tr("Rename")},
+        {"terminal", tr("Open in Terminal")},
+        {"wallpaper", tr("Set as Wallpaper")},
+        {"properties", tr("Properties")},
+        {"changeBackground", tr("Change background")},
+        {"restore", tr("Restore")},
+        {"showHidden", tr("Show Hidden Files")},
+        {"openInNewWindow", tr("Open In New Window")},
+        {"openInNewTab", tr("Open In New Tab")},
+        {"undo", tr("Undo")},
+        {"redo", tr("Redo")},
     };
     for (const auto& [name, text] : actions)
         m_actions[name] = Action {text, true, true};
@@ -1671,8 +1679,9 @@ void FolderModel::updateActions()
 
     const bool canCompress = !rows.empty() && !trash && !hasRemoteFiles && !searching && rootItem().isWritable;
     set("compress", canCompress, canCompress && !m_archive);
-    m_actions["compress"].text = rows.size() == 1 && !items.empty() ? "Compress “" + items.front()->name + "”"
-                                                                    : std::string("Compress Items");
+    m_actions["compress"].text = rows.size() == 1 && !items.empty()
+                                         ? format(tr("Compress “{name}”"), {{"name", items.front()->name}})
+                                         : std::string(tr("Compress Items"));
 
     set("newFolder", !trash && !searching, rootItem().isWritable);
     set("newTextFile", !trash && !searching, rootItem().isWritable);
@@ -1696,7 +1705,7 @@ void FolderModel::updateActions()
     set("properties", !trash, true);
     set("showHidden", !trash, true);
     // Plain text instead of a check mark: the label says what the item does.
-    m_actions["showHidden"].text = m_showHiddenFiles ? "Hide Hidden Files" : "Show Hidden Files";
+    m_actions["showHidden"].text = m_showHiddenFiles ? tr("Hide Hidden Files") : tr("Show Hidden Files");
     set("openInNewWindow", hasDir && !trash, true);
     set("openInNewTab", hasDir && !trash && !m_isDesktop, true);
     set("undo", true, OperationsClient::instance().undoAvailable());

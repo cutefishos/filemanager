@@ -6,12 +6,16 @@
 #define FUSE_USE_VERSION 31
 #include <fuse.h>
 
+#include "base/i18n.h"
 #include "base/process.h"
 #include "base/strings.h"
 
 #include <cstring>
 #include <filesystem>
 #include <unistd.h>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 static FuseMount *current()
 {
@@ -265,7 +269,7 @@ bool FuseMount::start(std::string *message)
     std::error_code error;
     std::filesystem::create_directories(m_mountPoint, error);
     if (!std::filesystem::is_directory(m_mountPoint, error)) {
-        *message = "Cannot create " + m_mountPoint;
+        *message = format(tr("Cannot create {path}"), {{"path", m_mountPoint}});
         return false;
     }
 
@@ -275,7 +279,7 @@ bool FuseMount::start(std::string *message)
 
     m_fuse = fuse_new(&args, operations(), sizeof(struct fuse_operations), this);
     if (!m_fuse) {
-        *message = "Cannot start the FUSE session";
+        *message = tr("Cannot start the FUSE session");
         return false;
     }
 
@@ -283,7 +287,7 @@ bool FuseMount::start(std::string *message)
         fuse_destroy(m_fuse);
         m_fuse = nullptr;
         ::rmdir(m_mountPoint.c_str());
-        *message = "Cannot mount " + m_mountPoint;
+        *message = format(tr("Cannot mount {path}"), {{"path", m_mountPoint}});
         return false;
     }
 

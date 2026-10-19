@@ -12,6 +12,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "ui/color_provider.h"
 #include "ui/progress_bar.h"
 #include "ui/dialog_window.h"
@@ -35,6 +36,8 @@
 namespace fm {
 
 using ui::rounding::centeredStart;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 static constexpr double kSmallSpacing = 6;
 static constexpr double kLargeSpacing = 12;
@@ -53,8 +56,8 @@ public:
     SearchScopeBar()
     {
         setName("searchScopeBar");
-        m_label = addChild<ui::Label>("Search:");
-        m_home = addChild<ui::Label>("Home");
+        m_label = addChild<ui::Label>(tr("Search:"));
+        m_home = addChild<ui::Label>(tr("Home"));
         m_folder = addChild<ui::Label>();
         m_folder->setElide(ui::Label::Elide::Middle);
         m_busy = addChild<ui::BusyIndicator>();
@@ -63,7 +66,8 @@ public:
     void setModel(FolderModel* model, const std::string& folderName)
     {
         m_model = model;
-        m_folder->setText("“" + folderName + "”");
+        // TRANSLATORS: the folder a search looks in, in quotation marks.
+        m_folder->setText(format(tr("“{name}”"), {{"name", folderName}}));
         requestLayout();
         requestPaint();
     }
@@ -194,9 +198,10 @@ public:
     TrashBar()
     {
         setName("trashBar");
-        m_title = addChild<ui::Label>("Trash");
+        m_title = addChild<ui::Label>(tr("Trash"));
         m_title->setWeight(600);
-        m_empty = addChild<ui::DialogButton>("Empty");
+        // TRANSLATORS: a button that empties the Trash.
+        m_empty = addChild<ui::DialogButton>(tr("Empty"));
         m_empty->setName("emptyTrashButton");
         m_empty->onClicked = [this] {
             if (m_model)
@@ -500,7 +505,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     : m_host(host)
     , m_window(std::make_unique<ui::Window>())
 {
-    m_window->setTitle("Files");
+    m_window->setTitle(tr("Files"));
     m_window->setMinimumSize({kMinimumWidth, 500});
     if (size.width > 0 && size.height > 0) {
         m_window->resize(size);
@@ -513,7 +518,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     m_root = root.get();
     m_window->setContentView(std::move(root));
     m_sidebar = m_root->sidebar;
-    m_sidebar->setTitle("Files");
+    m_sidebar->setTitle(tr("Files"));
     m_pathBar = m_root->row->pathBar;
     m_tabBar = m_root->tabBar;
     m_back = m_root->row->back;
@@ -795,11 +800,11 @@ void FolderWindow::showTabMenu(int index, ui::PointF position)
     if (index < 0 || index >= tabCount())
         return;
     m_menu = std::make_unique<ui::Menu>();
-    m_menu->addItem("Open In New Tab", [this, index] {
+    m_menu->addItem(tr("Open In New Tab"), [this, index] {
         if (index < tabCount())
             openTab(m_tabs[size_t(index)].page->currentUrl());
     });
-    m_menu->addItem("Close Tab", [this, index] { closeTab(index); });
+    m_menu->addItem(tr("Close Tab"), [this, index] { closeTab(index); });
     m_menu->popup(m_window.get(), position);
 }
 
@@ -946,10 +951,10 @@ void FolderWindow::showOptionsMenu()
     };
 
     m_menu = std::make_unique<ui::Menu>();
-    const size_t icons = m_menu->addItem("Icons", [] { Preferences::instance().setViewMethod(Preferences::Grid); });
+    const size_t icons = m_menu->addItem(tr("Icons"), [] { Preferences::instance().setViewMethod(Preferences::Grid); });
     m_menu->setItemGlyph(icons, "grid");
     m_menu->setItemChecked(icons, preferences.viewMethod() == Preferences::Grid);
-    const size_t list = m_menu->addItem("List", [] { Preferences::instance().setViewMethod(Preferences::List); });
+    const size_t list = m_menu->addItem(tr("List"), [] { Preferences::instance().setViewMethod(Preferences::List); });
     m_menu->setItemGlyph(list, "list");
     m_menu->setItemChecked(list, preferences.viewMethod() == Preferences::List);
     m_menu->addSeparator();
@@ -957,13 +962,13 @@ void FolderWindow::showOptionsMenu()
         const size_t index = m_menu->addItem(text, [sortBy, mode] { sortBy(mode); });
         m_menu->setItemChecked(index, sortMode == mode);
     };
-    sortItem("Name", Preferences::Name);
+    sortItem(tr("Name"), Preferences::Name);
     if (trash)
-        sortItem("Original Location", Preferences::OriginalPath);
-    sortItem(trash ? "Date Deleted" : "Date", trash ? Preferences::DeletionTime : Preferences::ModifiedTime);
+        sortItem(tr("Original Location"), Preferences::OriginalPath);
+    sortItem(trash ? tr("Date Deleted") : tr("Date"), trash ? Preferences::DeletionTime : Preferences::ModifiedTime);
     if (!trash)
-        sortItem("Type", Preferences::Type);
-    sortItem("Size", Preferences::Size);
+        sortItem(tr("Type"), Preferences::Type);
+    sortItem(tr("Size"), Preferences::Size);
 
     m_options->setChecked(true);
     m_menu->onClosed = [this] { m_options->setChecked(false); };

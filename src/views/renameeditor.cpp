@@ -4,6 +4,7 @@
 #include "views/renameeditor.h"
 #include "views/style.h"
 
+#include "base/i18n.h"
 #include "base/strings.h"
 #include "ui/keys.h"
 #include "ui/painter.h"
@@ -13,6 +14,8 @@
 
 #include <algorithm>
 #include <cmath>
+
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -156,9 +159,9 @@ bool RenameEditor::commit()
     }
 
     if (text == "." || text == "..")
-        setError("Choose a name other than . or ..");
+        setError(tr("Choose a name other than . or .."));
     else if (text.find_first_of(std::string_view("/\r\n\0", 4)) != std::string::npos)
-        setError("Names cannot contain / or line breaks.");
+        setError(tr("Names cannot contain / or line breaks."));
     else
         setError({});
 

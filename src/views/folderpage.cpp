@@ -12,6 +12,7 @@
 #include "views/style.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/url.h"
 #include "ui/header_backdrop.h"
 #include "ui/keys.h"
@@ -21,6 +22,9 @@
 #include "ui/theme.h"
 
 #include <algorithm>
+
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 namespace fm {
 
@@ -34,7 +38,7 @@ FolderPage::FolderPage(FolderModelHost* host, const Start& start)
     setName("folderPage");
     setClipsChildren(true);
 
-    m_noResults = addChild<ui::Label>("No Results");
+    m_noResults = addChild<ui::Label>(tr("No Results"));
     m_noResults->setFontSize(15 * 4.0 / 3);
     m_noResults->setVisible(false);
 
@@ -110,7 +114,7 @@ std::string FolderPage::folderName() const
 std::string FolderPage::tabTitle() const
 {
     if (!m_model->searchText().empty())
-        return "Searching “" + m_model->searchText() + "”";
+        return format(tr("Searching “{text}”"), {{"text", m_model->searchText()}});
     return folderName();
 }
 

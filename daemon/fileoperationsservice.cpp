@@ -5,6 +5,7 @@
 #include "daemontask.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/timer.h"
 
 #include "cutefish/files/task.h"
@@ -13,6 +14,7 @@
 
 using namespace cutefish;
 using base::dbus::ObjectPath;
+using cutefish::i18n::tr;
 
 static void later(std::chrono::milliseconds delay, std::function<void()> action)
 {
@@ -89,7 +91,7 @@ void FileOperationsService::submit(base::dbus::MethodCall &call)
     const std::string path = nextPath();
     auto task = std::make_unique<DaemonTask>(m_bus, path, files::TaskController::instance()->submit(request));
     if (!announce(std::move(task), call.message().sender())) {
-        call.replyError("org.freedesktop.DBus.Error.Failed", "The task could not be published");
+        call.replyError("org.freedesktop.DBus.Error.Failed", tr("The task could not be published"));
         return;
     }
     call.reply(ObjectPath {path});
@@ -109,7 +111,7 @@ void FileOperationsService::submitArchive(base::dbus::MethodCall &call)
     const std::string path = nextPath();
     auto task = std::make_unique<DaemonTask>(m_bus, path, operation, sources, outputPath);
     if (!announce(std::move(task), call.message().sender())) {
-        call.replyError("org.freedesktop.DBus.Error.Failed", "The task could not be published");
+        call.replyError("org.freedesktop.DBus.Error.Failed", tr("The task could not be published"));
         return;
     }
     call.reply(ObjectPath {path});
@@ -126,7 +128,7 @@ void FileOperationsService::history(base::dbus::MethodCall &call, bool undo)
 
     const std::string path = nextPath();
     if (!announce(std::make_unique<DaemonTask>(m_bus, path, task), call.message().sender())) {
-        call.replyError("org.freedesktop.DBus.Error.Failed", "The task could not be published");
+        call.replyError("org.freedesktop.DBus.Error.Failed", tr("The task could not be published"));
         return;
     }
     call.reply(ObjectPath {path});

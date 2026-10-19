@@ -3,11 +3,14 @@
 
 #include "core/standardfolders.h"
 
+#include "base/i18n.h"
 #include "base/paths.h"
 
 #include <vector>
 
 using cutefish::base::paths::UserDirectory;
+using cutefish::i18n::tr;
+using cutefish::i18n::trNoop;
 
 namespace fm {
 
@@ -26,15 +29,15 @@ static const std::map<std::string, StandardFolder>& standardFolders()
     static const std::map<std::string, StandardFolder> folders = [] {
         using cutefish::base::paths::userDirectory;
         const std::vector<std::pair<std::string, StandardFolder>> list = {
-            {homePath(), {"Home", "folder-home"}},
-            {userDirectory(UserDirectory::Desktop), {"Desktop", "folder-desktop"}},
-            {userDirectory(UserDirectory::Documents), {"Documents", "folder-documents"}},
-            {userDirectory(UserDirectory::Downloads), {"Downloads", "folder-download"}},
-            {userDirectory(UserDirectory::Music), {"Music", "folder-music"}},
-            {userDirectory(UserDirectory::Pictures), {"Pictures", "folder-picture"}},
-            {userDirectory(UserDirectory::Videos), {"Videos", "folder-video"}},
-            {userDirectory(UserDirectory::Templates), {"Templates", "folder-templates"}},
-            {userDirectory(UserDirectory::PublicShare), {"Public", "folder-publicshare"}},
+            {homePath(), {trNoop("Home"), "folder-home"}},
+            {userDirectory(UserDirectory::Desktop), {trNoop("Desktop"), "folder-desktop"}},
+            {userDirectory(UserDirectory::Documents), {trNoop("Documents"), "folder-documents"}},
+            {userDirectory(UserDirectory::Downloads), {trNoop("Downloads"), "folder-download"}},
+            {userDirectory(UserDirectory::Music), {trNoop("Music"), "folder-music"}},
+            {userDirectory(UserDirectory::Pictures), {trNoop("Pictures"), "folder-picture"}},
+            {userDirectory(UserDirectory::Videos), {trNoop("Videos"), "folder-video"}},
+            {userDirectory(UserDirectory::Templates), {trNoop("Templates"), "folder-templates"}},
+            {userDirectory(UserDirectory::PublicShare), {trNoop("Public"), "folder-publicshare"}},
         };
         std::map<std::string, StandardFolder> result;
         // Home first: a disabled XDG folder resolves to home, which keeps its own name.
@@ -52,7 +55,7 @@ const std::map<std::string, std::string>& standardFolderNames()
     static const std::map<std::string, std::string> names = [] {
         std::map<std::string, std::string> result;
         for (const auto& [path, folder] : standardFolders())
-            result.emplace(path, folder.name);
+            result.emplace(path, tr(folder.name.c_str()));
         return result;
     }();
     return names;
@@ -63,7 +66,7 @@ std::string standardFolderName(const std::string& path)
     if (path.empty())
         return {};
     const auto found = standardFolders().find(cleanPath(path));
-    return found != standardFolders().end() ? found->second.name : std::string();
+    return found != standardFolders().end() ? std::string(tr(found->second.name.c_str())) : std::string();
 }
 
 std::string standardFolderIconName(const std::string& path)

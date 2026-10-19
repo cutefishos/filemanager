@@ -9,6 +9,7 @@
 #include "smbbackend.h"
 
 #include "base/event_loop.h"
+#include "base/i18n.h"
 #include "base/paths.h"
 #include "base/process.h"
 #include "base/strings.h"
@@ -19,6 +20,8 @@
 #include <unistd.h>
 
 using namespace cutefish::base;
+using cutefish::i18n::format;
+using cutefish::i18n::tr;
 
 static std::unique_ptr<Backend> createBackend(const RemoteUrl &url)
 {
@@ -257,13 +260,13 @@ void MountService::mount(dbus::MethodCall &call)
     }
 
     if (!backend) {
-        fail("“" + location + "” is not a location that can be connected to.");
+        fail(format(tr("“{location}” is not a location that can be connected to."), {{"location", location}}));
         return;
     }
 
     const std::string pendingKey = device ? device->id : serverId(url, credentials.user);
     if (m_pending.contains(pendingKey)) {
-        fail("Already connecting to “" + location + "”.");
+        fail(format(tr("Already connecting to “{location}”."), {{"location", location}}));
         return;
     }
     m_pending.insert(pendingKey);

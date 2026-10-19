@@ -3,6 +3,7 @@
 
 #include "smbbackend.h"
 
+#include "base/i18n.h"
 #include "base/url.h"
 #include "base/uuid.h"
 
@@ -15,6 +16,8 @@
 #include <linux/fs.h>
 #include <sys/time.h>
 #include <unistd.h>
+
+using cutefish::i18n::tr;
 
 // Equal under full Unicode case folding.
 static bool sameIgnoringCase(const std::string &a, const std::string &b)
@@ -160,14 +163,14 @@ static ConnectResult failure(int code)
     switch (code) {
     case ENOENT:
     case ENODEV:
-        result.message = "The share does not exist.";
+        result.message = tr("The share does not exist.");
         break;
     case EHOSTUNREACH:
     case EHOSTDOWN:
     case ECONNREFUSED:
     case ETIMEDOUT:
     case ENETUNREACH:
-        result.message = "The server could not be reached.";
+        result.message = tr("The server could not be reached.");
         break;
     default:
         result.message = std::strerror(code);
