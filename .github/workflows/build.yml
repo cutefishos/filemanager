@@ -1,0 +1,13 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: cutefishos/.github/.github/workflows/build.yml@main
+    with:
+      dependencies: icons cutefish-toolkit cutefish-framework
