@@ -24,6 +24,18 @@ static std::string nameOf(const std::string& url)
     return fileName(base::url::toLocalFile(url).value_or(url));
 }
 
+// In the order the folder view lists names, not the order the folder was
+// read in; names the collator equates ("a1", "a01") keep one fixed order.
+static void sortByName(std::vector<std::string>& urls)
+{
+    base::Collator collator;
+    collator.setNumericMode(true);
+    std::sort(urls.begin(), urls.end(), [&collator](const std::string& a, const std::string& b) {
+        const int order = collator.compare(nameOf(a), nameOf(b));
+        return order != 0 ? order < 0 : nameOf(a) < nameOf(b);
+    });
+}
+
 static std::optional<int> number(const std::string& text)
 {
     int value = 0;
@@ -201,9 +213,14 @@ int Positioner::nextFreeCell(const Layout& layout, int from) const
 
 void Positioner::placeAllByDefault()
 {
-    m_layout = Layout();
+    std::vector<std::string> urls;
     for (int row = 0; row < m_model.count(); ++row)
-        m_layout.put(defaultCell(row), m_model.item(row)->url);
+        urls.push_back(m_model.item(row)->url);
+    sortByName(urls);
+
+    m_layout = Layout();
+    for (size_t ordinal = 0; ordinal < urls.size(); ++ordinal)
+        m_layout.put(defaultCell(int(ordinal)), urls[ordinal]);
 }
 
 void Positioner::reset()
@@ -241,9 +258,12 @@ void Positioner::contentsChanged(const ContentsChange& change)
         }
     }
 
+    std::vector<std::string> added = change.added;
+    sortByName(added);
+
     const bool fresh = m_layout.urls.empty();
     int ordinal = 0;
-    for (const std::string& url : change.added) {
+    for (const std::string& url : added) {
         if (carried.contains(url) || m_layout.cells.contains(url))
             continue;
 
@@ -361,19 +381,13 @@ bool Positioner::restore(Layout* layout) const
         layout->put(cell >= 0 ? cell : firstFreeCell(*layout), record.url);
     }
 
-    // Files without a record fill the free cells in the order the folder view
-    // lists names; names the collator equates ("a1", "a01") keep one fixed order.
+    // Files without a record fill the free cells by name.
     std::vector<std::string> unrecorded;
     for (const std::string& url : listed) {
         if (!layout->cells.contains(url))
             unrecorded.push_back(url);
     }
-    base::Collator collator;
-    collator.setNumericMode(true);
-    std::sort(unrecorded.begin(), unrecorded.end(), [&collator](const std::string& a, const std::string& b) {
-        const int order = collator.compare(nameOf(a), nameOf(b));
-        return order != 0 ? order < 0 : nameOf(a) < nameOf(b);
-    });
+    sortByName(unrecorded);
     for (const std::string& url : unrecorded) {
         // A renamed file has no record under its new URL but already has a cell.
         const int current = cellOfUrl(url);

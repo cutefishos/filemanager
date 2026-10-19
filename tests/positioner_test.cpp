@@ -223,6 +223,22 @@ TEST(PositionerTest, ReservedCellTakesTheDroppedFile)
     EXPECT_EQ(desktop.cellOf(directory, "dropped"), 2);
 }
 
+// Without a saved layout the default cells go by name, whatever order the
+// folder lists the files in.
+TEST(PositionerTest, DefaultCellsFollowNames)
+{
+    TemporaryDir directory;
+    for (const char* name : {"a", "b", "c", "d"})
+        fmtest::writeFile(directory.filePath(name));
+    Desktop desktop(directory);
+    desktop.positioner.setGrid(3, 2);
+    ASSERT_TRUE(desktop.listed(4));
+    EXPECT_EQ(desktop.cellOf(directory, "a"), 4);
+    EXPECT_EQ(desktop.cellOf(directory, "b"), 5);
+    EXPECT_EQ(desktop.cellOf(directory, "c"), 2);
+    EXPECT_EQ(desktop.cellOf(directory, "d"), 3);
+}
+
 // Files the saved layout has no record of fill the default cells in name
 // order: the rightmost column from the top, then the one to its left.
 TEST(PositionerTest, UnrecordedFilesFillFromTheRight)
