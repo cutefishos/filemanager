@@ -36,4 +36,4 @@ ctest --test-dir build --output-on-failure
 
 ## License
 
-This project has been licensed by GPLv3.
+BSD-3-Clause; see [LICENSE](LICENSE).
