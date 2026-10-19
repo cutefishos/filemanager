@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
-// SPDX-FileCopyrightText: 2014 Eike Hein <hein@kde.org>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "model/positioner.h"
@@ -11,8 +10,12 @@
 #include "base/url.h"
 
 #include <algorithm>
+#include <charconv>
 #include <cstdlib>
+#include <optional>
 #include <set>
+#include <tuple>
+#include <utility>
 
 namespace fm {
 
@@ -21,24 +24,35 @@ static std::string nameOf(const std::string& url)
     return fileName(base::url::toLocalFile(url).value_or(url));
 }
 
-static bool parseInt(const std::string& text, int* value)
+static std::optional<int> number(const std::string& text)
 {
-    if (text.empty())
-        return false;
-    char* end = nullptr;
-    const long parsed = std::strtol(text.c_str(), &end, 10);
-    if (*end != '\0')
-        return false;
-    *value = int(parsed);
-    return true;
+    int value = 0;
+    const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
+    if (text.empty() || error != std::errc() || end != text.data() + text.size())
+        return std::nullopt;
+    return value;
+}
+
+void Positioner::Layout::put(int cell, const std::string& url)
+{
+    urls[cell] = url;
+    cells[url] = cell;
+}
+
+void Positioner::Layout::takeUrl(const std::string& url)
+{
+    if (const auto found = cells.find(url); found != cells.end()) {
+        urls.erase(found->second);
+        cells.erase(found);
+    }
 }
 
 Positioner::Positioner(FolderModel& model)
     : m_model(model)
 {
-    m_update.setSingleShot(true);
-    m_update.setInterval(std::chrono::milliseconds(0));
-    m_update.onTimeout = [this] { updatePositions(); };
+    m_save.setSingleShot(true);
+    m_save.setInterval(std::chrono::milliseconds(0));
+    m_save.onTimeout = [this] { savePositions(); };
 
     m_subscriptions.push_back(model.rowsChanged.connect([this](const ContentsChange& change) {
         contentsChanged(change);
@@ -56,7 +70,7 @@ Positioner::Positioner(FolderModel& model)
         if (const auto found = m_renames.find(from); found != m_renames.end() && found->second == to)
             m_renames.erase(found);
     }));
-    initMaps();
+    placeAllByDefault();
 }
 
 Positioner::~Positioner() = default;
@@ -65,36 +79,34 @@ void Positioner::setGrid(int stripes, int perStripe)
 {
     if (stripes == m_stripes && perStripe == m_perStripe)
         return;
-    if (m_update.isActive()) {
-        m_update.stop();
-        updatePositions();
+
+    // A change not saved yet is saved against the grid it was made on.
+    if (m_save.isActive()) {
+        m_save.stop();
+        savePositions();
     }
     m_stripes = stripes;
     m_perStripe = perStripe;
-    // Without saved records every icon sits on its default cell, which depends on the grid.
+
+    // Without a saved layout every icon sits on its default cell, which depends on the grid.
     if (m_positions.empty()) {
         if (!m_deferApply)
-            initMaps();
-    } else if (m_stripes > 0 && m_perStripe > 0 && !m_cells.empty()) {
+            placeAllByDefault();
+    } else if (gridCells() > 0 && !m_layout.urls.empty()) {
         applyPositions();
     }
     changed.emit();
 }
 
-int Positioner::lastCell() const
-{
-    return m_cells.empty() ? -1 : m_cells.rbegin()->first;
-}
-
 int Positioner::cellCount() const
 {
-    return lastCell() + 1;
+    return m_layout.last() + 1;
 }
 
 int Positioner::rowAt(int cell) const
 {
-    const auto found = m_cells.find(cell);
-    return found == m_cells.end() ? -1 : m_model.rowForUrl(found->second);
+    const auto found = m_layout.urls.find(cell);
+    return found == m_layout.urls.end() ? -1 : m_model.rowForUrl(found->second);
 }
 
 int Positioner::cellOfRow(int row) const
@@ -105,156 +117,169 @@ int Positioner::cellOfRow(int row) const
 
 int Positioner::cellOfUrl(const std::string& url) const
 {
-    const auto found = m_urls.find(url);
-    return found == m_urls.end() ? -1 : found->second;
+    const auto found = m_layout.cells.find(url);
+    return found == m_layout.cells.end() ? -1 : found->second;
 }
 
-void Positioner::place(int cell, const std::string& url)
+// Zero while the view has not reported its grid yet.
+int Positioner::gridCells() const
 {
-    m_cells[cell] = url;
-    m_urls[url] = cell;
+    return m_stripes > 0 && m_perStripe > 0 ? m_stripes * m_perStripe : 0;
 }
 
-// A cell is usable only while it is inside the grid the view has room for;
-// anything outside is reflowed or it would sit off screen.
-bool Positioner::fitsGrid(int stripe, int pos) const
+// Outside the grid an icon would sit off screen.
+bool Positioner::insideGrid(int cell) const
 {
-    if (stripe < 0 || pos < 0)
-        return false;
-    if (m_perStripe > 0 && pos >= m_perStripe)
-        return false;
-    if (m_stripes > 0 && stripe >= m_stripes)
-        return false;
-    return true;
+    return cell >= 0 && (gridCells() == 0 || cell < gridCells());
 }
 
-// The nth default slot: the rightmost stripe first, filled from its start,
-// then the stripe next to it. Plain packing while the grid is unknown.
+// The rightmost stripe from the top, then the one to its left; past the grid,
+// or with no grid yet, the cells simply follow on.
 int Positioner::defaultCell(int ordinal) const
 {
-    if (m_perStripe <= 0 || m_stripes <= 0)
+    if (ordinal >= gridCells())
         return ordinal;
-    // More icons than the grid has room for spill past it.
-    if (ordinal >= m_perStripe * m_stripes)
-        return ordinal;
+
     const int stripe = m_stripes - 1 - ordinal / m_perStripe;
     return stripe * m_perStripe + ordinal % m_perStripe;
 }
 
-int Positioner::nextDefaultCell(const std::map<int, std::string>& occupied) const
+// The first free default cell, else the first gap, else the cell after the last.
+int Positioner::firstFreeCell(const Layout& layout) const
 {
-    if (m_perStripe <= 0 || m_stripes <= 0)
-        return -1;
-    for (int ordinal = 0; ordinal < m_perStripe * m_stripes; ++ordinal) {
+    for (int ordinal = 0; ordinal < gridCells(); ++ordinal) {
         const int cell = defaultCell(ordinal);
-        if (!occupied.contains(cell))
+        if (!layout.taken(cell))
             return cell;
     }
-    return -1;
+
+    int cell = 0;
+    while (layout.taken(cell))
+        ++cell;
+    return cell;
 }
 
-// The first default slot, else the first gap, else past the last cell.
-int Positioner::freeCell(const std::map<int, std::string>& occupied) const
+// The free grid cell closest to (stripe, pos), the lower one on a tie; -1 when
+// the grid is full or unknown.
+int Positioner::nearestFreeCell(const Layout& layout, int stripe, int pos) const
 {
-    const int cell = nextDefaultCell(occupied);
-    if (cell != -1)
-        return cell;
-    const int last = occupied.empty() ? -1 : occupied.rbegin()->first;
-    for (int i = 0; i <= last; ++i) {
-        if (!occupied.contains(i))
-            return i;
+    int nearest = -1;
+    int nearestDistance = 0;
+    for (int cell = 0; cell < gridCells(); ++cell) {
+        if (layout.taken(cell))
+            continue;
+
+        const int ds = cell / m_perStripe - stripe;
+        const int dp = cell % m_perStripe - pos;
+        const int distance = ds * ds + dp * dp;
+        if (nearest < 0 || distance < nearestDistance) {
+            nearest = cell;
+            nearestDistance = distance;
+        }
     }
-    return last + 1;
+    return nearest;
 }
 
-void Positioner::initMaps()
+// `from` itself when free, else the next free cell after it, wrapping inside
+// the grid; past the last cell when the grid is full.
+int Positioner::nextFreeCell(const Layout& layout, int from) const
 {
-    m_cells.clear();
-    m_urls.clear();
+    const int cells = gridCells();
+    if (cells == 0 || !layout.taken(from)) {
+        while (layout.taken(from))
+            ++from;
+        return from;
+    }
+
+    for (int step = 0; step < cells; ++step) {
+        const int cell = (from + step) % cells;
+        if (!layout.taken(cell))
+            return cell;
+    }
+    return layout.last() + 1;
+}
+
+void Positioner::placeAllByDefault()
+{
+    m_layout = Layout();
     for (int row = 0; row < m_model.count(); ++row)
-        place(defaultCell(row), m_model.item(row)->url);
+        m_layout.put(defaultCell(row), m_model.item(row)->url);
 }
 
 void Positioner::reset()
 {
-    m_update.stop();
+    m_save.stop();
     m_renames.clear();
     m_deferredMoves.clear();
-    initMaps();
-    const bool hadPositions = !m_positions.empty();
-    m_positions.clear();
-    if (hadPositions)
+    placeAllByDefault();
+    if (!m_positions.empty()) {
+        m_positions.clear();
         positionsChanged.emit();
+    }
     changed.emit();
 }
 
 void Positioner::contentsChanged(const ContentsChange& change)
 {
-    // Waiting for the listing to apply the saved layout to all of it.
+    // The saved layout is applied to the whole listing once it is complete.
     if (m_deferApply)
         return;
     if (change.removed.empty() && change.added.empty())
         return;
 
-    std::set<std::string> renamed;
+    std::set<std::string> carried;
     for (const std::string& url : change.removed) {
-        const auto cell = m_urls.find(url);
-        if (cell == m_urls.end())
+        const int cell = cellOfUrl(url);
+        if (cell < 0)
             continue;
-        const auto rename = m_renames.find(url);
-        const int at = cell->second;
-        m_urls.erase(cell);
-        m_cells.erase(at);
-        if (rename != m_renames.end()) {
-            place(at, rename->second);
-            renamed.insert(rename->second);
+
+        m_layout.takeUrl(url);
+        if (const auto rename = m_renames.find(url); rename != m_renames.end()) {
+            m_layout.put(cell, rename->second);
+            carried.insert(rename->second);
             m_renames.erase(rename);
         }
     }
 
-    const bool first = m_cells.empty();
-    std::set<int> takenNow;
+    const bool fresh = m_layout.urls.empty();
     int ordinal = 0;
     for (const std::string& url : change.added) {
-        if (renamed.contains(url) || m_urls.contains(url))
+        if (carried.contains(url) || m_layout.cells.contains(url))
             continue;
+
         // A cell asked for up front, such as a new folder on the clicked cell,
-        // wins over the default order as long as nothing sits on it.
+        // wins over the default order as long as it is in the grid and blank.
         int cell = m_model.newDocumentCell(nameOf(url));
-        const int cells = m_perStripe > 0 && m_stripes > 0 ? m_perStripe * m_stripes : 0;
-        if (cell >= 0 && cells > 0 && cell >= cells)
-            cell = -1;
-        if (cell >= 0 && m_cells.contains(cell))
+        if (cell >= 0 && (!insideGrid(cell) || m_layout.taken(cell)))
             cell = -1;
         if (cell < 0)
-            cell = first ? defaultCell(ordinal) : freeCell(m_cells);
-        while (m_cells.contains(cell) || takenNow.contains(cell))
-            cell = freeCell(m_cells);
-        takenNow.insert(cell);
-        place(cell, url);
+            cell = fresh ? defaultCell(ordinal) : firstFreeCell(m_layout);
+        if (m_layout.taken(cell))
+            cell = firstFreeCell(m_layout);
+
+        m_layout.put(cell, url);
         ++ordinal;
     }
 
     changed.emit();
-    scheduleUpdate();
+    m_save.start();
 }
 
 void Positioner::listed()
 {
     if (m_deferApply || m_positions.size() >= 5)
         applyPositions();
-    if (!m_deferredMoves.empty()) {
-        const auto moves = std::move(m_deferredMoves);
-        m_deferredMoves.clear();
-        move(moves);
-    }
+
+    if (!m_deferredMoves.empty())
+        move(std::exchange(m_deferredMoves, {}));
 }
 
 void Positioner::setPositions(std::vector<std::string> positions)
 {
     if (positions == m_positions)
         return;
-    m_update.stop();
+
+    m_save.stop();
     m_positions = std::move(positions);
     positionsChanged.emit();
     applyPositions();
@@ -267,268 +292,171 @@ void Positioner::applyPositions()
         return;
     }
 
-    std::map<int, std::string> cells;
-    if (!computeMaps(&cells)) {
+    const bool deferred = std::exchange(m_deferApply, false);
+    Layout restored;
+    if (!restore(&restored)) {
         // Nothing to apply: whatever came while waiting gets default cells.
-        if (m_deferApply) {
-            m_deferApply = false;
-            initMaps();
+        if (deferred) {
+            placeAllByDefault();
             changed.emit();
         }
         return;
     }
-    m_deferApply = false;
-    if (cells != m_cells) {
-        m_cells = std::move(cells);
-        m_urls.clear();
-        for (const auto& [cell, url] : m_cells)
-            m_urls[url] = cell;
+
+    // A reflow onto another grid is not saved; only file changes and moves are.
+    if (!(restored == m_layout)) {
+        m_layout = std::move(restored);
         changed.emit();
     }
-    // A reflow is temporary; only file changes and moves replace saved cells.
 }
 
-// Which file belongs on which cell by the saved records, without touching
-// the live maps.
-bool Positioner::computeMaps(std::map<int, std::string>* cells) const
+// The listed files on the cells the saved layout gives them, on the current grid.
+bool Positioner::restore(Layout* layout) const
 {
-    if (m_positions.size() < 5)
+    if (m_positions.size() < 5 || (m_positions.size() - 2) % 3 != 0)
         return false;
-    int storedColumns = 0;
-    if (!parseInt(m_positions[0], &storedColumns) || storedColumns <= 0)
-        return false;
-    if ((m_positions.size() - 2) % 3 != 0)
+    const std::optional<int> savedStripes = number(m_positions[0]);
+    if (!savedStripes || *savedStripes <= 0)
         return false;
 
-    cells->clear();
-    std::set<std::string> unplaced;
+    std::set<std::string> listed;
     for (int row = 0; row < m_model.count(); ++row)
-        unplaced.insert(m_model.item(row)->url);
+        listed.insert(m_model.item(row)->url);
 
-    // The free cell closest to (stripe, pos), clamped into the grid: an icon
-    // that no longer fits stays near where it was.
-    const auto nearestFree = [&](int stripe, int pos) {
-        if (m_perStripe <= 0 || m_stripes <= 0)
-            return -1;
-        stripe = std::clamp(stripe, 0, m_stripes - 1);
-        pos = std::clamp(pos, 0, m_perStripe - 1);
-        for (int radius = 0; radius < m_stripes + m_perStripe; ++radius) {
-            int best = -1;
-            int bestDistance = 0;
-            for (int ds = -radius; ds <= radius; ++ds) {
-                for (int dp = -radius; dp <= radius; ++dp) {
-                    if (std::max(std::abs(ds), std::abs(dp)) != radius)
-                        continue;
-                    const int s = stripe + ds;
-                    const int p = pos + dp;
-                    if (s < 0 || p < 0 || s >= m_stripes || p >= m_perStripe)
-                        continue;
-                    const int cell = s * m_perStripe + p;
-                    if (cells->contains(cell))
-                        continue;
-                    const int distance = ds * ds + dp * dp;
-                    if (best == -1 || distance < bestDistance) {
-                        best = cell;
-                        bestDistance = distance;
-                    }
-                }
-            }
-            if (best != -1)
-                return best;
-        }
-        return -1;
-    };
-
-    struct Spill
+    struct Record
     {
         std::string url;
         int stripe;
         int pos;
     };
-    std::vector<Spill> spilled;
+    std::vector<Record> displaced;
 
-    for (size_t offset = 2; offset + 2 < m_positions.size(); offset += 3) {
-        const std::string& url = m_positions[offset];
-        int storedStripe = 0;
-        int pos = 0;
-        if (!parseInt(m_positions[offset + 1], &storedStripe) || !parseInt(m_positions[offset + 2], &pos))
+    for (size_t at = 2; at + 2 < m_positions.size(); at += 3) {
+        const std::string& url = m_positions[at];
+        const std::optional<int> stripe = number(m_positions[at + 1]);
+        const std::optional<int> pos = number(m_positions[at + 2]);
+        if (!stripe || !pos || !listed.contains(url) || layout->cells.contains(url))
             continue;
-        // The distance from the right edge stays when the grid changes width.
-        const int stripe = storedStripe + m_stripes - storedColumns;
-        if (!unplaced.contains(url))
-            continue;
-        if (!fitsGrid(stripe, pos)) {
-            spilled.push_back({url, stripe, pos});
+
+        // Kept at the same distance from the right edge when the grid's width changes.
+        const Record record {url, *stripe + m_stripes - *savedStripes, *pos};
+        const bool fits = gridCells() > 0 && record.stripe >= 0 && record.stripe < m_stripes && record.pos >= 0
+                && record.pos < m_perStripe;
+        const int cell = fits ? record.stripe * m_perStripe + record.pos : -1;
+        if (cell < 0 || layout->taken(cell)) {
+            displaced.push_back(record);
             continue;
         }
-        const int cell = stripe * m_perStripe + pos;
-        if (cells->contains(cell)) {
-            spilled.push_back({url, stripe, pos});
-            continue;
-        }
-        (*cells)[cell] = url;
-        unplaced.erase(url);
+        layout->put(cell, url);
     }
 
-    for (const Spill& spill : spilled) {
-        if (!unplaced.contains(spill.url))
+    // A record that no longer fits, or lost its cell, stays near where it was.
+    for (const Record& record : displaced) {
+        if (layout->cells.contains(record.url))
             continue;
-        int cell = nearestFree(spill.stripe, spill.pos);
-        if (cell < 0)
-            cell = freeCell(*cells);
-        (*cells)[cell] = spill.url;
-        unplaced.erase(spill.url);
+
+        const int stripe = std::clamp(record.stripe, 0, std::max(0, m_stripes - 1));
+        const int pos = std::clamp(record.pos, 0, std::max(0, m_perStripe - 1));
+        const int cell = nearestFreeCell(*layout, stripe, pos);
+        layout->put(cell >= 0 ? cell : firstFreeCell(*layout), record.url);
     }
 
-    // New files fill the free cells in the order the folder view lists
-    // names; names the collator equates ("a1", "a01") keep one fixed order.
-    std::vector<std::string> newUrls(unplaced.begin(), unplaced.end());
+    // Files without a record fill the free cells in the order the folder view
+    // lists names; names the collator equates ("a1", "a01") keep one fixed order.
+    std::vector<std::string> unrecorded;
+    for (const std::string& url : listed) {
+        if (!layout->cells.contains(url))
+            unrecorded.push_back(url);
+    }
     base::Collator collator;
     collator.setNumericMode(true);
-    std::sort(newUrls.begin(), newUrls.end(), [&collator](const std::string& a, const std::string& b) {
+    std::sort(unrecorded.begin(), unrecorded.end(), [&collator](const std::string& a, const std::string& b) {
         const int order = collator.compare(nameOf(a), nameOf(b));
         return order != 0 ? order < 0 : nameOf(a) < nameOf(b);
     });
-    for (const std::string& url : newUrls) {
+    for (const std::string& url : unrecorded) {
         // A renamed file has no record under its new URL but already has a cell.
-        int cell = cellOfUrl(url);
-        if (cell < 0 || cells->contains(cell)
-            || (m_perStripe > 0 && !fitsGrid(cell / m_perStripe, cell % m_perStripe)))
-            cell = freeCell(*cells);
-        (*cells)[cell] = url;
+        const int current = cellOfUrl(url);
+        const bool keep = current >= 0 && insideGrid(current) && !layout->taken(current);
+        layout->put(keep ? current : firstFreeCell(*layout), url);
     }
     return true;
 }
 
 void Positioner::move(const std::vector<std::pair<int, int>>& moves)
 {
-    // Not while listing: the rows are about to change under the cells.
+    // The rows are about to change under the cells.
     if (m_model.status() == FolderModel::Status::Listing) {
         m_deferredMoves = moves;
         return;
     }
 
-    std::vector<int> from;
-    std::vector<int> to;
-    std::vector<std::string> urls;
-    for (const auto& [source, target] : moves) {
-        from.push_back(source);
-        to.push_back(target);
-        const auto found = m_cells.find(source);
-        urls.push_back(found == m_cells.end() ? std::string() : found->second);
+    // Every moving icon leaves its cell before any lands, so icons dragged
+    // together can take each other's cells.
+    std::vector<std::pair<std::string, int>> moving;
+    for (const auto& [from, to] : moves) {
+        const auto found = m_layout.urls.find(from);
+        if (found != m_layout.urls.end() && from != to)
+            moving.emplace_back(found->second, to);
     }
-    const auto contains = [](const std::vector<int>& list, int value) {
-        return std::find(list.begin(), list.end(), value) != list.end();
-    };
-
-    for (size_t i = 0; i < from.size(); ++i) {
-        const int source = from[i];
-        int target = to[i];
-        if (urls[i].empty() || source == target)
-            continue;
-        if (target == -1)
-            target = freeCell(m_cells);
-
-        if (!contains(from, target) && !isBlank(target)) {
-            // The next blank cell; two icons never land on one.
-            const int cells = m_perStripe > 0 && m_stripes > 0 ? m_perStripe * m_stripes : 0;
-            int tried = 0;
-            while ((!isBlank(target) && source != target) || contains(to, target)) {
-                ++target;
-                // Wrapping inside the grid keeps the icon off columns the desktop cannot show.
-                if (cells > 0 && target >= cells)
-                    target = 0;
-                if (cells > 0 && ++tried > cells) {
-                    target = lastCell() + 1;
-                    break;
-                }
-            }
-        }
-        to[i] = target;
-
-        if (!contains(to, source)) {
-            const auto found = m_cells.find(source);
-            if (found != m_cells.end() && found->second == urls[i])
-                m_cells.erase(found);
-        }
-        place(target, urls[i]);
-    }
+    for (const auto& [url, to] : moving)
+        m_layout.takeUrl(url);
+    for (const auto& [url, to] : moving)
+        m_layout.put(to < 0 ? firstFreeCell(m_layout) : nextFreeCell(m_layout, to), url);
 
     changed.emit();
-    scheduleUpdate();
+    m_save.start();
 }
 
 int Positioner::nearestItem(int cell, Direction direction) const
 {
-    if (m_cells.empty())
+    if (m_layout.urls.empty())
         return -1;
     if (cell < 0)
-        return m_cells.begin()->first;
+        return m_layout.urls.begin()->first;
     if (m_perStripe <= 0)
         return -1;
 
-    int along = 0;
-    int across = 0;
-    switch (direction) {
-    case Direction::Left:
-        across = -1;
-        break;
-    case Direction::Right:
-        across = 1;
-        break;
-    case Direction::Up:
-        along = -1;
-        break;
-    case Direction::Down:
-        along = 1;
-        break;
-    }
+    // (x, y) on a grid of perStripe columns; the view maps its arrows into it.
+    const bool vertical = direction == Direction::Up || direction == Direction::Down;
+    const int sign = direction == Direction::Right || direction == Direction::Down ? 1 : -1;
+    const int x = cell % m_perStripe;
+    const int y = cell / m_perStripe;
 
-    // Positions as (x, y) on a grid of perStripe columns; the view maps
-    // arrows into it.
-    const int currentX = cell % m_perStripe;
-    const int currentY = cell / m_perStripe;
+    // Closest first, then one in line with the cell, then the lower cell.
     int nearest = -1;
-    int lastDistance = -1;
-    for (const auto& [candidate, url] : m_cells) {
-        if (candidate == cell)
+    std::tuple<int, bool, int> nearestScore;
+    for (const auto& [candidate, url] : m_layout.urls) {
+        const int cx = candidate % m_perStripe;
+        const int cy = candidate / m_perStripe;
+        const int ahead = sign * (vertical ? cy - y : cx - x);
+        if (ahead <= 0)
             continue;
-        const int x = candidate % m_perStripe;
-        const int y = candidate / m_perStripe;
-        const int distance = std::abs(x - currentX) + std::abs(y - currentY);
-        if (across == 0) {
-            if (along * y > along * currentY
-                && (nearest == -1 || distance < lastDistance || (distance == lastDistance && x == currentX))) {
-                nearest = candidate;
-                lastDistance = distance;
-            }
-        } else if (across * x > across * currentX
-                   && (nearest == -1 || distance < lastDistance || (distance == lastDistance && y == currentY))) {
+
+        const std::tuple<int, bool, int> score {std::abs(cx - x) + std::abs(cy - y), vertical ? cx != x : cy != y,
+                                                candidate};
+        if (nearest < 0 || score < nearestScore) {
             nearest = candidate;
-            lastDistance = distance;
+            nearestScore = score;
         }
     }
     return nearest;
 }
 
-void Positioner::scheduleUpdate()
-{
-    m_update.start();
-}
-
-void Positioner::updatePositions()
+void Positioner::savePositions()
 {
     std::vector<std::string> positions;
-    if (!m_cells.empty() && m_perStripe > 0) {
+    if (!m_layout.urls.empty() && m_perStripe > 0) {
         positions.push_back(std::to_string(m_stripes));
         positions.push_back(std::to_string(m_perStripe));
-        // Sorted by cell, so an unchanged desktop saves the same list.
-        for (const auto& [cell, url] : m_cells) {
+        // In cell order, so an unchanged desktop saves the same list.
+        for (const auto& [cell, url] : m_layout.urls) {
             positions.push_back(url);
-            positions.push_back(std::to_string(std::max(0, cell / m_perStripe)));
-            positions.push_back(std::to_string(std::max(0, cell % m_perStripe)));
+            positions.push_back(std::to_string(cell / m_perStripe));
+            positions.push_back(std::to_string(cell % m_perStripe));
         }
     }
+
     if (positions != m_positions) {
         m_positions = std::move(positions);
         positionsChanged.emit();

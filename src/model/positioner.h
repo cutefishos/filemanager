@@ -1,5 +1,4 @@
 // SPDX-FileCopyrightText: 2026 Reion Wong <reionwong@gmail.com>
-// SPDX-FileCopyrightText: 2014 Eike Hein <hein@kde.org>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -64,30 +63,41 @@ public:
     base::Signal<> positionsChanged;
 
 private:
+    // Which URL is on which cell, both ways.
+    struct Layout
+    {
+        std::map<int, std::string> urls;
+        std::unordered_map<std::string, int> cells;
+
+        bool taken(int cell) const { return urls.contains(cell); }
+        void put(int cell, const std::string& url);
+        void takeUrl(const std::string& url);
+        int last() const { return urls.empty() ? -1 : urls.rbegin()->first; }
+        bool operator==(const Layout& other) const { return urls == other.urls; }
+    };
+
     void contentsChanged(const struct ContentsChange& change);
     void listed();
-    void initMaps();
-    void place(int cell, const std::string& url);
-    int lastCell() const;
+    void placeAllByDefault();
+    int gridCells() const;
+    bool insideGrid(int cell) const;
     int defaultCell(int ordinal) const;
-    int nextDefaultCell(const std::map<int, std::string>& occupied) const;
-    int freeCell(const std::map<int, std::string>& occupied) const;
-    bool fitsGrid(int stripe, int pos) const;
-    bool computeMaps(std::map<int, std::string>* cells) const;
+    int firstFreeCell(const Layout& layout) const;
+    int nearestFreeCell(const Layout& layout, int stripe, int pos) const;
+    int nextFreeCell(const Layout& layout, int from) const;
+    bool restore(Layout* layout) const;
     void applyPositions();
-    void scheduleUpdate();
-    void updatePositions();
+    void savePositions();
 
     FolderModel& m_model;
     int m_stripes = 0;
     int m_perStripe = 0;
-    std::map<int, std::string> m_cells;
-    std::unordered_map<std::string, int> m_urls;
+    Layout m_layout;
     std::map<std::string, std::string> m_renames;
     std::vector<std::string> m_positions;
     bool m_deferApply = false;
     std::vector<std::pair<int, int>> m_deferredMoves;
-    base::Timer m_update;
+    base::Timer m_save;
     std::vector<base::Subscription> m_subscriptions;
 };
 
