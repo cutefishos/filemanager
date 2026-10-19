@@ -1057,8 +1057,10 @@ void FolderModel::rename(int row, const std::string& name)
     renaming.emit(file->url, destination);
     const OperationTaskPtr task = OperationsClient::instance().rename(file->url, destination);
     whenFinished(task, m_alive, [this, from = file->url, destination](const OperationTask& outcome) {
-        if (outcome.error() || outcome.wasCanceled())
+        if (outcome.error() || outcome.wasCanceled()) {
+            m_contents.forgetRename(from, destination);
             renameFailed.emit(from, destination);
+        }
     });
 }
 

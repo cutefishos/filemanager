@@ -360,6 +360,38 @@ static fm::OperationTaskPtr cutAndPaste(FolderModel& source, const std::vector<s
 }
 
 // A cut stays until its move is done: one that fails leaves it whole.
+// A rename that failed leaves no expectation behind: the file whose name it
+// asked for keeps its own row when the old file goes later.
+TEST(FolderModelTest, FailedRenameLeavesTheTakenNameAlone)
+{
+    TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+    ASSERT_TRUE(writeFile(directory.filePath("a")));
+    ASSERT_TRUE(writeFile(directory.filePath("z")));
+
+    FolderModel folder;
+    folder.setSortMode(fm::Preferences::Name);
+    folder.setSortDesc(false);
+    folder.setUrl(directory.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(folder) && folder.count() == 2; }));
+
+    bool failed = false;
+    const base::Subscription renameFailed =
+            folder.renameFailed.connect([&](const std::string&, const std::string&) { failed = true; });
+    // The test bus has no operations daemon, so the rename fails.
+    folder.rename(folder.rowForUrl(url(directory.filePath("a"))), "z");
+    ASSERT_TRUE(runUntil(loop(), [&] { return failed; }));
+
+    std::vector<std::string> removed;
+    const base::Subscription changed = folder.rowsChanged.connect([&](const fm::ContentsChange& change) {
+        removed.insert(removed.end(), change.removed.begin(), change.removed.end());
+    });
+    std::filesystem::remove(directory.filePath("a"));
+    ASSERT_TRUE(runUntil(loop(), [&] { return folder.count() == 1; }));
+    EXPECT_EQ(removed, std::vector<std::string> {url(directory.filePath("a"))});
+    EXPECT_EQ(names(folder), std::vector<std::string> {"z"});
+}
+
 TEST(FolderModelTest, FailedMoveKeepsTheCut)
 {
     TemporaryDir from;

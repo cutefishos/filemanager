@@ -69,6 +69,8 @@ public:
 
     // Lets the next listing take `from` reappearing as `to` as the same row.
     void expectRename(const std::string& from, const std::string& to);
+    // Drops the expectation of a rename that did not happen.
+    void forgetRename(const std::string& from, const std::string& to);
     void schedulePreparation();
     // Takes every file's snapshot anew and sorts again: the standard
     // folders' shown names, which they sort by, follow the language.
