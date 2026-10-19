@@ -18,7 +18,7 @@ struct TaskRequest;
 
 class ArchiveJob;
 
-// One task on the bus, com.cutefish.FileOperations.Task1: a file operation
+// One task on the bus, org.cutefish.FileOperations.Task1: a file operation
 // of the files library, or a compression or extraction.
 class DaemonTask
 {

@@ -25,9 +25,9 @@ struct Convention
         base::dbus::Connection* bus = base::dbus::Connection::session();
         if (!bus)
             return;
-        proxy = base::dbus::Proxy(bus, "com.cutefish.Keyboard1", "/com/cutefish/Keyboard1", "com.cutefish.Keyboard1");
+        proxy = base::dbus::Proxy(bus, "org.cutefish.Keyboard1", "/org/cutefish/Keyboard1", "org.cutefish.Keyboard1");
         changed = proxy.onSignal("shortcutConventionChanged", [this](const base::dbus::Message&) { refresh(); });
-        watch = bus->watchName("com.cutefish.Keyboard1", [this](const std::string& owner) {
+        watch = bus->watchName("org.cutefish.Keyboard1", [this](const std::string& owner) {
             if (!owner.empty())
                 refresh();
         });

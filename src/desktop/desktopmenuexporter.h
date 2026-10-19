@@ -31,7 +31,7 @@ public:
         std::vector<Entry> children;
     };
 
-    static constexpr const char* kPath = "/com/cutefish/DesktopMenu";
+    static constexpr const char* kPath = "/org/cutefish/DesktopMenu";
 
     // `menu` gives the entries as they are now; `refresh` brings them up to
     // date before a menu shows, as the context menu's actions are.

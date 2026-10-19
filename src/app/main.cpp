@@ -41,13 +41,13 @@ static bool forward(base::dbus::Connection& bus, Request request, const std::vec
 {
     // Not activatable: a D-Bus started file manager would also open its cwd.
     base::dbus::Proxy daemon(&bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus");
-    const base::dbus::Reply owned = daemon.call("NameHasOwner", std::string("com.cutefish.FileManager"));
+    const base::dbus::Reply owned = daemon.call("NameHasOwner", std::string("org.cutefish.FileManager"));
     bool hasOwner = false;
     if (owned.isError() || !owned.read(hasOwner) || !hasOwner)
         return false;
 
     base::dbus::Message call =
-            bus.newMethodCall("com.cutefish.FileManager", "/FileManager", "com.cutefish.FileManager",
+            bus.newMethodCall("org.cutefish.FileManager", "/FileManager", "org.cutefish.FileManager",
                               request == Request::EmptyTrash    ? "emptyTrash"
                               : request == Request::MoveToTrash ? "moveToTrash"
                                                                 : "openFiles");

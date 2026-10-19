@@ -20,8 +20,8 @@ int main()
     }
 
     FileOperationsService service(bus);
-    if (!service.publish() || !bus->requestName("com.cutefish.FileOperations")) {
-        std::fprintf(stderr, "Cannot own com.cutefish.FileOperations.\n");
+    if (!service.publish() || !bus->requestName("org.cutefish.FileOperations")) {
+        std::fprintf(stderr, "Cannot own org.cutefish.FileOperations.\n");
         return 1;
     }
 

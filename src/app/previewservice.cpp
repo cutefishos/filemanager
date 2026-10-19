@@ -14,7 +14,7 @@ using base::dbus::MethodCall;
 
 PreviewService::PreviewService(base::dbus::Connection* bus)
     : m_bus(bus)
-    , m_object(bus, "/com/cutefish/FilePreview", "com.cutefish.FilePreview")
+    , m_object(bus, "/org/cutefish/FilePreview", "org.cutefish.FilePreview")
     , m_controller(std::make_unique<PreviewController>())
 {
     m_window = std::make_unique<PreviewWindow>(*m_controller);

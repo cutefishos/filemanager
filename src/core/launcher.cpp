@@ -21,7 +21,7 @@
 
 namespace fm::launcher {
 
-static constexpr char kRuntime[] = "com.cutefish.AppRuntime";
+static constexpr char kRuntime[] = "org.cutefish.AppRuntime";
 static constexpr char kRuntimePath[] = "/AppRuntime";
 
 static base::dbus::Proxy runtime()

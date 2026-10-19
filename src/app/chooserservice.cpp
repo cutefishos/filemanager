@@ -25,7 +25,7 @@ struct ChooserService::Dialog
 
 ChooserService::ChooserService(base::dbus::Connection* bus)
     : m_bus(bus)
-    , m_object(bus, "/com/cutefish/FileChooser", "com.cutefish.FileChooser")
+    , m_object(bus, "/org/cutefish/FileChooser", "org.cutefish.FileChooser")
 {
     m_object.addMethod("Open", "ss", "s", [this](base::dbus::MethodCall& call) { open(call); });
     m_object.addMethod("Close", "s", "", [this](base::dbus::MethodCall& call) {

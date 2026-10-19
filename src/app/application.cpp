@@ -28,10 +28,10 @@
 
 namespace fm {
 
-static constexpr const char* kServiceName = "com.cutefish.FileManager";
+static constexpr const char* kServiceName = "org.cutefish.FileManager";
 static constexpr const char* kFreedesktopServiceName = "org.freedesktop.FileManager1";
-static constexpr const char* kPreviewServiceName = "com.cutefish.FilePreview";
-static constexpr const char* kChooserServiceName = "com.cutefish.FileChooser";
+static constexpr const char* kPreviewServiceName = "org.cutefish.FilePreview";
+static constexpr const char* kChooserServiceName = "org.cutefish.FileChooser";
 
 Application::Application(ui::Application& app, bool daemon, bool dbusActivated)
     : m_app(app)

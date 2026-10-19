@@ -17,7 +17,7 @@
 
 class MtpMonitor;
 
-// com.cutefish.Mounts1 at /com/cutefish/Mounts1.
+// org.cutefish.Mounts1 at /org/cutefish/Mounts1.
 class MountService
 {
 public:

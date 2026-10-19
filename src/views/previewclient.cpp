@@ -15,8 +15,8 @@
 
 namespace fm {
 
-static constexpr const char* kService = "com.cutefish.FilePreview";
-static constexpr const char* kPath = "/com/cutefish/FilePreview";
+static constexpr const char* kService = "org.cutefish.FilePreview";
+static constexpr const char* kPath = "/org/cutefish/FilePreview";
 
 PreviewClient::PreviewClient()
     : m_id(base::Uuid::generate().toString())

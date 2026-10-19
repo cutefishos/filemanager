@@ -389,8 +389,8 @@ TEST(FolderModelTest, CutFollowsWhatTheMoveLeft)
     ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
     auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &loop());
     ASSERT_TRUE(bus);
-    const base::dbus::Proxy manager(bus.get(), "com.cutefish.FileOperations", "/com/cutefish/FileOperations",
-                                    "com.cutefish.FileOperations.Manager1");
+    const base::dbus::Proxy manager(bus.get(), "org.cutefish.FileOperations", "/org/cutefish/FileOperations",
+                                    "org.cutefish.FileOperations.Manager1");
     ASSERT_TRUE(runUntil(loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
 
     TemporaryDir from;
@@ -440,8 +440,8 @@ TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)
     ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
     auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &loop());
     ASSERT_TRUE(bus);
-    const base::dbus::Proxy manager(bus.get(), "com.cutefish.FileOperations", "/com/cutefish/FileOperations",
-                                    "com.cutefish.FileOperations.Manager1");
+    const base::dbus::Proxy manager(bus.get(), "org.cutefish.FileOperations", "/org/cutefish/FileOperations",
+                                    "org.cutefish.FileOperations.Manager1");
     ASSERT_TRUE(runUntil(loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
 
     TemporaryDir directory;

@@ -18,7 +18,7 @@ class Task;
 
 class DaemonTask;
 
-// com.cutefish.FileOperations.Manager1 at /com/cutefish/FileOperations: runs
+// org.cutefish.FileOperations.Manager1 at /org/cutefish/FileOperations: runs
 // the file manager's operations so they outlive its windows, with one undo
 // history for every client.
 class FileOperationsService

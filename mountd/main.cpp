@@ -45,7 +45,7 @@ int main()
         return 1;
 
     MountService service(bus);
-    if (!service.publish() || !bus->requestName("com.cutefish.Mounts1"))
+    if (!service.publish() || !bus->requestName("org.cutefish.Mounts1"))
         return 1;
 
     // The session's end detaches every mount, so none is left answering nothing.

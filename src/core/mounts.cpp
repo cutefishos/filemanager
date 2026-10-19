@@ -22,8 +22,8 @@ MountsClient& MountsClient::instance()
 }
 
 MountsClient::MountsClient()
-    : m_proxy(base::dbus::Connection::session(), "com.cutefish.Mounts1", "/com/cutefish/Mounts1",
-              "com.cutefish.Mounts1")
+    : m_proxy(base::dbus::Connection::session(), "org.cutefish.Mounts1", "/org/cutefish/Mounts1",
+              "org.cutefish.Mounts1")
 {
     if (!m_proxy.isValid())
         return;

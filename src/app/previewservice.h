@@ -18,7 +18,7 @@ namespace fm {
 class PreviewController;
 class PreviewWindow;
 
-// com.cutefish.FilePreview: the one Quick Look window of the session, for the
+// org.cutefish.FilePreview: the one Quick Look window of the session, for the
 // file manager's windows and the desktop alike, each a source with its own id.
 class PreviewService
 {

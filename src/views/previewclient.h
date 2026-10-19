@@ -24,7 +24,7 @@ class FolderModel;
 class FolderView;
 
 // A file view's side of Quick Look, which the
-// com.cutefish.FilePreview service shows for the selection.
+// org.cutefish.FilePreview service shows for the selection.
 class PreviewClient
 {
 public:

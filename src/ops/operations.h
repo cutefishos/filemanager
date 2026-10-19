@@ -17,7 +17,7 @@
 
 namespace fm {
 
-// com.cutefish.FileOperations.Manager1's operation and conflict numbers.
+// org.cutefish.FileOperations.Manager1's operation and conflict numbers.
 enum class Operation {
     Copy,
     Move,
@@ -121,7 +121,7 @@ private:
 
 using OperationTaskPtr = std::shared_ptr<OperationTask>;
 
-// The file manager's way to the operations daemon, com.cutefish.FileOperations.
+// The file manager's way to the operations daemon, org.cutefish.FileOperations.
 // Every call returns at once; the daemon is started by the bus when needed.
 class OperationsClient
 {

@@ -26,10 +26,10 @@ using fmtest::noise;
 using fmtest::splitFile;
 using fmtest::writeArchive;
 
-static constexpr char kService[] = "com.cutefish.FileOperations";
-static constexpr char kManagerPath[] = "/com/cutefish/FileOperations";
-static constexpr char kManager[] = "com.cutefish.FileOperations.Manager1";
-static constexpr char kTask[] = "com.cutefish.FileOperations.Task1";
+static constexpr char kService[] = "org.cutefish.FileOperations";
+static constexpr char kManagerPath[] = "/org/cutefish/FileOperations";
+static constexpr char kManager[] = "org.cutefish.FileOperations.Manager1";
+static constexpr char kTask[] = "org.cutefish.FileOperations.Task1";
 
 namespace {
 

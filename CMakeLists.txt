@@ -50,15 +50,15 @@ target_link_libraries(mountd-core PUBLIC
 add_executable(cutefish-mountd mountd/main.cpp)
 target_link_libraries(cutefish-mountd PRIVATE mountd-core)
 
-configure_file(mountd/com.cutefish.Mounts1.service.in com.cutefish.Mounts1.service @ONLY)
+configure_file(mountd/org.cutefish.Mounts1.service.in org.cutefish.Mounts1.service @ONLY)
 
 install(TARGETS cutefish-mountd RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.Mounts1.service
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.Mounts1.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 
 # ---------------------------------------------------------------------------
 # cutefish-filemanager-daemon: file operations that outlive the windows,
-# com.cutefish.FileOperations.
+# org.cutefish.FileOperations.
 # ---------------------------------------------------------------------------
 find_path(LIBZIP_INCLUDE_DIR zip.h)
 find_library(LIBZIP_LIBRARY NAMES zip)
@@ -79,9 +79,9 @@ target_link_libraries(fileoperations-core PUBLIC Cutefish::ToolkitBase Cutefish:
 add_executable(cutefish-filemanager-daemon daemon/main.cpp)
 target_link_libraries(cutefish-filemanager-daemon PRIVATE fileoperations-core)
 
-configure_file(daemon/com.cutefish.FileOperations.service.in com.cutefish.FileOperations.service @ONLY)
+configure_file(daemon/org.cutefish.FileOperations.service.in org.cutefish.FileOperations.service @ONLY)
 install(TARGETS cutefish-filemanager-daemon RUNTIME DESTINATION ${CMAKE_INSTALL_LIBEXECDIR})
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileOperations.service
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.FileOperations.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 
 # ---------------------------------------------------------------------------
@@ -158,10 +158,10 @@ add_executable(cutefish-filemanager
 )
 target_link_libraries(cutefish-filemanager PRIVATE fm-ui)
 install(TARGETS cutefish-filemanager RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-configure_file(data/com.cutefish.FileManager1.service.in com.cutefish.FileManager1.service @ONLY)
-configure_file(data/com.cutefish.FilePreview.service.in com.cutefish.FilePreview.service @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FileManager1.service
-              ${CMAKE_CURRENT_BINARY_DIR}/com.cutefish.FilePreview.service
+configure_file(data/org.cutefish.FileManager1.service.in org.cutefish.FileManager1.service @ONLY)
+configure_file(data/org.cutefish.FilePreview.service.in org.cutefish.FilePreview.service @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.FileManager1.service
+              ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.FilePreview.service
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(FILES data/cutefish-filemanager.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 install(FILES data/60-cutefish-filemanager.rules DESTINATION ${CMAKE_INSTALL_DATADIR}/polkit-1/rules.d)

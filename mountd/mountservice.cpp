@@ -91,7 +91,7 @@ static bool optionBool(const dbus::VariantMap &options, const std::string &key)
 
 MountService::MountService(dbus::Connection *bus)
     : m_bus(bus)
-    , m_object(bus, "/com/cutefish/Mounts1", "com.cutefish.Mounts1")
+    , m_object(bus, "/org/cutefish/Mounts1", "org.cutefish.Mounts1")
     , m_root(paths::runtimeDirectory() + "/mounts")
 {
     // Mounts a crashed run left behind answer nothing; detach them.
@@ -394,7 +394,7 @@ void MountService::unmount(dbus::MethodCall &call)
 
     std::string message;
     if (!entry->mount->stop(false, &message)) {
-        call.replyError("com.cutefish.Mounts1.Error.Busy", message);
+        call.replyError("org.cutefish.Mounts1.Error.Busy", message);
         return;
     }
     call.reply();

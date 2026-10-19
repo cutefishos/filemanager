@@ -30,8 +30,8 @@
 
 namespace fm {
 
-static constexpr const char* kDisplayService = "com.cutefish.DisplayConfig1";
-static constexpr const char* kDisplayPath = "/com/cutefish/DisplayConfig1";
+static constexpr const char* kDisplayService = "org.cutefish.DisplayConfig1";
+static constexpr const char* kDisplayPath = "/org/cutefish/DisplayConfig1";
 
 static std::string desktopPath()
 {

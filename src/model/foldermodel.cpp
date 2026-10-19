@@ -1239,8 +1239,8 @@ void FolderModel::setWallpaperSelected()
     if (!file->isLocalFile())
         return;
 
-    base::dbus::Proxy appearance(base::dbus::Connection::session(), "com.cutefish.Services",
-                                 "/com/cutefish/Services/Appearance", "com.cutefish.Services.Appearance");
+    base::dbus::Proxy appearance(base::dbus::Connection::session(), "org.cutefish.Services",
+                                 "/org/cutefish/Services/Appearance", "org.cutefish.Services.Appearance");
     appearance.send("setWallpaper", file->path);
 }
 

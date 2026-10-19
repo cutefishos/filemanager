@@ -29,7 +29,7 @@ static void later(std::chrono::milliseconds delay, std::function<void()> action)
 
 FileOperationsService::FileOperationsService(base::dbus::Connection *bus)
     : m_bus(bus)
-    , m_object(bus, "/com/cutefish/FileOperations", "com.cutefish.FileOperations.Manager1")
+    , m_object(bus, "/org/cutefish/FileOperations", "org.cutefish.FileOperations.Manager1")
 {
     auto *controller = files::TaskController::instance();
     m_subscriptions.push_back(controller->historyChanged.connect([this, controller] {
@@ -63,7 +63,7 @@ bool FileOperationsService::publish()
 
 std::string FileOperationsService::nextPath()
 {
-    return "/com/cutefish/FileOperations/tasks/" + std::to_string(m_nextTaskId++);
+    return "/org/cutefish/FileOperations/tasks/" + std::to_string(m_nextTaskId++);
 }
 
 void FileOperationsService::submit(base::dbus::MethodCall &call)

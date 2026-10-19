@@ -14,7 +14,7 @@ using namespace cutefish;
 using base::dbus::Variant;
 using base::dbus::VariantMap;
 
-static constexpr char kInterface[] = "com.cutefish.FileOperations.Task1";
+static constexpr char kInterface[] = "org.cutefish.FileOperations.Task1";
 
 static VariantMap progressMap(const files::TaskProgress &progress)
 {

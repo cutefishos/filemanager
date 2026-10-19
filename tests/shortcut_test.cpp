@@ -56,17 +56,17 @@ public:
     void windowClosed(fm::FolderWindow*) override {}
 };
 
-// The session's keyboard settings, as com.cutefish.Keyboard1 publishes them.
+// The session's keyboard settings, as org.cutefish.Keyboard1 publishes them.
 class Keyboard
 {
 public:
     explicit Keyboard(base::dbus::Connection* bus)
-        : m_object(bus, "/com/cutefish/Keyboard1", "com.cutefish.Keyboard1")
+        : m_object(bus, "/org/cutefish/Keyboard1", "org.cutefish.Keyboard1")
     {
         m_object.addProperty("shortcutConvention", [this] { return m_convention; });
         m_object.addSignal("shortcutConventionChanged", "");
         m_object.publish();
-        bus->requestName("com.cutefish.Keyboard1");
+        bus->requestName("org.cutefish.Keyboard1");
     }
 
     void set(const std::string& convention)
