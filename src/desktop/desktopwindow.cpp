@@ -182,6 +182,7 @@ DesktopWindow::DesktopWindow(ui::TrustedConnection* connection, FileManagerHost&
 
     m_archiveDialog = std::make_unique<ArchiveProgressDialog>();
     m_archiveDialog->setModel(m_model.get(), nullptr);
+    m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
 
     followPrimaryOutput();
 }
@@ -327,6 +328,17 @@ void DesktopWindow::saveLayout()
         array.push_back(position);
     base::Settings settings(settingsPath());
     settings.setValue(layoutKey(), base::json::Value(std::move(array)).serialize());
+}
+
+// The icons keep their places, the selection and an open rename; only text changes.
+void DesktopWindow::retranslate()
+{
+    m_window->setTitle(tr("Desktop"));
+    m_model->retranslate();
+    m_view->retranslate();
+    m_archiveDialog->retranslate();
+    if (m_menuExporter)
+        m_menuExporter->update();
 }
 
 void DesktopWindow::showContextMenu(ui::PointF position)

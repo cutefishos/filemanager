@@ -11,6 +11,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace cutefish::ui {
@@ -28,6 +29,8 @@ public:
     explicit PropertiesDialog(FileItemList items);
     ~PropertiesDialog() override;
 
+    void retranslate() override;
+
     std::function<void()> onDone;
 
 private:
@@ -39,6 +42,8 @@ private:
     std::string m_mimeType;
     std::string m_location;
     std::string m_size;
+    // What m_size reads, once known.
+    std::optional<uint64_t> m_bytes;
     std::string m_created;
     std::string m_modified;
     std::string m_accessed;

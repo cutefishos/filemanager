@@ -704,6 +704,12 @@ std::optional<ui::RectF> FolderListView::labelRect(int index) const
     return ui::RectF {origin.x, origin.y, label.width, label.height};
 }
 
+void FolderListView::retranslate()
+{
+    FolderView::retranslate();
+    m_header->requestLayout();
+}
+
 void FolderListView::revealIndex(int index)
 {
     if (index < 0 || index >= model().count())

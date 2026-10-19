@@ -204,6 +204,25 @@ void FramelessDialog::show()
     m_window->show();
 }
 
+void FramelessDialog::setTitle(std::string title)
+{
+    m_title = std::move(title);
+    if (m_window)
+        m_window->setTitle(m_title);
+}
+
+void FramelessDialog::rebuildContent()
+{
+    if (!m_window || !m_factory)
+        return;
+    m_root->setContent(m_factory(), m_width, m_padding);
+    m_root->setGeometryRules(m_horizontal < 0 ? m_padding : m_horizontal, m_top < 0 ? m_padding : m_top,
+                             m_bottom < 0 ? m_padding : m_bottom, m_header, m_buttonMargin);
+    if (m_width <= 0)
+        m_root->fitWidth();
+    fit();
+}
+
 void FramelessDialog::hide()
 {
     if (!m_window)

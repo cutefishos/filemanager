@@ -96,6 +96,8 @@ public:
 
     void setFolderModel(FolderModel* model);
     void updateUrl(const std::string& url);
+    // The editor's placeholder; the crumbs follow the next updateUrl().
+    void retranslate();
     void openEditor();
     void openSearch();
     void closeEditor();

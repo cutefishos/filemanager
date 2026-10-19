@@ -401,6 +401,16 @@ bool FolderModel::showsThumbnail(int row) const
     return thumbnails::canThumbnail(file->mimeType);
 }
 
+void FolderModel::retranslate()
+{
+    forgetStandardFolderNames();
+    // Unsorted rows keep their order whatever the names.
+    if (m_sortMode >= 0)
+        m_contents.retakeSnapshots();
+    createActions();
+    updateActions();
+}
+
 std::string FolderModel::resolve(const std::string& url)
 {
     if (url == "~")

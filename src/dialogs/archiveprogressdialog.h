@@ -23,6 +23,7 @@ public:
     ~ArchiveProgressDialog() override;
 
     void setModel(FolderModel* model, ui::Window* host);
+    void retranslate() override;
 
 private:
     std::unique_ptr<ui::View> createContent();

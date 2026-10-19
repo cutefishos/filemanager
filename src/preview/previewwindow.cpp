@@ -288,6 +288,12 @@ public:
         m_column = setContent<TextColumn>(this);
     }
 
+    void retranslate()
+    {
+        m_column->notice->setText(tr("The rest of this file is not shown."));
+        m_column->requestLayout();
+    }
+
     void setFile(const PreviewFile& file)
     {
         // TextEdit rounds the font to half points.
@@ -474,6 +480,14 @@ public:
         row->update(m_preview->m_shown, m_pageMode, window() && window()->isActive());
     }
 
+    void retranslate()
+    {
+        image->failed->setText(tr("This image could not be displayed."));
+        text->retranslate();
+        updateHeader();
+        requestLayout();
+    }
+
     bool acceptsFocus() const override { return true; }
     bool acceptsPointer() const override { return true; }
 
@@ -576,11 +590,22 @@ PreviewWindow::PreviewWindow(PreviewController& controller)
         if (m_window && !m_controller.isLoading())
             stage(m_controller.file());
     }));
+    m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
 }
 
 PreviewWindow::~PreviewWindow()
 {
     destroy();
+}
+
+// The item shown stays; its description is read again for its size and type.
+void PreviewWindow::retranslate()
+{
+    if (m_root) {
+        m_root->retranslate();
+        m_window->setTitle(m_shown.name.empty() ? std::string(tr("Quick Look")) : m_shown.name);
+    }
+    m_controller.reload();
 }
 
 double PreviewWindow::displayRatio() const

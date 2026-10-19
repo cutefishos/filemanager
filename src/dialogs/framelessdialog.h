@@ -59,6 +59,11 @@ public:
     void show();
     void hide();
     bool isShown() const { return m_window != nullptr; }
+    void setTitle(std::string title);
+    // Makes the content of a shown dialog again, in place.
+    void rebuildContent();
+    // After the session language changed, for a dialog to take its text again.
+    virtual void retranslate() {}
 
     // Escape, the close button or the compositor's close.
     std::function<void()> onCloseRequested;

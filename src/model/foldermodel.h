@@ -87,6 +87,10 @@ public:
     std::string deletedDateText(int row) const;
     // Whether the row shows a thumbnail instead of its type's icon.
     bool showsThumbnail(int row) const;
+    // After the session language changed: the actions' text made again and
+    // the rows sorted by the standard folders' new names. The views read
+    // their text again themselves.
+    void retranslate();
 
     // Location.
     const std::string& url() const { return m_url; }

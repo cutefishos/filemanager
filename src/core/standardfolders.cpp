@@ -6,6 +6,8 @@
 #include "base/i18n.h"
 #include "base/paths.h"
 
+#include <memory>
+#include <mutex>
 #include <vector>
 
 using cutefish::base::paths::UserDirectory;
@@ -50,15 +52,26 @@ static const std::map<std::string, StandardFolder>& standardFolders()
     return folders;
 }
 
-const std::map<std::string, std::string>& standardFolderNames()
+// Read by the sorting workers as well as the UI thread.
+static std::mutex s_namesMutex;
+static std::shared_ptr<const std::map<std::string, std::string>> s_names;
+
+std::shared_ptr<const std::map<std::string, std::string>> standardFolderNames()
 {
-    static const std::map<std::string, std::string> names = [] {
-        std::map<std::string, std::string> result;
+    const std::lock_guard lock(s_namesMutex);
+    if (!s_names) {
+        auto names = std::make_shared<std::map<std::string, std::string>>();
         for (const auto& [path, folder] : standardFolders())
-            result.emplace(path, tr(folder.name.c_str()));
-        return result;
-    }();
-    return names;
+            names->emplace(path, tr(folder.name.c_str()));
+        s_names = std::move(names);
+    }
+    return s_names;
+}
+
+void forgetStandardFolderNames()
+{
+    const std::lock_guard lock(s_namesMutex);
+    s_names.reset();
 }
 
 std::string standardFolderName(const std::string& path)

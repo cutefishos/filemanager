@@ -108,6 +108,14 @@ void ArchiveProgressDialog::setModel(FolderModel* model, ui::Window* host)
     update();
 }
 
+void ArchiveProgressDialog::retranslate()
+{
+    setTitle(tr("File operation"));
+    update();
+    if (m_password)
+        m_password->retranslate();
+}
+
 void ArchiveProgressDialog::update()
 {
     const bool busy = m_model && m_model->archiveBusy();

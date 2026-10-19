@@ -7,6 +7,7 @@
 #include "base/event_loop.h"
 #include "base/i18n.h"
 #include "base/paths.h"
+#include "base/session_language.h"
 
 #include <libmtp.h>
 #include <libssh/libssh.h>
@@ -48,6 +49,7 @@ int main()
     if (!bus)
         return 1;
 
+    SessionLanguage language(bus);
     MountService service(bus);
     if (!service.publish() || !bus->requestName("org.cutefish.Mounts1"))
         return 1;

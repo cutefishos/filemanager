@@ -26,12 +26,15 @@ public:
     ~UnlockVolumeDialog();
 
     void show();
+    // The passphrase typed stays.
+    void retranslate();
     std::function<void()> onDone;
 
 private:
     class Content;
 
     std::unique_ptr<ui::DialogWindow> m_dialog;
+    Content* m_content = nullptr;
     PlacesModel& m_places;
     std::string m_udi;
     std::string m_name;

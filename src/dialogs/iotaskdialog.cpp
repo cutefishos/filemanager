@@ -80,6 +80,16 @@ void ConflictDialog::dismiss()
     hide();
 }
 
+void ConflictDialog::retranslate()
+{
+    setTitle(tr("Replace Item"));
+    if (!isShown())
+        return;
+    const bool all = m_applyToAll && m_applyToAll->isChecked();
+    rebuildContent();
+    m_applyToAll->setChecked(all);
+}
+
 void ConflictDialog::answer(int policy)
 {
     m_answered = true;
@@ -216,6 +226,12 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
 }
 
 IoTaskDialog::~IoTaskDialog() = default;
+
+void IoTaskDialog::retranslate()
+{
+    update();
+    m_conflictDialog.retranslate();
+}
 
 void IoTaskDialog::taskChanged()
 {

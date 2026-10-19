@@ -4,6 +4,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 
 namespace fm {
@@ -11,7 +12,9 @@ namespace fm {
 // The home folder and the XDG user folders, as the session set them up when
 // the process started: their shown names and icons, keyed by path. The
 // folders keep their names on disk.
-const std::map<std::string, std::string>& standardFolderNames();
+std::shared_ptr<const std::map<std::string, std::string>> standardFolderNames();
+// The shown names are made again on the next call, in the language of then.
+void forgetStandardFolderNames();
 // Empty for any other path.
 std::string standardFolderName(const std::string& path);
 std::string standardFolderIconName(const std::string& path);

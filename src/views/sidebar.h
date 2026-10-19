@@ -9,6 +9,7 @@
 #include "ui/view.h"
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,6 +45,9 @@ public:
 
     PlacesModel& places() const { return *m_places; }
     void setTitle(std::string title);
+    // The places and the open dialogs in the language of now; what the
+    // dialogs were given stays.
+    void retranslate();
     // Lights the place showing the folder.
     void updateSelection(const std::string& path);
     // The Connect to Server dialog, over the window.
@@ -67,12 +71,15 @@ private:
     void askHostKey(const std::string& address, const std::string& fingerprint, bool changed);
     void askPassphrase(std::string udi, std::string name, bool retry);
     void showDeviceError(const std::string& message);
+    void removeConfirm(ui::ConfirmDialog* dialog);
 
     std::unique_ptr<PlacesModel> m_places;
     std::unique_ptr<ConnectServerDialog> m_connectDialog;
     std::vector<std::unique_ptr<ServerPasswordDialog>> m_passwordDialogs;
     std::vector<std::unique_ptr<UnlockVolumeDialog>> m_unlockDialogs;
     std::vector<std::unique_ptr<ui::ConfirmDialog>> m_confirmDialogs;
+    // Each open question's title, text and button, set again as the language changes.
+    std::map<ui::ConfirmDialog*, std::function<void()>> m_confirmTexts;
     double m_headerHeight;
     ui::Label* m_title;
     ui::ScrollView* m_scroll;

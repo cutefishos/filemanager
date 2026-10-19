@@ -169,6 +169,22 @@ PlacesModel::~PlacesModel()
     *m_alive = false;
 }
 
+void PlacesModel::retranslate()
+{
+    for (Place& place : m_items) {
+        if (place.isDevice())
+            continue;
+        if (place.url == "trash:///") {
+            place.name = tr("Trash");
+            continue;
+        }
+        const std::string standard = standardFolderName(place.path());
+        if (!standard.empty())
+            place.name = standard;
+    }
+    changed.emit();
+}
+
 void PlacesModel::setVolume(Place& place, const files::Volume& volume)
 {
     place.udi = volume.id;

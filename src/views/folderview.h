@@ -78,6 +78,8 @@ public:
     // Keeps the current item clear of the bars over the top.
     virtual void revealIndex(int index) = 0;
     void reset();
+    // The items take their text from the model again; an open rename stays.
+    virtual void retranslate();
     void rename();
     void cancelRename();
     bool isRenaming() const;

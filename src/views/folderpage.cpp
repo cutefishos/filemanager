@@ -177,6 +177,16 @@ private:
     std::string m_path;
 };
 
+void FolderPage::retranslate()
+{
+    m_noResults->setText(tr("No Results"));
+    m_model->retranslate();
+    if (m_view)
+        m_view->retranslate();
+    m_pathStrip->update();
+    requestLayout();
+}
+
 void FolderPage::createView()
 {
     m_viewMethod = Preferences::instance().viewMethod();

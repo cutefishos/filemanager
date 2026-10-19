@@ -5,11 +5,14 @@
 
 #include "model/foldermodel.h"
 #include "views/folderpage.h"
+#include "views/folderview.h"
 #include "views/folderwindow.h"
+#include "views/renameeditor.h"
 
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/test_input.h"
+#include "ui/text_area.h"
 #include "ui/window.h"
 
 #include <gtest/gtest.h>
@@ -125,4 +128,60 @@ TEST(HeaderTest, WindowGoesRightAfterItsTabsChange)
     EXPECT_EQ(folderWindow->tabCount(), 2);
     folderWindow.reset();
     fmtest::runFor(loop, 50);
+}
+
+// A new session language takes the text again where the user was: the tabs,
+// the folder and its history, the selection and an open rename with its text.
+TEST(HeaderTest, LanguageChangeKeepsWhereTheUserWas)
+{
+    base::EventLoop& loop = s_app->loop();
+    fmtest::TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+    std::filesystem::create_directories(directory.filePath("a"));
+    ASSERT_TRUE(fmtest::writeFile(directory.filePath("a/notes.txt")));
+    ASSERT_TRUE(fmtest::writeFile(directory.filePath("a/other.txt")));
+    const std::string other = base::url::fromLocalFile(directory.filePath("a/other.txt"));
+
+    WindowHost host;
+    fm::FolderPage::Start start;
+    start.url = base::url::fromLocalFile(directory.path());
+    fm::FolderWindow folderWindow(&host, start);
+    ui::Window& window = folderWindow.window();
+    folderWindow.show();
+    folderWindow.openTab(start.url);
+    folderWindow.setCurrentTab(0);
+    fm::FolderPage* page = folderWindow.currentPage();
+    fm::FolderModel& model = page->model();
+    page->openUrl(directory.filePath("a"));
+    ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready && model.count() == 2; }));
+    window.grab();
+    const int row = model.rowForUrl(other);
+    ASSERT_GE(row, 0);
+    fm::FolderView* view = page->view();
+    view->setCurrentIndex(row);
+    model.setSelected(row);
+    window.grab();
+    view->rename();
+    ASSERT_TRUE(view->isRenaming());
+    auto* editor = static_cast<fm::RenameEditor*>(findView(view, "renameEditor"));
+    ASSERT_NE(editor, nullptr);
+    auto* field = static_cast<ui::TextArea*>(editor->children().front().get());
+    field->setText("draft.txt");
+
+    ui::Application::instance()->languageChanged.emit();
+    fmtest::runFor(loop, 100);
+    ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready; }));
+    window.grab();
+
+    EXPECT_EQ(folderWindow.tabCount(), 2);
+    EXPECT_EQ(folderWindow.currentTab(), 0);
+    EXPECT_EQ(folderWindow.currentPage(), page);
+    EXPECT_EQ(page->currentUrl(), directory.filePath("a"));
+    EXPECT_TRUE(model.canGoBack());
+    EXPECT_EQ(model.count(), 2);
+    EXPECT_EQ(model.selectedUrls(), std::vector<std::string> {other});
+    EXPECT_EQ(page->view(), view);
+    EXPECT_TRUE(view->isRenaming());
+    EXPECT_EQ(findView(view, "renameEditor"), editor);
+    EXPECT_EQ(field->text(), "draft.txt");
 }

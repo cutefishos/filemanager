@@ -42,6 +42,8 @@ public:
     void open(const std::string& operation, int sourceCount, const std::string& sourcePath,
               const std::string& destinationPath);
     void dismiss();
+    // A question being asked stays, Apply to All as it was.
+    void retranslate() override;
 
     // policy is a ConflictPolicy, or -1 to stop the whole task.
     std::function<void(int policy, bool applyToAll)> onResolved;
@@ -69,6 +71,8 @@ class IoTaskDialog : public FramelessDialog
 public:
     explicit IoTaskDialog(OperationTaskPtr task);
     ~IoTaskDialog() override;
+
+    void retranslate() override;
 
     // Done: closed after success, or the error dismissed.
     std::function<void()> onDone;

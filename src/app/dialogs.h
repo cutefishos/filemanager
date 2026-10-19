@@ -50,18 +50,22 @@ private:
     {
         std::unique_ptr<ui::ConfirmDialog> dialog;
         ui::Window* parent;
+        // Sets the title, the text and the confirming button's text.
+        std::function<void(ui::ConfirmDialog&)> texts;
     };
 
+    void retranslate();
     void add(std::unique_ptr<FramelessDialog> dialog, ui::Window* parent);
     void remove(FramelessDialog* dialog);
-    // The dialog, shown.
-    ui::ConfirmDialog* confirm(ui::Window* parent, std::string title, std::string text, std::string confirmText,
-                               bool destructive, std::function<void()> accepted);
+    // The dialog, shown; `texts` runs again when the language changes.
+    ui::ConfirmDialog* confirm(ui::Window* parent, std::function<void(ui::ConfirmDialog&)> texts, bool destructive,
+                               std::function<void()> accepted);
     void removeConfirm(ui::ConfirmDialog* dialog);
 
     std::vector<std::pair<std::unique_ptr<FramelessDialog>, ui::Window*>> m_dialogs;
     std::vector<Confirm> m_confirms;
     base::Subscription m_taskAdded;
+    base::Subscription m_languageChanged;
 };
 
 } // namespace fm

@@ -15,6 +15,7 @@
 #include "base/event_loop.h"
 #include "base/i18n.h"
 #include "base/url.h"
+#include "ui/application.h"
 #include "ui/check_box.h"
 #include "ui/color_provider.h"
 #include "ui/combo_box.h"
@@ -427,9 +428,8 @@ public:
             m_owner->m_unlock->show();
         }));
         m_subscriptions.push_back(m_places->deviceOperationFailed.connect([this](const std::string& message) {
-            m_owner->m_deviceError
-                    = std::make_unique<ui::ConfirmDialog>(this->window(), tr("Device unavailable"), message);
-            m_owner->m_deviceError->setConfirmText(tr("Close"));
+            m_owner->m_deviceError = std::make_unique<ui::ConfirmDialog>(this->window(), std::string(), message);
+            m_owner->deviceErrorTexts();
             m_owner->m_deviceError->setCancelVisible(false);
             m_owner->m_deviceError->show();
         }));
@@ -439,6 +439,22 @@ public:
 
     bool canCreateFolder() const { return m_chooser.saveMode() || m_chooser.directoryMode(); }
     bool acceptsPointer() const override { return true; }
+
+    // The location, the list's selection, the name typed and the filter stay.
+    void retranslate()
+    {
+        saveAsLabel->setText(tr("Save As:"));
+        filterLabel->setText(tr("File Type:"));
+        newFolder->setText(tr("New Folder"));
+        cancel->setText(tr("Cancel"));
+        accept->setText(m_chooser.acceptLabel());
+        summary->setText(m_chooser.selectionSummary());
+        m_chooser.folder().retranslate();
+        list->retranslate();
+        m_places->retranslate();
+        pathBar->setUrl(m_chooser.folder().url());
+        requestLayout();
+    }
 
     void focusFirst()
     {
@@ -734,11 +750,11 @@ ChooserWindow::ChooserWindow(FileChooser& chooser)
     if (parent.starts_with("wayland:"))
         m_window->setTransientForForeign(parent, chooser.request()["modal"].toBool(true));
 
+    m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
     m_subscriptions.push_back(chooser.confirmOverwrite.connect([this](const std::string& name) {
-        m_overwrite = std::make_unique<ui::ConfirmDialog>(m_window.get(), tr("Replace File?"),
-                                                          format(tr("“{name}” already exists. Replace it?"),
-                                                                 {{"name", name}}));
-        m_overwrite->setConfirmText(tr("Replace"));
+        m_overwrite = std::make_unique<ui::ConfirmDialog>(m_window.get(), std::string());
+        m_overwriteName = name;
+        overwriteTexts();
         m_overwrite->setDestructive(true);
         m_overwrite->onAccepted = [this] { m_chooser.accept(true); };
         m_overwrite->show();
@@ -746,6 +762,33 @@ ChooserWindow::ChooserWindow(FileChooser& chooser)
 }
 
 ChooserWindow::~ChooserWindow() = default;
+
+void ChooserWindow::retranslate()
+{
+    m_window->setTitle(m_chooser.title());
+    m_root->retranslate();
+    if (m_overwrite)
+        overwriteTexts();
+    if (m_deviceError)
+        deviceErrorTexts();
+    if (m_unlock)
+        m_unlock->retranslate();
+    if (m_newFolder && m_newFolder->window() && m_newFolderRetranslate)
+        m_newFolderRetranslate();
+}
+
+void ChooserWindow::overwriteTexts()
+{
+    m_overwrite->setTitle(tr("Replace File?"));
+    m_overwrite->setText(format(tr("“{name}” already exists. Replace it?"), {{"name", m_overwriteName}}));
+    m_overwrite->setConfirmText(tr("Replace"));
+}
+
+void ChooserWindow::deviceErrorTexts()
+{
+    m_deviceError->setTitle(tr("Device unavailable"));
+    m_deviceError->setConfirmText(tr("Close"));
+}
 
 void ChooserWindow::show()
 {
@@ -768,14 +811,14 @@ void ChooserWindow::beginNewFolder()
             setSpacing(16);
             setPadding({0, 8, 0, 0});
             field = addChild<ui::TextField>();
-            field->setPlaceholder(tr("Folder name"));
             field->setSelectByMouse(true);
             field->setLayoutHints({.fillWidth = true});
             auto* actions = addChild<ui::RowLayout>();
             actions->setSpacing(8);
             actions->setLayoutHints({.horizontalAlignment = ui::Alignment::End});
-            auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
-            create = actions->addChild<ui::DialogButton>(tr("Create"), true);
+            cancel = actions->addChild<ui::DialogButton>();
+            create = actions->addChild<ui::DialogButton>(std::string(), true);
+            retranslate();
             create->setEnabled(false);
             cancel->onClicked = [owner] { owner->m_newFolder->close(); };
             const auto accept = [this, owner] {
@@ -790,11 +833,24 @@ void ChooserWindow::beginNewFolder()
             field->onTextChanged = [this] { create->setEnabled(!field->text().empty()); };
         }
 
+        void retranslate()
+        {
+            field->setPlaceholder(tr("Folder name"));
+            cancel->setText(tr("Cancel"));
+            create->setText(tr("Create"));
+        }
+
         ui::TextField* field;
+        ui::DialogButton* cancel;
         ui::DialogButton* create;
     };
 
     auto* content = m_newFolder->setContent<Content>(this);
+    // The name typed stays.
+    m_newFolderRetranslate = [this, content] {
+        m_newFolder->setTitle(tr("New Folder"));
+        content->retranslate();
+    };
     if (ui::Window* window = m_newFolder->window())
         window->addShortcut(ui::NoModifier, ui::key::Escape, [this] { m_newFolder->close(); });
     m_newFolder->show();

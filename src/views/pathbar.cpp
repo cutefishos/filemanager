@@ -489,6 +489,11 @@ void PathBar::updateUrl(const std::string& url)
     m_crumbs->setCrumbs(std::move(crumbs));
 }
 
+void PathBar::retranslate()
+{
+    m_editor->setPlaceholder(tr("Search or Enter Path"));
+}
+
 void PathBar::updateVisibility()
 {
     const bool editorShown = m_editing || searching();

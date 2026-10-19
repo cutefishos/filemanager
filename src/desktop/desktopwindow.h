@@ -58,6 +58,7 @@ private:
 
     void followPrimaryOutput();
     void placeOn(const std::string& outputName);
+    void retranslate();
     void showContextMenu(ui::PointF position);
     bool handleKey(const ui::KeyEvent& event);
     void loadLayout();

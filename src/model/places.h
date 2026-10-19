@@ -60,6 +60,8 @@ public:
 
     int count() const { return int(m_items.size()); }
     const Place& at(int row) const { return m_items[size_t(row)]; }
+    // The standard folders' and the trash's names in the language of now.
+    void retranslate();
     int favoriteCount() const;
 
     bool canAddFavorites(const std::vector<std::string>& urls) const;

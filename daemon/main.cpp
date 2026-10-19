@@ -6,6 +6,7 @@
 #include "base/dbus.h"
 #include "base/event_loop.h"
 #include "base/i18n.h"
+#include "base/session_language.h"
 
 #include <clocale>
 #include <cstdio>
@@ -23,6 +24,7 @@ int main()
         return 1;
     }
 
+    base::SessionLanguage language(bus);
     FileOperationsService service(bus);
     if (!service.publish() || !bus->requestName("org.cutefish.FileOperations")) {
         std::fprintf(stderr, "Cannot own org.cutefish.FileOperations.\n");

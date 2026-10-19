@@ -233,6 +233,21 @@ void ConnectServerDialog::show()
     m_field->selectAll();
 }
 
+void ConnectServerDialog::retranslate()
+{
+    // Closed: it goes once the event is over.
+    if (!m_dialog->window())
+        return;
+    const std::string address = m_field->text();
+    const bool focused = m_field->hasFocus();
+    m_dialog->setTitle(tr("Connect to Server"));
+    auto* content = m_dialog->setContent<Content>(this);
+    m_field = content->field;
+    m_field->setText(address);
+    if (focused)
+        m_field->setFocus();
+}
+
 class ServerPasswordDialog::Content : public ui::ColumnLayout
 {
 public:
@@ -350,6 +365,7 @@ ServerPasswordDialog::ServerPasswordDialog(ui::Window* parent, PlacesModel& plac
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Connect to Server"), 400);
     auto* content = m_dialog->setContent<Content>(this);
+    m_content = content;
     m_dialog->onClosed = [this] {
         // Closed without an answer: the connection is given up.
         if (!m_answered)
@@ -367,6 +383,35 @@ ServerPasswordDialog::~ServerPasswordDialog() = default;
 void ServerPasswordDialog::show()
 {
     m_dialog->show();
+}
+
+void ServerPasswordDialog::retranslate()
+{
+    // Closed: it goes once the event is over.
+    if (!m_dialog->window())
+        return;
+    const Content& old = *m_content;
+    const bool guest = old.guest->isChecked();
+    const bool remember = old.remember->isChecked();
+    const std::string texts[] = {old.user->text(), old.domain->text(), old.password->text()};
+    int focus = -1;
+    const ui::TextField* oldFields[] = {old.user, old.domain, old.password};
+    for (int i = 0; i < 3; ++i) {
+        if (oldFields[i]->hasFocus())
+            focus = i;
+    }
+
+    m_dialog->setTitle(tr("Connect to Server"));
+    m_content = m_dialog->setContent<Content>(this);
+    m_content->guest->setChecked(guest);
+    m_content->registered->setChecked(!guest);
+    m_content->remember->setChecked(remember);
+    ui::TextField* fields[] = {m_content->user, m_content->domain, m_content->password};
+    for (int i = 0; i < 3; ++i)
+        fields[i]->setText(texts[i]);
+    m_content->update();
+    if (focus >= 0)
+        fields[focus]->setFocus();
 }
 
 } // namespace fm

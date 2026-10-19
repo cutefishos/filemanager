@@ -265,6 +265,12 @@ void FolderView::reset()
     m_contentPress.reset();
 }
 
+void FolderView::retranslate()
+{
+    updateItems();
+    requestLayout();
+}
+
 bool FolderView::isRenaming() const
 {
     return m_editor != nullptr;

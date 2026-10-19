@@ -44,6 +44,7 @@ private:
     friend class PreviewRoot;
 
     void open();
+    void retranslate();
     void updateGlass();
     void destroy();
     void stage(const PreviewFile& file);

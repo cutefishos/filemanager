@@ -13,6 +13,7 @@
 
 #include "base/event_loop.h"
 #include "base/i18n.h"
+#include "ui/application.h"
 #include "ui/color_provider.h"
 #include "ui/progress_bar.h"
 #include "ui/dialog_window.h"
@@ -61,6 +62,13 @@ public:
         m_folder = addChild<ui::Label>();
         m_folder->setElide(ui::Label::Elide::Middle);
         m_busy = addChild<ui::BusyIndicator>();
+    }
+
+    void retranslate()
+    {
+        m_label->setText(tr("Search:"));
+        m_home->setText(tr("Home"));
+        requestLayout();
     }
 
     void setModel(FolderModel* model, const std::string& folderName)
@@ -207,6 +215,13 @@ public:
             if (m_model)
                 m_model->emptyTrash();
         };
+    }
+
+    void retranslate()
+    {
+        m_title->setText(tr("Trash"));
+        m_empty->setText(tr("Empty"));
+        requestLayout();
     }
 
     void setModel(FolderModel* model)
@@ -592,6 +607,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     m_window->onStatesChanged = [this] { updateBackground(); };
     m_window->onCloseRequested = [this] { close(); };
     m_subscriptions.push_back(Preferences::instance().changed.connect([this] { updateHeader(); }));
+    m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
 
     addShortcuts();
     openTabSelecting(start);
@@ -606,6 +622,28 @@ FolderWindow::~FolderWindow()
 FolderPage* FolderWindow::currentPage() const
 {
     return m_tabs.empty() ? nullptr : m_tabs[size_t(std::clamp(m_currentTab, 0, int(m_tabs.size()) - 1))].page;
+}
+
+// Every tab keeps its folder, history, view, selection, scroll position and
+// search, and an open rename or path editor its text.
+void FolderWindow::retranslate()
+{
+    m_window->setTitle(tr("Files"));
+    m_sidebar->setTitle(tr("Files"));
+    m_sidebar->retranslate();
+    m_pathBar->retranslate();
+    m_root->scopeBar->retranslate();
+    m_root->trashBar->retranslate();
+    for (const Tab& tab : m_tabs)
+        tab.page->retranslate();
+    if (m_detachedTab)
+        m_detachedTab->page->retranslate();
+    if (FolderPage* page = currentPage())
+        m_pathBar->updateUrl(page->currentUrl());
+    if (m_archiveDialog)
+        m_archiveDialog->retranslate();
+    updateTabBar();
+    updateHeader();
 }
 
 void FolderWindow::show()

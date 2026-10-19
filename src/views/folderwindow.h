@@ -99,6 +99,7 @@ private:
     void showTabMenu(int index, ui::PointF position);
     void syncNavigation();
     void updateHeader();
+    void retranslate();
     void updateBackground();
     void updateBlur();
     void updateTabBar();

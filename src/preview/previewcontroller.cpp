@@ -333,6 +333,12 @@ void PreviewController::step(int delta)
     select(m_index + delta);
 }
 
+void PreviewController::reload()
+{
+    if (m_visible && m_index >= 0 && m_index < int(m_items.size()))
+        load();
+}
+
 void PreviewController::openCurrent()
 {
     if (!m_visible || !m_file.application)

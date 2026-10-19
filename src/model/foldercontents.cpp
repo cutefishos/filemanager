@@ -116,6 +116,15 @@ void FolderContents::setQuery(const SortQuery& query)
     schedulePreparation();
 }
 
+void FolderContents::retakeSnapshots()
+{
+    if (!m_lister)
+        return;
+    m_listed.clear();
+    ++m_listingGeneration;
+    schedulePreparation();
+}
+
 void FolderContents::cancelPreparation()
 {
     if (m_cancelled)
@@ -195,7 +204,7 @@ void FolderContents::prepare()
                         // Numbers in names compare by value: "img2" before "img10".
                         base::Collator collator;
                         collator.setNumericMode(true);
-                        const auto& standardNames = standardFolderNames();
+                        const auto standardNames = standardFolderNames();
                         result->listed.reserve(listed.size());
                         for (const files::FileItem& file : listed) {
                             checkpoint();
@@ -208,7 +217,7 @@ void FolderContents::prepare()
                             // Standard folders sort by the name they are shown under.
                             std::string name = snapshot.name;
                             if (snapshot.isDir && snapshot.isLocalFile()) {
-                                if (const auto standard = standardNames.find(snapshot.path); standard != standardNames.end())
+                                if (const auto standard = standardNames->find(snapshot.path); standard != standardNames->end())
                                     name = standard->second;
                             }
                             snapshot.sortKey = collator.sortKey(name);

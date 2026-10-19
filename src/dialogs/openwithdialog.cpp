@@ -13,6 +13,8 @@
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
 
+#include <algorithm>
+
 namespace fm {
 
 using ui::rounding::centeredStart;
@@ -78,6 +80,25 @@ OpenWithDialog::OpenWithDialog(std::string path, std::string mimeType)
     m_applications = launcher::applicationsFor(m_path, m_mimeType);
     setContentFactory([this] { return createContent(); }, 400 + 12 * 2, 16);
     onCloseRequested = [this] { done(); };
+}
+
+void OpenWithDialog::retranslate()
+{
+    setTitle(tr("Open With"));
+    if (!isShown())
+        return;
+    const std::string current = m_current >= 0 && m_current < int(m_applications.size())
+            ? m_applications[size_t(m_current)].desktopFile
+            : std::string();
+    const bool isDefault = m_default && m_default->isChecked();
+    m_applications = launcher::applicationsFor(m_path, m_mimeType);
+    const auto found = std::find_if(m_applications.begin(), m_applications.end(),
+                                    [&current](const launcher::Application& application) {
+                                        return application.desktopFile == current;
+                                    });
+    m_current = found != m_applications.end() ? int(found - m_applications.begin()) : 0;
+    rebuildContent();
+    m_default->setChecked(isDefault);
 }
 
 void OpenWithDialog::done()

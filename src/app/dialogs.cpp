@@ -12,6 +12,7 @@
 #include "base/i18n.h"
 #include "base/url.h"
 #include "base/mime_database.h"
+#include "ui/application.h"
 #include "ui/dialog_window.h"
 
 #include <algorithm>
@@ -27,9 +28,19 @@ Dialogs::Dialogs()
         // Not inside the announcement, which a folder model may be handling as well.
         base::EventLoop::current()->post([this, task] { ioTask(task); });
     });
+    m_languageChanged = ui::Application::instance()->languageChanged.connect([this] { retranslate(); });
 }
 
 Dialogs::~Dialogs() = default;
+
+// Every dialog takes its text again; a question stays open, its answer pending.
+void Dialogs::retranslate()
+{
+    for (const auto& [dialog, parent] : m_dialogs)
+        dialog->retranslate();
+    for (const Confirm& confirm : m_confirms)
+        confirm.texts(*confirm.dialog);
+}
 
 void Dialogs::ioTask(const OperationTaskPtr& task)
 {
@@ -47,15 +58,26 @@ void Dialogs::confirmDelete(const std::vector<std::string>& urls, ui::Window* pa
 {
     if (urls.empty())
         return;
-    confirm(parent, tr("Delete"), tr("Do you want to delete it permanently?"), tr("Delete"), true,
-            [urls] { OperationsClient::instance().remove(urls); });
+    confirm(
+            parent,
+            [](ui::ConfirmDialog& question) {
+                question.setTitle(tr("Delete"));
+                question.setText(tr("Do you want to delete it permanently?"));
+                question.setConfirmText(tr("Delete"));
+            },
+            true, [urls] { OperationsClient::instance().remove(urls); });
 }
 
 void Dialogs::confirmEmptyTrash(ui::Window* parent)
 {
-    ui::ConfirmDialog* dialog =
-            confirm(parent, tr("Empty Trash"), tr("Do you want to permanently delete all files from the Trash?"),
-                    tr("Empty Trash"), true, [] { OperationsClient::instance().emptyTrash(); });
+    ui::ConfirmDialog* dialog = confirm(
+            parent,
+            [](ui::ConfirmDialog& question) {
+                question.setTitle(tr("Empty Trash"));
+                question.setText(tr("Do you want to permanently delete all files from the Trash?"));
+                question.setConfirmText(tr("Empty Trash"));
+            },
+            true, [] { OperationsClient::instance().emptyTrash(); });
     // Opened from the dock or the desktop it has no window of the file
     // manager's to belong to: it stays off the task list and the menu bar,
     // and above other windows.
@@ -70,10 +92,15 @@ void Dialogs::confirmLaunch(const std::string& path, ui::Window* parent)
     if (path.empty())
         return;
     const std::string absolute = cleanPath(path);
-    confirm(parent, tr("Run Program"),
-            format(tr("“{name}” is a program. Only run it if you trust where it came from."),
-                   {{"name", fileName(absolute)}}),
-            tr("Run"), false, [absolute] { launcher::trustAndLaunch(absolute); });
+    confirm(
+            parent,
+            [absolute](ui::ConfirmDialog& question) {
+                question.setTitle(tr("Run Program"));
+                question.setText(format(tr("“{name}” is a program. Only run it if you trust where it came from."),
+                                        {{"name", fileName(absolute)}}));
+                question.setConfirmText(tr("Run"));
+            },
+            false, [absolute] { launcher::trustAndLaunch(absolute); });
 }
 
 void Dialogs::properties(const FileItemList& items, ui::Window* parent)
@@ -151,20 +178,19 @@ void Dialogs::remove(FramelessDialog* dialog)
         onChanged();
 }
 
-ui::ConfirmDialog* Dialogs::confirm(ui::Window* parent, std::string title, std::string text,
-                                    std::string confirmText, bool destructive, std::function<void()> accepted)
+ui::ConfirmDialog* Dialogs::confirm(ui::Window* parent, std::function<void(ui::ConfirmDialog&)> texts,
+                                    bool destructive, std::function<void()> accepted)
 {
-    auto dialog = std::make_unique<ui::ConfirmDialog>(parent, std::move(title), std::move(text));
+    auto dialog = std::make_unique<ui::ConfirmDialog>(parent, std::string());
     ui::ConfirmDialog* raw = dialog.get();
-    raw->setCancelText(tr("Cancel"));
-    raw->setConfirmText(std::move(confirmText));
+    texts(*raw);
     raw->setDestructive(destructive);
     raw->onAccepted = [this, raw, accepted = std::move(accepted)] {
         accepted();
         removeConfirm(raw);
     };
     raw->onRejected = [this, raw] { removeConfirm(raw); };
-    m_confirms.push_back({std::move(dialog), parent});
+    m_confirms.push_back({std::move(dialog), parent, std::move(texts)});
     raw->show();
     if (onChanged)
         onChanged();

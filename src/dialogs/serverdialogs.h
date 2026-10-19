@@ -28,6 +28,8 @@ public:
     ~ConnectServerDialog();
 
     void show();
+    // The address typed stays.
+    void retranslate();
     std::function<void()> onDone;
 
 private:
@@ -56,12 +58,15 @@ public:
     ~ServerPasswordDialog();
 
     void show();
+    // What was typed and chosen stays.
+    void retranslate();
     std::function<void()> onDone;
 
 private:
     class Content;
 
     std::unique_ptr<ui::DialogWindow> m_dialog;
+    Content* m_content = nullptr;
     PlacesModel& m_places;
     Request m_request;
     bool m_answered = false;

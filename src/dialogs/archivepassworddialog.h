@@ -30,12 +30,15 @@ public:
     void show();
     // Closes it without cancelling: the request is gone.
     void dismiss();
+    // The password typed stays.
+    void retranslate();
     std::function<void()> onDone;
 
 private:
     class Content;
 
     std::unique_ptr<ui::DialogWindow> m_dialog;
+    Content* m_content = nullptr;
     FolderModel& m_model;
     uint32_t m_request;
     std::string m_name;

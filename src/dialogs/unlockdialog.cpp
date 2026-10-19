@@ -80,14 +80,14 @@ UnlockVolumeDialog::UnlockVolumeDialog(ui::Window* parent, PlacesModel& places, 
     , m_retry(retry)
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Unlock Volume"), 400);
-    auto* content = m_dialog->setContent<Content>(this);
+    m_content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         if (onDone)
             onDone();
     };
     m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] { m_dialog->close(); });
-    content->passphrase->setFocus();
+    m_content->passphrase->setFocus();
 }
 
 UnlockVolumeDialog::~UnlockVolumeDialog() = default;
@@ -95,6 +95,18 @@ UnlockVolumeDialog::~UnlockVolumeDialog() = default;
 void UnlockVolumeDialog::show()
 {
     m_dialog->show();
+}
+
+void UnlockVolumeDialog::retranslate()
+{
+    // Closed: it goes once the event is over.
+    if (!m_dialog->window())
+        return;
+    const std::string passphrase = m_content->passphrase->text();
+    m_dialog->setTitle(tr("Unlock Volume"));
+    m_content = m_dialog->setContent<Content>(this);
+    m_content->passphrase->setText(passphrase);
+    m_content->passphrase->setFocus();
 }
 
 } // namespace fm

@@ -109,6 +109,12 @@ public:
         requestPaint();
     }
 
+    void retranslate()
+    {
+        m_favorites->setText(tr("Favorites"));
+        requestLayout();
+    }
+
     void setSelected(int row)
     {
         m_selected = row;
@@ -624,58 +630,76 @@ void SideBar::askPassphrase(std::string udi, std::string name, bool retry)
 
 void SideBar::askHostKey(const std::string& address, const std::string& fingerprint, bool changed)
 {
-    const std::string text = format(changed ? tr("The identity of “{address}” is not the one it had before. Someone "
-                                                 "may be impersonating it. Connect only if its administrator changed "
-                                                 "its key.")
-                                            : tr("The identity of “{address}” cannot be verified. Check that its key "
-                                                 "fingerprint is the one you expect before you connect."),
-                                    {{"address", address}})
-            + "\n\n" + fingerprint;
-    auto dialog = std::make_unique<ui::ConfirmDialog>(
-            window(), changed ? tr("Server Identity Changed") : tr("Unknown Server"), text);
+    auto dialog = std::make_unique<ui::ConfirmDialog>(window(), std::string());
     ui::ConfirmDialog* raw = dialog.get();
-    raw->setConfirmText(changed ? tr("Connect Anyway") : tr("Connect"));
+    const auto texts = [raw, address, fingerprint, changed] {
+        raw->setTitle(changed ? tr("Server Identity Changed") : tr("Unknown Server"));
+        raw->setText(format(changed ? tr("The identity of “{address}” is not the one it had before. Someone "
+                                         "may be impersonating it. Connect only if its administrator changed "
+                                         "its key.")
+                                    : tr("The identity of “{address}” cannot be verified. Check that its key "
+                                         "fingerprint is the one you expect before you connect."),
+                            {{"address", address}})
+                     + "\n\n" + fingerprint);
+        raw->setConfirmText(changed ? tr("Connect Anyway") : tr("Connect"));
+    };
+    texts();
     raw->setDestructive(changed);
-    auto done = [this, raw] {
-        auto it = std::find_if(m_confirmDialogs.begin(), m_confirmDialogs.end(),
-                               [raw](const auto& dialog) { return dialog.get() == raw; });
-        if (it == m_confirmDialogs.end())
-            return;
-        std::shared_ptr<ui::ConfirmDialog> gone(std::move(*it));
-        m_confirmDialogs.erase(it);
-        base::EventLoop::current()->post([gone] {});
-    };
-    raw->onAccepted = [this, address, fingerprint, done] {
+    raw->onAccepted = [this, raw, address, fingerprint] {
         m_places->acceptHostKey(address, fingerprint);
-        done();
+        removeConfirm(raw);
     };
-    raw->onRejected = [this, address, done] {
+    raw->onRejected = [this, raw, address] {
         m_places->cancelConnection(address);
-        done();
+        removeConfirm(raw);
     };
+    m_confirmTexts[raw] = texts;
     m_confirmDialogs.push_back(std::move(dialog));
     raw->show();
 }
 
 void SideBar::showDeviceError(const std::string& message)
 {
-    auto dialog = std::make_unique<ui::ConfirmDialog>(window(), tr("Device operation failed"), message);
+    auto dialog = std::make_unique<ui::ConfirmDialog>(window(), std::string(), message);
     ui::ConfirmDialog* raw = dialog.get();
-    raw->setConfirmText(tr("Close"));
-    raw->setCancelVisible(false);
-    auto done = [this, raw] {
-        auto it = std::find_if(m_confirmDialogs.begin(), m_confirmDialogs.end(),
-                               [raw](const auto& dialog) { return dialog.get() == raw; });
-        if (it == m_confirmDialogs.end())
-            return;
-        std::shared_ptr<ui::ConfirmDialog> gone(std::move(*it));
-        m_confirmDialogs.erase(it);
-        base::EventLoop::current()->post([gone] {});
+    const auto texts = [raw] {
+        raw->setTitle(tr("Device operation failed"));
+        raw->setConfirmText(tr("Close"));
     };
-    raw->onAccepted = done;
-    raw->onRejected = done;
+    texts();
+    raw->setCancelVisible(false);
+    raw->onAccepted = [this, raw] { removeConfirm(raw); };
+    raw->onRejected = [this, raw] { removeConfirm(raw); };
+    m_confirmTexts[raw] = texts;
     m_confirmDialogs.push_back(std::move(dialog));
     raw->show();
+}
+
+void SideBar::removeConfirm(ui::ConfirmDialog* dialog)
+{
+    m_confirmTexts.erase(dialog);
+    auto it = std::find_if(m_confirmDialogs.begin(), m_confirmDialogs.end(),
+                           [dialog](const auto& entry) { return entry.get() == dialog; });
+    if (it == m_confirmDialogs.end())
+        return;
+    std::shared_ptr<ui::ConfirmDialog> gone(std::move(*it));
+    m_confirmDialogs.erase(it);
+    base::EventLoop::current()->post([gone] {});
+}
+
+void SideBar::retranslate()
+{
+    m_list->retranslate();
+    m_places->retranslate();
+    if (m_connectDialog)
+        m_connectDialog->retranslate();
+    for (const auto& dialog : m_passwordDialogs)
+        dialog->retranslate();
+    for (const auto& dialog : m_unlockDialogs)
+        dialog->retranslate();
+    // A question about a server's key keeps its connection waiting for the answer.
+    for (const auto& [dialog, texts] : m_confirmTexts)
+        texts();
 }
 
 void SideBar::setTitle(std::string title)

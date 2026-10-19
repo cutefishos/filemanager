@@ -56,6 +56,9 @@ public:
     void goForward();
     // Quick Look follows this page while it is the window's current one.
     void activatePreview();
+    // The text in the language of now; the view, its scroll position and
+    // an open rename stay.
+    void retranslate();
 
     std::function<void(const std::string& url)> onOpenInNewTab;
     std::function<void()> onCloseRequested;

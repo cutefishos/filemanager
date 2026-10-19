@@ -85,6 +85,8 @@ public:
     void select(int index);
     void step(int delta);
     void openCurrent();
+    // Describes the item shown again, in the language of now.
+    void reload();
 
     // A change of the items, the index or the visibility.
     base::Signal<> changed;

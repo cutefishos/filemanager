@@ -70,6 +70,9 @@ public:
     // Lets the next listing take `from` reappearing as `to` as the same row.
     void expectRename(const std::string& from, const std::string& to);
     void schedulePreparation();
+    // Takes every file's snapshot anew and sorts again: the standard
+    // folders' shown names, which they sort by, follow the language.
+    void retakeSnapshots();
     void cancelPreparation();
     bool isPreparing() const { return m_job.isPending() || m_timer.isActive(); }
     void clear();

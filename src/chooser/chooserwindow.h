@@ -9,6 +9,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace cutefish::ui {
@@ -39,14 +40,20 @@ private:
     friend class ChooserRoot;
 
     void beginNewFolder();
+    void retranslate();
+    // The questions' title, text and buttons, in the language of now.
+    void overwriteTexts();
+    void deviceErrorTexts();
 
     FileChooser& m_chooser;
     std::unique_ptr<ui::Window> m_window;
     ChooserRoot* m_root = nullptr;
     std::unique_ptr<ui::ConfirmDialog> m_overwrite;
+    std::string m_overwriteName;
     std::unique_ptr<ui::ConfirmDialog> m_deviceError;
     std::unique_ptr<UnlockVolumeDialog> m_unlock;
     std::unique_ptr<ui::DialogWindow> m_newFolder;
+    std::function<void()> m_newFolderRetranslate;
     std::vector<base::Subscription> m_subscriptions;
 };
 

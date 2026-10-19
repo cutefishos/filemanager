@@ -66,6 +66,7 @@ PropertiesDialog::PropertiesDialog(FileItemList items)
         m_fileName = first.name;
         m_iconName = first.isDir ? "folder" : first.iconName;
         m_mimeType = first.mimeType;
+        m_bytes = first.size;
         m_size = formatSize(first.size);
         m_location = parentPath(first.path);
         m_created = textDate(first.created);
@@ -88,6 +89,7 @@ PropertiesDialog::PropertiesDialog(FileItemList items)
                 return total;
             },
             [this](uint64_t total) {
+                m_bytes = total;
                 m_size = formatSize(total);
                 if (m_sizeLabel) {
                     m_sizeLabel->setText(m_size);
@@ -108,6 +110,16 @@ PropertiesDialog::PropertiesDialog(FileItemList items)
 PropertiesDialog::~PropertiesDialog()
 {
     m_cancelled->store(true);
+}
+
+void PropertiesDialog::retranslate()
+{
+    setTitle(tr("Properties"));
+    if (m_items.size() > 1)
+        m_fileName = trn("{n} file", "{n} files", m_items.size());
+    if (m_bytes)
+        m_size = formatSize(*m_bytes);
+    rebuildContent();
 }
 
 std::unique_ptr<ui::View> PropertiesDialog::createContent()

@@ -59,6 +59,7 @@ public:
     void setColumnWidth(int column, double width, bool save);
 
     void revealIndex(int index) override;
+    void retranslate() override;
     double leftMargin() const { return 6; }
     double rightMargin() const { return 12; }
     // The content's top above the first row: under the bars and the header.

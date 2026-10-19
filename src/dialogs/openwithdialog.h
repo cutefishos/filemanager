@@ -24,6 +24,9 @@ class OpenWithDialog : public FramelessDialog
 public:
     OpenWithDialog(std::string path, std::string mimeType);
 
+    // The application chosen and Set as default stay.
+    void retranslate() override;
+
     std::function<void()> onDone;
 
 private:

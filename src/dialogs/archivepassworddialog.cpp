@@ -81,7 +81,7 @@ ArchivePasswordDialog::ArchivePasswordDialog(ui::Window* parent, FolderModel& mo
     , m_retry(retry)
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Password Required"), 400);
-    auto* content = m_dialog->setContent<Content>(this);
+    m_content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         // Closed without an answer: the extraction is given up.
         if (!m_answered)
@@ -91,7 +91,7 @@ ArchivePasswordDialog::ArchivePasswordDialog(ui::Window* parent, FolderModel& mo
     };
     m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] { m_dialog->close(); });
-    content->password->setFocus();
+    m_content->password->setFocus();
 }
 
 ArchivePasswordDialog::~ArchivePasswordDialog() = default;
@@ -105,6 +105,18 @@ void ArchivePasswordDialog::dismiss()
 {
     m_answered = true;
     m_dialog->close();
+}
+
+void ArchivePasswordDialog::retranslate()
+{
+    // Closed: it goes once the event is over.
+    if (!m_dialog->window())
+        return;
+    const std::string password = m_content->password->text();
+    m_dialog->setTitle(tr("Password Required"));
+    m_content = m_dialog->setContent<Content>(this);
+    m_content->password->setText(password);
+    m_content->password->setFocus();
 }
 
 } // namespace fm
