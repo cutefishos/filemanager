@@ -6,16 +6,16 @@
 #include "base/dbus.h"
 #include "base/event_loop.h"
 #include "base/i18n.h"
+#include "base/locale.h"
 #include "base/session_language.h"
 
-#include <clocale>
 #include <cstdio>
 
 using namespace cutefish;
 
 int main()
 {
-    std::setlocale(LC_ALL, "");
+    base::Locale::setProcessLocale();
     i18n::setDomain("cutefish-filemanager");
     base::EventLoop loop;
     base::dbus::Connection *bus = base::dbus::Connection::session(&loop);

@@ -6,13 +6,13 @@
 #include "base/dbus.h"
 #include "base/event_loop.h"
 #include "base/i18n.h"
+#include "base/locale.h"
 #include "base/paths.h"
 #include "base/session_language.h"
 
 #include <libmtp.h>
 #include <libssh/libssh.h>
 
-#include <clocale>
 #include <csignal>
 #include <fcntl.h>
 #include <sys/epoll.h>
@@ -32,7 +32,7 @@ static void requestQuit(int)
 
 int main()
 {
-    std::setlocale(LC_ALL, "");
+    Locale::setProcessLocale();
     cutefish::i18n::setDomain("cutefish-filemanager");
     // One instance per user: a second one, started on a private bus by a test, would
     // take the first one's mounts for leftovers and detach them.
