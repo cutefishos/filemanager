@@ -144,7 +144,7 @@ add_library(fm-ui STATIC
     src/views/sidebar.cpp
     src/views/style.cpp
     src/dialogs/archivepassworddialog.cpp
-    src/dialogs/archiveprogressdialog.cpp
+    src/dialogs/archivepasswordprompt.cpp
     src/dialogs/framelessdialog.cpp
     src/dialogs/iotaskdialog.cpp
     src/dialogs/openwithdialog.cpp

@@ -275,9 +275,8 @@ msgid "New Folder"
 msgstr ""
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/archiveprogressdialog.cpp src/dialogs/iotaskdialog.cpp
-#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
-#: src/dialogs/unlockdialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr ""
 
@@ -494,14 +493,6 @@ msgstr ""
 
 #: src/dialogs/archivepassworddialog.cpp
 msgid "Password Required"
-msgstr ""
-
-#: src/dialogs/archiveprogressdialog.cpp
-msgid "File operation"
-msgstr ""
-
-#: src/dialogs/archiveprogressdialog.cpp
-msgid "Cancelling…"
 msgstr ""
 
 #: src/dialogs/iotaskdialog.cpp
@@ -894,16 +885,8 @@ msgid "Archive"
 msgstr ""
 
 #: src/model/foldermodel.cpp
-msgid "Compressing"
-msgstr ""
-
-#: src/model/foldermodel.cpp
 msgctxt "default file name"
 msgid "Extracted"
-msgstr ""
-
-#: src/model/foldermodel.cpp
-msgid "Extracting"
 msgstr ""
 
 #: src/model/foldermodel.cpp

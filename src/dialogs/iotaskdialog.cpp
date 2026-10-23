@@ -197,7 +197,10 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
     };
 
     m_delay.setSingleShot(true);
-    m_delay.setInterval(std::chrono::milliseconds(m_operation == "emptyTrash" ? 300 : 750));
+    // An archive job is asked for on its own, so its window answers at once
+    // instead of waiting to see whether the job is quick.
+    const bool archive = m_operation == "compress" || m_operation == "extract";
+    m_delay.setInterval(std::chrono::milliseconds(archive ? 0 : m_operation == "emptyTrash" ? 300 : 750));
     m_delay.onTimeout = [this] {
         if (!m_finished && !m_conflict && !m_password && !m_dismissed)
             show();

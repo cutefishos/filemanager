@@ -129,7 +129,7 @@ private:
     bool m_closed = false;
     std::unique_ptr<ui::Menu> m_menu;
     std::unique_ptr<ui::Toast> m_toast;
-    std::unique_ptr<class ArchiveProgressDialog> m_archiveDialog;
+    std::unique_ptr<class ArchivePasswordPrompt> m_archivePassword;
     std::vector<base::Subscription> m_pageSubscriptions;
     std::vector<base::Subscription> m_subscriptions;
     std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);

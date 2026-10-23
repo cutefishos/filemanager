@@ -5,7 +5,7 @@
 #include "views/folderwindow.h"
 #include "core/preferences.h"
 #include "views/folderview.h"
-#include "dialogs/archiveprogressdialog.h"
+#include "dialogs/archivepasswordprompt.h"
 #include "views/foldermenu.h"
 #include "views/pathbar.h"
 #include "views/sidebar.h"
@@ -640,8 +640,8 @@ void FolderWindow::retranslate()
         m_detachedTab->page->retranslate();
     if (FolderPage* page = currentPage())
         m_pathBar->updateUrl(page->currentUrl());
-    if (m_archiveDialog)
-        m_archiveDialog->retranslate();
+    if (m_archivePassword)
+        m_archivePassword->retranslate();
     updateTabBar();
     updateHeader();
 }
@@ -898,9 +898,9 @@ void FolderWindow::syncNavigation()
     for (const Tab& tab : m_tabs)
         tab.page->setVisible(tab.page == page);
     m_pathBar->setFolderModel(&page->model());
-    if (!m_archiveDialog)
-        m_archiveDialog = std::make_unique<ArchiveProgressDialog>();
-    m_archiveDialog->setModel(&page->model(), m_window.get());
+    if (!m_archivePassword)
+        m_archivePassword = std::make_unique<ArchivePasswordPrompt>();
+    m_archivePassword->setModel(&page->model(), m_window.get());
     m_pathBar->closeEditor();
     m_sidebar->updateSelection(page->currentUrl());
     m_pathBar->updateUrl(page->currentUrl());

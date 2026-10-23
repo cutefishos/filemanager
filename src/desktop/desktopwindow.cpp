@@ -6,7 +6,7 @@
 #include "core/shortcutconvention.h"
 #include "core/standardfolders.h"
 #include "desktop/desktopmenuexporter.h"
-#include "dialogs/archiveprogressdialog.h"
+#include "dialogs/archivepasswordprompt.h"
 #include "desktop/desktopview.h"
 #include "ops/operations.h"
 #include "views/foldermenu.h"
@@ -180,8 +180,8 @@ DesktopWindow::DesktopWindow(ui::TrustedConnection* connection, FileManagerHost&
         m_subscriptions.push_back(OperationsClient::instance().historyChanged.connect(update));
     }
 
-    m_archiveDialog = std::make_unique<ArchiveProgressDialog>();
-    m_archiveDialog->setModel(m_model.get(), nullptr);
+    m_archivePassword = std::make_unique<ArchivePasswordPrompt>();
+    m_archivePassword->setModel(m_model.get(), nullptr);
     m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
 
     followPrimaryOutput();
@@ -336,7 +336,7 @@ void DesktopWindow::retranslate()
     m_window->setTitle(tr("Desktop"));
     m_model->retranslate();
     m_view->retranslate();
-    m_archiveDialog->retranslate();
+    m_archivePassword->retranslate();
     if (m_menuExporter)
         m_menuExporter->update();
 }

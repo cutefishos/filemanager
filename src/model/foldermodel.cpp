@@ -34,7 +34,6 @@ using cutefish::i18n::format;
 using cutefish::i18n::tr;
 using cutefish::i18n::trc;
 using cutefish::i18n::trn;
-using cutefish::i18n::trNoop;
 
 namespace fm {
 
@@ -1366,10 +1365,8 @@ void FolderModel::startArchive(OperationTaskPtr task, const std::string& operati
 
     m_archive = task;
     m_archiveCancelling = false;
-    m_archiveProgress = -1;
     m_archiveOperation = operation;
     m_archiveOutputPath = outputPath;
-    m_archiveCurrentFile.clear();
     m_archivePasswordId = 0;
     m_archivePasswordRetry = false;
     archiveChanged.emit();
@@ -1377,14 +1374,9 @@ void FolderModel::startArchive(OperationTaskPtr task, const std::string& operati
     m_archiveChanged = task->changed.connect([this] {
         if (!m_archive)
             return;
-        const TaskProgress progress = m_archive->progress();
-        const int value = progress.totalsKnown ? int(progress.processedItems) : -1;
         const uint32_t passwordId = m_archive->waitingForPassword() ? m_archive->passwordId() : 0;
         const bool passwordRetry = m_archive->passwordRetry();
-        if (value != m_archiveProgress || progress.currentPath != m_archiveCurrentFile
-            || passwordId != m_archivePasswordId || passwordRetry != m_archivePasswordRetry) {
-            m_archiveProgress = value;
-            m_archiveCurrentFile = progress.currentPath;
+        if (passwordId != m_archivePasswordId || passwordRetry != m_archivePasswordRetry) {
             m_archivePasswordId = passwordId;
             m_archivePasswordRetry = passwordRetry;
             archiveChanged.emit();
@@ -1420,7 +1412,7 @@ void FolderModel::compressSelected()
     const std::string baseName
             = paths.size() == 1 ? fileName(paths.front()) : std::string(trc("default file name", "Archive"));
     const std::string outputPath = uniquePath(destination, baseName + ".zip", false);
-    startArchive(OperationsClient::instance().archive(0, paths, outputPath), trNoop("Compressing"), outputPath);
+    startArchive(OperationsClient::instance().archive(0, paths, outputPath), "Compressing", outputPath);
 }
 
 void FolderModel::extractSelectedArchive()
@@ -1447,7 +1439,7 @@ void FolderModel::extractSelectedArchive()
         baseName = trc("default file name", "Extracted");
 
     const std::string outputPath = uniquePath(parentPath(file->path), baseName, !singleFile);
-    startArchive(OperationsClient::instance().archive(1, {file->path}, outputPath), trNoop("Extracting"), outputPath);
+    startArchive(OperationsClient::instance().archive(1, {file->path}, outputPath), "Extracting", outputPath);
 }
 
 void FolderModel::cancelArchive()
@@ -1471,8 +1463,6 @@ void FolderModel::archiveFinished(bool success, bool canceled, const std::string
     m_archive.reset();
     m_archiveChanged.reset();
     m_archiveCancelling = false;
-    m_archiveProgress = success ? 100 : -1;
-    m_archiveCurrentFile.clear();
     m_archivePasswordId = 0;
     m_archivePasswordRetry = false;
     archiveChanged.emit();

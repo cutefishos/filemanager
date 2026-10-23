@@ -200,12 +200,9 @@ public:
     bool openWithApplication(const std::string& desktopFile) const;
     static bool supportSetAsWallpaper(const std::string& mimeType);
 
-    // Archive progress for the archive dialog.
+    // The running archive job, for its password prompt.
     bool archiveBusy() const { return m_archive != nullptr; }
     bool archiveCancelling() const { return m_archiveCancelling; }
-    int archiveProgress() const { return m_archiveProgress; }
-    const std::string& archiveOperation() const { return m_archiveOperation; }
-    const std::string& archiveCurrentFile() const { return m_archiveCurrentFile; }
     std::string archiveSourceName() const { return m_archive ? m_archive->sourceName() : std::string(); }
     // The password request waiting for an answer; 0 when none is.
     uint32_t archivePasswordId() const { return m_archivePasswordId; }
@@ -321,9 +318,7 @@ private:
 
     OperationTaskPtr m_archive;
     bool m_archiveCancelling = false;
-    int m_archiveProgress = -1;
     std::string m_archiveOperation;
-    std::string m_archiveCurrentFile;
     std::string m_archiveOutputPath;
     uint32_t m_archivePasswordId = 0;
     bool m_archivePasswordRetry = false;

@@ -74,7 +74,7 @@ private:
     std::unique_ptr<PreviewClient> m_preview;
     std::unique_ptr<ui::Menu> m_menu;
     std::unique_ptr<DesktopMenuExporter> m_menuExporter;
-    std::unique_ptr<class ArchiveProgressDialog> m_archiveDialog;
+    std::unique_ptr<class ArchivePasswordPrompt> m_archivePassword;
     std::string m_output;
     bool m_layoutLoaded = false;
     bool m_restoring = false;
