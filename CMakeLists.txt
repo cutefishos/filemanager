@@ -17,17 +17,26 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(ICU REQUIRED IMPORTED_TARGET icu-uc icu-i18n)
 
 # ---------------------------------------------------------------------------
-# cutefish-mountd: phones and servers mounted with FUSE, so their files are
-# local paths to everything else.
+# cutefish-mountd: phones, servers and disk images mounted with FUSE, so their
+# files are local paths to everything else.
 # ---------------------------------------------------------------------------
 pkg_check_modules(Fuse3 REQUIRED IMPORTED_TARGET fuse3)
 pkg_check_modules(LibSsh REQUIRED IMPORTED_TARGET libssh)
 pkg_check_modules(SmbClient REQUIRED IMPORTED_TARGET smbclient)
 pkg_check_modules(LibMtp REQUIRED IMPORTED_TARGET libmtp)
 pkg_check_modules(LibUdev REQUIRED IMPORTED_TARGET libudev)
+# Disk image chunks: zlib, bzip2, LZMA and LZFSE.
+find_package(ZLIB REQUIRED)
+find_package(BZip2 REQUIRED)
+pkg_check_modules(LibLzma REQUIRED IMPORTED_TARGET liblzma)
+find_path(LZFSE_INCLUDE_DIR lzfse.h REQUIRED)
+find_library(LZFSE_LIBRARY lzfse REQUIRED)
 
 add_library(mountd-core STATIC
+    mountd/diskimage.cpp
+    mountd/diskimagebackend.cpp
     mountd/fusemount.cpp
+    mountd/hfsplus.cpp
     mountd/keyring.cpp
     mountd/mountservice.cpp
     mountd/mtpbackend.cpp
@@ -37,6 +46,7 @@ add_library(mountd-core STATIC
     mountd/smbbackend.cpp
 )
 target_include_directories(mountd-core PUBLIC mountd)
+target_include_directories(mountd-core PUBLIC ${LZFSE_INCLUDE_DIR})
 target_link_libraries(mountd-core PUBLIC
     Cutefish::ToolkitBase
     PkgConfig::Fuse3
@@ -45,6 +55,10 @@ target_link_libraries(mountd-core PUBLIC
     PkgConfig::LibMtp
     PkgConfig::LibUdev
     PkgConfig::ICU
+    ZLIB::ZLIB
+    BZip2::BZip2
+    PkgConfig::LibLzma
+    ${LZFSE_LIBRARY}
 )
 
 add_executable(cutefish-mountd mountd/main.cpp)

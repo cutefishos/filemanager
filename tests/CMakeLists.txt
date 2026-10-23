@@ -4,8 +4,9 @@
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(mountd-tests mtpmonitor_test.cpp remoteurl_test.cpp)
+add_executable(mountd-tests diskimage_test.cpp mtpmonitor_test.cpp remoteurl_test.cpp)
 target_link_libraries(mountd-tests PRIVATE mountd-core GTest::gtest_main)
+target_compile_definitions(mountd-tests PRIVATE FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 gtest_discover_tests(mountd-tests)
 
 add_executable(fileoperationsdaemon-tests fileoperationsdaemon_test.cpp)

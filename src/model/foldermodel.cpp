@@ -5,6 +5,7 @@
 #include "core/config.h"
 #include "core/dates.h"
 #include "core/launcher.h"
+#include "core/mounts.h"
 #include "core/preferences.h"
 #include "core/standardfolders.h"
 #include "core/thumbnails.h"
@@ -1161,6 +1162,11 @@ void FolderModel::openSelected()
         }
 
         const std::string& mimeType = file->mimeType;
+        if (mimeType == "application/x-apple-diskimage" && file->isLocalFile() && !file->isDir) {
+            mountDiskImage(file->path);
+            continue;
+        }
+
         // Installed launchers run; any other one opens as text like a plain file.
         if (mimeType == "application/x-desktop" && launcher::isTrusted(file->path)) {
             launcher::launchFile(file->path);
@@ -1189,6 +1195,17 @@ void FolderModel::openSelected()
 
         launcher::startCommand({"xdg-open", file->url});
     }
+}
+
+void FolderModel::mountDiskImage(const std::string& path)
+{
+    MountsClient::instance().requestMount(
+            path, {}, [this, alive = m_alive](const std::string& status, const base::dbus::VariantMap& details) {
+                if (!*alive || status == "mounted")
+                    return;
+                const auto found = details.find("message");
+                notification.emit(found != details.end() ? found->second.value<std::string>() : std::string());
+            });
 }
 
 void FolderModel::showOpenWithDialog()

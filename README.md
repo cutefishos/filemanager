@@ -7,13 +7,15 @@ Cutefish File Manager, simple to use, beautiful, and retain the classic PC inter
 File Manager is built on [cutefish-toolkit](https://github.com/cutefishos/cutefish-toolkit) and
 the files library of [cutefish-framework](https://github.com/cutefishos/cutefish-framework);
 install them first. The mount service needs FUSE, libssh, libsmbclient, libmtp and
-libudev; archives need libarchive and libzip. GoogleTest for the tests.
+libudev, and zlib, bzip2, liblzma and LZFSE for disk images; archives need libarchive
+and libzip. GoogleTest for the tests.
 
 Debian/Ubuntu:
 
 ```shell
 sudo apt install build-essential cmake pkg-config libicu-dev libarchive-dev libzip-dev \
-    libfuse3-dev libssh-dev libsmbclient-dev libmtp-dev libudev-dev libgtest-dev
+    libfuse3-dev libssh-dev libsmbclient-dev libmtp-dev libudev-dev zlib1g-dev libbz2-dev \
+    liblzma-dev liblzfse-dev libgtest-dev
 ```
 
 ## Build

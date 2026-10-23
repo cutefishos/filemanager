@@ -70,7 +70,8 @@ void MountsClient::refresh()
                 const auto found = entry.find(key);
                 return found != entry.end() && found->second.value<bool>();
             };
-            mounts.push_back({text("id"), text("name"), text("icon"), text("path"), flag("network"), flag("device")});
+            mounts.push_back({text("id"), text("name"), text("icon"), text("path"), flag("network"), flag("device"),
+                              flag("ejectable")});
         }
         m_mounts = std::move(mounts);
         mountsChanged.emit();

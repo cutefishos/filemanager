@@ -61,6 +61,11 @@ public:
     {
         return {};
     }
+    // Mounted read only, with contents that never change under the kernel's caches.
+    virtual bool readOnly() const
+    {
+        return false;
+    }
 
     virtual int stat(const std::string &path, struct stat *st) = 0;
     virtual int list(const std::string &path, std::vector<DirectoryEntry> *entries) = 0;

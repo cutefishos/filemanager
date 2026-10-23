@@ -14,7 +14,7 @@
 
 namespace fm {
 
-// The phones and servers cutefish-mountd serves, shared by every view of the process.
+// The phones, servers and disk images cutefish-mountd serves, shared by every view of the process.
 class MountsClient
 {
 public:
@@ -26,6 +26,7 @@ public:
         std::string path;
         bool network = false;
         bool device = false;
+        bool ejectable = false;
     };
 
     static MountsClient& instance();

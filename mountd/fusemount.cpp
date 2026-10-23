@@ -36,12 +36,14 @@ static void *fuseInit(struct fuse_conn_info *connection, struct fuse_config *con
     connection->max_write = 1024 * 1024;
     connection->max_readahead = 1024 * 1024;
 
-    // The far end changes under us, so the kernel keeps what it learnt only briefly.
-    config->entry_timeout = 1;
-    config->attr_timeout = 1;
-    config->negative_timeout = 0;
-    config->kernel_cache = 0;
-    config->use_ino = 0;
+    // A far end changes under us, so the kernel keeps what it learnt only briefly; a
+    // read-only one never does.
+    const bool fixed = current()->backend()->readOnly();
+    config->entry_timeout = fixed ? 3600 : 1;
+    config->attr_timeout = fixed ? 3600 : 1;
+    config->negative_timeout = fixed ? 3600 : 0;
+    config->kernel_cache = fixed;
+    config->use_ino = fixed;
     return fuse_get_context()->private_data;
 }
 
@@ -273,7 +275,9 @@ bool FuseMount::start(std::string *message)
         return false;
     }
 
-    const std::string options = "fsname=" + optionValue(m_source) + ",subtype=cutefish-mountd";
+    std::string options = "fsname=" + optionValue(m_source) + ",subtype=cutefish-mountd";
+    if (m_backend->readOnly())
+        options += ",ro";
     const char *argv[] = {"cutefish-mountd", "-o", options.c_str()};
     struct fuse_args args = FUSE_ARGS_INIT(3, const_cast<char **>(argv));
 

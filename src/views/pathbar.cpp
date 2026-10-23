@@ -3,6 +3,7 @@
 
 #include "views/colors.h"
 #include "views/pathbar.h"
+#include "core/mounts.h"
 #include "model/foldermodel.h"
 #include "views/completionpopup.h"
 #include "views/style.h"
@@ -386,6 +387,11 @@ PathBar::PathBar()
             onOpenInNewWindow(path);
     };
     m_crumbs->onEmptyClicked = [this] { openEditor(); };
+    // A window opened on a new mount can come before the mount's own listing does.
+    m_mountsChanged = MountsClient::instance().mountsChanged.connect([this] {
+        if (!m_url.empty())
+            updateUrl(m_url);
+    });
 
     auto* editor = addChild<PathEditor>(this);
     m_editor = editor;

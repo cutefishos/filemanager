@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-10-19 22:48+0800\n"
+"POT-Creation-Date: 2026-10-23 09:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -149,6 +149,38 @@ msgstr ""
 msgid "The task could not be published"
 msgstr ""
 
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr ""
+
+#: mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr ""
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr ""
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr ""
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr ""
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr ""
+
+#: mountd/diskimagebackend.cpp
+msgid "Disk images with an APFS volume cannot be opened yet."
+msgstr ""
+
+#: mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr ""
+
 #: mountd/fusemount.cpp
 #, python-brace-format
 msgid "Cannot create {path}"
@@ -161,6 +193,10 @@ msgstr ""
 #: mountd/fusemount.cpp
 #, python-brace-format
 msgid "Cannot mount {path}"
+msgstr ""
+
+#: mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
 msgstr ""
 
 #: mountd/mountservice.cpp
@@ -222,13 +258,6 @@ msgstr ""
 msgid "Run"
 msgstr ""
 
-#: src/app/dialogs.cpp src/chooser/chooserwindow.cpp
-#: src/dialogs/archivepassworddialog.cpp src/dialogs/archiveprogressdialog.cpp
-#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
-#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
-msgid "Cancel"
-msgstr ""
-
 #: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
 msgid "Favorites"
 msgstr ""
@@ -245,13 +274,11 @@ msgstr ""
 msgid "New Folder"
 msgstr ""
 
-#: src/chooser/chooserwindow.cpp
-msgid "Device unavailable"
-msgstr ""
-
-#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
-#: src/views/sidebar.cpp
-msgid "Close"
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/archiveprogressdialog.cpp src/dialogs/iotaskdialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
+msgid "Cancel"
 msgstr ""
 
 #: src/chooser/chooserwindow.cpp
@@ -265,6 +292,15 @@ msgstr ""
 
 #: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
 msgid "Replace"
+msgstr ""
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr ""
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
 msgstr ""
 
 #: src/chooser/chooserwindow.cpp
@@ -1145,6 +1181,14 @@ msgid "Unmount"
 msgstr ""
 
 #: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr ""
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr ""
+
+#: src/views/sidebar.cpp
 #, python-brace-format
 msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
 msgstr ""
@@ -1152,14 +1196,6 @@ msgstr ""
 #: src/views/sidebar.cpp
 #, python-brace-format
 msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
-msgstr ""
-
-#: src/views/sidebar.cpp
-msgid "Server Identity Changed"
-msgstr ""
-
-#: src/views/sidebar.cpp
-msgid "Unknown Server"
 msgstr ""
 
 #: src/views/sidebar.cpp

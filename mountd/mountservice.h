@@ -42,15 +42,17 @@ private:
         bool network = true;
         // Devices stay listed while unmounted.
         bool device = false;
+        // Disk images go away when ejected, as devices do when pulled out.
+        bool ejectable = false;
         std::unique_ptr<FuseMount> mount;
     };
 
     std::vector<cutefish::base::dbus::VariantMap> mounts() const;
-    // location is a URL (sftp://, smb://) or the id of a device from Mounts(). Answers
-    // (status, details): "mounted" with path; "password" with user, domain, needsDomain,
-    // anonymousAllowed and retry; "hostkey" with fingerprint and changed; "failed" with
-    // message. options carry the answers: user, domain, password, anonymous, remember,
-    // hostKey.
+    // location is a URL (sftp://, smb://), the id of a device from Mounts() or the path of
+    // a disk image. Answers (status, details): "mounted" with path; "password" with user,
+    // domain, needsDomain, anonymousAllowed and retry; "hostkey" with fingerprint and
+    // changed; "failed" with message. options carry the answers: user, domain, password,
+    // anonymous, remember, hostKey.
     void mount(cutefish::base::dbus::MethodCall &call);
     void unmount(cutefish::base::dbus::MethodCall &call);
     void mountsChanged();

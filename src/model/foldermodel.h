@@ -270,6 +270,8 @@ private:
     void rememberNewDocumentPosition(const std::string& name);
     void startArchive(OperationTaskPtr task, const std::string& operation, const std::string& outputPath);
     void archiveFinished(bool success, bool canceled, const std::string& outputPath);
+    // Mounts the image through cutefish-mountd; its volume shows in the sidebar.
+    void mountDiskImage(const std::string& path);
     void pasteTo(const std::string& destination, const std::string& selectIn);
     void createActions();
     void updateActions();

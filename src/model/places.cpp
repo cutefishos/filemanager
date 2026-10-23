@@ -216,7 +216,7 @@ void PlacesModel::syncMounts()
         volume.name = mount.name;
         volume.icon = mount.icon;
         volume.filesystem = true;
-        volume.ejectable = mount.device;
+        volume.ejectable = mount.ejectable;
         if (!mount.path.empty())
             volume.mountPoints = {mount.path};
 

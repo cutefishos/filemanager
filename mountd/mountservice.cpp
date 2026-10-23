@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "mountservice.h"
+#include "diskimagebackend.h"
 #include "keyring.h"
 #include "mtpbackend.h"
 #include "mtpmonitor.h"
@@ -13,7 +14,9 @@
 #include "base/paths.h"
 #include "base/process.h"
 #include "base/strings.h"
+#include "base/url.h"
 
+#include <climits>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <thread>
@@ -78,6 +81,26 @@ static bool exists(const std::string &path)
 {
     struct stat st;
     return ::lstat(path.c_str(), &st) == 0;
+}
+
+// The disk image a location names: a local path or file: URL of a regular file.
+static std::string diskImagePath(const std::string &location)
+{
+    std::string path = location;
+    if (location.starts_with("file:")) {
+        const auto local = url::toLocalFile(location);
+        if (!local)
+            return {};
+        path = *local;
+    }
+    if (!path.starts_with('/'))
+        return {};
+
+    char resolved[PATH_MAX];
+    struct stat st;
+    if (!::realpath(path.c_str(), resolved) || ::stat(resolved, &st) != 0 || !S_ISREG(st.st_mode))
+        return {};
+    return resolved;
 }
 
 static std::string optionString(const dbus::VariantMap &options, const std::string &key)
@@ -182,6 +205,7 @@ dbus::VariantMap MountService::describe(const Entry &entry) const
         {"path", dbus::Variant(entry.mount ? entry.mount->mountPoint() : std::string())},
         {"network", dbus::Variant(entry.network)},
         {"device", dbus::Variant(entry.device)},
+        {"ejectable", dbus::Variant(entry.device || entry.ejectable)},
     };
 }
 
@@ -220,7 +244,13 @@ void MountService::mount(dbus::MethodCall &call)
     };
 
     Entry *device = find(location);
-    const RemoteUrl url = device ? device->url : RemoteUrl::parse(location);
+    const std::string imagePath = device ? std::string() : diskImagePath(location);
+    const std::string imageId = imagePath.empty() ? std::string() : url::fromLocalFile(imagePath);
+    RemoteUrl url;
+    if (device)
+        url = device->url;
+    else if (imagePath.empty())
+        url = RemoteUrl::parse(location);
 
     Credentials credentials;
     credentials.user = optionString(options, "user");
@@ -237,8 +267,9 @@ void MountService::mount(dbus::MethodCall &call)
             continue;
 
         const RemoteUrl mounted = RemoteUrl::parse(entry->id);
-        const bool same = device ? entry.get() == device
-                                 : !entry->device && mounted.scheme == key.scheme && mounted.host == key.host
+        const bool same = !imageId.empty() ? entry->id == imageId
+                : device                   ? entry.get() == device
+                                           : !entry->device && mounted.scheme == key.scheme && mounted.host == key.host
                         && mounted.port == key.port && (key.user.empty() || mounted.user == key.user);
         if (!same)
             continue;
@@ -251,7 +282,9 @@ void MountService::mount(dbus::MethodCall &call)
     }
 
     std::unique_ptr<Backend> backend;
-    if (device) {
+    if (!imagePath.empty()) {
+        backend = std::make_unique<DiskImageBackend>(imagePath);
+    } else if (device) {
         const MtpMonitor::Device found = m_monitor->device(device->id);
         if (found.bus)
             backend = std::make_unique<MtpBackend>(found.bus, found.number);
@@ -264,7 +297,7 @@ void MountService::mount(dbus::MethodCall &call)
         return;
     }
 
-    const std::string pendingKey = device ? device->id : serverId(url, credentials.user);
+    const std::string pendingKey = !imageId.empty() ? imageId : device ? device->id : serverId(url, credentials.user);
     if (m_pending.contains(pendingKey)) {
         fail(format(tr("Already connecting to “{location}”."), {{"location", location}}));
         return;
@@ -278,11 +311,11 @@ void MountService::mount(dbus::MethodCall &call)
     const int callId = m_nextCall++;
     m_calls.emplace(callId, call);
 
-    std::thread([this, alive = m_alive, loop, callId, url, deviceId, pendingKey, credentials, remember,
-                 shared]() mutable {
+    std::thread([this, alive = m_alive, loop, callId, url, deviceId, imageId, imagePath, pendingKey, credentials,
+                 remember, shared]() mutable {
         Credentials attempt = credentials;
         bool fromKeyring = false;
-        if (attempt.password.empty() && !attempt.anonymous && deviceId.empty())
+        if (attempt.password.empty() && !attempt.anonymous && deviceId.empty() && imageId.empty())
             fromKeyring = Keyring::find(url, &attempt);
 
         ConnectResult result = (*shared)->connect(attempt);
@@ -294,8 +327,8 @@ void MountService::mount(dbus::MethodCall &call)
         if (result.status == ConnectResult::Connected && remember && !attempt.anonymous)
             Keyring::store(url, attempt);
 
-        loop.post([this, alive, callId, url, deviceId, pendingKey, result, attempt, credentials, fromKeyring,
-                   shared]() mutable {
+        loop.post([this, alive, callId, url, deviceId, imageId, imagePath, pendingKey, result, attempt, credentials,
+                   fromKeyring, shared]() mutable {
             if (!*alive)
                 return;
             m_pending.erase(pendingKey);
@@ -328,7 +361,18 @@ void MountService::mount(dbus::MethodCall &call)
                 std::unique_ptr<Backend> backend = std::move(*shared);
                 Entry *entry = deviceId.empty() ? nullptr : find(deviceId);
                 std::unique_ptr<Entry> created;
-                if (!entry) {
+                if (!entry && !imageId.empty()) {
+                    created = std::make_unique<Entry>();
+                    entry = created.get();
+                    entry->id = imageId;
+                    entry->kind = "image";
+                    entry->name = static_cast<DiskImageBackend *>(backend.get())->volumeName();
+                    if (entry->name.empty())
+                        entry->name = imagePath.substr(imagePath.rfind('/') + 1);
+                    entry->icon = "drive-removable-media";
+                    entry->network = false;
+                    entry->ejectable = true;
+                } else if (!entry) {
                     created = std::make_unique<Entry>();
                     entry = created.get();
                     const std::string user = !attempt.user.empty() ? attempt.user : url.user;

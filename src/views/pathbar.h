@@ -140,6 +140,7 @@ private:
     bool m_dragged = false;
     ui::PointF m_press;
     base::Subscription m_searchChanged;
+    base::Subscription m_mountsChanged;
 };
 
 } // namespace fm
