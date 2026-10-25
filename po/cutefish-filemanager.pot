@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-10-23 09:30+0800\n"
+"POT-Creation-Date: 2026-10-25 18:24+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -149,12 +149,20 @@ msgstr ""
 msgid "The task could not be published"
 msgstr ""
 
-#: mountd/diskimage.cpp
-msgid "The file is not a disk image that can be opened."
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr ""
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr ""
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
 msgstr ""
 
 #: mountd/diskimage.cpp
-msgid "Encrypted disk images cannot be opened."
+msgid "The file is not a disk image that can be opened."
 msgstr ""
 
 #: mountd/diskimage.cpp
@@ -173,14 +181,6 @@ msgstr ""
 msgid "The disk image uses a compression that cannot be read."
 msgstr ""
 
-#: mountd/diskimagebackend.cpp
-msgid "Disk images with an APFS volume cannot be opened yet."
-msgstr ""
-
-#: mountd/diskimagebackend.cpp
-msgid "The disk image holds no volume that can be opened."
-msgstr ""
-
 #: mountd/fusemount.cpp
 #, python-brace-format
 msgid "Cannot create {path}"
@@ -193,10 +193,6 @@ msgstr ""
 #: mountd/fusemount.cpp
 #, python-brace-format
 msgid "Cannot mount {path}"
-msgstr ""
-
-#: mountd/hfsplus.cpp
-msgid "The volume in the disk image is damaged."
 msgstr ""
 
 #: mountd/mountservice.cpp

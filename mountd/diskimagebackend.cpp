@@ -3,6 +3,9 @@
 
 #include "diskimagebackend.h"
 
+#include "apfs.h"
+#include "hfsplus.h"
+
 #include "base/i18n.h"
 
 #include <climits>
@@ -24,23 +27,20 @@ ConnectResult DiskImageBackend::connect(const Credentials &)
     if (!m_image.open(m_path, &result.message))
         return result;
 
-    bool apfs = false;
     for (const DiskImage::Volume &volume : m_image.volumes()) {
-        if (volume.format == DiskImage::Format::Apfs) {
-            apfs = true;
-            continue;
-        }
-
-        auto hfs = std::make_unique<HfsPlus>(&m_image, volume.offset, volume.size);
-        if (!hfs->open(&result.message))
+        std::unique_ptr<DiskVolume> opened;
+        if (volume.format == DiskImage::Format::Apfs)
+            opened = std::make_unique<Apfs>(&m_image, volume.offset, volume.size);
+        else
+            opened = std::make_unique<HfsPlus>(&m_image, volume.offset, volume.size);
+        if (!opened->open(&result.message))
             return result;
-        m_volume = std::move(hfs);
+        m_volume = std::move(opened);
         result.status = ConnectResult::Connected;
         return result;
     }
 
-    result.message = apfs ? tr("Disk images with an APFS volume cannot be opened yet.")
-                          : tr("The disk image holds no volume that can be opened.");
+    result.message = tr("The disk image holds no volume that can be opened.");
     return result;
 }
 
@@ -49,47 +49,44 @@ std::string DiskImageBackend::volumeName() const
     return m_volume ? m_volume->name() : std::string();
 }
 
-void DiskImageBackend::fillStat(const HfsPlus::Item &item, struct stat *st) const
+void DiskImageBackend::fillStat(const DiskVolume::Attributes &attributes, struct stat *st) const
 {
+    const bool folder = S_ISDIR(attributes.mode);
     *st = {};
-    st->st_ino = item.id;
-    st->st_mode = item.mode;
-    st->st_nlink = item.folder ? 1 : item.links;
+    st->st_ino = attributes.id;
+    st->st_mode = attributes.mode;
+    st->st_nlink = folder ? 1 : attributes.links;
     // Owners on the disk are accounts of the machine that made it.
     st->st_uid = ::getuid();
     st->st_gid = ::getgid();
-    st->st_size = item.folder ? 0 : off_t(item.size);
+    st->st_size = folder ? 0 : off_t(attributes.size);
     st->st_blksize = 4096;
-    st->st_blocks = blkcnt_t((item.size + 511) / 512);
-    st->st_mtim.tv_sec = item.modified;
-    st->st_ctim.tv_sec = item.changed;
-    st->st_atim.tv_sec = item.accessed;
+    st->st_blocks = blkcnt_t((attributes.size + 511) / 512);
+    st->st_mtim = attributes.modified;
+    st->st_ctim = attributes.changed;
+    st->st_atim = attributes.accessed;
 }
 
 int DiskImageBackend::stat(const std::string &path, struct stat *st)
 {
-    HfsPlus::Item item;
-    if (const int error = m_volume->lookup(path, &item); error < 0)
+    DiskVolume::Attributes attributes;
+    if (const int error = m_volume->stat(path, &attributes); error < 0)
         return error;
-    fillStat(item, st);
+    fillStat(attributes, st);
     return 0;
 }
 
 int DiskImageBackend::list(const std::string &path, std::vector<DirectoryEntry> *entries)
 {
-    HfsPlus::Item folder;
-    if (const int error = m_volume->lookup(path, &folder); error < 0)
-        return error;
-
-    std::vector<std::pair<std::string, HfsPlus::Item>> children;
-    if (const int error = m_volume->list(folder, &children); error < 0)
+    std::vector<std::pair<std::string, DiskVolume::Attributes>> children;
+    if (const int error = m_volume->list(path, &children); error < 0)
         return error;
 
     entries->reserve(children.size());
-    for (const auto &[name, item] : children) {
+    for (const auto &[name, attributes] : children) {
         DirectoryEntry entry;
         entry.name = name;
-        fillStat(item, &entry.st);
+        fillStat(attributes, &entry.st);
         entries->push_back(std::move(entry));
     }
     return 0;
@@ -100,12 +97,8 @@ int DiskImageBackend::open(const std::string &path, int flags, mode_t, uint64_t 
     if ((flags & O_ACCMODE) != O_RDONLY || (flags & (O_CREAT | O_TRUNC)))
         return -EROFS;
 
-    HfsPlus::Item item;
-    if (const int error = m_volume->lookup(path, &item); error < 0)
-        return error;
-
-    std::unique_ptr<HfsPlus::File> file;
-    if (const int error = m_volume->openFile(item, &file); error < 0)
+    std::unique_ptr<DiskVolume::File> file;
+    if (const int error = m_volume->openFile(path, &file); error < 0)
         return error;
 
     *handle = m_nextHandle++;
@@ -171,10 +164,7 @@ int DiskImageBackend::setTimes(const std::string &, const struct timespec[2])
 
 int DiskImageBackend::readLink(const std::string &path, std::string *target)
 {
-    HfsPlus::Item item;
-    if (const int error = m_volume->lookup(path, &item); error < 0)
-        return error;
-    return m_volume->readLink(item, target);
+    return m_volume->readLink(path, target);
 }
 
 int DiskImageBackend::makeLink(const std::string &, const std::string &)

@@ -22,7 +22,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-// hfsplus.img.gz, made by data/make-hfsplus-image.py; the names and contents below are what it writes.
+// hfsplus.img.gz, made by data/make-hfsplus-image.py, and apfs.img.gz and apfs-plain.img.gz, made by
+// data/make-apfs-image.py; the names and contents below are what they write.
 static constexpr uint64_t kBlock = 4096;
 static constexpr uint64_t kSector = 512;
 
@@ -54,10 +55,10 @@ static std::string pattern(const std::string &label, size_t size)
     return out;
 }
 
-static Bytes fixture()
+static Bytes fixture(const std::string &name = "hfsplus.img.gz")
 {
     Bytes volume;
-    gzFile file = gzopen(FIXTURE_DIR "/hfsplus.img.gz", "rb");
+    gzFile file = gzopen((FIXTURE_DIR "/" + name).c_str(), "rb");
     if (!file)
         return volume;
     uint8_t buffer[65536];
@@ -96,6 +97,41 @@ static void putLe64(Bytes &out, size_t at, uint64_t value)
 {
     putLe32(out, at, uint32_t(value));
     putLe32(out, at + 4, uint32_t(value >> 32));
+}
+
+static uint64_t le64(const Bytes &in, size_t at)
+{
+    uint64_t value = 0;
+    for (int i = 7; i >= 0; --i)
+        value = value << 8 | in[at + i];
+    return value;
+}
+
+// The Fletcher-64 an APFS object stores in its first eight bytes.
+static uint64_t apfsChecksum(const uint8_t *block)
+{
+    uint64_t low = 0;
+    uint64_t high = 0;
+    for (size_t at = 8; at < kBlock; at += 4) {
+        const uint32_t word = uint32_t(block[at]) | uint32_t(block[at + 1]) << 8 | uint32_t(block[at + 2]) << 16
+                | uint32_t(block[at + 3]) << 24;
+        low = (low + word) % 0xFFFFFFFF;
+        high = (high + low) % 0xFFFFFFFF;
+    }
+    const uint64_t first = 0xFFFFFFFF - (low + high) % 0xFFFFFFFF;
+    const uint64_t second = 0xFFFFFFFF - (low + first) % 0xFFFFFFFF;
+    return second << 32 | first;
+}
+
+static bool isApfsObject(const Bytes &volume, uint64_t block)
+{
+    const uint8_t *at = volume.data() + block * kBlock;
+    return le64(volume, block * kBlock) == apfsChecksum(at) && le64(volume, block * kBlock) != 0;
+}
+
+static void sealApfsObject(Bytes &volume, uint64_t block)
+{
+    putLe64(volume, block * kBlock, apfsChecksum(volume.data() + block * kBlock));
 }
 
 // Literal runs and back references, the longest match of the last place each three bytes were seen.
@@ -636,13 +672,13 @@ TEST_F(DiskImageTest, RefusesWhatItCannotRead)
     DiskImage sparseImage;
     EXPECT_FALSE(sparseImage.open(write("sparse.dmg", sparse), &message));
 
-    // An APFS container in the partition.
+    // An APFS container in the partition with nothing behind its signature.
     Bytes container(1024 * kBlock);
     std::memcpy(container.data() + 32, "NXSB", 4);
     DiskImageBackend apfs(write("apfs.dmg", udif(withGpt(container), Zlib)));
     ConnectResult result = apfs.connect({});
     EXPECT_EQ(result.status, ConnectResult::Failed);
-    EXPECT_NE(result.message.find("APFS"), std::string::npos);
+    EXPECT_FALSE(result.message.empty());
 
     Bytes noise(1024 * kBlock);
     std::mt19937 random(3);
@@ -698,3 +734,252 @@ TEST_F(DiskImageTest, RefusesWhatItCannotRead)
         }
     }
 }
+
+class ApfsTest : public DiskImageTest, public ::testing::WithParamInterface<const char *>
+{
+protected:
+    void SetUp() override
+    {
+        DiskImageTest::SetUp();
+        m_container = fixture(GetParam());
+        ASSERT_EQ(m_container.size(), 2048 * kBlock) << "data/" << GetParam() << " is missing";
+    }
+
+    // Through the mount's interface, in pieces.
+    static std::string contents(DiskImageBackend &backend, const std::string &path)
+    {
+        struct stat st;
+        EXPECT_EQ(backend.stat(path, &st), 0) << path;
+        uint64_t handle = 0;
+        EXPECT_EQ(backend.open(path, O_RDONLY, 0, &handle), 0) << path;
+        std::string data(size_t(st.st_size), '\0');
+        size_t done = 0;
+        while (done < data.size()) {
+            const int got = backend.read(handle, data.data() + done, std::min<size_t>(40000, data.size() - done),
+                                         off_t(done));
+            if (got <= 0) {
+                ADD_FAILURE() << path << " read " << got << " at " << done;
+                break;
+            }
+            done += size_t(got);
+        }
+        backend.release(handle);
+        return data;
+    }
+
+    // The block holding the volume superblock.
+    uint64_t volumeBlock() const
+    {
+        for (uint64_t block = 0; block < m_container.size() / kBlock; ++block) {
+            if (std::memcmp(m_container.data() + block * kBlock + 32, "APSB", 4) == 0)
+                return block;
+        }
+        return 0;
+    }
+
+    Bytes m_container;
+};
+
+INSTANTIATE_TEST_SUITE_P(Names, ApfsTest, testing::Values("apfs.img.gz", "apfs-plain.img.gz"),
+                         [](const testing::TestParamInfo<const char *> &info) {
+                             return std::string(info.param).find("plain") != std::string::npos ? "Plain" : "Hashed";
+                         });
+
+TEST_P(ApfsTest, ReadsTheVolume)
+{
+    const std::string path = write("apfs.dmg", udif(withGpt(m_container), Lzfse));
+    DiskImage image;
+    std::string message;
+    ASSERT_TRUE(image.open(path, &message)) << message;
+    const std::vector<DiskImage::Volume> volumes = image.volumes();
+    ASSERT_EQ(volumes.size(), 1u);
+    EXPECT_EQ(volumes[0].format, DiskImage::Format::Apfs);
+
+    DiskImageBackend backend(path);
+    const ConnectResult result = backend.connect({});
+    ASSERT_EQ(result.status, ConnectResult::Connected) << result.message;
+    EXPECT_EQ(backend.volumeName(), "Fixture Disk");
+
+    std::vector<DirectoryEntry> entries;
+    ASSERT_EQ(backend.list("/", &entries), 0);
+    std::map<std::string, struct stat> byName;
+    for (const DirectoryEntry &entry : entries)
+        byName[entry.name] = entry.st;
+    // Names as stored, composed or not; the volume's own folders stay out of sight.
+    for (const char *name : {"hello.txt", "empty", "Folder", "Café ünïcode.txt",
+                             "Café decomposed.txt", "a:b.txt", "link", "Applications", "original.bin",
+                             "fragmented.bin", "sparse.bin", "filler", "zlib-inline.txt", "lzfse-resource.txt"})
+        EXPECT_TRUE(byName.contains(name)) << name;
+    EXPECT_FALSE(byName.contains("root"));
+    EXPECT_FALSE(byName.contains("private-dir"));
+
+    EXPECT_EQ(contents(backend, "/hello.txt"), "Hello, disk image.\n");
+    EXPECT_EQ(byName["hello.txt"].st_mode, mode_t(S_IFREG | 0640));
+    EXPECT_EQ(byName["hello.txt"].st_mtim.tv_sec, 1767225600 + 1);
+    EXPECT_EQ(byName["hello.txt"].st_ctim.tv_sec, 1767225600 + 2);
+    EXPECT_EQ(byName["hello.txt"].st_uid, ::getuid());
+    EXPECT_EQ(contents(backend, "/empty"), "");
+    EXPECT_EQ(contents(backend, "/Folder/nested/deep.txt"), pattern("deep", 5000));
+    EXPECT_EQ(contents(backend, "/Café ünïcode.txt"), "composed\n");
+    EXPECT_EQ(contents(backend, "/Café decomposed.txt"), "decomposed\n");
+    EXPECT_EQ(contents(backend, "/a:b.txt"), "colon\n");
+    EXPECT_EQ(contents(backend, "/filler/0450"), pattern("filler 450", kBlock));
+
+    std::string target;
+    EXPECT_EQ(backend.readLink("/link", &target), 0);
+    EXPECT_EQ(target, "hello.txt");
+    EXPECT_EQ(backend.readLink("/Applications", &target), 0);
+    EXPECT_EQ(target, "/Applications");
+    EXPECT_TRUE(S_ISLNK(byName["link"].st_mode));
+    EXPECT_EQ(byName["link"].st_size, 9);
+    EXPECT_EQ(backend.readLink("/hello.txt", &target), -EINVAL);
+
+    struct stat linked;
+    ASSERT_EQ(backend.stat("/Folder/hardlink.bin", &linked), 0);
+    EXPECT_EQ(linked.st_ino, byName["original.bin"].st_ino);
+    EXPECT_EQ(linked.st_nlink, 2u);
+    EXPECT_EQ(contents(backend, "/Folder/hardlink.bin"), pattern("linked", 9000));
+
+    // One extent a block, read across them.
+    const std::string fragmented = pattern("fragmented", 40 * kBlock);
+    EXPECT_EQ(contents(backend, "/fragmented.bin"), fragmented);
+    uint64_t handle = 0;
+    ASSERT_EQ(backend.open("/fragmented.bin", O_RDONLY, 0, &handle), 0);
+    std::string middle(10000, '\0');
+    EXPECT_EQ(backend.read(handle, middle.data(), middle.size(), 30000), 10000);
+    EXPECT_EQ(middle, fragmented.substr(30000, 10000));
+    EXPECT_EQ(backend.read(handle, middle.data(), middle.size(), off_t(fragmented.size() - 10)), 10);
+    EXPECT_EQ(backend.read(handle, middle.data(), middle.size(), off_t(fragmented.size())), 0);
+    backend.release(handle);
+
+    // A hole of three blocks reads as zeros; the file ends inside its last extent.
+    const std::string sparseData = pattern("sparse", 6 * kBlock);
+    const std::string sparse = (sparseData.substr(0, kBlock) + std::string(3 * kBlock, '\0')
+                                + sparseData.substr(4 * kBlock)).substr(0, 5 * kBlock + 100);
+    EXPECT_EQ(contents(backend, "/sparse.bin"), sparse);
+
+    const std::pair<const char *, size_t> compressed[] = {
+        {"zlib-inline.txt", 3000},   {"stored-inline.txt", 700},  {"zlib-resource.txt", 200000},
+        {"lzvn-inline.txt", 2000},   {"lzvn-resource.txt", 3000}, {"lzfse-resource.txt", 150000},
+    };
+    for (const auto &[name, size] : compressed) {
+        SCOPED_TRACE(name);
+        EXPECT_EQ(byName[name].st_size, off_t(size));
+        EXPECT_EQ(contents(backend, std::string("/") + name), pattern(name, size));
+    }
+
+    std::vector<DirectoryEntry> filler;
+    ASSERT_EQ(backend.list("/filler", &filler), 0);
+    EXPECT_EQ(filler.size(), 450u);
+    std::vector<DirectoryEntry> folder;
+    ASSERT_EQ(backend.list("/Folder", &folder), 0);
+    EXPECT_EQ(folder.size(), 2u);
+
+    struct stat st;
+    EXPECT_EQ(backend.stat("/nothing", &st), -ENOENT);
+    EXPECT_EQ(backend.stat("/hello.txt/inside", &st), -ENOTDIR);
+    EXPECT_EQ(backend.list("/hello.txt", &entries), -ENOTDIR);
+    EXPECT_EQ(backend.open("/Folder", O_RDONLY, 0, &handle), -EISDIR);
+    EXPECT_EQ(backend.open("/hello.txt", O_RDWR, 0, &handle), -EROFS);
+
+    struct statvfs vfs;
+    ASSERT_EQ(backend.statfs("/", &vfs), 0);
+    EXPECT_EQ(vfs.f_bsize, kBlock);
+    EXPECT_EQ(vfs.f_blocks, 2048u);
+    EXPECT_TRUE(vfs.f_flag & ST_RDONLY);
+}
+
+TEST_P(ApfsTest, OpensTheNewestCheckpoint)
+{
+    // Block zero copies the older checkpoint's superblock; the descriptor area still has the newer one.
+    Bytes older = m_container;
+    std::copy(older.begin() + 3 * kBlock, older.begin() + 4 * kBlock, older.begin());
+    DiskImageBackend newest(write("older.dmg", older));
+    ConnectResult result = newest.connect({});
+    ASSERT_EQ(result.status, ConnectResult::Connected) << result.message;
+    EXPECT_EQ(newest.volumeName(), "Fixture Disk");
+
+    // Without the newer superblock, the older checkpoint's map has no volume at its transaction.
+    std::fill(older.begin() + kBlock, older.begin() + 2 * kBlock, 0);
+    DiskImageBackend stale(write("stale.dmg", older));
+    result = stale.connect({});
+    EXPECT_EQ(result.status, ConnectResult::Failed);
+    EXPECT_FALSE(result.message.empty());
+}
+
+TEST_P(ApfsTest, RefusesWhatItCannotRead)
+{
+    const uint64_t block = volumeBlock();
+    ASSERT_NE(block, 0u);
+
+    Bytes encrypted = m_container;
+    putLe64(encrypted, block * kBlock + 264, 0);
+    sealApfsObject(encrypted, block);
+    DiskImageBackend locked(write("encrypted.dmg", encrypted));
+    ConnectResult result = locked.connect({});
+    EXPECT_EQ(result.status, ConnectResult::Failed);
+    EXPECT_NE(result.message.find("Encrypted"), std::string::npos) << result.message;
+
+    // A sealed system volume.
+    Bytes sealed = m_container;
+    putLe64(sealed, block * kBlock + 56, le64(sealed, block * kBlock + 56) | 0x20);
+    sealApfsObject(sealed, block);
+    DiskImageBackend system(write("sealed.dmg", sealed));
+    result = system.connect({});
+    EXPECT_EQ(result.status, ConnectResult::Failed);
+    EXPECT_FALSE(result.message.empty());
+
+    // A damaged checksum is a damaged volume, not one read wrong.
+    Bytes damaged = m_container;
+    damaged[block * kBlock + 704] ^= 0x20;
+    DiskImageBackend broken(write("damaged.dmg", damaged));
+    result = broken.connect({});
+    EXPECT_EQ(result.status, ConnectResult::Failed);
+    EXPECT_NE(result.message.find("damaged"), std::string::npos) << result.message;
+}
+
+// Fuzzed objects keep valid checksums, so the damage reaches the trees. They may fail but
+// never crash or hang. Runs with --gtest_shuffle try other seeds.
+TEST_P(ApfsTest, SurvivesDamagedObjects)
+{
+    std::vector<uint64_t> objects;
+    for (uint64_t block = 0; block < m_container.size() / kBlock; ++block) {
+        if (isApfsObject(m_container, block))
+            objects.push_back(block);
+    }
+    ASSERT_GT(objects.size(), 50u);
+
+    std::mt19937 flips(unsigned(::testing::UnitTest::GetInstance()->random_seed()));
+    for (int round = 0; round < 60; ++round) {
+        Bytes volume = m_container;
+        for (int i = 0; i < 16; ++i) {
+            const uint64_t block = objects[flips() % objects.size()];
+            // Mostly the headers and tables at the start of a node.
+            const size_t at = 32 + flips() % (round % 2 ? kBlock - 32 : 256);
+            volume[block * kBlock + at] = uint8_t(flips());
+            sealApfsObject(volume, block);
+        }
+        DiskImageBackend fuzzed(write("fuzzed.dmg", volume));
+        if (fuzzed.connect({}).status != ConnectResult::Connected)
+            continue;
+        std::vector<DirectoryEntry> entries;
+        if (fuzzed.list("/", &entries) != 0)
+            continue;
+        for (const DirectoryEntry &entry : entries) {
+            struct stat st;
+            fuzzed.stat("/" + entry.name, &st);
+            std::string target;
+            fuzzed.readLink("/" + entry.name, &target);
+            uint64_t handle;
+            if (fuzzed.open("/" + entry.name, O_RDONLY, 0, &handle) == 0) {
+                char buffer[8192];
+                fuzzed.read(handle, buffer, sizeof(buffer), 0);
+                fuzzed.read(handle, buffer, sizeof(buffer), 100000);
+                fuzzed.release(handle);
+            }
+            std::vector<DirectoryEntry> inner;
+            fuzzed.list("/" + entry.name, &inner);
+        }
+    }
+}
+

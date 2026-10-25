@@ -4,6 +4,7 @@
 #pragma once
 
 #include "diskimage.h"
+#include "diskvolume.h"
 
 #include "base/lru_cache.h"
 
@@ -17,7 +18,7 @@
 // An HFS+ or HFSX volume, read only. Names come as UTF-8 with '/' shown as ':',
 // hard links resolve to the file they share, and compressed files read as their
 // contents.
-class HfsPlus
+class HfsPlus : public DiskVolume
 {
 public:
     struct Extent
@@ -55,42 +56,32 @@ public:
         uint32_t special = 0;
     };
 
-    // Reads a file's contents.
-    class File
-    {
-    public:
-        virtual ~File() = default;
-        // A byte count, or a negative errno.
-        virtual int read(char *buffer, size_t size, uint64_t offset) = 0;
-    };
-
     HfsPlus(DiskImage *disk, uint64_t offset, uint64_t size);
-    ~HfsPlus();
+    ~HfsPlus() override;
 
     HfsPlus(const HfsPlus &) = delete;
     HfsPlus &operator=(const HfsPlus &) = delete;
 
-    // False with a message the user can read.
-    bool open(std::string *message);
+    bool open(std::string *message) override;
 
-    const std::string &name() const
+    const std::string &name() const override
     {
         return m_name;
     }
 
-    uint32_t blockSize() const
+    uint32_t blockSize() const override
     {
         return m_blockSize;
     }
-    uint64_t totalBlocks() const
+    uint64_t totalBlocks() const override
     {
         return m_totalBlocks;
     }
-    uint64_t freeBlocks() const
+    uint64_t freeBlocks() const override
     {
         return m_freeBlocks;
     }
-    uint64_t fileCount() const
+    uint64_t fileCount() const override
     {
         return m_fileCount;
     }
@@ -100,6 +91,11 @@ public:
     int list(const Item &folder, std::vector<std::pair<std::string, Item>> *entries);
     int openFile(const Item &item, std::unique_ptr<File> *file);
     int readLink(const Item &item, std::string *target);
+
+    int stat(const std::string &path, Attributes *attributes) override;
+    int list(const std::string &path, std::vector<std::pair<std::string, Attributes>> *entries) override;
+    int openFile(const std::string &path, std::unique_ptr<File> *file) override;
+    int readLink(const std::string &path, std::string *target) override;
 
     // A fork's bytes; false past its end or on a damaged volume.
     bool readFork(uint32_t fileId, uint8_t forkType, const Fork &fork, uint64_t offset, void *buffer,

@@ -3,17 +3,17 @@
 
 #include "hfsplus.h"
 
+#include "decmpfs.h"
+
 #include "base/i18n.h"
 
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
-#include <lzfse.h>
 #include <sys/stat.h>
 #include <unordered_set>
 #include <unicode/normalizer2.h>
 #include <unicode/unistr.h>
-#include <zlib.h>
 
 using cutefish::i18n::tr;
 
@@ -39,7 +39,6 @@ static constexpr uint8_t kCompressedFlag = 0x20;
 static constexpr int64_t kEpochOffset = 2082844800;
 
 static constexpr uint64_t kMaxInline = 64 * 1024 * 1024;
-static constexpr uint64_t kCompressedBlock = 64 * 1024;
 
 static constexpr const char16_t *kFileLinksFolder = u"\0\0\0\0HFS+ Private Data";
 static constexpr size_t kFileLinksFolderLength = 21;
@@ -58,16 +57,6 @@ static uint32_t be32(const uint8_t *p)
 static uint64_t be64(const uint8_t *p)
 {
     return uint64_t(be32(p)) << 32 | be32(p + 4);
-}
-
-static uint32_t le32(const uint8_t *p)
-{
-    return uint32_t(p[3]) << 24 | uint32_t(p[2]) << 16 | uint32_t(p[1]) << 8 | p[0];
-}
-
-static uint64_t le64(const uint8_t *p)
-{
-    return uint64_t(le32(p + 4)) << 32 | le32(p);
 }
 
 static constexpr uint32_t fourCc(const char (&code)[5])
@@ -189,99 +178,6 @@ static int compareAttributes(const uint8_t *key, size_t length, const void *targ
     return be16(key + 12) == 0 && be32(key + 8) == 0 ? 0 : 1;
 }
 
-static bool decodeLzvn(const uint8_t *in, size_t inSize, uint8_t *out, size_t outSize, std::vector<uint8_t> *scratch)
-{
-    // lzfse decodes LZVN inside its own block framing.
-    std::vector<uint8_t> framed(12 + inSize + 4);
-    std::memcpy(framed.data(), "bvxn", 4);
-    for (int i = 0; i < 4; ++i) {
-        framed[4 + i] = uint8_t(outSize >> (8 * i));
-        framed[8 + i] = uint8_t(inSize >> (8 * i));
-    }
-    std::memcpy(framed.data() + 12, in, inSize);
-    std::memcpy(framed.data() + 12 + inSize, "bvx$", 4);
-
-    if (scratch->empty())
-        scratch->resize(lzfse_decode_scratch_size());
-    return lzfse_decode_buffer(out, outSize, framed.data(), framed.size(), scratch->data()) == outSize;
-}
-
-// One compressed block or inline value of a decmpfs type, stored or encoded.
-static bool decodeBlock(uint32_t type, const uint8_t *in, size_t inSize, uint8_t *out, size_t outSize,
-                        std::vector<uint8_t> *scratch)
-{
-    if (outSize == 0)
-        return true;
-    if (inSize == 0)
-        return false;
-
-    const auto stored = [&] {
-        if (inSize - 1 < outSize)
-            return false;
-        std::memcpy(out, in + 1, outSize);
-        return true;
-    };
-
-    switch (type) {
-    case 1:
-        if (inSize < outSize)
-            return false;
-        std::memcpy(out, in, outSize);
-        return true;
-    case 3:
-    case 4: {
-        if ((in[0] & 0x0F) == 0x0F)
-            return stored();
-        uLongf length = outSize;
-        return ::uncompress(out, &length, in, uLong(inSize)) == Z_OK && length == outSize;
-    }
-    case 7:
-    case 8:
-        if (in[0] == 0x06)
-            return stored();
-        return decodeLzvn(in, inSize, out, outSize, scratch);
-    case 11:
-    case 12:
-        if (in[0] == 0xFF && inSize == outSize + 1)
-            return stored();
-        if (scratch->empty())
-            scratch->resize(lzfse_decode_scratch_size());
-        return lzfse_decode_buffer(out, outSize, in, inSize, scratch->data()) == outSize;
-    }
-    return false;
-}
-
-namespace {
-
-struct Compression
-{
-    uint32_t type = 0;
-    uint64_t size = 0;
-    std::vector<uint8_t> inlineData;
-};
-
-}
-
-static bool parseCompression(const std::vector<uint8_t> &value, Compression *compression)
-{
-    if (value.size() < 16 || std::memcmp(value.data(), "fpmc", 4) != 0)
-        return false;
-    compression->type = le32(value.data() + 4);
-    compression->size = le64(value.data() + 8);
-    compression->inlineData.assign(value.begin() + 16, value.end());
-    return true;
-}
-
-static bool inlineCompression(uint32_t type)
-{
-    return type == 1 || type == 3 || type == 7 || type == 11;
-}
-
-static bool resourceCompression(uint32_t type)
-{
-    return type == 4 || type == 8 || type == 12;
-}
-
 class PlainFile : public HfsPlus::File
 {
 public:
@@ -304,102 +200,6 @@ private:
     HfsPlus *m_volume;
     uint32_t m_fileId;
     HfsPlus::Fork m_fork;
-};
-
-class InlineFile : public HfsPlus::File
-{
-public:
-    explicit InlineFile(std::vector<uint8_t> data)
-        : m_data(std::move(data))
-    {
-    }
-
-    int read(char *buffer, size_t size, uint64_t offset) override
-    {
-        if (offset >= m_data.size())
-            return 0;
-        size = size_t(std::min<uint64_t>(size, m_data.size() - offset));
-        std::memcpy(buffer, m_data.data() + offset, size);
-        return int(size);
-    }
-
-private:
-    std::vector<uint8_t> m_data;
-};
-
-// Compressed blocks of 64 KiB in the resource fork, decoded one at a time.
-class ResourceFile : public HfsPlus::File
-{
-public:
-    struct Block
-    {
-        uint64_t offset = 0;
-        uint64_t size = 0;
-    };
-
-    ResourceFile(HfsPlus *volume, uint32_t fileId, HfsPlus::Fork resource, uint32_t type, uint64_t size,
-                 std::vector<Block> blocks)
-        : m_volume(volume)
-        , m_fileId(fileId)
-        , m_resource(std::move(resource))
-        , m_type(type)
-        , m_size(size)
-        , m_blocks(std::move(blocks))
-    {
-    }
-
-    int read(char *buffer, size_t size, uint64_t offset) override
-    {
-        if (offset >= m_size)
-            return 0;
-        size = size_t(std::min<uint64_t>(size, m_size - offset));
-
-        size_t done = 0;
-        while (done < size) {
-            const uint64_t index = (offset + done) / kCompressedBlock;
-            if (!load(index))
-                return -EIO;
-            const uint64_t within = (offset + done) - index * kCompressedBlock;
-            const size_t part = size_t(std::min<uint64_t>(size - done, m_decoded.size() - within));
-            std::memcpy(buffer + done, m_decoded.data() + within, part);
-            done += part;
-        }
-        return int(done);
-    }
-
-private:
-    bool load(uint64_t index)
-    {
-        if (index == m_decodedIndex)
-            return true;
-        if (index >= m_blocks.size())
-            return false;
-
-        const Block &block = m_blocks[index];
-        std::vector<uint8_t> input(block.size);
-        if (block.size > kCompressedBlock * 2
-            || !m_volume->readFork(m_fileId, kResourceFork, m_resource, block.offset, input.data(), input.size()))
-            return false;
-
-        const uint64_t length = std::min(kCompressedBlock, m_size - index * kCompressedBlock);
-        m_decoded.resize(length);
-        if (!decodeBlock(m_type, input.data(), input.size(), m_decoded.data(), length, &m_scratch)) {
-            m_decodedIndex = UINT64_MAX;
-            return false;
-        }
-        m_decodedIndex = index;
-        return true;
-    }
-
-    HfsPlus *m_volume;
-    uint32_t m_fileId;
-    HfsPlus::Fork m_resource;
-    uint32_t m_type;
-    uint64_t m_size;
-    std::vector<Block> m_blocks;
-    std::vector<uint8_t> m_decoded;
-    uint64_t m_decodedIndex = UINT64_MAX;
-    std::vector<uint8_t> m_scratch;
 };
 
 HfsPlus::HfsPlus(DiskImage *disk, uint64_t offset, uint64_t size)
@@ -792,10 +592,10 @@ int HfsPlus::finish(Item *item, const uint8_t *data, size_t length)
 
     if (data[41] & kCompressedFlag) {
         std::vector<uint8_t> value;
-        Compression compression;
-        if (attribute(item->id, u"com.apple.decmpfs", &value) && parseCompression(value, &compression)) {
+        Decmpfs header;
+        if (attribute(item->id, u"com.apple.decmpfs", &value) && parseDecmpfs(value, &header)) {
             item->compressed = true;
-            item->size = compression.size;
+            item->size = header.size;
         }
     }
     return 0;
@@ -936,64 +736,16 @@ int HfsPlus::openFile(const Item &item, std::unique_ptr<File> *file)
     }
 
     std::vector<uint8_t> value;
-    Compression compression;
-    if (!attribute(item.id, u"com.apple.decmpfs", &value) || !parseCompression(value, &compression))
+    Decmpfs header;
+    if (!attribute(item.id, u"com.apple.decmpfs", &value) || !parseDecmpfs(value, &header))
         return -EIO;
 
-    if (inlineCompression(compression.type)) {
-        if (compression.size > kMaxInline)
-            return -EIO;
-        std::vector<uint8_t> decoded(size_t(compression.size));
-        std::vector<uint8_t> scratch;
-        if (!decodeBlock(compression.type, compression.inlineData.data(), compression.inlineData.size(),
-                         decoded.data(), decoded.size(), &scratch))
-            return -EIO;
-        *file = std::make_unique<InlineFile>(std::move(decoded));
-        return 0;
-    }
-
-    if (!resourceCompression(compression.type))
-        return -EOPNOTSUPP;
-
-    const uint64_t expected = (compression.size + kCompressedBlock - 1) / kCompressedBlock;
-    const Fork &resource = item.resource;
-    // The table alone takes four bytes a block.
-    if (expected > resource.logicalSize / 4)
-        return -EIO;
-    std::vector<ResourceFile::Block> blocks;
-
-    if (compression.type == 4) {
-        // A resource map holding one resource: a block table, then the blocks.
-        uint8_t header[16];
-        if (!readFork(item.id, kResourceFork, resource, 0, header, sizeof(header)))
-            return -EIO;
-        const uint64_t base = uint64_t(be32(header)) + 4;
-        uint8_t count[4];
-        if (!readFork(item.id, kResourceFork, resource, base, count, sizeof(count)) || le32(count) != expected)
-            return -EIO;
-        std::vector<uint8_t> table(size_t(expected) * 8);
-        if (!readFork(item.id, kResourceFork, resource, base + 4, table.data(), table.size()))
-            return -EIO;
-        for (uint64_t i = 0; i < expected; ++i)
-            blocks.push_back({base + le32(table.data() + i * 8), le32(table.data() + i * 8 + 4)});
-    } else {
-        // Offsets of every block and of the end, from the start of the fork.
-        std::vector<uint8_t> table(size_t(expected + 1) * 4);
-        if (!readFork(item.id, kResourceFork, resource, 0, table.data(), table.size())
-            || le32(table.data()) != table.size())
-            return -EIO;
-        for (uint64_t i = 0; i < expected; ++i) {
-            const uint32_t begin = le32(table.data() + i * 4);
-            const uint32_t end = le32(table.data() + (i + 1) * 4);
-            if (end < begin)
-                return -EIO;
-            blocks.push_back({begin, end - begin});
-        }
-    }
-
-    *file = std::make_unique<ResourceFile>(this, item.id, resource, compression.type, compression.size,
-                                           std::move(blocks));
-    return 0;
+    const uint32_t id = item.id;
+    const Fork resource = item.resource;
+    const auto readResource = [this, id, resource](uint64_t offset, void *buffer, size_t size) {
+        return readFork(id, kResourceFork, resource, offset, buffer, size);
+    };
+    return openDecmpfs(header, resource.logicalSize, readResource, file);
 }
 
 int HfsPlus::readLink(const Item &item, std::string *target)
@@ -1012,4 +764,58 @@ int HfsPlus::readLink(const Item &item, std::string *target)
         return got;
     target->resize(size_t(got));
     return 0;
+}
+
+static DiskVolume::Attributes attributes(const HfsPlus::Item &item)
+{
+    DiskVolume::Attributes result;
+    result.id = item.id;
+    result.mode = item.mode;
+    result.links = item.links;
+    result.size = item.folder ? 0 : item.size;
+    result.modified.tv_sec = item.modified;
+    result.changed.tv_sec = item.changed;
+    result.accessed.tv_sec = item.accessed;
+    return result;
+}
+
+int HfsPlus::stat(const std::string &path, Attributes *attributes)
+{
+    Item item;
+    if (const int error = lookup(path, &item); error < 0)
+        return error;
+    *attributes = ::attributes(item);
+    return 0;
+}
+
+int HfsPlus::list(const std::string &path, std::vector<std::pair<std::string, Attributes>> *entries)
+{
+    Item folder;
+    if (const int error = lookup(path, &folder); error < 0)
+        return error;
+
+    std::vector<std::pair<std::string, Item>> children;
+    if (const int error = list(folder, &children); error < 0)
+        return error;
+
+    entries->reserve(children.size());
+    for (const auto &[name, item] : children)
+        entries->emplace_back(name, ::attributes(item));
+    return 0;
+}
+
+int HfsPlus::openFile(const std::string &path, std::unique_ptr<File> *file)
+{
+    Item item;
+    if (const int error = lookup(path, &item); error < 0)
+        return error;
+    return openFile(item, file);
+}
+
+int HfsPlus::readLink(const std::string &path, std::string *target)
+{
+    Item item;
+    if (const int error = lookup(path, &item); error < 0)
+        return error;
+    return readLink(item, target);
 }

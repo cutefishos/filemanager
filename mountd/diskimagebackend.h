@@ -5,12 +5,12 @@
 
 #include "backend.h"
 #include "diskimage.h"
-#include "hfsplus.h"
+#include "diskvolume.h"
 
 #include <map>
 #include <memory>
 
-// The HFS+ volume in a disk image (.dmg), read only.
+// The HFS+ or APFS volume in a disk image (.dmg), read only.
 class DiskImageBackend : public Backend
 {
 public:
@@ -44,11 +44,11 @@ public:
     int statfs(const std::string &path, struct statvfs *st) override;
 
 private:
-    void fillStat(const HfsPlus::Item &item, struct stat *st) const;
+    void fillStat(const DiskVolume::Attributes &attributes, struct stat *st) const;
 
     std::string m_path;
     DiskImage m_image;
-    std::unique_ptr<HfsPlus> m_volume;
-    std::map<uint64_t, std::unique_ptr<HfsPlus::File>> m_files;
+    std::unique_ptr<DiskVolume> m_volume;
+    std::map<uint64_t, std::unique_ptr<DiskVolume::File>> m_files;
     uint64_t m_nextHandle = 1;
 };

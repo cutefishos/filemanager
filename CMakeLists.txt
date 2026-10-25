@@ -33,6 +33,8 @@ find_path(LZFSE_INCLUDE_DIR lzfse.h REQUIRED)
 find_library(LZFSE_LIBRARY lzfse REQUIRED)
 
 add_library(mountd-core STATIC
+    mountd/apfs.cpp
+    mountd/decmpfs.cpp
     mountd/diskimage.cpp
     mountd/diskimagebackend.cpp
     mountd/fusemount.cpp
