@@ -247,7 +247,8 @@ static std::string base64(const Bytes &data)
 }
 
 // A UDIF image of disk: chunks of chunkSectors, all-zero ones left as ignored or zero-filled sectors.
-static Bytes udif(const Bytes &disk, Chunk type, uint64_t chunkSectors = 2048)
+// mergeEmpty joins runs of empty chunks into one Ignore chunk, however long.
+static Bytes udif(const Bytes &disk, Chunk type, uint64_t chunkSectors = 2048, bool mergeEmpty = false)
 {
     EXPECT_EQ(disk.size() % kSector, 0u);
     const uint64_t sectors = disk.size() / kSector;
@@ -268,6 +269,14 @@ static Bytes udif(const Bytes &disk, Chunk type, uint64_t chunkSectors = 2048)
         const uint8_t *in = disk.data() + sector * kSector;
         const size_t size = size_t(count * kSector);
         if (std::all_of(in, in + size, [](uint8_t b) { return b == 0; })) {
+            if (mergeEmpty && entries.back().type == Ignore && entries.back().sector + entries.back().count == sector) {
+                entries.back().count += count;
+                continue;
+            }
+            if (mergeEmpty) {
+                entries.push_back({uint32_t(Ignore), sector, count, data.size(), 0});
+                continue;
+            }
             entries.push_back({(sector / chunkSectors) % 2 ? uint32_t(ZeroFill) : uint32_t(Ignore), sector, count,
                                data.size(), 0});
             continue;
@@ -455,6 +464,28 @@ TEST_F(DiskImageTest, ReadsEveryChunkFormat)
         EXPECT_FALSE(image.read(disk.size(), &byte, 1));
         EXPECT_FALSE(image.read(disk.size() - 1, &byte, 2));
     }
+}
+
+TEST_F(DiskImageTest, ReadsEmptyChunksLargerThanDecodedOnes)
+{
+    // Free space after the partition, as one chunk of 80 MiB: decoded chunks may not be that large.
+    Bytes disk = withGpt(m_volume);
+    const size_t used = disk.size();
+    disk.resize(used + 80 * 1024 * 1024);
+    const std::string path = write("large.dmg", udif(disk, Lzfse, 2048, true));
+
+    DiskImage image;
+    std::string message;
+    ASSERT_TRUE(image.open(path, &message)) << message;
+    EXPECT_EQ(image.size(), disk.size());
+    Bytes tail(300000, 0xFF);
+    ASSERT_TRUE(image.read(disk.size() - tail.size(), tail.data(), tail.size()));
+    EXPECT_TRUE(std::all_of(tail.begin(), tail.end(), [](uint8_t b) { return b == 0; }));
+
+    DiskImageBackend backend(path);
+    const ConnectResult result = backend.connect({});
+    ASSERT_EQ(result.status, ConnectResult::Connected) << result.message;
+    EXPECT_EQ(backend.volumeName(), "Fixture Disk");
 }
 
 TEST_F(DiskImageTest, FindsTheVolumeInEveryLayout)

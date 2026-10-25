@@ -334,16 +334,18 @@ bool DiskImage::parseTable(const std::vector<uint8_t> &table, uint64_t dataForkO
             return false;
         }
 
+        // Only compressed chunks are decoded whole; empty ones of any size read as zeros.
+        const bool stored = chunk.type != kChunkZeroFill && chunk.type != kChunkIgnore;
+        const bool decoded = stored && chunk.type != kChunkRaw;
         const uint64_t limit = m_size / kSector;
         if (firstSector > limit || sector > limit - firstSector || sectors > limit - firstSector - sector
-            || (chunk.type != kChunkRaw && sectors * kSector > kMaxChunk)) {
+            || (decoded && sectors * kSector > kMaxChunk)) {
             *message = tr("The disk image is damaged.");
             return false;
         }
         chunk.start = (firstSector + sector) * kSector;
         chunk.length = sectors * kSector;
 
-        const bool stored = chunk.type != kChunkZeroFill && chunk.type != kChunkIgnore;
         if (stored && (chunk.dataOffset > m_fileSize || chunk.dataLength > m_fileSize - chunk.dataOffset
                        || (chunk.type == kChunkRaw && chunk.dataLength < chunk.length)
                        || (chunk.type != kChunkRaw && chunk.dataLength > 2 * kMaxChunk))) {
