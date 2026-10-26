@@ -40,7 +40,6 @@ struct FolderContents::Prepared
     FileItemList ordered;
     std::unordered_map<std::string, int> rows;
     ContentsChange change;
-    std::vector<std::string> consumedRenames;
 };
 
 FolderContents::FolderContents()
@@ -307,15 +306,17 @@ void FolderContents::prepare()
                         checkpoint();
                         const FileItem& item = *previous[row];
                         int found = -1;
+                        bool renamedHere = false;
                         if (const auto it = listedRows.find(item.url); it != listedRows.end())
                             found = it->second;
                         if (found < 0) {
                             // A rename we made ourselves: the file went away under its old
                             // name and is back under the new one; the row stays.
                             if (const auto renamed = renames.find(item.url); renamed != renames.end()) {
-                                result->consumedRenames.push_back(item.url);
-                                if (const auto it = listedRows.find(renamed->second); it != listedRows.end())
+                                if (const auto it = listedRows.find(renamed->second); it != listedRows.end()) {
                                     found = it->second;
+                                    renamedHere = true;
+                                }
                             }
                         }
                         // A rename onto an existing name keeps one row, not two.
@@ -327,6 +328,8 @@ void FolderContents::prepare()
                         }
                         retained[size_t(found)] = true;
                         previousRows[row] = found;
+                        if (renamedHere)
+                            result->change.renamed.emplace_back(item.url, incoming[size_t(found)]->url);
                     }
 
                     if (query.column < 0) {

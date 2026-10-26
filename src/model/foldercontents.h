@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace fm {
@@ -39,6 +40,8 @@ struct ContentsChange
     // The rows of files whose metadata changed, in the new order.
     std::vector<int> changedRows;
     bool reordered = false;
+    // Renames this model asked for whose row stayed: old URL, new URL.
+    std::vector<std::pair<std::string, std::string>> renamed;
 };
 
 // A listing's items sorted on a worker as the folder view shows them:

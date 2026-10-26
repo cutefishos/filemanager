@@ -5,7 +5,10 @@
 
 #include "model/foldermodel.h"
 #include "model/positioner.h"
+#include "ops/operations.h"
 
+#include "base/dbus.h"
+#include "base/process.h"
 #include "base/url.h"
 #include "ui/application.h"
 
@@ -283,4 +286,38 @@ TEST(PositionerTest, FailedRenameIsForgotten)
     std::filesystem::remove(directory.filePath("a"));
     ASSERT_TRUE(runUntil(s_app->loop(), [&] { return desktop.model.count() == 1; }));
     EXPECT_EQ(cells, std::set<int> {cell});
+}
+
+// A rename keeps the icon on its cell, even when the listing shows the file
+// under its new name in the row it had.
+TEST(PositionerTest, RenameKeepsTheCell)
+{
+    fm::OperationsClient::instance();
+    base::Process daemon;
+    ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
+    auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &s_app->loop());
+    ASSERT_TRUE(bus);
+    const base::dbus::Proxy manager(bus.get(), "org.cutefish.FileOperations", "/org/cutefish/FileOperations",
+                                    "org.cutefish.FileOperations.Manager1");
+    ASSERT_TRUE(runUntil(s_app->loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
+
+    TemporaryDir directory;
+    fmtest::writeFile(directory.filePath("a"));
+    fmtest::writeFile(directory.filePath("b"));
+    Desktop desktop(directory);
+    desktop.positioner.setGrid(3, 3);
+    ASSERT_TRUE(desktop.listed(2));
+    desktop.positioner.move({{desktop.cellOf(directory, "a"), 0}});
+    ASSERT_EQ(desktop.cellOf(directory, "a"), 0);
+
+    desktop.model.rename(desktop.model.rowForUrl(base::url::fromLocalFile(directory.filePath("a"))), "c");
+    ASSERT_TRUE(runUntil(s_app->loop(), [&] {
+        return desktop.model.rowForUrl(base::url::fromLocalFile(directory.filePath("c"))) >= 0;
+    }));
+    EXPECT_EQ(desktop.cellOf(directory, "c"), 0);
+    EXPECT_EQ(desktop.cellOf(directory, "a"), -1);
+    EXPECT_EQ(desktop.model.count(), 2);
+
+    daemon.terminate();
+    EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
 }

@@ -241,8 +241,19 @@ void Positioner::contentsChanged(const ContentsChange& change)
     // The saved layout is applied to the whole listing once it is complete.
     if (m_deferApply)
         return;
-    if (change.removed.empty() && change.added.empty())
+    if (change.removed.empty() && change.added.empty() && change.renamed.empty())
         return;
+
+    for (const auto& [from, to] : change.renamed) {
+        m_renames.erase(from);
+        const int cell = cellOfUrl(from);
+        if (cell < 0)
+            continue;
+
+        m_layout.takeUrl(from);
+        m_layout.takeUrl(to);
+        m_layout.put(cell, to);
+    }
 
     std::set<std::string> carried;
     for (const std::string& url : change.removed) {
