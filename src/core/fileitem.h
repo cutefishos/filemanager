@@ -38,7 +38,9 @@ struct FileItem
     int64_t modified = 0;
     int64_t accessed = 0;
     int64_t created = 0;
+    // A folder is no folder when it is an application bundle.
     bool isDir = false;
+    bool isBundle = false;
     bool isFile = false;
     bool isLink = false;
     bool isHidden = false;

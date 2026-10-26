@@ -5,6 +5,7 @@
 #include "core/common.h"
 #include "core/standardfolders.h"
 
+#include "base/application_bundle.h"
 #include "base/application_registry.h"
 #include "base/dbus.h"
 #include "base/file.h"
@@ -162,15 +163,28 @@ static bool isDesktopFile(const std::string& path)
     return base::mime::inherits(base::mime::typeForFile(path), "application/x-desktop");
 }
 
+static bool isBundle(const std::string& path)
+{
+    return !base::bundle::bundlePath(path).empty() && base::mime::typeForFile(path) == "inode/directory";
+}
+
 bool launchFile(const std::string& path)
 {
-    if (isDesktopFile(path))
+    if (isDesktopFile(path) || isBundle(path))
         return launchApplication(path);
     return startCommand({path});
 }
 
 bool isTrusted(const std::string& path)
 {
+    // Installing is moving it into ~/Applications.
+    if (isBundle(path)) {
+        char resolved[PATH_MAX];
+        char applications[PATH_MAX];
+        return ::realpath(parentPath(path).c_str(), resolved)
+                && ::realpath(base::bundle::applicationsDirectory().c_str(), applications)
+                && std::string(resolved) == applications;
+    }
     if (!isDesktopFile(path))
         return false;
 

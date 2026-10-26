@@ -10,6 +10,7 @@
 #include "core/standardfolders.h"
 #include "core/thumbnails.h"
 
+#include "base/application_registry.h"
 #include "base/dbus.h"
 #include "base/event_loop.h"
 #include "base/i18n.h"
@@ -355,6 +356,9 @@ std::string FolderModel::fileSizeText(int row)
             return {};
         return trn("{n} item", "{n} items", uint64_t(count));
     }
+    // The folder's own size says nothing about the application's.
+    if (file->isBundle)
+        return {};
     return formatSize(file->size);
 }
 
@@ -377,6 +381,8 @@ std::string FolderModel::fileTypeText(int row) const
         return {};
     if (file->isDir)
         return tr("Folder");
+    if (file->isBundle)
+        return tr("Application");
     return file->typeDescription.empty() ? file->mimeType : file->typeDescription;
 }
 
@@ -1160,6 +1166,11 @@ void FolderModel::openSelected()
             continue;
         }
 
+        if (file->isBundle && file->isLocalFile()) {
+            openBundle(*file);
+            continue;
+        }
+
         const std::string& mimeType = file->mimeType;
         if (mimeType == "application/x-apple-diskimage" && file->isLocalFile() && !file->isDir) {
             mountDiskImage(file->path);
@@ -1194,6 +1205,22 @@ void FolderModel::openSelected()
 
         launcher::startCommand({"xdg-open", file->url});
     }
+}
+
+void FolderModel::openBundle(const FileItem& file)
+{
+    // Without a program that runs bundles one is a folder like any other.
+    if (!base::ApplicationRegistry::instance().runsBundles()) {
+        if (m_isDesktop)
+            openInNewWindow(file.url);
+        else
+            setUrl(file.url);
+        return;
+    }
+    if (launcher::isTrusted(file.path))
+        launcher::launchFile(file.path);
+    else if (m_host)
+        m_host->confirmLaunch(file.path);
 }
 
 void FolderModel::mountDiskImage(const std::string& path)

@@ -4,6 +4,7 @@
 #include "core/lister.h"
 #include "core/standardfolders.h"
 
+#include "base/application_bundle.h"
 #include "base/desktop_entry.h"
 #include "base/file.h"
 
@@ -51,7 +52,8 @@ FileItem DirectoryLister::snapshot(const files::FileItem& item)
     result.modified = item.time(files::FileItem::ModificationTime).value_or(0);
     result.accessed = item.time(files::FileItem::AccessTime).value_or(0);
     result.created = item.time(files::FileItem::CreationTime).value_or(0);
-    result.isDir = item.isDir();
+    result.isBundle = item.isDir() && result.mimeType == base::bundle::kType;
+    result.isDir = item.isDir() && !result.isBundle;
     result.isFile = item.isFile();
     result.isLink = item.isLink();
     result.isHidden = item.isHidden();
@@ -68,8 +70,17 @@ FileItem DirectoryLister::makeItem(const std::string& path)
 
 DirectoryLister::DirectoryLister()
 {
-    // A launcher shows under its own name and icon.
+    // A launcher shows under its own name and icon, an application bundle
+    // under its folder's name without .app.
     m_lister.setItemPreparer([](files::FileItem& item) {
+        if (item.isDir() && !base::bundle::bundlePath(item.localPath()).empty()) {
+            if (const auto bundle = base::bundle::read(item.localPath(), {})) {
+                item.setMimeType(base::bundle::kType);
+                item.setDisplayName(item.name().substr(0, item.name().size() - 4));
+                item.setIconName(bundle->icon.empty() ? "application-x-executable" : bundle->icon);
+            }
+            return;
+        }
         if (!item.isDesktopFile() || !item.isFile())
             return;
         const auto contents = base::file::read(item.localPath());

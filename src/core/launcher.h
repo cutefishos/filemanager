@@ -31,9 +31,10 @@ bool setDefaultApplication(const std::string& mimeType, const std::string& deskt
 void setActivationTokenSource(std::function<void(std::function<void(const std::string& token)>)> source);
 // Starts the application (a desktop file path or id) with the file.
 bool launchApplication(const std::string& desktopFile, const std::string& file = {});
-// Runs a program or a .desktop launcher.
+// Runs a program, a .desktop launcher or an application bundle.
 bool launchFile(const std::string& path);
-// A launcher's Name and Icon can pose as anything, so only installed ones run.
+// A launcher's or a bundle's name and icon can pose as anything, so only
+// installed ones run without asking.
 bool isTrusted(const std::string& path);
 // Makes the file executable for its owner and runs it, as the launch prompt's Run does.
 bool trustAndLaunch(const std::string& path);
