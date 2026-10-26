@@ -194,8 +194,10 @@ TEST(PlacesModelTest, EncryptedAndInternalDisks)
     EXPECT_TRUE(places.at(stickRow).setupNeeded());
     EXPECT_EQ(places.at(windowsRow).category, "Internal Drives");
     EXPECT_TRUE(places.at(windowsRow).setupNeeded());
-    // Root and boot partitions are no places.
-    EXPECT_EQ(rowOf(places, kRoot + "/block_devices/Root"), -1);
+    const int rootRow = rowOf(places, kRoot + "/block_devices/Root");
+    ASSERT_GE(rootRow, 0);
+    EXPECT_EQ(places.at(rootRow).category, "Internal Drives");
+    EXPECT_EQ(places.at(rootRow).displayName(), "Computer");
     EXPECT_EQ(rowOf(places, kRoot + "/block_devices/Boot"), -1);
 
     std::vector<std::tuple<std::string, std::string, bool>> asked;
