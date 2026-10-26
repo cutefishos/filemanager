@@ -5,6 +5,8 @@
 #include "diskimagebackend.h"
 #include "hfsplus.h"
 
+#include "base/application_bundle.h"
+
 #include <gtest/gtest.h>
 
 #include <bzlib.h>
@@ -859,8 +861,11 @@ TEST_P(ApfsTest, ReadsTheVolume)
     std::string target;
     EXPECT_EQ(backend.readLink("/link", &target), 0);
     EXPECT_EQ(target, "hello.txt");
+    // The image's link to the system's applications goes to the user's.
     EXPECT_EQ(backend.readLink("/Applications", &target), 0);
-    EXPECT_EQ(target, "/Applications");
+    EXPECT_EQ(target, cutefish::base::bundle::applicationsDirectory());
+    EXPECT_TRUE(std::filesystem::is_directory(target));
+    EXPECT_EQ(byName["Applications"].st_size, off_t(target.size()));
     EXPECT_TRUE(S_ISLNK(byName["link"].st_mode));
     EXPECT_EQ(byName["link"].st_size, 9);
     EXPECT_EQ(backend.readLink("/hello.txt", &target), -EINVAL);

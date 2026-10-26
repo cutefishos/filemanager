@@ -45,6 +45,8 @@ public:
 
 private:
     void fillStat(const DiskVolume::Attributes &attributes, struct stat *st) const;
+    // A link readLink() points elsewhere has its target's length.
+    void fillLinkSize(const std::string &path, struct stat *st);
 
     std::string m_path;
     DiskImage m_image;
