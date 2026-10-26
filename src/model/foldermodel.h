@@ -303,6 +303,8 @@ private:
     std::vector<std::string> m_needSelectUrls;
     base::Timer m_needSelectTimer;
     std::string m_newDocumentUrl;
+    // Names asked for by renames still under way, by the file's old URL.
+    std::map<std::string, std::string> m_renamingNames;
 
     // The desktop.
     int m_newDocumentX = -1;

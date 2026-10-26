@@ -310,7 +310,10 @@ TEST(PositionerTest, RenameKeepsTheCell)
     desktop.positioner.move({{desktop.cellOf(directory, "a"), 0}});
     ASSERT_EQ(desktop.cellOf(directory, "a"), 0);
 
-    desktop.model.rename(desktop.model.rowForUrl(base::url::fromLocalFile(directory.filePath("a"))), "c");
+    const int row = desktop.model.rowForUrl(base::url::fromLocalFile(directory.filePath("a")));
+    desktop.model.rename(row, "c");
+    // The new name shows before the folder is listed again.
+    EXPECT_EQ(desktop.model.displayName(row), "c");
     ASSERT_TRUE(runUntil(s_app->loop(), [&] {
         return desktop.model.rowForUrl(base::url::fromLocalFile(directory.filePath("c"))) >= 0;
     }));

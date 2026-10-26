@@ -381,6 +381,7 @@ TEST(FolderModelTest, FailedRenameLeavesTheTakenNameAlone)
     // The test bus has no operations daemon, so the rename fails.
     folder.rename(folder.rowForUrl(url(directory.filePath("a"))), "z");
     ASSERT_TRUE(runUntil(loop(), [&] { return failed; }));
+    EXPECT_EQ(folder.displayName(folder.rowForUrl(url(directory.filePath("a")))), "a");
 
     std::vector<std::string> removed;
     const base::Subscription changed = folder.rowsChanged.connect([&](const fm::ContentsChange& change) {

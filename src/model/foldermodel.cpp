@@ -229,6 +229,10 @@ FolderModel::FolderModel(FolderModelHost* host, bool desktop)
         setStatus(Status::Listing);
     }));
     m_subscriptions.push_back(m_contents.rowsChanged.connect([this](const ContentsChange& change) {
+        for (const auto& [from, to] : change.renamed)
+            m_renamingNames.erase(from);
+        for (const std::string& url : change.removed)
+            m_renamingNames.erase(url);
         contentsChanged(change);
     }));
     m_subscriptions.push_back(m_contents.preparationFinished.connect([this] {
@@ -238,6 +242,7 @@ FolderModel::FolderModel(FolderModelHost* host, bool desktop)
         updateActions();
     }));
     m_subscriptions.push_back(m_contents.reset.connect([this] {
+        m_renamingNames.clear();
         m_currentIndex = -1;
         syncSelectionRows();
         countChanged.emit();
@@ -337,6 +342,10 @@ std::string FolderModel::displayName(int row) const
     const FileItemPtr file = item(row);
     if (!file)
         return {};
+    // The typed name shows at once, not the old one until the folder is listed again.
+    if (const auto renaming = m_renamingNames.find(file->url);
+        renaming != m_renamingNames.end() && file->displayName.empty())
+        return renaming->second;
     if (file->isDir && file->isLocalFile()) {
         const std::string standard = standardFolderName(file->path);
         if (!standard.empty())
@@ -1060,11 +1069,16 @@ void FolderModel::rename(int row, const std::string& name)
 
     const std::string destination = base::url::fromLocalFile(parentPath(file->path) + '/' + name);
     m_contents.expectRename(file->url, destination);
+    m_renamingNames[file->url] = name;
     renaming.emit(file->url, destination);
     const OperationTaskPtr task = OperationsClient::instance().rename(file->url, destination);
     whenFinished(task, m_alive, [this, from = file->url, destination](const OperationTask& outcome) {
         if (outcome.error() || outcome.wasCanceled()) {
             m_contents.forgetRename(from, destination);
+            if (m_renamingNames.erase(from) > 0) {
+                if (const int row = rowForUrl(from); row >= 0)
+                    rowsChanged.emit(ContentsChange {{}, {}, {row}, false});
+            }
             renameFailed.emit(from, destination);
         }
     });
