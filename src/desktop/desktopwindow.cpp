@@ -5,7 +5,6 @@
 #include "core/config.h"
 #include "core/shortcutconvention.h"
 #include "core/standardfolders.h"
-#include "desktop/desktopmenuexporter.h"
 #include "dialogs/archivepasswordprompt.h"
 #include "desktop/desktopview.h"
 #include "ops/operations.h"
@@ -135,50 +134,39 @@ DesktopWindow::DesktopWindow(ui::TrustedConnection* connection, FileManagerHost&
     // The desktop is not closed.
     m_window->onCloseRequested = [] {};
 
-    base::dbus::Connection* bus = base::dbus::Connection::session();
-    if (bus) {
-        m_menuExporter = std::make_unique<DesktopMenuExporter>(
-                bus,
-                [this] {
-                    FolderModel& model = *m_model;
-                    using Entry = DesktopMenuExporter::Entry;
-                    const auto action = [&model](const std::string& name) {
-                        const FolderModel::Action& entry = model.action(name);
-                        Entry item;
-                        item.label = entry.text;
-                        item.enabled = entry.enabled;
-                        item.action = [&model, name] { triggerAction(model, name); };
-                        return item;
-                    };
-                    Entry separator;
-                    separator.separator = true;
-                    Entry newWindow;
-                    newWindow.label = tr("New Window");
-                    // A window opened from the desktop starts at home, not at ~/Desktop.
-                    newWindow.action = [&model] { model.openInNewWindow(base::url::fromLocalFile(homePath())); };
-                    Entry selectAll;
-                    selectAll.label = tr("Select All");
-                    selectAll.action = [&model] { model.selectAll(); };
-                    Entry file;
-                    file.label = tr("File");
-                    file.children = {newWindow, action("newFolder"), separator, action("properties")};
-                    Entry edit;
-                    edit.label = tr("Edit");
-                    edit.children = {action("undo"), action("redo"), separator, action("cut"), action("copy"),
-                                     action("paste"), selectAll};
-                    return std::vector<Entry> {file, edit};
-                },
-                [this] { m_model->prepareContextMenu(); });
-        // The bar shows the rows it holds as a menu opens: they follow the selection, clipboard and history.
-        m_menuUpdate.setSingleShot(true);
-        m_menuUpdate.setInterval(std::chrono::milliseconds(50));
-        m_menuUpdate.onTimeout = [this] { m_menuExporter->update(); };
-        const auto update = [this] { m_menuUpdate.start(); };
-        m_subscriptions.push_back(m_model->selectionChanged.connect(update));
-        m_subscriptions.push_back(m_model->statusChanged.connect(update));
-        m_subscriptions.push_back(ui::Clipboard::changed().connect([update](ui::ClipboardMode) { update(); }));
-        m_subscriptions.push_back(OperationsClient::instance().historyChanged.connect(update));
-    }
+    m_mainMenu = std::make_unique<ui::Menu>();
+    FolderModel* target = m_model.get();
+    ui::Menu* file = m_mainMenu->addSubmenu(tr("File"));
+    // A window opened from the desktop starts at home, not at ~/Desktop.
+    file->addItem(tr("New Window"), [target] { target->openInNewWindow(base::url::fromLocalFile(homePath())); });
+    file->addItem({}, [target] { triggerAction(*target, "newFolder"); });
+    file->addSeparator();
+    file->addItem({}, [target] { triggerAction(*target, "properties"); });
+    ui::Menu* edit = m_mainMenu->addSubmenu(tr("Edit"));
+    edit->addItem({}, [target] { triggerAction(*target, "undo"); });
+    edit->addItem({}, [target] { triggerAction(*target, "redo"); });
+    edit->addSeparator();
+    edit->addItem({}, [target] { triggerAction(*target, "cut"); });
+    edit->addItem({}, [target] { triggerAction(*target, "copy"); });
+    edit->addItem({}, [target] { triggerAction(*target, "paste"); });
+    edit->addItem(tr("Select All"), [target] { target->selectAll(); });
+    const auto prepare = [this] {
+        m_model->prepareContextMenu();
+        updateMainMenu();
+    };
+    file->onAboutToShow = prepare;
+    edit->onAboutToShow = prepare;
+    updateMainMenu();
+    m_window->setMainMenu(m_mainMenu.get());
+    // The bar shows the rows it holds as a menu opens: they follow the selection, clipboard and history.
+    m_menuUpdate.setSingleShot(true);
+    m_menuUpdate.setInterval(std::chrono::milliseconds(50));
+    m_menuUpdate.onTimeout = prepare;
+    const auto update = [this] { m_menuUpdate.start(); };
+    m_subscriptions.push_back(m_model->selectionChanged.connect(update));
+    m_subscriptions.push_back(m_model->statusChanged.connect(update));
+    m_subscriptions.push_back(ui::Clipboard::changed().connect([update](ui::ClipboardMode) { update(); }));
+    m_subscriptions.push_back(OperationsClient::instance().historyChanged.connect(update));
 
     m_archivePassword = std::make_unique<ArchivePasswordPrompt>();
     m_archivePassword->setModel(m_model.get(), nullptr);
@@ -337,8 +325,29 @@ void DesktopWindow::retranslate()
     m_model->retranslate();
     m_view->retranslate();
     m_archivePassword->retranslate();
-    if (m_menuExporter)
-        m_menuExporter->update();
+    m_mainMenu->setItemText(0, tr("File"));
+    m_mainMenu->setItemText(1, tr("Edit"));
+    m_mainMenu->submenu(0)->setItemText(0, tr("New Window"));
+    m_mainMenu->submenu(1)->setItemText(6, tr("Select All"));
+    updateMainMenu();
+}
+
+void DesktopWindow::updateMainMenu()
+{
+    const auto apply = [this](ui::Menu& menu, size_t index, const std::string& name) {
+        const FolderModel::Action& action = m_model->action(name);
+        menu.setItemText(index, action.text);
+        menu.setItemEnabled(index, action.enabled);
+    };
+    ui::Menu& file = *m_mainMenu->submenu(0);
+    apply(file, 1, "newFolder");
+    apply(file, 3, "properties");
+    ui::Menu& edit = *m_mainMenu->submenu(1);
+    apply(edit, 0, "undo");
+    apply(edit, 1, "redo");
+    apply(edit, 3, "cut");
+    apply(edit, 4, "copy");
+    apply(edit, 5, "paste");
 }
 
 void DesktopWindow::showContextMenu(ui::PointF position)

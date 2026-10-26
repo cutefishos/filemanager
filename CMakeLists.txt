@@ -154,7 +154,6 @@ add_library(fm-ui STATIC
     src/dialogs/serverdialogs.cpp
     src/dialogs/unlockdialog.cpp
     src/chooser/chooserwindow.cpp
-    src/desktop/desktopmenuexporter.cpp
     src/desktop/desktopview.cpp
     src/desktop/desktopwindow.cpp
     src/chooser/filechooser.cpp

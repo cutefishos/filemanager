@@ -26,7 +26,7 @@ target_link_libraries(filemanager-capture PRIVATE fm-ui)
 
 # The models and the UI on a headless application, on a bus of their own.
 add_executable(filemanager-tests testmain.cpp chooser_test.cpp foldermodel_test.cpp places_test.cpp preview_test.cpp
-    desktopmenu_test.cpp launcher_test.cpp positioner_test.cpp shortcut_test.cpp header_test.cpp)
+    launcher_test.cpp positioner_test.cpp shortcut_test.cpp header_test.cpp)
 pkg_check_modules(FilemanagerTestSystemd REQUIRED IMPORTED_TARGET libsystemd)
 target_link_libraries(filemanager-tests PRIVATE fm-ui GTest::gtest PkgConfig::FilemanagerTestSystemd PkgConfig::LibArchive)
 target_compile_definitions(filemanager-tests PRIVATE

@@ -24,7 +24,6 @@ class Window;
 namespace fm {
 
 class DesktopGridView;
-class DesktopMenuExporter;
 class DesktopRoot;
 class FileManagerHost;
 class PreviewClient;
@@ -60,6 +59,7 @@ private:
     void placeOn(const std::string& outputName);
     void retranslate();
     void showContextMenu(ui::PointF position);
+    void updateMainMenu();
     bool handleKey(const ui::KeyEvent& event);
     void loadLayout();
     void saveLayout();
@@ -68,12 +68,13 @@ private:
     ui::TrustedConnection* m_connection;
     FileManagerHost& m_host;
     std::unique_ptr<FolderModel> m_model;
+    // The status bar's File and Edit menus while the desktop is active.
+    std::unique_ptr<ui::Menu> m_mainMenu;
     std::unique_ptr<ui::Window> m_window;
     DesktopRoot* m_root = nullptr;
     DesktopGridView* m_view = nullptr;
     std::unique_ptr<PreviewClient> m_preview;
     std::unique_ptr<ui::Menu> m_menu;
-    std::unique_ptr<DesktopMenuExporter> m_menuExporter;
     std::unique_ptr<class ArchivePasswordPrompt> m_archivePassword;
     std::string m_output;
     bool m_layoutLoaded = false;
