@@ -78,7 +78,7 @@ bool setDefaultApplication(const std::string& mimeType, const std::string& deskt
     const auto entry = base::ApplicationRegistry::instance().byPath(desktopFile);
     if (!entry)
         return false;
-    return base::mimeapps::setDefault(base::mimeapps::userListPath(), mimeType, entry->id + ".desktop");
+    return base::mimeapps::setDefault(base::mimeapps::userListPath(), mimeType, base::mimeapps::listedId(*entry));
 }
 
 static std::function<void(std::function<void(const std::string&)>)> s_tokenSource;
