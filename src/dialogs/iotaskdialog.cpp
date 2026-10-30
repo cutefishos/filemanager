@@ -138,15 +138,15 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     layout->setSpacing(20);
     auto* row = layout->addChild<ui::RowLayout>();
     row->setSpacing(16);
-    row->setLayoutHints({.fillWidth = true});
+    // The close button sits over the content's start: the row keeps 32 px clear of it.
+    ui::LayoutHints rowHints {.fillWidth = true};
+    rowHints.margins.left = 32;
+    row->setLayoutHints(rowHints);
     auto* icon = row->addChild<ui::ThemeIcon>(m_incoming.iconName.empty() ? "unknown" : m_incoming.iconName, 64);
     icon->setLayoutHints({.preferredWidth = 64, .preferredHeight = 64, .verticalAlignment = ui::Alignment::Start});
     auto* texts = row->addChild<ui::Column>();
     texts->setSpacing(4);
-    ui::LayoutHints textHints {.fillWidth = true};
-    textHints.margins.right = 32;
-    texts->setLayoutHints(textHints);
-    // The close button sits over the content: the text keeps 32 px clear of it.
+    texts->setLayoutHints({.fillWidth = true});
     const double textWidth = 480 - 20 * 2 - 64 - 16 - 32;
     ui::Label* title = addLabel(texts, 13, 600, ui::ColorId::Text, true);
     title->setName("conflictHeading");

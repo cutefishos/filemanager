@@ -129,7 +129,7 @@ std::unique_ptr<ui::View> OpenWithDialog::createContent()
     title->setWeight(600);
     title->setColor(ui::ColorId::Text);
     ui::LayoutHints titleHints {.fillWidth = true};
-    titleHints.margins.right = 32;
+    titleHints.margins.left = 32;
     title->setLayoutHints(titleHints);
 
     m_list = layout->addChild<ui::ListView>();

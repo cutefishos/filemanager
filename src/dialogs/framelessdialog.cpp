@@ -14,6 +14,10 @@
 
 namespace fm {
 
+// The close control, centred in the 32-pixel corner slot.
+static constexpr double kSlot = 32;
+static constexpr double kControl = 26;
+
 class FramelessDialog::Root : public ui::View
 {
 public:
@@ -21,7 +25,8 @@ public:
         : m_dialog(dialog)
     {
         if (closeButton) {
-            m_close = addChild<ui::HeaderButton>("close", 32);
+            m_close = addChild<ui::HeaderButton>("close", kControl);
+            m_close->setWindowControl(true);
             m_close->onClicked = [this] {
                 if (m_dialog->onCloseRequested)
                     m_dialog->onCloseRequested();
@@ -85,10 +90,13 @@ protected:
         const double width = geometry().width - m_horizontal * 2;
         if (m_content)
             m_content->setGeometry({m_horizontal, m_header + m_top, width, m_content->heightForWidth(width)});
+        const double inset = (kSlot - kControl) / 2;
         if (m_close)
-            m_close->setGeometry({geometry().width - m_buttonMargin - 32, m_buttonMargin, 32, 32});
-        if (m_title)
-            m_title->setGeometry({16, m_buttonMargin, std::max(0.0, geometry().width - 16 - 2 * m_buttonMargin - 32), 32});
+            m_close->setGeometry({m_buttonMargin + inset, m_buttonMargin + inset, kControl, kControl});
+        if (m_title) {
+            const double left = m_close ? m_buttonMargin + kSlot + ui::Theme::current().smallSpacing : 16;
+            m_title->setGeometry({left, m_buttonMargin, std::max(0.0, geometry().width - left - m_buttonMargin), kSlot});
+        }
     }
 
     // Dragging anywhere moves the window.
