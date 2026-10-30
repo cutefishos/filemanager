@@ -383,6 +383,7 @@ public:
         trashBar = addChild<TrashBar>();
         header = addChild<ui::WindowHeader>(FolderWindow::kHeaderInset);
         row = header->setContent<HeaderRow>();
+        header->setContentUnderButtons(true);
         divider = addChild<SidebarDivider>();
         divider->setName("sidebarDivider");
         sidebarWidth = std::clamp(Preferences::instance().sidebarWidth(), SideBar::kMinimumWidth,

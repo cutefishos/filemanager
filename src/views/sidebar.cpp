@@ -536,6 +536,8 @@ SideBar::SideBar(double headerHeight)
     setName("sideBar");
     m_title = addChild<ui::Label>();
     m_title->setFontSize(12 * 4.0 / 3);
+    // Never shown: the window buttons take its line.
+    m_title->setVisible(false);
     m_title->setElide(ui::Label::Elide::Right);
     m_scroll = addChild<ui::ScrollView>();
     m_list = m_scroll->setContent<SidebarList>(this);
