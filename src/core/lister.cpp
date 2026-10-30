@@ -71,12 +71,11 @@ FileItem DirectoryLister::makeItem(const std::string& path)
 DirectoryLister::DirectoryLister()
 {
     // A launcher shows under its own name and icon, an application bundle
-    // under its folder's name without .app.
+    // under its folder's name.
     m_lister.setItemPreparer([](files::FileItem& item) {
         if (item.isDir() && !base::bundle::bundlePath(item.localPath()).empty()) {
             if (const auto bundle = base::bundle::read(item.localPath(), {})) {
                 item.setMimeType(base::bundle::kType);
-                item.setDisplayName(item.name().substr(0, item.name().size() - 4));
                 item.setIconName(bundle->icon.empty() ? "application-x-executable" : bundle->icon);
             }
             return;
