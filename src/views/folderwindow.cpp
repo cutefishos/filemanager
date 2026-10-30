@@ -43,11 +43,15 @@ using cutefish::i18n::tr;
 static constexpr double kSmallSpacing = 6;
 static constexpr double kLargeSpacing = 12;
 static constexpr double kButtonSize = 32;
+static constexpr double kHeaderEndMargin = 19.0 / 3;
 static constexpr double kButtonsTopMargin = 4;
 static constexpr double kBarHeight = 34;
 static constexpr double kMinimumWidth = 600;
 static constexpr double kMinimumContentWidth = kMinimumWidth - SideBar::kDefaultWidth;
 static constexpr double kNewTabButtonSize = 28;
+// From the track's end and from the window's edge to the button.
+static constexpr double kNewTabStartGap = 2;
+static constexpr double kNewTabEndMargin = 10;
 static constexpr const char* kTabMimeType = "application/x-cutefish-filemanager-tab";
 
 // Where a search looks, home or the folder it started from.
@@ -291,7 +295,8 @@ protected:
         x += kButtonSize + spacing;
         forward->setGeometry({x, kButtonsTopMargin, kButtonSize, kButtonSize});
         x += kButtonSize + spacing;
-        const double end = right - spacing;
+        // The end margin lines the menu glyph up with the tab bar's "+" below.
+        const double end = right - kHeaderEndMargin;
         options->setGeometry({end - kButtonSize, kButtonsTopMargin, kButtonSize, kButtonSize});
         search->setGeometry({end - kButtonSize * 2 - spacing, kButtonsTopMargin, kButtonSize, kButtonSize});
         const double pathEnd = end - kButtonSize * 2 - spacing * 2;
@@ -369,7 +374,7 @@ public:
         tabBar = addChild<ui::WindowTabBar>();
         tabBar->setName("folderTabBar");
         tabBar->setTabWidthRange(140, 0);
-        tabBar->setTrackInsets({kSmallSpacing, 4, kSmallSpacing + kNewTabButtonSize + kSmallSpacing, 4});
+        tabBar->setTrackInsets({kSmallSpacing, 4, kNewTabStartGap + kNewTabButtonSize + kNewTabEndMargin, 4});
         tabBar->setPressedFeedback(true);
         newTab = addChild<ui::HeaderButton>("add", kNewTabButtonSize);
         newTab->setName("newTab");
@@ -438,7 +443,7 @@ protected:
         tabBar->setVisible(tabsShown);
         tabBar->setGeometry({left, y, content.width, tabBarHeight});
         newTab->setVisible(tabsShown);
-        newTab->setGeometry({left + content.width - kSmallSpacing - kNewTabButtonSize,
+        newTab->setGeometry({left + content.width - kNewTabEndMargin - kNewTabButtonSize,
                              y + centeredStart(tabBarHeight, kNewTabButtonSize), kNewTabButtonSize,
                              kNewTabButtonSize});
         y += tabBarHeight;
