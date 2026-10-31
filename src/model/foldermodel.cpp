@@ -1218,10 +1218,8 @@ void FolderModel::openBundle(const FileItem& file)
             setUrl(file.url);
         return;
     }
-    if (launcher::isTrusted(file.path))
-        launcher::launchFile(file.path);
-    else if (m_host)
-        m_host->confirmLaunch(file.path);
+    // The program that runs bundles asks about one it has not seen before.
+    launcher::launchFile(file.path);
 }
 
 void FolderModel::mountDiskImage(const std::string& path)

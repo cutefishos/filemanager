@@ -177,14 +177,6 @@ bool launchFile(const std::string& path)
 
 bool isTrusted(const std::string& path)
 {
-    // Installing is moving it into ~/Applications.
-    if (isBundle(path)) {
-        char resolved[PATH_MAX];
-        char applications[PATH_MAX];
-        return ::realpath(parentPath(path).c_str(), resolved)
-                && ::realpath(base::bundle::applicationsDirectory().c_str(), applications)
-                && std::string(resolved) == applications;
-    }
     if (!isDesktopFile(path))
         return false;
 
