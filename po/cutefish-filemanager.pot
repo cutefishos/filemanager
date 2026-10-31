@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-10-25 18:24+0800\n"
+"POT-Creation-Date: 2026-10-31 16:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -453,20 +453,21 @@ msgstr ""
 msgid "Public"
 msgstr ""
 
-#: src/desktop/desktopwindow.cpp
-msgid "New Window"
-msgstr ""
-
-#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
-msgid "Select All"
-msgstr ""
-
-#: src/desktop/desktopwindow.cpp
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
 msgid "File"
 msgstr ""
 
-#: src/desktop/desktopwindow.cpp
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr ""
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
 msgid "Edit"
+msgstr ""
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
 msgstr ""
 
 #: src/dialogs/archivepassworddialog.cpp
@@ -857,6 +858,10 @@ msgstr[1] ""
 msgid "Folder"
 msgstr ""
 
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr ""
+
 #: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
 msgid "Trash"
 msgstr ""
@@ -1091,11 +1096,43 @@ msgid "Close Tab"
 msgstr ""
 
 #: src/views/folderwindow.cpp
-msgid "Icons"
+msgid "Browses and organizes your files."
 msgstr ""
 
 #: src/views/folderwindow.cpp
-msgid "List"
+msgid "About Files"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "View"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
 msgstr ""
 
 #: src/views/folderwindow.cpp src/views/listview.cpp
@@ -1120,6 +1157,50 @@ msgstr ""
 
 #: src/views/folderwindow.cpp src/views/listview.cpp
 msgid "Size"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr ""
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
 msgstr ""
 
 #: src/views/listview.cpp

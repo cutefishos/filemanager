@@ -4,6 +4,7 @@
 #include "views/colors.h"
 #include "views/folderwindow.h"
 #include "core/preferences.h"
+#include "core/shortcutconvention.h"
 #include "views/folderview.h"
 #include "dialogs/archivepasswordprompt.h"
 #include "views/foldermenu.h"
@@ -13,6 +14,7 @@
 
 #include "base/event_loop.h"
 #include "base/i18n.h"
+#include "ui/about_dialog.h"
 #include "ui/application.h"
 #include "ui/color_provider.h"
 #include "ui/progress_bar.h"
@@ -33,6 +35,7 @@
 #include <algorithm>
 #include <cmath>
 #include <functional>
+#include <set>
 
 namespace fm {
 
@@ -255,8 +258,8 @@ private:
     ui::DialogButton* m_empty;
 };
 
-// The header's own part: back, forward, the path bar, search and options,
-// from the sidebar's edge.
+// The header's own part: back, forward, the path bar and search, from the
+// sidebar's edge.
 class HeaderRow : public ui::View
 {
 public:
@@ -272,9 +275,7 @@ public:
         search = addChild<ui::HeaderButton>(std::string(), kButtonSize);
         search->setGlyph("search", 16);
         search->setName("searchButton");
-        options = addChild<ui::HeaderButton>("menu", kButtonSize);
-        options->setName("optionsButton");
-        for (ui::HeaderButton* button : {back, forward, search, options})
+        for (ui::HeaderButton* button : {back, forward, search})
             button->setPlateAlphas({0.17, 0.26}, {0.21, 0.15});
     }
 
@@ -282,7 +283,6 @@ public:
     ui::HeaderButton* forward;
     PathBar* pathBar;
     ui::HeaderButton* search;
-    ui::HeaderButton* options;
     double sidebarWidth = SideBar::kDefaultWidth;
 
 protected:
@@ -295,11 +295,10 @@ protected:
         x += kButtonSize + spacing;
         forward->setGeometry({x, kButtonsTopMargin, kButtonSize, kButtonSize});
         x += kButtonSize + spacing;
-        // The end margin lines the menu glyph up with the tab bar's "+" below.
+        // The end margin lines the search glyph up with the tab bar's "+" below.
         const double end = right - kHeaderEndMargin;
-        options->setGeometry({end - kButtonSize, kButtonsTopMargin, kButtonSize, kButtonSize});
-        search->setGeometry({end - kButtonSize * 2 - spacing, kButtonsTopMargin, kButtonSize, kButtonSize});
-        const double pathEnd = end - kButtonSize * 2 - spacing * 2;
+        search->setGeometry({end - kButtonSize, kButtonsTopMargin, kButtonSize, kButtonSize});
+        const double pathEnd = end - kButtonSize - spacing;
         pathBar->setGeometry({x, kButtonsTopMargin, std::max(0.0, pathEnd - x), kButtonSize});
     }
 };
@@ -544,7 +543,6 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     m_tabBar = m_root->tabBar;
     m_back = m_root->row->back;
     m_forward = m_root->row->forward;
-    m_options = m_root->row->options;
     m_toast = std::make_unique<ui::Toast>(m_window.get());
 
     m_back->onClicked = [this] {
@@ -556,7 +554,6 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
             page->goForward();
     };
     m_root->row->search->onClicked = [this] { m_pathBar->openSearch(); };
-    m_options->onClicked = [this] { showOptionsMenu(); };
 
     m_pathBar->onItemClicked = [this](const std::string& path) {
         if (FolderPage* page = currentPage())
@@ -616,6 +613,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     m_subscriptions.push_back(ui::Application::instance()->languageChanged.connect([this] { retranslate(); }));
 
     addShortcuts();
+    buildMainMenu();
     openTabSelecting(start);
     updateBackground();
 }
@@ -648,6 +646,11 @@ void FolderWindow::retranslate()
         m_pathBar->updateUrl(page->currentUrl());
     if (m_archivePassword)
         m_archivePassword->retranslate();
+    if (m_aboutDialog) {
+        m_aboutDialog.reset();
+        showAbout();
+    }
+    buildMainMenu();
     updateTabBar();
     updateHeader();
 }
@@ -978,55 +981,222 @@ void FolderWindow::showContextMenu(ui::PointF position)
     m_menu->popup(m_window.get(), position);
 }
 
-void FolderWindow::showOptionsMenu()
+void FolderWindow::showAbout()
 {
-    FolderPage* page = currentPage();
-    if (!page)
+    if (m_aboutDialog) {
+        m_aboutDialog->show();
         return;
-    Preferences& preferences = Preferences::instance();
-    const bool trash = page->model().isTrash();
-    const int sortMode = trash ? preferences.trashSortMode() : preferences.sortMode();
-    const auto sortBy = [trash](int mode) {
-        Preferences& preferences = Preferences::instance();
-        if (trash)
-            preferences.setTrashSort(mode, preferences.trashSortDesc());
+    }
+
+    m_aboutDialog = std::make_unique<ui::AboutDialog>(m_window.get());
+    m_aboutDialog->setName(tr("Files"));
+    m_aboutDialog->setDescription(tr("Browses and organizes your files."));
+    m_aboutDialog->setIconSource("file-system-manager");
+    m_aboutDialog->setLink("https://github.com/cutefishos/filemanager");
+    m_aboutDialog->onClosed = [this] {
+        std::shared_ptr<ui::AboutDialog> doomed(std::move(m_aboutDialog));
+        base::EventLoop::current()->post([doomed] {});
+    };
+    m_aboutDialog->show();
+}
+
+void FolderWindow::buildMainMenu()
+{
+    // Starts reading the shortcut convention, which some rows' keys follow.
+    shortcuts::commandKeys();
+    m_window->setMainMenu(nullptr);
+    m_mainMenu = std::make_unique<ui::Menu>();
+    const uint32_t control = ui::ControlModifier;
+    const uint32_t shift = ui::ShiftModifier;
+    const uint32_t alt = ui::AltModifier;
+    const auto onPage = [this](std::function<void(FolderPage&)> action) {
+        return [this, action] {
+            if (FolderPage* page = currentPage())
+                action(*page);
+        };
+    };
+    const auto onAction = [this](const std::string& name) {
+        return [this, name] {
+            if (FolderPage* page = currentPage())
+                triggerAction(page->model(), name);
+        };
+    };
+    // A row that shows and does what the folder's action of that name does.
+    struct ActionRow
+    {
+        ui::Menu* menu;
+        size_t index;
+        std::string name;
+    };
+    auto actionRows = std::make_shared<std::vector<ActionRow>>();
+    const auto addAction = [&](ui::Menu* menu, const std::string& name) {
+        const size_t index = menu->addItem(name, onAction(name));
+        actionRows->push_back({menu, index, name});
+        return index;
+    };
+    const auto prepare = [this, actionRows] {
+        FolderPage* page = currentPage();
+        if (!page)
+            return;
+        FolderModel& model = page->model();
+        model.prepareContextMenu();
+        // Without a selection the folder's actions apply to the folder itself;
+        // these act on selected items only.
+        static const std::set<std::string> onSelection {"open", "openWith", "showInFolder", "rename",
+                                                        "compress", "trash", "restore", "del"};
+        for (const ActionRow& row : *actionRows) {
+            const FolderModel::Action& action = model.action(row.name);
+            row.menu->setItemText(row.index, action.text);
+            row.menu->setItemVisible(row.index, action.visible);
+            row.menu->setItemEnabled(row.index, action.enabled && (model.hasSelection() || !onSelection.count(row.name)));
+        }
+    };
+
+    ui::Menu* application = m_mainMenu->addSubmenu(tr("Files"));
+    application->setRole(ui::MenuRole::Application);
+    application->addItem(tr("About Files"), [this] { showAbout(); });
+    application->addSeparator();
+    application->addItem(tr("Hide Files"), [this] { m_window->hideApplication(); });
+
+    ui::Menu* file = m_mainMenu->addSubmenu(tr("File"));
+    file->addItem(tr("New Window"), onPage([](FolderPage& page) { page.model().openInNewWindow(page.currentUrl()); }));
+    const size_t newTabRow = file->addItem(tr("New Tab"), onPage([this](FolderPage& page) { openTab(page.currentUrl()); }));
+    file->setItemKeyEquivalent(newTabRow, "t", control);
+    addAction(file, "newFolder");
+    addAction(file, "newTextFile");
+    file->addSeparator();
+    const size_t open = addAction(file, "open");
+    file->setItemKeyEquivalent(open, "Return", 0);
+    addAction(file, "openWith");
+    addAction(file, "showInFolder");
+    file->addSeparator();
+    const size_t properties = addAction(file, "properties");
+    const size_t rename = addAction(file, "rename");
+    file->setItemKeyEquivalent(rename, "F2", 0);
+    addAction(file, "compress");
+    file->addSeparator();
+    const size_t trash = addAction(file, "trash");
+    addAction(file, "restore");
+    const size_t deleteRow = addAction(file, "del");
+    file->setItemKeyEquivalent(deleteRow, "Delete", 0);
+    addAction(file, "emptyTrash");
+    file->addSeparator();
+    const size_t find = file->addItem(tr("Find"), [this] { m_pathBar->openSearch(); });
+    file->setItemKeyEquivalent(find, "f", control);
+    file->addSeparator();
+    const size_t closeTabRow = file->addItem(tr("Close Tab"), [this] { closeTab(m_currentTab); });
+    file->setItemKeyEquivalent(closeTabRow, "w", control);
+    file->onAboutToShow = [prepare, file, properties, trash] {
+        prepare();
+        // The folder's keys differ between the two shortcut conventions.
+        if (shortcuts::commandKeys()) {
+            file->setItemKeyEquivalent(properties, "i", ui::ControlModifier);
+            file->setItemKeyEquivalent(trash, "BackSpace", ui::ControlModifier);
+        } else {
+            file->setItemKeyEquivalent(properties, "Return", ui::AltModifier);
+            file->setItemKeyEquivalent(trash, "Delete", 0);
+        }
+    };
+
+    ui::Menu* edit = m_mainMenu->addSubmenu(tr("Edit"));
+    const size_t undo = addAction(edit, "undo");
+    edit->setItemKeyEquivalent(undo, "z", control);
+    const size_t redo = addAction(edit, "redo");
+    edit->setItemKeyEquivalent(redo, "z", control | shift);
+    edit->addSeparator();
+    const size_t cut = addAction(edit, "cut");
+    edit->setItemKeyEquivalent(cut, "x", control);
+    const size_t copy = addAction(edit, "copy");
+    edit->setItemKeyEquivalent(copy, "c", control);
+    const size_t paste = addAction(edit, "paste");
+    edit->setItemKeyEquivalent(paste, "v", control);
+    const size_t selectAll = edit->addItem(tr("Select All"), onPage([](FolderPage& page) { page.model().selectAll(); }));
+    edit->setItemKeyEquivalent(selectAll, "a", control);
+    edit->onAboutToShow = prepare;
+
+    ui::Menu* view = m_mainMenu->addSubmenu(tr("View"));
+    const size_t icons = view->addItem(tr("as Icons"), [] { Preferences::instance().setViewMethod(Preferences::Grid); });
+    const size_t list = view->addItem(tr("as List"), [] { Preferences::instance().setViewMethod(Preferences::List); });
+    view->addSeparator();
+    ui::Menu* sort = view->addSubmenu(tr("Sort By"));
+    view->addSeparator();
+    const size_t hidden = addAction(view, "showHidden");
+    view->addSeparator();
+    const size_t refresh = view->addItem(tr("Refresh"), onPage([](FolderPage& page) { page.model().refresh(); }));
+    view->setItemKeyEquivalent(refresh, "F5", 0);
+    view->onAboutToShow = [prepare, view, icons, list, hidden] {
+        prepare();
+        const Preferences& preferences = Preferences::instance();
+        view->setItemChecked(icons, preferences.viewMethod() == Preferences::Grid);
+        view->setItemChecked(list, preferences.viewMethod() == Preferences::List);
+        if (shortcuts::commandKeys())
+            view->setItemKeyEquivalent(hidden, ".", ui::ControlModifier | ui::ShiftModifier);
         else
-            preferences.setSort(mode, preferences.sortDesc());
+            view->setItemKeyEquivalent(hidden, "h", ui::ControlModifier);
+    };
+    sort->onAboutToShow = [this, sort] {
+        sort->clear();
+        FolderPage* page = currentPage();
+        const bool trash = page && page->model().isTrash();
+        Preferences& preferences = Preferences::instance();
+        const int sortMode = trash ? preferences.trashSortMode() : preferences.sortMode();
+        const auto sortItem = [&](const std::string& text, int mode) {
+            const size_t index = sort->addItem(text, [trash, mode] {
+                Preferences& preferences = Preferences::instance();
+                if (trash)
+                    preferences.setTrashSort(mode, preferences.trashSortDesc());
+                else
+                    preferences.setSort(mode, preferences.sortDesc());
+            });
+            sort->setItemChecked(index, sortMode == mode);
+        };
+        sortItem(tr("Name"), Preferences::Name);
+        if (trash)
+            sortItem(tr("Original Location"), Preferences::OriginalPath);
+        sortItem(trash ? tr("Date Deleted") : tr("Date"), trash ? Preferences::DeletionTime : Preferences::ModifiedTime);
+        if (!trash)
+            sortItem(tr("Type"), Preferences::Type);
+        sortItem(tr("Size"), Preferences::Size);
     };
 
-    m_menu = std::make_unique<ui::Menu>();
-    const size_t icons = m_menu->addItem(tr("Icons"), [] { Preferences::instance().setViewMethod(Preferences::Grid); });
-    m_menu->setItemGlyph(icons, "grid");
-    m_menu->setItemChecked(icons, preferences.viewMethod() == Preferences::Grid);
-    const size_t list = m_menu->addItem(tr("List"), [] { Preferences::instance().setViewMethod(Preferences::List); });
-    m_menu->setItemGlyph(list, "list");
-    m_menu->setItemChecked(list, preferences.viewMethod() == Preferences::List);
-    m_menu->addSeparator();
-    const auto sortItem = [&](const std::string& text, int mode) {
-        const size_t index = m_menu->addItem(text, [sortBy, mode] { sortBy(mode); });
-        m_menu->setItemChecked(index, sortMode == mode);
+    ui::Menu* go = m_mainMenu->addSubmenu(tr("Go"));
+    const size_t back = go->addItem(tr("Back"), onPage([](FolderPage& page) { page.goBack(); }));
+    const size_t forward = go->addItem(tr("Forward"), onPage([](FolderPage& page) { page.goForward(); }));
+    const size_t enclosing = go->addItem(tr("Enclosing Folder"), onPage([](FolderPage& page) { page.model().up(); }));
+    go->addSeparator();
+    const size_t location = go->addItem(tr("Go to Location…"), [this] { m_pathBar->openEditor(); });
+    go->setItemKeyEquivalent(location, "l", control);
+    const size_t server = go->addItem(tr("Connect to Server…"), [this] { m_sidebar->connectToServer(); });
+    go->setItemKeyEquivalent(server, "k", control);
+    go->onAboutToShow = [this, go, back, forward, enclosing, alt] {
+        FolderPage* page = currentPage();
+        go->setItemEnabled(back, page && page->model().canGoBack());
+        go->setItemEnabled(forward, page && page->model().canGoForward());
+        const bool command = shortcuts::commandKeys();
+        go->setItemKeyEquivalent(back, command ? "[" : "Left", command ? ui::ControlModifier : alt);
+        go->setItemKeyEquivalent(forward, command ? "]" : "Right", command ? ui::ControlModifier : alt);
+        go->setItemKeyEquivalent(enclosing, "Up", command ? ui::ControlModifier : alt);
     };
-    sortItem(tr("Name"), Preferences::Name);
-    if (trash)
-        sortItem(tr("Original Location"), Preferences::OriginalPath);
-    sortItem(trash ? tr("Date Deleted") : tr("Date"), trash ? Preferences::DeletionTime : Preferences::ModifiedTime);
-    if (!trash)
-        sortItem(tr("Type"), Preferences::Type);
-    sortItem(tr("Size"), Preferences::Size);
 
-    m_options->setChecked(true);
-    m_menu->onClosed = [this] { m_options->setChecked(false); };
-    // Under the button's round plate, as popupFor(_optionsButton.background):
-    // RoundImageButton's plate, inset a tenth and kept to the icon's pixel parity.
-    const double ratio = m_window->scale() > 0 ? m_window->scale() : 1;
-    const double iconSize = 24;
-    double pixels = std::round((kButtonSize - std::round(kButtonSize * 0.1) * 2) * ratio);
-    if (int(pixels - std::round(iconSize * ratio)) % 2 != 0)
-        pixels -= 1;
-    const double plate = pixels / ratio;
-    const double iconOrigin = std::round((kButtonSize - iconSize) / 2);
-    const double plateOrigin = iconOrigin + (iconSize - plate) / 2;
-    m_menu->popupFor(m_options, kSmallSpacing / 2, ui::RectF {plateOrigin, plateOrigin, plate, plate});
+    ui::Menu* windowMenu = m_mainMenu->addSubmenu(tr("Window"));
+    windowMenu->setRole(ui::MenuRole::Windows);
+    windowMenu->addItem(tr("Minimize"), [this] { m_window->minimize(); });
+    windowMenu->addItem(tr("Zoom"), [this] { m_window->setMaximized(!m_window->states().maximized); });
+    windowMenu->addSeparator();
+    const size_t previousTab = windowMenu->addItem(tr("Show Previous Tab"), [this] {
+        setCurrentTab((m_currentTab + tabCount() - 1) % std::max(1, tabCount()));
+    });
+    windowMenu->setItemKeyEquivalent(previousTab, "Tab", control | shift);
+    const size_t nextTab = windowMenu->addItem(tr("Show Next Tab"), [this] {
+        setCurrentTab((m_currentTab + 1) % std::max(1, tabCount()));
+    });
+    windowMenu->setItemKeyEquivalent(nextTab, "Tab", control);
+    windowMenu->onAboutToShow = [this, windowMenu, previousTab, nextTab] {
+        windowMenu->setItemEnabled(previousTab, tabCount() > 1);
+        windowMenu->setItemEnabled(nextTab, tabCount() > 1);
+    };
+
+    m_window->setMainMenu(m_mainMenu.get());
 }
 
 void FolderWindow::openFolders(const std::vector<std::string>& paths)

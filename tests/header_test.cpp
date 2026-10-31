@@ -11,6 +11,7 @@
 
 #include "base/url.h"
 #include "ui/application.h"
+#include "ui/menu.h"
 #include "ui/test_input.h"
 #include "ui/text_area.h"
 #include "ui/window.h"
@@ -126,6 +127,38 @@ TEST(HeaderTest, WindowGoesRightAfterItsTabsChange)
 
     folderWindow->openTab(url);
     EXPECT_EQ(folderWindow->tabCount(), 2);
+    folderWindow.reset();
+    fmtest::runFor(loop, 50);
+}
+
+TEST(HeaderTest, WindowShowsItsMenusInTheStatusBar)
+{
+    base::EventLoop& loop = s_app->loop();
+    fmtest::TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+
+    WindowHost host;
+    fm::FolderPage::Start start;
+    start.url = base::url::fromLocalFile(directory.path());
+    auto folderWindow = std::make_unique<fm::FolderWindow>(&host, start);
+    folderWindow->show();
+    fmtest::runFor(loop, 50);
+
+    ui::Menu* menu = folderWindow->window().mainMenu();
+    ASSERT_TRUE(menu);
+    const std::vector<ui::MenuRole> roles {ui::MenuRole::Application, ui::MenuRole::None, ui::MenuRole::None,
+                                           ui::MenuRole::None, ui::MenuRole::None, ui::MenuRole::Windows};
+    for (size_t i = 0; i < roles.size(); ++i) {
+        ASSERT_TRUE(menu->submenu(i)) << i;
+        EXPECT_EQ(menu->submenu(i)->role(), roles[i]) << i;
+    }
+    EXPECT_FALSE(menu->submenu(roles.size()));
+    EXPECT_FALSE(findView(folderWindow->window().contentView(), "optionsButton"));
+
+    // Opening a menu fills its rows from the folder's actions.
+    ui::Menu* file = menu->submenu(1);
+    ASSERT_TRUE(file->onAboutToShow);
+    file->onAboutToShow();
     folderWindow.reset();
     fmtest::runFor(loop, 50);
 }

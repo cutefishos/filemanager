@@ -17,6 +17,7 @@
 #include <vector>
 
 namespace cutefish::ui {
+class AboutDialog;
 class HeaderButton;
 class Menu;
 class Toast;
@@ -48,7 +49,7 @@ public:
 };
 
 // The browser window. The sidebar, the header with back, forward,
-// the path bar, search and the options, the tab bar, the search scope and
+// the path bar and search, the tab bar, the search scope and
 // trash bars over the pages, which run up under them.
 class FolderWindow : public FolderModelHost
 {
@@ -104,11 +105,15 @@ private:
     void updateBlur();
     void updateTabBar();
     void showContextMenu(ui::PointF position);
-    void showOptionsMenu();
+    // The menus the status bar shows while the window is active.
+    void buildMainMenu();
+    void showAbout();
     double headerHeight() const;
     void addShortcuts();
 
     FileManagerHost* m_host;
+    // The window shows it until the window goes, so it outlives the window.
+    std::unique_ptr<ui::Menu> m_mainMenu;
     std::unique_ptr<ui::Window> m_window;
     FolderWindowRoot* m_root = nullptr;
     SideBar* m_sidebar = nullptr;
@@ -116,7 +121,6 @@ private:
     ui::WindowTabBar* m_tabBar = nullptr;
     ui::HeaderButton* m_back = nullptr;
     ui::HeaderButton* m_forward = nullptr;
-    ui::HeaderButton* m_options = nullptr;
     std::vector<Tab> m_tabs;
     int m_currentTab = 0;
     // A tab pulled out into the window it is carried in, kept until the drag
@@ -129,6 +133,7 @@ private:
     bool m_closed = false;
     std::unique_ptr<ui::Menu> m_menu;
     std::unique_ptr<ui::Toast> m_toast;
+    std::unique_ptr<ui::AboutDialog> m_aboutDialog;
     std::unique_ptr<class ArchivePasswordPrompt> m_archivePassword;
     std::vector<base::Subscription> m_pageSubscriptions;
     std::vector<base::Subscription> m_subscriptions;
