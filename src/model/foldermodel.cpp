@@ -16,7 +16,6 @@
 #include "base/i18n.h"
 #include "base/mime_database.h"
 #include "base/paths.h"
-#include "base/settings.h"
 #include "base/strings.h"
 #include "base/url.h"
 #include "ui/clipboard.h"
@@ -153,25 +152,11 @@ static bool isDropBetweenSharedViews(const std::vector<std::string>& urls, const
     return true;
 }
 
-static std::string hiddenSettingsPath(bool desktop)
-{
-    (void)desktop;
-    return settingsFile();
-}
-
-static std::string hiddenSettingsKey(bool desktop)
-{
-    return desktop ? "Desktop/showHiddenFiles" : "showHiddenFiles";
-}
-
 FolderModel::FolderModel(FolderModelHost* host, bool desktop)
     : m_host(host)
     , m_isDesktop(desktop)
 {
-    {
-        base::Settings settings(hiddenSettingsPath(m_isDesktop));
-        m_showHiddenFiles = settings.boolValue(hiddenSettingsKey(m_isDesktop), false);
-    }
+    m_showHiddenFiles = Preferences::instance().showHiddenFiles();
 
     m_needSelectTimer.setSingleShot(true);
     m_needSelectTimer.setInterval(std::chrono::milliseconds(50));
@@ -190,6 +175,7 @@ FolderModel::FolderModel(FolderModelHost* host, bool desktop)
     m_lister.setShowHiddenFiles(m_showHiddenFiles);
     m_contents.setLister(&m_lister);
 
+    m_subscriptions.push_back(Preferences::instance().changed.connect([this] { followShowHiddenFiles(); }));
     m_subscriptions.push_back(m_lister.itemsChanged.connect([this] {
         m_folderSizes.clear();
     }));
@@ -912,16 +898,17 @@ void FolderModel::showInFolder()
 
 void FolderModel::setShowHiddenFiles(bool show)
 {
+    Preferences::instance().setShowHiddenFiles(show);
+}
+
+void FolderModel::followShowHiddenFiles()
+{
+    const bool show = Preferences::instance().showHiddenFiles();
     if (m_showHiddenFiles == show)
         return;
     m_showHiddenFiles = show;
     m_lister.setShowHiddenFiles(show);
     m_lister.refresh();
-
-    base::Settings settings(hiddenSettingsPath(m_isDesktop));
-    settings.setValue(hiddenSettingsKey(m_isDesktop), show);
-    settings.sync();
-
     showHiddenFilesChanged.emit();
     updateActions();
 }

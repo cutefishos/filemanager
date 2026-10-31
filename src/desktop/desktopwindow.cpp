@@ -150,12 +150,15 @@ DesktopWindow::DesktopWindow(ui::TrustedConnection* connection, FileManagerHost&
     edit->addItem({}, [target] { triggerAction(*target, "copy"); });
     edit->addItem({}, [target] { triggerAction(*target, "paste"); });
     edit->addItem(tr("Select All"), [target] { target->selectAll(); });
+    ui::Menu* viewMenu = m_mainMenu->addSubmenu(tr("View"));
+    viewMenu->addItem({}, [target] { triggerAction(*target, "showHidden"); });
     const auto prepare = [this] {
         m_model->prepareContextMenu();
         updateMainMenu();
     };
     file->onAboutToShow = prepare;
     edit->onAboutToShow = prepare;
+    viewMenu->onAboutToShow = prepare;
     updateMainMenu();
     m_window->setMainMenu(m_mainMenu.get());
     // The bar shows the rows it holds as a menu opens: they follow the selection, clipboard and history.
@@ -348,6 +351,7 @@ void DesktopWindow::updateMainMenu()
     apply(edit, 3, "cut");
     apply(edit, 4, "copy");
     apply(edit, 5, "paste");
+    apply(*m_mainMenu->submenu(2), 0, "showHidden");
 }
 
 void DesktopWindow::showContextMenu(ui::PointF position)

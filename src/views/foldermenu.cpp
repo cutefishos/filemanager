@@ -108,8 +108,6 @@ std::unique_ptr<ui::Menu> createFolderMenu(FolderModel& model)
                              || (model.isDesktop() && model.action("changeBackground").visible)));
     item("terminal", !selection);
     item("changeBackground", !selection && model.isDesktop());
-    separator(!selection && model.action("showHidden").visible);
-    item("showHidden", !selection);
     separator(!selection && model.action("emptyTrash").visible);
     item("emptyTrash", !selection);
 

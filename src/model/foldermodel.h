@@ -165,6 +165,7 @@ public:
     bool isSearching() const { return m_lister.isSearching(); }
 
     bool showHiddenFiles() const { return m_showHiddenFiles; }
+    // In every folder model of the process, the desktop's included.
     void setShowHiddenFiles(bool show);
 
     // What the menus do.
@@ -255,6 +256,7 @@ public:
     base::Signal<int, int, std::vector<std::string>> placeArrived;
 
 private:
+    void followShowHiddenFiles();
     void setStatus(Status status);
     void rebuildContents();
     void updateSearch();

@@ -67,6 +67,10 @@ public:
     double sidebarWidth() const { return m_sidebarWidth; }
     void setSidebarWidth(double width);
 
+    // In every folder, the desktop's included.
+    bool showHiddenFiles() const { return m_showHiddenFiles; }
+    void setShowHiddenFiles(bool show);
+
     // [Network] recentServers, newest first, at most ten.
     std::vector<std::string> recentServers() const;
     void addRecentServer(const std::string& address);
@@ -95,6 +99,7 @@ private:
     int m_minimumIconSize = 64;
     double m_gridIconSize = 64;
     double m_sidebarWidth = 190;
+    bool m_showHiddenFiles = false;
 };
 
 } // namespace fm

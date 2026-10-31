@@ -72,6 +72,31 @@ TEST(FolderModelTest, NamesSortNumerically)
     EXPECT_TRUE(runUntil(loop(), [&] { return names(folder) == reversed; }));
 }
 
+// The desktop and every folder window show hidden files or none together.
+TEST(FolderModelTest, HiddenFilesFollowOneSetting)
+{
+    TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+    ASSERT_TRUE(writeFile(directory.filePath(".hidden")));
+    ASSERT_TRUE(writeFile(directory.filePath("shown")));
+    fm::Preferences::instance().setShowHiddenFiles(false);
+
+    FolderModel folder;
+    folder.setUrl(directory.path());
+    FolderModel desktop(nullptr, true);
+    desktop.setUrl(directory.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(folder) && ready(desktop) && folder.count() == 1; }));
+
+    folder.setShowHiddenFiles(true);
+    EXPECT_TRUE(desktop.showHiddenFiles());
+    EXPECT_TRUE(fm::Preferences::instance().showHiddenFiles());
+    EXPECT_TRUE(runUntil(loop(), [&] { return folder.count() == 2 && desktop.count() == 2; }));
+
+    desktop.setShowHiddenFiles(false);
+    EXPECT_FALSE(folder.showHiddenFiles());
+    EXPECT_TRUE(runUntil(loop(), [&] { return folder.count() == 1 && desktop.count() == 1; }));
+}
+
 // A refresh merges changes into the rows: what did not change keeps its item.
 TEST(FolderModelTest, RefreshKeepsUnchangedItems)
 {

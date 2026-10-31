@@ -36,6 +36,7 @@ Preferences::Preferences(const std::string& path)
     m_minimumIconSize = int(s.intValue("minimumIconSize", m_minimumIconSize));
     m_gridIconSize = s.doubleValue("gridIconSize", m_gridIconSize);
     m_sidebarWidth = s.doubleValue("sidebarWidth", m_sidebarWidth);
+    m_showHiddenFiles = s.boolValue("showHiddenFiles", m_showHiddenFiles);
     // Type sorting used to be stored as 6, which is not a model column.
     if (m_sortMode == 6)
         m_sortMode = Type;
@@ -63,8 +64,17 @@ void Preferences::save()
     s.setValue("minimumIconSize", m_minimumIconSize);
     s.setValue("gridIconSize", m_gridIconSize);
     s.setValue("sidebarWidth", m_sidebarWidth);
+    s.setValue("showHiddenFiles", m_showHiddenFiles);
     s.sync();
     changed.emit();
+}
+
+void Preferences::setShowHiddenFiles(bool show)
+{
+    if (m_showHiddenFiles == show)
+        return;
+    m_showHiddenFiles = show;
+    save();
 }
 
 void Preferences::setViewMethod(int method)

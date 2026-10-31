@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-10-31 16:27+0800\n"
+"POT-Creation-Date: 2026-10-31 16:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -468,6 +468,10 @@ msgstr ""
 #: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
 #: src/views/folderwindow.cpp
 msgid "Select All"
+msgstr ""
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
 msgstr ""
 
 #: src/dialogs/archivepassworddialog.cpp
@@ -1113,10 +1117,6 @@ msgstr ""
 
 #: src/views/folderwindow.cpp
 msgid "Find"
-msgstr ""
-
-#: src/views/folderwindow.cpp
-msgid "View"
 msgstr ""
 
 #: src/views/folderwindow.cpp
