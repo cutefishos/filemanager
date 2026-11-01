@@ -13,6 +13,7 @@
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/clipboard.h"
+#include "ui/drag.h"
 
 #include <gtest/gtest.h>
 
@@ -484,6 +485,35 @@ TEST(FolderModelTest, CutFollowsWhatTheMoveLeft)
     EXPECT_EQ(moved->error(), 0);
     EXPECT_TRUE(std::filesystem::exists(other.filePath("b")));
     EXPECT_TRUE(ui::Clipboard::mimeTypes().empty());
+
+    daemon.terminate();
+    EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
+}
+
+// Files dropped in from another folder are selected once they show.
+TEST(FolderModelTest, DroppedFilesAreSelected)
+{
+    fm::OperationsClient::instance();
+    base::Process daemon;
+    ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
+    auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &loop());
+    ASSERT_TRUE(bus);
+    const base::dbus::Proxy manager(bus.get(), "org.cutefish.FileOperations", "/org/cutefish/FileOperations",
+                                    "org.cutefish.FileOperations.Manager1");
+    ASSERT_TRUE(runUntil(loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
+
+    TemporaryDir from;
+    TemporaryDir to;
+    ASSERT_TRUE(writeFile(from.filePath("a")));
+    ASSERT_TRUE(writeFile(to.filePath("b")));
+    FolderModel destination;
+    destination.setUrl(to.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(destination) && destination.count() == 1; }));
+
+    destination.drop({url(from.filePath("a"))}, -1, ui::MoveAction, 10, 10);
+    ASSERT_TRUE(runUntil(loop(), [&] { return destination.count() == 2; }));
+    ASSERT_TRUE(runUntil(loop(), [&] { return !destination.selectedRows().empty(); }));
+    EXPECT_EQ(destination.selectedUrls(), std::vector<std::string> {url(to.filePath("a"))});
 
     daemon.terminate();
     EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
