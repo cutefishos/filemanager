@@ -991,7 +991,7 @@ void FolderWindow::showAbout()
     m_aboutDialog = std::make_unique<ui::AboutDialog>(m_window.get());
     m_aboutDialog->setName(tr("Files"));
     m_aboutDialog->setDescription(tr("Browses and organizes your files."));
-    m_aboutDialog->setIconSource("file-system-manager");
+    m_aboutDialog->setIconSource("system-file-manager");
     m_aboutDialog->onClosed = [this] {
         std::shared_ptr<ui::AboutDialog> doomed(std::move(m_aboutDialog));
         base::EventLoop::current()->post([doomed] {});

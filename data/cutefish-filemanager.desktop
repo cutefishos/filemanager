@@ -5,6 +5,6 @@ GenericName=File Manager
 Comment=Browse and manage your files
 Exec=cutefish-filemanager %u
 MimeType=inode/directory;
-Icon=file-system-manager
+Icon=system-file-manager
 Categories=System;FileTools;FileManager;
 StartupNotify=true
