@@ -6,12 +6,10 @@
 #include "apfs.h"
 #include "hfsplus.h"
 
-#include "base/application_bundle.h"
 #include "base/i18n.h"
 
 #include <climits>
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 using cutefish::i18n::tr;
@@ -75,15 +73,7 @@ int DiskImageBackend::stat(const std::string &path, struct stat *st)
     if (const int error = m_volume->stat(path, &attributes); error < 0)
         return error;
     fillStat(attributes, st);
-    fillLinkSize(path, st);
     return 0;
-}
-
-void DiskImageBackend::fillLinkSize(const std::string &path, struct stat *st)
-{
-    std::string target;
-    if (S_ISLNK(st->st_mode) && readLink(path, &target) == 0)
-        st->st_size = off_t(target.size());
 }
 
 int DiskImageBackend::list(const std::string &path, std::vector<DirectoryEntry> *entries)
@@ -97,7 +87,6 @@ int DiskImageBackend::list(const std::string &path, std::vector<DirectoryEntry> 
         DirectoryEntry entry;
         entry.name = name;
         fillStat(attributes, &entry.st);
-        fillLinkSize(path == "/" ? "/" + name : path + "/" + name, &entry.st);
         entries->push_back(std::move(entry));
     }
     return 0;
@@ -175,14 +164,7 @@ int DiskImageBackend::setTimes(const std::string &, const struct timespec[2])
 
 int DiskImageBackend::readLink(const std::string &path, std::string *target)
 {
-    const int result = m_volume->readLink(path, target);
-    // Images offer their application to be dragged onto a link to the
-    // system's Applications folder; applications are installed per user.
-    if (result == 0 && (*target == "/Applications" || *target == "/Applications/")) {
-        *target = cutefish::base::bundle::applicationsDirectory();
-        ::mkdir(target->c_str(), 0755);
-    }
-    return result;
+    return m_volume->readLink(path, target);
 }
 
 int DiskImageBackend::makeLink(const std::string &, const std::string &)
