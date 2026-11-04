@@ -21,6 +21,7 @@
 #include "ui/clipboard.h"
 #include "ui/drag.h"
 
+#include "cutefish/files/local_file_system.h"
 #include "cutefish/files/url.h"
 
 #include <algorithm>
@@ -1541,7 +1542,7 @@ bool FolderModel::canDropUrls(const std::vector<std::string>& urls, int row, uin
     if (!targetUrl.starts_with("trash:")) {
         struct stat st;
         if (targetPath.empty() || ::stat(targetPath.c_str(), &st) != 0 || !S_ISDIR(st.st_mode)
-            || ::access(targetPath.c_str(), W_OK | X_OK) != 0)
+            || !files::LocalFileSystem::canChange(targetPath))
             return false;
     }
 
@@ -1557,7 +1558,7 @@ bool FolderModel::canDropUrls(const std::vector<std::string>& urls, int row, uin
         if (!sourcePath.empty() && !targetPath.empty() && base::url::isLocalFile(url)) {
             if (parentPath(sourcePath) == targetPath || targetPath.starts_with(sourcePath + '/'))
                 return false;
-            if (moving && ::access(parentPath(sourcePath).c_str(), W_OK | X_OK) != 0)
+            if (moving && !files::LocalFileSystem::canChange(parentPath(sourcePath)))
                 return false;
         }
 
@@ -1704,7 +1705,7 @@ void FolderModel::updateActions()
     const bool canMoveItems = !items.empty()
             && (searching ? std::all_of(items.begin(), items.end(),
                                         [](const FileItemPtr& file) {
-                                            return ::access(parentPath(file->path).c_str(), W_OK) == 0;
+                                            return files::LocalFileSystem::canChange(parentPath(file->path));
                                         })
                           : rootItem().isWritable);
 
