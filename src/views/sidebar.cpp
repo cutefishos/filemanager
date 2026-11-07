@@ -13,6 +13,7 @@
 #include "ui/clipboard.h"
 #include "ui/color_provider.h"
 #include "ui/dialog_window.h"
+#include "ui/popup_glass.h"
 #include "ui/drag.h"
 #include "ui/icon.h"
 #include "ui/label.h"
@@ -754,9 +755,9 @@ void SideBar::paint(ui::Painter& painter)
 {
     // Over the compositor's glass (Settings > Appearance > Glass effect) the
     // sidebar is the glass itself, at the shell's tint and blur; a fill
-    // would hide that. Without glass, a step below the folder view's colour
-    // in both modes.
-    if (window() && window()->backgroundGlassAvailable())
+    // would hide that. Without glass, or with it frosted, a step below the
+    // folder view's colour in both modes.
+    if (window() && window()->backgroundGlassAvailable() && !ui::shellGlassFrosted())
         return;
     painter.fillRect(localRect(), style::withAlpha(ui::Theme::current().background, 0.7));
 }
