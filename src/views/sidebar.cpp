@@ -752,7 +752,12 @@ void SideBar::layout()
 
 void SideBar::paint(ui::Painter& painter)
 {
-    // A step below the folder view's colour in both modes.
+    // Over the compositor's glass (Settings > Appearance > Glass effect) the
+    // sidebar is the glass itself, at the shell's tint and blur; a fill
+    // would hide that. Without glass, a step below the folder view's colour
+    // in both modes.
+    if (window() && window()->backgroundGlassAvailable())
+        return;
     painter.fillRect(localRect(), style::withAlpha(ui::Theme::current().background, 0.7));
 }
 
