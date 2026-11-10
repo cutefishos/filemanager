@@ -65,7 +65,7 @@ private:
     FolderView* m_view;
 };
 
-// The rubber band: a RoundedRectangle in the base colour,
+// The rubber band: a square-cornered rectangle in the base colour,
 // faded out over 150 ms once closed.
 class FolderView::RubberBand : public ui::View
 {
@@ -100,15 +100,14 @@ public:
 protected:
     void paint(ui::Painter& painter) override
     {
-        const ui::Theme& theme = ui::Theme::current();
         // The desktop's band: white over the wallpaper in either mode.
         if (m_desktop) {
             const ui::Color white = ui::Color::rgb(0xffffff);
-            painter.drawRoundedRect(localRect(), {theme.smallRadius, 0, ui::Corners::Circular},
+            painter.drawRoundedRect(localRect(), {0},
                                     style::withAlpha(white, 0.12), 1.0 / painter.scale(), style::withAlpha(white, 0.7));
             return;
         }
-        painter.drawRoundedRect(localRect(), {theme.smallRadius, 0, ui::Corners::Circular},
+        painter.drawRoundedRect(localRect(), {0},
                                 ui::color(FmColor::RubberBandFill), 1.0 / painter.scale(),
                                 ui::color(FmColor::RubberBandBorder));
     }
