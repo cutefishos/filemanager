@@ -12,10 +12,6 @@
 #include <memory>
 #include <string>
 
-namespace cutefish::ui {
-class HeaderButton;
-}
-
 namespace fm {
 
 // The file manager's own dialog windows (I/O progress, conflicts): a
@@ -25,7 +21,7 @@ namespace fm {
 class FramelessDialog
 {
 public:
-    // closeButton: FishUI's close button at 8, 8 from the top right.
+    // closeButton: the window controls, the close one alone enabled.
     FramelessDialog(std::string title, bool closeButton);
     virtual ~FramelessDialog();
 
@@ -46,11 +42,11 @@ public:
         m_modal = modal;
     }
     ui::Window* parentWindow() const { return m_parent; }
-    // A header above the content, as FishUI.Window's, its close button this
-    // far from the top and the end; 0 for none (the content starts at the
-    // padding and the button at 8, 8).
+    // A header above the content, as FishUI.Window's, its window controls this
+    // far from the top and the start; 0 for none (the content starts at the
+    // padding and the controls at 8, 8).
     void setHeader(double height, double buttonMargin);
-    // FishUI.DialogWindow's title on the close button's line, 14 px, 16 in.
+    // FishUI.DialogWindow's title on the window controls' line, 14 px, 16 in.
     void setHeaderTitle(std::string title);
     // Paddings other than the one on every side: left/right and top/bottom.
     void setPadding(double horizontal, double top, double bottom);

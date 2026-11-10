@@ -800,6 +800,8 @@ void ChooserWindow::show()
 void ChooserWindow::beginNewFolder()
 {
     m_newFolder = std::make_unique<ui::DialogWindow>(m_window.get(), tr("New Folder"), 340);
+    // Cancel closes it.
+    m_newFolder->setCloseVisible(false);
     if (ui::Window* window = m_newFolder->window())
         window->setBackgroundColor(ui::ColorId::SecondBackground);
 

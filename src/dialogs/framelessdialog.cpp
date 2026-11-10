@@ -4,33 +4,29 @@
 #include "dialogs/framelessdialog.h"
 
 #include "base/event_loop.h"
-#include "ui/header_button.h"
 #include "ui/label.h"
 #include "ui/keys.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
+#include "ui/window_controls.h"
+#include "ui/window_header.h"
 
 #include <cmath>
 
 namespace fm {
 
-// The close control, centred in the 32-pixel corner slot.
+// The window controls, centred in the 32-pixel corner slot.
 static constexpr double kSlot = 32;
-static constexpr double kControl = 26;
 
 class FramelessDialog::Root : public ui::View
 {
 public:
-    explicit Root(FramelessDialog* dialog, bool closeButton)
-        : m_dialog(dialog)
+    explicit Root(bool closeButton)
     {
         if (closeButton) {
-            m_close = addChild<ui::HeaderButton>("close", kControl);
-            m_close->setWindowControl(true);
-            m_close->onClicked = [this] {
-                if (m_dialog->onCloseRequested)
-                    m_dialog->onCloseRequested();
-            };
+            m_controls = addChild<ui::WindowHeader>();
+            m_controls->setMinimizeEnabled(false);
+            m_controls->setMaximizeEnabled(false);
         }
     }
 
@@ -53,8 +49,8 @@ public:
         }
         m_content = content.get();
         addChild(std::move(content));
-        if (m_close)
-            raiseChild(m_close);
+        if (m_controls)
+            raiseChild(m_controls);
         m_width = width;
         m_horizontal = m_top = m_bottom = padding;
     }
@@ -66,6 +62,8 @@ public:
         m_bottom = bottom;
         m_header = header;
         m_buttonMargin = buttonMargin;
+        if (m_controls)
+            m_controls->setButtonMargin(buttonMargin);
     }
 
     double fittedHeight() const
@@ -90,11 +88,11 @@ protected:
         const double width = geometry().width - m_horizontal * 2;
         if (m_content)
             m_content->setGeometry({m_horizontal, m_header + m_top, width, m_content->heightForWidth(width)});
-        const double inset = (kSlot - kControl) / 2;
-        if (m_close)
-            m_close->setGeometry({m_buttonMargin + inset, m_buttonMargin + inset, kControl, kControl});
+        if (m_controls)
+            m_controls->setGeometry({0, 0, geometry().width, std::max(m_header, m_buttonMargin * 2 + kSlot)});
         if (m_title) {
-            const double left = m_close ? m_buttonMargin + kSlot + ui::Theme::current().smallSpacing : 16;
+            const double controls = ui::window_controls::kRowWidth + kSlot - ui::window_controls::kButton;
+            const double left = m_controls ? m_buttonMargin + controls + ui::Theme::current().smallSpacing : 16;
             m_title->setGeometry({left, m_buttonMargin, std::max(0.0, geometry().width - left - m_buttonMargin), kSlot});
         }
     }
@@ -107,9 +105,8 @@ protected:
     }
 
 private:
-    FramelessDialog* m_dialog;
     ui::View* m_content = nullptr;
-    ui::HeaderButton* m_close = nullptr;
+    ui::WindowHeader* m_controls = nullptr;
     ui::Label* m_title = nullptr;
     double m_width = 480;
     double m_horizontal = 16;
@@ -187,7 +184,7 @@ void FramelessDialog::show()
     m_window->setTitle(m_title);
     if (m_parent)
         m_window->setTransientParent(m_parent, m_modal);
-    auto root = std::make_unique<Root>(this, m_closeButton);
+    auto root = std::make_unique<Root>(m_closeButton);
     m_root = root.get();
     m_window->setContentView(std::move(root));
     m_window->setBackgroundColor(ui::ColorId::SecondBackground);

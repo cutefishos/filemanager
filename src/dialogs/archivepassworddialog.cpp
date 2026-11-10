@@ -81,6 +81,8 @@ ArchivePasswordDialog::ArchivePasswordDialog(ui::Window* parent, FolderModel& mo
     , m_retry(retry)
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Password Required"), 400);
+    // Cancel closes it.
+    m_dialog->setCloseVisible(false);
     m_content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         // Closed without an answer: the extraction is given up.

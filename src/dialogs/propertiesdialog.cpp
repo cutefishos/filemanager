@@ -97,7 +97,8 @@ PropertiesDialog::PropertiesDialog(FileItemList items)
                 }
             });
 
-    setHeader(40, 4);
+    // A title bar for the window controls, their first centre 16 in.
+    setHeader(32, 0);
     setPadding(kLargeSpacing * 1.5, kSmallSpacing, kLargeSpacing * 2 - kSmallSpacing);
     setContentFactory([this] { return createContent(); }, 0, 0);
     onCloseRequested = [this] {

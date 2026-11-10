@@ -214,6 +214,8 @@ ConnectServerDialog::ConnectServerDialog(ui::Window* parent, PlacesModel& places
     : m_places(places)
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Connect to Server"), 420);
+    // Cancel closes it.
+    m_dialog->setCloseVisible(false);
     auto* content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
         if (onDone)
@@ -364,6 +366,8 @@ ServerPasswordDialog::ServerPasswordDialog(ui::Window* parent, PlacesModel& plac
     , m_request(std::move(request))
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Connect to Server"), 400);
+    // Cancel closes it.
+    m_dialog->setCloseVisible(false);
     auto* content = m_dialog->setContent<Content>(this);
     m_content = content;
     m_dialog->onClosed = [this] {
