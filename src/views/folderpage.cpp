@@ -194,10 +194,6 @@ void FolderPage::createView()
         std::shared_ptr<View> old = takeChild(m_view);
         base::EventLoop::current()->post([old] {});
     }
-    if (m_backdrop) {
-        std::shared_ptr<View> old = takeChild(m_backdrop);
-        base::EventLoop::current()->post([old] {});
-    }
 
     FolderView* view;
     if (m_viewMethod == Preferences::List)
@@ -212,7 +208,8 @@ void FolderPage::createView()
     };
     view->onKeyPressed = [this](const ui::KeyEvent& event) { return handleKey(event); };
 
-    m_backdrop = addChild<ui::HeaderBackdrop>(view);
+    // Inside the view, so the list's column header stays above the blur.
+    m_backdrop = view->addChild<ui::HeaderBackdrop>(view);
     m_backdrop->setBaseColor(ui::Theme::current().secondBackground);
     m_backdrop->setSeparatorVisible(m_viewMethod != Preferences::List);
     if (!m_pathStrip) {
