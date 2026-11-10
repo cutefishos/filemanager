@@ -228,8 +228,12 @@ void launchTerminal(const std::string& folder)
             }
         }
     }
+    // A bundle opens the folder as a document, in a window there; its
+    // working directory is not the shell's.
     if (terminal)
-        startCommand(terminal->commandForArguments({}), folder, terminal->id);
+        startCommand(terminal->commandForArguments(terminal->bundle ? std::vector<std::string>{folder}
+                                                                    : std::vector<std::string>{}),
+                     folder, terminal->id);
 }
 
 } // namespace fm::launcher
