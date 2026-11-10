@@ -754,6 +754,15 @@ void SideBar::paint(ui::Painter& painter)
 {
     // A step below the folder view's colour in both modes.
     painter.fillRect(localRect(), style::withAlpha(ui::Theme::current().background, 0.7));
+
+    // The header backdrop's hairline, down the edge: 0.5 px, below 2x a
+    // device pixel with its alpha scaled to the same weight.
+    const double scale = painter.scale();
+    const double devicePixels = std::max(1.0, std::round(0.5 * scale));
+    const double lineWidth = devicePixels / scale;
+    const ui::Color separator = ui::color(ui::ColorId::HeaderSeparator);
+    painter.drawRoundedRect({geometry().width - lineWidth, 0, lineWidth, geometry().height}, {0},
+                            separator.withAlpha(separator.a / 255.0 * 0.5 * scale / devicePixels));
 }
 
 } // namespace fm
