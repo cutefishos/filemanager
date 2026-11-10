@@ -51,7 +51,7 @@ ConflictDialog::Details ConflictDialog::fileDetails(const std::string& path)
 }
 
 ConflictDialog::ConflictDialog()
-    : FramelessDialog(tr("Replace Item"), true)
+    : FramelessDialog(tr("Replace Item"), false)
 {
     setContentFactory([this] { return createContent(); }, 480, 20);
     onCloseRequested = [this] {
@@ -138,16 +138,13 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     layout->setSpacing(20);
     auto* row = layout->addChild<ui::RowLayout>();
     row->setSpacing(16);
-    // The close button sits over the content's start: the row keeps 32 px clear of it.
-    ui::LayoutHints rowHints {.fillWidth = true};
-    rowHints.margins.left = 32;
-    row->setLayoutHints(rowHints);
+    row->setLayoutHints({.fillWidth = true});
     auto* icon = row->addChild<ui::ThemeIcon>(m_incoming.iconName.empty() ? "unknown" : m_incoming.iconName, 64);
     icon->setLayoutHints({.preferredWidth = 64, .preferredHeight = 64, .verticalAlignment = ui::Alignment::Start});
     auto* texts = row->addChild<ui::Column>();
     texts->setSpacing(4);
     texts->setLayoutHints({.fillWidth = true});
-    const double textWidth = 480 - 20 * 2 - 64 - 16 - 32;
+    const double textWidth = 480 - 20 * 2 - 64 - 16;
     ui::Label* title = addLabel(texts, 13, 600, ui::ColorId::Text, true);
     title->setName("conflictHeading");
     title->setText(heading);

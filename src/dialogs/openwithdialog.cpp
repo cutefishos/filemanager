@@ -73,7 +73,7 @@ private:
 };
 
 OpenWithDialog::OpenWithDialog(std::string path, std::string mimeType)
-    : FramelessDialog(tr("Open With"), true)
+    : FramelessDialog(tr("Open With"), false)
     , m_path(std::move(path))
     , m_mimeType(std::move(mimeType))
 {
@@ -128,9 +128,7 @@ std::unique_ptr<ui::View> OpenWithDialog::createContent()
     title->setFontSize(14);
     title->setWeight(600);
     title->setColor(ui::ColorId::Text);
-    ui::LayoutHints titleHints {.fillWidth = true};
-    titleHints.margins.left = 32;
-    title->setLayoutHints(titleHints);
+    title->setLayoutHints({.fillWidth = true});
 
     m_list = layout->addChild<ui::ListView>();
     m_list->setLayoutHints({.fillWidth = true, .preferredHeight = 250});
