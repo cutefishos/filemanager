@@ -228,6 +228,7 @@ private:
     double m_bottomInset = 0;
 
     int m_currentIndex = -1;
+    int m_pendingReveal = -1;
     bool m_chooser = false;
     bool m_desktopStyle = false;
     int m_dragIndex = -1;

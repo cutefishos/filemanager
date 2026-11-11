@@ -77,6 +77,10 @@ FolderPage::FolderPage(FolderModelHost* host, const Start& start)
         restoreViewPosition(false);
         requestLayout();
     }));
+    // An item asked for, such as one shown in its folder, wins over the saved offset.
+    m_subscriptions.push_back(model.scrollToItem.connect([this](int) {
+        m_pendingViewPosition = NAN;
+    }));
     // Not a new location: the path editor keeps the keys while the scope changes.
     m_subscriptions.push_back(model.searchChanged.connect([this] { requestLayout(); }));
     m_subscriptions.push_back(model.openTabRequested.connect([this](const std::string& url) {

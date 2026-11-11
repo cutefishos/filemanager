@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace fm {
 
@@ -144,8 +145,12 @@ FolderView::FolderView(FolderModel& model)
     m_subscriptions.push_back(model.draggingChanged.connect([this] {
         updateItems();
     }));
+    // The rows may have just arrived, in a window not yet laid out: the item
+    // is revealed on the next layout, against the content size it gives.
     m_subscriptions.push_back(model.scrollToItem.connect([this](int row) {
         setCurrentIndex(indexOfRow(row));
+        m_pendingReveal = m_currentIndex;
+        requestLayout();
     }));
     m_subscriptions.push_back(model.requestRename.connect([this] {
         // The model's current item, such as a folder just made, is the one renamed.
@@ -211,6 +216,8 @@ void FolderView::layout()
 {
     setVerticalBarPadding(headerHeight(), m_bottomInset);
     ScrollView::layout();
+    if (m_pendingReveal >= 0 && geometry().height > 0)
+        revealIndex(std::exchange(m_pendingReveal, -1));
     updateItems();
 }
 
@@ -257,6 +264,7 @@ void FolderView::reset()
 {
     m_pressActive = false;
     m_currentIndex = -1;
+    m_pendingReveal = -1;
     m_anchorIndex = 0;
     cancelRename();
     m_hoveredIndex = -1;
