@@ -2,6 +2,8 @@
 
 Cutefish File Manager, simple to use, beautiful, and retain the classic PC interactive design.
 
+<img src="screenshots/filemanager.png" alt="File Manager" width="945">
+
 ## Dependencies
 
 File Manager is built on [cutefish-toolkit](https://github.com/cutefishos/cutefish-toolkit) and
