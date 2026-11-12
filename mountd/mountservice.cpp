@@ -212,8 +212,10 @@ dbus::VariantMap MountService::describe(const Entry &entry) const
 std::vector<dbus::VariantMap> MountService::mounts() const
 {
     std::vector<dbus::VariantMap> result;
-    for (const auto &entry : m_entries)
-        result.push_back(describe(*entry));
+    for (const auto &entry : m_entries) {
+        if (!entry->hidden)
+            result.push_back(describe(*entry));
+    }
     return result;
 }
 
@@ -259,6 +261,12 @@ void MountService::mount(dbus::MethodCall &call)
     credentials.anonymous = optionBool(options, "anonymous");
     credentials.acceptedHostKey = optionString(options, "hostKey");
     const bool remember = optionBool(options, "remember");
+    const std::string requestedMountPoint = imagePath.empty() ? std::string() : optionString(options, "mountPoint");
+    const bool hidden = !imagePath.empty() && optionBool(options, "hidden");
+    if (!requestedMountPoint.empty() && requestedMountPoint.front() != '/') {
+        fail(format(tr("“{path}” is not an absolute path."), {{"path", requestedMountPoint}}));
+        return;
+    }
 
     // A server already mounted for this account opens at once.
     const RemoteUrl key = device ? RemoteUrl() : serverKey(url, url.user);
@@ -311,8 +319,8 @@ void MountService::mount(dbus::MethodCall &call)
     const int callId = m_nextCall++;
     m_calls.emplace(callId, call);
 
-    std::thread([this, alive = m_alive, loop, callId, url, deviceId, imageId, imagePath, pendingKey, credentials,
-                 remember, shared]() mutable {
+    std::thread([this, alive = m_alive, loop, callId, url, deviceId, imageId, imagePath, requestedMountPoint, hidden,
+                 pendingKey, credentials, remember, shared]() mutable {
         Credentials attempt = credentials;
         bool fromKeyring = false;
         if (attempt.password.empty() && !attempt.anonymous && deviceId.empty() && imageId.empty())
@@ -327,8 +335,8 @@ void MountService::mount(dbus::MethodCall &call)
         if (result.status == ConnectResult::Connected && remember && !attempt.anonymous)
             Keyring::store(url, attempt);
 
-        loop.post([this, alive, callId, url, deviceId, imageId, imagePath, pendingKey, result, attempt, credentials,
-                   fromKeyring, shared]() mutable {
+        loop.post([this, alive, callId, url, deviceId, imageId, imagePath, requestedMountPoint, hidden, pendingKey,
+                   result, attempt, credentials, fromKeyring, shared]() mutable {
             if (!*alive)
                 return;
             m_pending.erase(pendingKey);
@@ -372,6 +380,7 @@ void MountService::mount(dbus::MethodCall &call)
                     entry->icon = "drive-removable-media";
                     entry->network = false;
                     entry->ejectable = true;
+                    entry->hidden = hidden;
                 } else if (!entry) {
                     created = std::make_unique<Entry>();
                     entry = created.get();
@@ -395,7 +404,8 @@ void MountService::mount(dbus::MethodCall &call)
                 const std::string initial = url.path.empty() || url.path == "/" ? backend->initialPath() : url.path;
                 const LoopHandle loop = EventLoop::current()->handle();
                 auto mount = std::make_unique<FuseMount>(
-                        std::move(backend), mountPointFor(entry->name), entry->id,
+                        std::move(backend),
+                        requestedMountPoint.empty() ? mountPointFor(entry->name) : requestedMountPoint, entry->id,
                         [this, alive, loop](FuseMount *mount) {
                             loop.post([this, alive, mount] {
                                 if (*alive)
@@ -434,6 +444,12 @@ void MountService::unmount(dbus::MethodCall &call)
     }
 
     Entry *entry = find(id);
+    if (!entry) {
+        for (const auto &candidate : m_entries) {
+            if (candidate->mount && candidate->mount->mountPoint() == id)
+                entry = candidate.get();
+        }
+    }
     if (!entry || !entry->mount) {
         call.reply();
         return;

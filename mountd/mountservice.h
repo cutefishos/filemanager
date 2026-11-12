@@ -44,6 +44,8 @@ private:
         bool device = false;
         // Disk images go away when ejected, as devices do when pulled out.
         bool ejectable = false;
+        // Left out of Mounts(): a program's own image, not one to show.
+        bool hidden = false;
         std::unique_ptr<FuseMount> mount;
     };
 
@@ -52,8 +54,10 @@ private:
     // a disk image. Answers (status, details): "mounted" with path; "password" with user,
     // domain, needsDomain, anonymousAllowed and retry; "hostkey" with fingerprint and
     // changed; "failed" with message. options carry the answers: user, domain, password,
-    // anonymous, remember, hostKey.
+    // anonymous, remember, hostKey; for a disk image also mountPoint (an absolute path to
+    // mount at) and hidden.
     void mount(cutefish::base::dbus::MethodCall &call);
+    // id is an entry's id or its mount point.
     void unmount(cutefish::base::dbus::MethodCall &call);
     void mountsChanged();
 
