@@ -1,0 +1,1279 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-13 16:33+0800\n"
+"PO-Revision-Date: 2026-11-13 15:22+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "Error de ZIP desconocido"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "No se admiten archivos comprimidos RAR protegidos con contraseña"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "No se admiten archivos comprimidos 7z protegidos con contraseña"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "No se admite este tipo de cifrado ZIP"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "No se admiten archivos comprimidos protegidos con contraseña en este formato"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "Error desconocido del archivo comprimido"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "No se pudo asignar memoria para el archivo comprimido"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "Falta la primera parte de este archivo comprimido de varias partes"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "El origen ya no existe: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "No se pudo leer el enlace simbólico: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "El origen no es un archivo normal: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "No se seleccionó ningún archivo"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "La carpeta de destino no existe: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "No se pudo asignar memoria para el enlace simbólico"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "No se pudo crear {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "No se pudo crear {path}: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "Solo se puede extraer un archivo comprimido a la vez"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "Formato de archivo comprimido no reconocido"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "No se pudo crear una carpeta de extracción temporal"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "Ruta no segura en el archivo comprimido: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "No se admiten enlaces físicos en archivos comprimidos: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "Ruta de enlace simbólico no válida en el archivo comprimido: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "Destino de enlace simbólico no válido: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "No se admiten archivos especiales en archivos comprimidos: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "No se pudo crear la carpeta superior de {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "No se pudo escribir {path}: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "Carpeta superior que es un enlace simbólico en el archivo comprimido: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "Ruta duplicada en el archivo comprimido: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "No se pudo restaurar el enlace simbólico: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "No se pudo publicar la tarea"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "El volumen de la imagen de disco está dañado."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "La imagen de disco no contiene ningún volumen que se pueda abrir."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "No se pueden abrir imágenes de disco cifradas."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "El archivo no es una imagen de disco que se pueda abrir."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "No se pueden abrir imágenes de disco dispersas."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "No se pueden abrir imágenes de disco divididas en varios archivos."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "La imagen de disco está dañada."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "La imagen de disco usa una compresión que no se puede leer."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "No se puede crear {path}"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "No se puede iniciar la sesión FUSE"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "No se puede montar {path}"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "“{path}” no es una ruta absoluta."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "“{location}” no es una ubicación a la que se pueda conectar."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "Ya se está conectando a “{location}”."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "No se pudo abrir el dispositivo. Desconéctalo y vuelve a conectarlo."
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "Los archivos del dispositivo no están disponibles. Desbloquéalo y permite el acceso a sus datos en su pantalla; si eso no funciona, elige transferencia de archivos en su configuración USB."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "No se puede iniciar una sesión SSH"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "El recurso compartido no existe."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "No se pudo acceder al servidor."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "Eliminar"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "¿Quieres eliminarlo de forma permanente?"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "Vaciar papelera"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "¿Quieres eliminar de forma permanente todos los archivos de la papelera?"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "Ejecutar programa"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "“{name}” es un programa. Ejecútalo solo si confías en su procedencia."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "Ejecutar"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "Favoritos"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "Guardar como:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "Tipo de archivo:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "Nueva carpeta"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "¿Reemplazar el archivo?"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "“{name}” ya existe. ¿Quieres reemplazarlo?"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "Reemplazar"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "Dispositivo no disponible"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "Cerrar"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "Nombre de la carpeta"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "Crear"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "Guardar archivo"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "Abrir"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "Guardar"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "Seleccionar carpeta"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "Selecciona un archivo"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "{n} elemento seleccionado"
+msgstr[1] "{n} elementos seleccionados"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "Esta carpeta no está disponible o no se puede leer."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "No se pudo crear la carpeta. Elige otro nombre."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "Escribe un nombre de archivo sin barras."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "No tienes permiso para guardar aquí."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "Elige un archivo o una carpeta local."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "El elemento seleccionado ya no está disponible."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "Selecciona solo carpetas."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "Selecciona solo archivos."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "Selecciona un archivo para abrirlo."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "Un nombre de archivo sugerido no es válido."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "No se proporcionó ningún nombre de archivo."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "Ahora"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "Hace {n} minuto"
+msgstr[1] "Hace {n} minutos"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "Hace {n} hora"
+msgstr[1] "Hace {n} horas"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "Hace {n} día"
+msgstr[1] "Hace {n} días"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "Hoy a las {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "Ayer a las {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "No hay bus de sesión"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "Carpeta personal"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "Escritorio"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "Documentos"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "Descargas"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "Música"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "Imágenes"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "Videos"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "Plantillas"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "Público"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "Archivo"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "Nueva ventana"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "Editar"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "Seleccionar todo"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "Ver"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "La contraseña de “{name}” es incorrecta. Inténtalo de nuevo."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "Escribe la contraseña para extraer “{name}”."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "Contraseña"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "Extraer"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "Se requiere contraseña"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "Reemplazar elemento"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "Ya existe en esta ubicación un elemento más antiguo llamado “{name}”."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "Ya existe en esta ubicación un elemento más reciente llamado “{name}”."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "Ya existe en esta ubicación un elemento llamado “{name}”."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "¿Quieres reemplazarlo por el enlace que estás creando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "¿Quieres reemplazarlo por el más reciente que estás moviendo?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "¿Quieres reemplazarlo por el más antiguo que estás moviendo?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "¿Quieres reemplazarlo por el que estás moviendo?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "¿Quieres reemplazarlo por el más reciente que estás restaurando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "¿Quieres reemplazarlo por el más antiguo que estás restaurando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "¿Quieres reemplazarlo por el que estás restaurando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "¿Quieres reemplazarlo por el más reciente que estás copiando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "¿Quieres reemplazarlo por el más antiguo que estás copiando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "¿Quieres reemplazarlo por el que estás copiando?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "Aplicar a todos"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stop"
+msgstr "Detener"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "Omitir"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "Conservar ambos"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "Copiando “{name}” a “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "Copiando {n} elemento a “{destination}”"
+msgstr[1] "Copiando {n} elementos a “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "Moviendo “{name}” a “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "Moviendo {n} elemento a “{destination}”"
+msgstr[1] "Moviendo {n} elementos a “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "Moviendo “{name}” a la papelera"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "Moviendo {n} elemento a la papelera"
+msgstr[1] "Moviendo {n} elementos a la papelera"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "Restaurando “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "Restaurando {n} elemento"
+msgstr[1] "Restaurando {n} elementos"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "Eliminando “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "Eliminando {n} elemento"
+msgstr[1] "Eliminando {n} elementos"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "Vaciando la papelera"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "Cambiando el nombre de “{name}” a “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "Creando “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "Creando enlaces en “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "Comprimiendo en “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "Extrayendo en “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "Preparando…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "Queda aproximadamente un segundo"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "Queda aproximadamente {n} segundo"
+msgstr[1] "Quedan aproximadamente {n} segundos"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "Queda aproximadamente un minuto"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "Queda aproximadamente {n} minuto"
+msgstr[1] "Quedan aproximadamente {n} minutos"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "Deteniendo…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "Esperando tu elección"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "Finalizando…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "Trabajando…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "Trabajando en “{name}”…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed} de {total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed} de {n} elemento"
+msgstr[1] "{processed} de {n} elementos"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "“{name}” ya existe en esta ubicación."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "Abrir con"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "No hay aplicaciones"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "Establecer como predeterminada"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "Propiedades"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} archivo"
+msgstr[1] "{n} archivos"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "Tipo:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "Ubicación:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "Tamaño:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "Calculando…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "Creado:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "Modificado:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "Último acceso:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share o sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "Servidores recientes"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "Conectar"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "Conectarse al servidor"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "El nombre o la contraseña de “{address}” son incorrectos. Inténtalo de nuevo."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "Escribe tu nombre y contraseña para “{address}”."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "Usuario registrado"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "Invitado"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "Nombre"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "Dominio (opcional)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "Recordar esta contraseña"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "The passphrase for “{name}” is incorrect. Try again."
+msgstr "La frase de contraseña de “{name}” es incorrecta. Inténtalo de nuevo."
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "Escribe la frase de contraseña para desbloquear “{name}”."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "Frase de contraseña"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "Desbloquear"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "Desbloquear volumen"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} elemento"
+msgstr[1] "{n} elementos"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "Carpeta"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "Aplicación"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "Papelera"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "Nueva carpeta"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "Nuevo texto"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "Solo se pueden comprimir archivos locales."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "Archivo"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "Extraído"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "Compresión cancelada."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "Extracción cancelada."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "Abrir con"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "Mostrar en la carpeta contenedora"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "Comprimir"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "Cortar"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "Copiar"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "Pegar"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "Nuevo texto"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "Mover a la papelera"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "Cambiar nombre"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "Abrir en Terminal"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "Usar como fondo de pantalla"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "Cambiar fondo"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "Restaurar"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "Mostrar archivos ocultos"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "Abrir en una ventana nueva"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "Abrir en una pestaña nueva"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "Deshacer"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "Rehacer"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "Comprimir “{name}”"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "Comprimir elementos"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "Ocultar archivos ocultos"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "Computadora"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "Ubicaciones"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "Unidades internas"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "Red"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "“{address}” no es una dirección de servidor. Escribe una como smb://server/share o sftp://user@server."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "Está en uso. Cierra los archivos abiertos en esa ubicación e inténtalo de nuevo."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "El servicio de operaciones con archivos se detuvo."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "No se puede acceder al bus de sesión."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "La vista previa no está disponible para esta ubicación."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "Este archivo ya no está disponible."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index} de {count}"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "Abrir con {application}"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}, {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "El resto de este archivo no se muestra."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "No se pudo mostrar esta imagen."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "Vista rápida"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "Nuevos documentos"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "Otra"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "No hay resultados"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "Buscando “{text}”"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "Buscar:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "“{name}”"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "Vaciar"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "Archivos"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "Cerrar pestaña"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "Explora y organiza tus archivos."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "Acerca de Archivos"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "Ocultar Archivos"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "Nueva pestaña"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "Buscar"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "Como iconos"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "Como lista"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "Ordenar por"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "Actualizar"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "Nombre"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "Ubicación original"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "Fecha de eliminación"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "Fecha"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "Tipo"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "Tamaño"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "Ir"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "Atrás"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "Adelante"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "Carpeta contenedora"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "Ir a la ubicación…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "Conectarse al servidor…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "Ventana"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "Minimizar"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "Zoom"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "Mostrar la pestaña anterior"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "Mostrar la pestaña siguiente"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "Fecha de modificación"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "Tipo"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "Buscar o escribir una ruta"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "No se pudo abrir la vista previa: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "Elige un nombre que no sea . ni .."
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "Los nombres no pueden contener / ni saltos de línea."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "Quitar de Favoritos"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "Expulsar"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "Desmontar"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "La identidad del servidor cambió"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "Servidor desconocido"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "La identidad de “{address}” no es la que tenía antes. Es posible que alguien se esté haciendo pasar por él. Conéctate solo si su administrador cambió su clave."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "No se puede verificar la identidad de “{address}”. Comprueba que la huella digital de su clave sea la que esperas antes de conectarte."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "Conectar de todos modos"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "Error en la operación del dispositivo"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "Administrador de archivos"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "Explora y administra tus archivos"

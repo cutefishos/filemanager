@@ -1,0 +1,1265 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-13 16:33+0800\n"
+"PO-Revision-Date: 2026-11-13 16:33+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "未知的 ZIP 错误"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "不支持受密码保护的 RAR 压缩包"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "不支持受密码保护的 7z 压缩包"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "不支持此类 ZIP 加密"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "不支持此格式的受密码保护压缩包"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "未知的压缩包错误"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "无法为压缩包分配内存"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "缺少此分卷压缩包的第一部分"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "源已不存在：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "无法读取符号链接：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "源不是常规文件：{path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "未选择任何文件"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "目标文件夹不存在：{path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "无法为符号链接分配内存"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "无法创建 {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "无法创建 {path}：{error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "一次只能解压一个压缩包"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "无法识别的压缩包格式"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "无法创建临时解压文件夹"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "压缩包中有不安全的路径：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "不支持压缩包中的硬链接：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "压缩包中有无效的符号链接路径：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "无效的符号链接目标：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "不支持压缩包中的特殊文件：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "无法为 {path} 创建上级文件夹"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "无法写入 {path}：{error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "压缩包中的上级路径是符号链接：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "压缩包中有重复的路径：{path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "无法恢复符号链接：{path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "无法发布该任务"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "磁盘映像中的卷已损坏。"
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "磁盘映像中没有可以打开的卷。"
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "无法打开加密的磁盘映像。"
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "此文件不是可以打开的磁盘映像。"
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "无法打开稀疏磁盘映像。"
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "无法打开拆分为多个文件的磁盘映像。"
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "磁盘映像已损坏。"
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "磁盘映像使用了无法读取的压缩方式。"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "无法创建 {path}"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "无法启动 FUSE 会话"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "无法挂载 {path}"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "“{path}”不是绝对路径。"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "“{location}”不是可以连接的位置。"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "已在连接“{location}”。"
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "无法打开设备。请拔下设备后重新连接。"
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "无法访问设备上的文件。请解锁设备，并在设备屏幕上允许访问其数据；如果仍然不行，请在设备的 USB 设置中选择“文件传输”。"
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "无法启动 SSH 会话"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "该共享不存在。"
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "无法连接到服务器。"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "删除"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "要永久删除它吗？"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "清空回收站"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "要永久删除回收站中的所有文件吗？"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "运行程序"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "“{name}”是一个程序。只有在你信任其来源时才运行它。"
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "运行"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "个人收藏"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "保存为："
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "文件类型："
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "新建文件夹"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "取消"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "要替换文件吗？"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "“{name}”已存在。要替换它吗？"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "替换"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "设备不可用"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "关闭"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "文件夹名称"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "创建"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "保存文件"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "打开"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "保存"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "选择文件夹"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "选择一个文件"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "已选择 {n} 个项目"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "此文件夹不可用或无法读取。"
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "无法创建文件夹。请换一个名称。"
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "请输入不含斜杠的文件名。"
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "你没有在此处保存的权限。"
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "请选择本地文件或文件夹。"
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "所选项目已不可用。"
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "只能选择文件夹。"
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "只能选择文件。"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "请选择要打开的文件。"
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "建议的文件名无效。"
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "未提供任何文件名。"
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "现在"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "{n} 分钟前"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "{n} 小时前"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n} 天前"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "今天 {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "昨天 {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "没有会话总线"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "主文件夹"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "桌面"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "文档"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "下载"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "音乐"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "图片"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "视频"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "模板"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "公共"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "文件"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "新建窗口"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "编辑"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "全选"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "视图"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "“{name}”的密码不正确。请重试。"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "请输入密码以解压“{name}”。"
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "密码"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "解压"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "需要密码"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "替换项目"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "此位置已存在名为“{name}”的较旧项目。"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "此位置已存在名为“{name}”的较新项目。"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "此位置已存在名为“{name}”的项目。"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "要用你正在创建的链接替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "要用你正在移动的较新项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "要用你正在移动的较旧项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "要用你正在移动的项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "要用你正在恢复的较新项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "要用你正在恢复的较旧项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "要用你正在恢复的项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "要用你正在复制的较新项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "要用你正在复制的较旧项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "要用你正在复制的项目替换它吗？"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "全部应用"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stop"
+msgstr "停止"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "跳过"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "保留两者"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "正在将“{name}”复制到“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "正在将 {n} 个项目复制到“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "正在将“{name}”移到“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "正在将 {n} 个项目移到“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "正在将“{name}”移到回收站"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "正在将 {n} 个项目移到回收站"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "正在恢复“{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "正在恢复 {n} 个项目"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "正在删除“{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "正在删除 {n} 个项目"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "正在清空回收站"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "正在将“{name}”重命名为“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "正在创建“{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "正在“{destination}”中创建链接"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "正在压缩到“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "正在解压到“{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "正在准备…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "大约还剩 1 秒"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "大约还剩 {n} 秒"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "大约还剩 1 分钟"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "大约还剩 {n} 分钟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "正在停止…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "正在等待你的选择"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "正在完成…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "正在处理…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "正在处理“{name}”…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed} / {total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed} / {n} 个项目"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "此位置已存在“{name}”。"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "打开方式"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "没有应用程序"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "设为默认"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "属性"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} 个文件"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "类型："
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "位置："
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "大小："
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "正在计算…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "创建时间："
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "修改时间："
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "访问时间："
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share 或 sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "最近使用的服务器"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "连接"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "连接服务器"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "“{address}”的名称或密码不正确。请重试。"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "请输入“{address}”的名称和密码。"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "注册用户"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "客人"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "名称"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "域（可选）"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "记住此密码"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "The passphrase for “{name}” is incorrect. Try again."
+msgstr "“{name}”的密码短语不正确。请重试。"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "请输入密码短语以解锁“{name}”。"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "密码短语"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "解锁"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "解锁卷"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} 个项目"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "文件夹"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "应用程序"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "回收站"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "新建文件夹"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "新建文本"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "只能压缩本地文件。"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "归档"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "已解压"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "已取消压缩。"
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "已取消解压。"
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "打开方式"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "在所在文件夹中显示"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "压缩"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "剪切"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "复制"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "粘贴"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "新建文本"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "移到回收站"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "重命名"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "在终端中打开"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "设为壁纸"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "更改壁纸"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "恢复"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "显示隐藏文件"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "在新窗口中打开"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "在新标签页中打开"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "撤销"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "重做"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "压缩“{name}”"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "压缩项目"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "不显示隐藏文件"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "计算机"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "位置"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "内置驱动器"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "网络"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "“{address}”不是服务器地址。请输入类似 smb://server/share 或 sftp://user@server 的地址。"
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "它正在使用中。请关闭在其中打开的文件，然后重试。"
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "文件操作服务已停止。"
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "无法连接到会话总线。"
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "此位置无法预览。"
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "此文件已不可用。"
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "第 {index} 个，共 {count} 个"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "用 {application} 打开"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}，{count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "此文件的其余部分未显示。"
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "无法显示此图像。"
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "快速查看"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "新建文档"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "其他"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "无结果"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "正在搜索“{text}”"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "搜索："
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "“{name}”"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "清空"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "文件"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "关闭标签页"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "浏览和整理你的文件。"
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "关于文件"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "隐藏文件"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "新建标签页"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "查找"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "图标视图"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "列表视图"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "排序方式"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "刷新"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "名称"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "原始位置"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "删除日期"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "日期"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "类型"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "大小"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "前往"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "后退"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "前进"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "上层文件夹"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "前往位置…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "连接服务器…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "窗口"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "最小化"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "缩放"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "显示上一个标签页"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "显示下一个标签页"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "修改日期"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "种类"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "搜索或输入路径"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "无法打开预览：{error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "请选择 . 或 .. 以外的名称"
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "名称不能包含 / 或换行符。"
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "从个人收藏中移除"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "弹出"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "卸载"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "服务器身份已更改"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "未知服务器"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "“{address}”的身份与以前不同。可能有人在冒充它。只有在其管理员更改了密钥时才连接。"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "无法验证“{address}”的身份。连接前请检查其密钥指纹是否与你预期的一致。"
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "仍然连接"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "设备操作失败"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "文件管理器"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "浏览和管理你的文件"

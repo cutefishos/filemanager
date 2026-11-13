@@ -1,0 +1,1265 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-13 16:33+0800\n"
+"PO-Revision-Date: 2026-11-13 15:22+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "알 수 없는 ZIP 오류"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "암호로 보호된 RAR 압축 파일은 지원되지 않습니다"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "암호로 보호된 7z 압축 파일은 지원되지 않습니다"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "이 종류의 ZIP 암호화는 지원되지 않습니다"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "이 형식의 암호로 보호된 압축 파일은 지원되지 않습니다"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "알 수 없는 압축 파일 오류"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "압축 파일을 위한 메모리를 할당할 수 없습니다"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "이 분할 압축 파일의 첫 번째 부분이 없습니다"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "원본이 더 이상 존재하지 않습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "심볼릭 링크를 읽을 수 없습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "원본이 일반 파일이 아닙니다: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "선택한 파일이 없습니다"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "대상 폴더가 존재하지 않습니다: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "심볼릭 링크를 위한 메모리를 할당할 수 없습니다"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "생성할 수 없습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "생성할 수 없습니다: {path}: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "한 번에 하나의 압축 파일만 풀 수 있습니다"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "인식할 수 없는 압축 파일 형식"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "임시 압축 해제 폴더를 생성할 수 없습니다"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "압축 파일에 안전하지 않은 경로가 있습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "압축 파일의 하드 링크는 지원되지 않습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "압축 파일에 잘못된 심볼릭 링크 경로가 있습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "잘못된 심볼릭 링크 대상: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "압축 파일의 특수 파일은 지원되지 않습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "상위 폴더를 생성할 수 없습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "쓸 수 없습니다: {path}: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "압축 파일에 심볼릭 링크인 상위 폴더가 있습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "압축 파일에 중복된 경로가 있습니다: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "심볼릭 링크를 복원할 수 없습니다: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "작업을 게시할 수 없습니다"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "디스크 이미지의 볼륨이 손상되었습니다."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "디스크 이미지에 열 수 있는 볼륨이 없습니다."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "암호화된 디스크 이미지는 열 수 없습니다."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "이 파일은 열 수 있는 디스크 이미지가 아닙니다."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "스파스 디스크 이미지는 열 수 없습니다."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "여러 파일로 분할된 디스크 이미지는 열 수 없습니다."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "디스크 이미지가 손상되었습니다."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "디스크 이미지가 읽을 수 없는 압축 방식을 사용합니다."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "생성할 수 없습니다: {path}"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "FUSE 세션을 시작할 수 없습니다"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "마운트할 수 없습니다: {path}"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "절대 경로가 아닙니다: “{path}”"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "“{location}” 위치에는 연결할 수 없습니다."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "이미 “{location}”에 연결하는 중입니다."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "장치를 열 수 없습니다. 장치를 분리했다가 다시 연결하십시오."
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "장치의 파일을 사용할 수 없습니다. 장치의 잠금을 해제하고 화면에서 데이터 접근을 허용하십시오. 그래도 안 되면 장치의 USB 설정에서 파일 전송을 선택하십시오."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "SSH 세션을 시작할 수 없습니다"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "공유 폴더가 존재하지 않습니다."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "서버에 연결할 수 없습니다."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "삭제"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "영구적으로 삭제하겠습니까?"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "휴지통 비우기"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "휴지통의 모든 파일을 영구적으로 삭제하겠습니까?"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "프로그램 실행"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "“{name}” 파일은 프로그램입니다. 출처를 신뢰하는 경우에만 실행하십시오."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "실행"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "즐겨찾기"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "다른 이름으로 저장:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "파일 유형:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "새 폴더"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "취소"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "파일을 바꾸겠습니까?"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "“{name}” 항목이 이미 있습니다. 바꾸겠습니까?"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "바꾸기"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "장치를 사용할 수 없음"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "닫기"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "폴더 이름"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "생성"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "파일 저장"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "열기"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "저장"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "폴더 선택"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "파일 선택"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "{n}개 항목 선택됨"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "이 폴더를 사용할 수 없거나 읽을 수 없습니다."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "폴더를 생성할 수 없습니다. 다른 이름을 선택하십시오."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "슬래시가 없는 파일 이름을 입력하십시오."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "여기에 저장할 권한이 없습니다."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "로컬 파일이나 폴더를 선택하십시오."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "선택한 항목을 더 이상 사용할 수 없습니다."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "폴더만 선택하십시오."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "파일만 선택하십시오."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "열 파일을 선택하십시오."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "제안된 파일 이름이 유효하지 않습니다."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "파일 이름이 제공되지 않았습니다."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "지금"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "{n}분 전"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "{n}시간 전"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n}일 전"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "오늘 {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "어제 {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "세션 버스 없음"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "홈"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "데스크톱"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "문서"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "다운로드"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "음악"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "사진"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "동영상"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "템플릿"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "공용"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "파일"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "새 창"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "편집"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "모두 선택"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "보기"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "“{name}”의 암호가 올바르지 않습니다. 다시 시도하십시오."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "“{name}”의 압축을 풀려면 암호를 입력하십시오."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "암호"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "압축 풀기"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "암호 필요"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "항목 바꾸기"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "이름이 “{name}”인 이전 항목이 이 위치에 이미 있습니다."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "이름이 “{name}”인 최신 항목이 이 위치에 이미 있습니다."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "이름이 “{name}”인 항목이 이 위치에 이미 있습니다."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "생성 중인 링크로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "이동 중인 최신 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "이동 중인 이전 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "이동 중인 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "복원 중인 최신 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "복원 중인 이전 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "복원 중인 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "복사 중인 최신 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "복사 중인 이전 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "복사 중인 항목으로 바꾸겠습니까?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "모두 적용"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stop"
+msgstr "중단"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "건너뛰기"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "모두 유지"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "“{name}” 항목을 “{destination}” 폴더로 복사하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "항목 {n}개를 “{destination}” 폴더로 복사하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "“{name}” 항목을 “{destination}” 폴더로 이동하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "항목 {n}개를 “{destination}” 폴더로 이동하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "“{name}” 항목을 휴지통으로 이동하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "항목 {n}개를 휴지통으로 이동하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "“{name}” 항목을 복원하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "항목 {n}개를 복원하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "“{name}” 항목을 삭제하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "항목 {n}개를 삭제하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "휴지통을 비우는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "이름 변경 중: “{name}” → “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "“{name}” 항목을 생성하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "“{destination}” 폴더에 링크를 생성하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "“{destination}” 파일로 압축하는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "“{destination}” 폴더에 압축을 푸는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "준비 중…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "약 1초 남음"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "약 {n}초 남음"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "약 1분 남음"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "약 {n}분 남음"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "중단하는 중…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "선택을 기다리는 중"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "마무리하는 중…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "작업 중…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "“{name}” 처리 중…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed}/{total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "항목 {processed}/{n}개"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "“{name}” 항목이 이 위치에 이미 있습니다."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "다음으로 열기"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "애플리케이션 없음"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "기본값으로 설정"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "속성"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "파일 {n}개"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "유형:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "위치:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "크기:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "계산 중…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "생성일:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "수정일:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "접근일:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share 또는 sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "최근 서버"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "연결"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "서버에 연결"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "“{address}”의 이름 또는 암호가 올바르지 않습니다. 다시 시도하십시오."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "“{address}”에 사용할 이름과 암호를 입력하십시오."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "등록된 사용자"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "게스트"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "이름"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "도메인(선택 사항)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "이 암호 기억하기"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "The passphrase for “{name}” is incorrect. Try again."
+msgstr "“{name}”의 암호 문구가 올바르지 않습니다. 다시 시도하십시오."
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "“{name}”의 잠금을 해제하려면 암호 문구를 입력하십시오."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "암호 문구"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "잠금 해제"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "볼륨 잠금 해제"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "항목 {n}개"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "폴더"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "애플리케이션"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "휴지통"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "새 폴더"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "새 텍스트"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "로컬 파일만 압축할 수 있습니다."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "압축 파일"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "압축 해제됨"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "압축이 취소되었습니다."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "압축 풀기가 취소되었습니다."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "다음으로 열기"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "상위 폴더에서 보기"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "압축"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "잘라내기"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "복사"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "붙여넣기"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "새 텍스트"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "휴지통으로 이동"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "이름 변경"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "터미널에서 열기"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "배경화면으로 설정"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "배경 변경"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "복원"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "숨김 파일 보기"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "새 창에서 열기"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "새 탭에서 열기"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "실행 취소"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "다시 실행"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "“{name}” 압축"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "항목 압축"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "숨김 파일 가리기"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "컴퓨터"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "위치"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "내장 드라이브"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "네트워크"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "서버 주소가 아닙니다: “{address}”. smb://server/share 또는 sftp://user@server와 같은 주소를 입력하십시오."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "사용 중입니다. 그곳에서 열려 있는 파일을 닫고 다시 시도하십시오."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "파일 작업 서비스가 중단되었습니다."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "세션 버스에 연결할 수 없습니다."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "이 위치에서는 미리보기를 사용할 수 없습니다."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "이 파일은 더 이상 사용할 수 없습니다."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index}/{count}"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "{application} 앱으로 열기"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}, {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "이 파일의 나머지 부분은 표시되지 않습니다."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "이 이미지를 표시할 수 없습니다."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "훑어보기"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "새 문서"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "기타"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "결과 없음"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "“{text}” 검색 중"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "검색:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "“{name}”"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "비우기"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "파일"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "탭 닫기"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "파일을 탐색하고 정리합니다."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "파일 정보"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "파일 숨기기"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "새 탭"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "찾기"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "아이콘으로 보기"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "목록으로 보기"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "정렬 기준"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "새로 고침"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "이름"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "원래 위치"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "삭제한 날짜"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "날짜"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "유형"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "크기"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "이동"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "뒤로"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "앞으로"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "상위 폴더"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "위치로 이동…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "서버에 연결…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "창"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "최소화"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "확대/축소"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "이전 탭 보기"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "다음 탭 보기"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "수정한 날짜"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "종류"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "검색 또는 경로 입력"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "미리보기를 열 수 없습니다: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr ". 또는 .. 이외의 이름을 선택하십시오"
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "이름에 / 또는 줄 바꿈을 포함할 수 없습니다."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "즐겨찾기에서 제거"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "꺼내기"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "마운트 해제"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "서버 ID가 변경됨"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "알 수 없는 서버"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "“{address}”의 ID가 이전과 다릅니다. 누군가 이 서버를 사칭하고 있을 수 있습니다. 관리자가 키를 변경한 경우에만 연결하십시오."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "“{address}”의 ID를 확인할 수 없습니다. 연결하기 전에 키 지문이 예상한 것과 같은지 확인하십시오."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "그래도 연결"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "장치 작업 실패"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "파일 관리자"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "파일을 탐색하고 관리합니다"
