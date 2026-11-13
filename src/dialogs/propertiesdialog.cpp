@@ -138,7 +138,7 @@ std::unique_ptr<ui::View> PropertiesDialog::createContent()
     std::vector<Row> rows = {
         {trNoop("Type:"), m_mimeType},
         {trNoop("Location:"), m_location, true},
-        {trNoop("Size:"), m_size.empty() ? std::string(tr("Calculating...")) : m_size, false, true},
+        {trNoop("Size:"), m_size.empty() ? std::string(tr("Calculating…")) : m_size, false, true},
         {trNoop("Created:"), m_created},
         {trNoop("Modified:"), m_modified},
         {trNoop("Accessed:"), m_accessed},
