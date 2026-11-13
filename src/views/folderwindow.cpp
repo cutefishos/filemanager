@@ -375,8 +375,7 @@ protected:
         row->sidebarWidth = left;
         row->requestLayout();
         divider->setSidebarWidth(left);
-        divider->setGeometry({left - ui::SidebarDivider::kWidth / 2, FolderWindow::kHeaderInset,
-                              ui::SidebarDivider::kWidth, std::max(0.0, height - FolderWindow::kHeaderInset)});
+        divider->setGeometry({left - ui::SidebarDivider::kWidth / 2, 0, ui::SidebarDivider::kWidth, height});
         const ui::RectF content {left, 0, std::max(0.0, width - left), height};
         pages->setGeometry(content);
         for (const auto& page : pages->children())
