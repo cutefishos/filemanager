@@ -4,13 +4,13 @@
 #include "preview/previewcontroller.h"
 #include "core/fileitem.h"
 #include "core/standardfolders.h"
-#include "preview/imageinfo.h"
 
 #include "base/application_registry.h"
 #include "base/i18n.h"
 #include "base/locale.h"
 #include "base/mime_database.h"
 #include "base/url.h"
+#include "ui/image_info.h"
 
 #include <dirent.h>
 #include <fstream>
@@ -207,7 +207,7 @@ PreviewFile describeFile(const std::string& url)
     }
 
     if (mime.starts_with("image/")) {
-        const ImageInfo info = readImageInfo(path, mime);
+        const ui::ImageInfo info = ui::readImageInfo(path, mime);
         if (info.readable) {
             result.kind = PreviewFile::Kind::Image;
             result.width = info.width;

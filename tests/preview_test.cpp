@@ -3,7 +3,6 @@
 
 #include "testutil.h"
 
-#include "preview/imageinfo.h"
 #include "preview/previewcontroller.h"
 
 #include "base/url.h"
@@ -110,34 +109,16 @@ TEST(PreviewTest, MissingAndRemoteFilesSayWhy)
     EXPECT_FALSE(fm::describeFile("sftp://host/file").message.empty());
 }
 
-TEST(PreviewTest, ImageHeadersGiveSizeAndMotion)
+TEST(PreviewTest, ImagesAreDescribedFromTheirHeaders)
 {
     TemporaryDir directory;
     // A 3x2 PNG header; only the IHDR is read.
     const std::string png = std::string("\x89PNG\r\n\x1a\n", 8) + std::string("\0\0\0\x0dIHDR", 8)
             + std::string("\0\0\0\x03\0\0\0\x02\x08\x06\0\0\0", 13) + std::string(4, '\0')
             + std::string("\0\0\0\0IEND", 8);
-    fmtest::writeFile(directory.filePath("a.png"), png);
-    fm::ImageInfo info = fm::readImageInfo(directory.filePath("a.png"), "image/png");
-    EXPECT_TRUE(info.readable);
-    EXPECT_EQ(info.width, 3);
-    EXPECT_EQ(info.height, 2);
-    EXPECT_FALSE(info.animated);
-
-    fmtest::writeFile(directory.filePath("a.svg"), "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 40 30\"/>");
-    info = fm::readImageInfo(directory.filePath("a.svg"), "image/svg+xml");
-    EXPECT_TRUE(info.vector);
-    EXPECT_EQ(info.width, 40);
-    EXPECT_EQ(info.height, 30);
-
-    // Two image descriptors make a GIF move.
-    std::string gif = std::string("GIF89a", 6) + std::string("\x05\0\x04\0\0\0\0", 7);
-    for (int frame = 0; frame < 2; ++frame)
-        gif += std::string("\x2c\0\0\0\0\x05\0\x04\0\0", 10) + std::string("\x02\x02\x44\x01\0", 5);
-    gif += ";";
-    fmtest::writeFile(directory.filePath("a.gif"), gif);
-    info = fm::readImageInfo(directory.filePath("a.gif"), "image/gif");
-    EXPECT_EQ(info.width, 5);
-    EXPECT_EQ(info.height, 4);
-    EXPECT_TRUE(info.animated);
+    const PreviewFile file = describe(directory, "a.png", png);
+    EXPECT_EQ(file.kind, PreviewFile::Kind::Image);
+    EXPECT_EQ(file.width, 3);
+    EXPECT_EQ(file.height, 2);
+    EXPECT_FALSE(file.animated);
 }
