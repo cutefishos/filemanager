@@ -3,7 +3,6 @@
 
 #include "desktop/desktopwindow.h"
 #include "core/config.h"
-#include "core/shortcutconvention.h"
 #include "core/standardfolders.h"
 #include "dialogs/archivepasswordprompt.h"
 #include "desktop/desktopview.h"
@@ -23,6 +22,7 @@
 #include "ui/clipboard.h"
 #include "ui/keys.h"
 #include "ui/menu.h"
+#include "ui/shortcut_convention.h"
 #include "ui/trusted_connection.h"
 #include "ui/window.h"
 
@@ -377,7 +377,7 @@ bool DesktopWindow::handleKey(const ui::KeyEvent& event)
         return true;
     }
 
-    if (shortcuts::commandKeys()) {
+    if (ui::commandKeys()) {
         // Command reaches us as Ctrl; outside text fields these go to the file view.
         if (modifiers == ui::ControlModifier) {
             switch (key) {

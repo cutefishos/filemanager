@@ -115,7 +115,6 @@ add_library(fm-core STATIC
     src/core/previewkeys.cpp
     src/core/standardfolders.cpp
     src/core/mounts.cpp
-    src/core/shortcutconvention.cpp
     src/core/thumbnails.cpp
     src/model/foldercontents.cpp
     src/model/foldermodel.cpp

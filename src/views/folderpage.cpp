@@ -4,7 +4,6 @@
 #include "views/folderpage.h"
 #include "views/previewclient.h"
 #include "core/preferences.h"
-#include "core/shortcutconvention.h"
 #include "model/foldermodel.h"
 #include "views/gridview.h"
 #include "views/listview.h"
@@ -18,6 +17,7 @@
 #include "ui/keys.h"
 #include "ui/label.h"
 #include "ui/painter.h"
+#include "ui/shortcut_convention.h"
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
 
@@ -321,7 +321,7 @@ bool FolderPage::handleKey(const ui::KeyEvent& event)
         return true;
     }
 
-    if (shortcuts::commandKeys()) {
+    if (ui::commandKeys()) {
         // Command reaches us as Ctrl; outside text fields these go to the file view.
         if (modifiers == ui::ControlModifier) {
             switch (key) {

@@ -3,7 +3,6 @@
 
 #include "testutil.h"
 
-#include "core/shortcutconvention.h"
 #include "desktop/desktopview.h"
 #include "desktop/desktopwindow.h"
 #include "model/foldermodel.h"
@@ -17,6 +16,7 @@
 #include "ui/application.h"
 #include "ui/drag.h"
 #include "ui/keys.h"
+#include "ui/shortcut_convention.h"
 #include "ui/text_area.h"
 #include "ui/window.h"
 
@@ -121,14 +121,14 @@ TEST(ShortcutTest, CommandKeysWorkOnlyUnderTheCommandConvention)
     ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready; }));
     // The convention is read from the bus once its owner is known.
     fmtest::runFor(loop, 200);
-    ASSERT_FALSE(fm::shortcuts::commandKeys());
+    ASSERT_FALSE(ui::commandKeys());
 
     // Under the Ctrl convention Ctrl+Backspace is still Backspace: up a folder.
     press(page, ui::key::BackSpace, ui::ControlModifier);
     ASSERT_TRUE(runUntil(loop, [&] { return model.resolvedUrl() == a; }));
 
     keyboard.set("command");
-    ASSERT_TRUE(runUntil(loop, [] { return fm::shortcuts::commandKeys(); }));
+    ASSERT_TRUE(runUntil(loop, [] { return ui::commandKeys(); }));
     ASSERT_TRUE(runUntil(loop, [&] { return model.status() == fm::FolderModel::Status::Ready; }));
 
     // Command+Backspace deletes, so the folder stays.
@@ -159,7 +159,7 @@ TEST(ShortcutTest, CommandKeysWorkOnlyUnderTheCommandConvention)
     press(page, ui::key::BackSpace, ui::NoModifier);
     EXPECT_TRUE(runUntil(loop, [&] { return model.resolvedUrl() == root; }));
     keyboard.set("control");
-    runUntil(loop, [] { return !fm::shortcuts::commandKeys(); });
+    runUntil(loop, [] { return !ui::commandKeys(); });
 }
 
 

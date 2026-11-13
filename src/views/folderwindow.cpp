@@ -4,7 +4,6 @@
 #include "views/colors.h"
 #include "views/folderwindow.h"
 #include "core/preferences.h"
-#include "core/shortcutconvention.h"
 #include "views/folderview.h"
 #include "dialogs/archivepasswordprompt.h"
 #include "views/foldermenu.h"
@@ -24,6 +23,7 @@
 #include "ui/label.h"
 #include "ui/menu.h"
 #include "ui/painter.h"
+#include "ui/shortcut_convention.h"
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
 #include "ui/toast.h"
@@ -1002,7 +1002,7 @@ void FolderWindow::showAbout()
 void FolderWindow::buildMainMenu()
 {
     // Starts reading the shortcut convention, which some rows' keys follow.
-    shortcuts::commandKeys();
+    ui::commandKeys();
     m_window->setMainMenu(nullptr);
     m_mainMenu = std::make_unique<ui::Menu>();
     const uint32_t control = ui::ControlModifier;
@@ -1088,7 +1088,7 @@ void FolderWindow::buildMainMenu()
     file->onAboutToShow = [prepare, file, properties, trash] {
         prepare();
         // The folder's keys differ between the two shortcut conventions.
-        if (shortcuts::commandKeys()) {
+        if (ui::commandKeys()) {
             file->setItemKeyEquivalent(properties, "i", ui::ControlModifier);
             file->setItemKeyEquivalent(trash, "BackSpace", ui::ControlModifier);
         } else {
@@ -1128,7 +1128,7 @@ void FolderWindow::buildMainMenu()
         const Preferences& preferences = Preferences::instance();
         view->setItemChecked(icons, preferences.viewMethod() == Preferences::Grid);
         view->setItemChecked(list, preferences.viewMethod() == Preferences::List);
-        if (shortcuts::commandKeys())
+        if (ui::commandKeys())
             view->setItemKeyEquivalent(hidden, ".", ui::ControlModifier | ui::ShiftModifier);
         else
             view->setItemKeyEquivalent(hidden, "h", ui::ControlModifier);
@@ -1171,7 +1171,7 @@ void FolderWindow::buildMainMenu()
         FolderPage* page = currentPage();
         go->setItemEnabled(back, page && page->model().canGoBack());
         go->setItemEnabled(forward, page && page->model().canGoForward());
-        const bool command = shortcuts::commandKeys();
+        const bool command = ui::commandKeys();
         go->setItemKeyEquivalent(back, command ? "[" : "Left", command ? ui::ControlModifier : alt);
         go->setItemKeyEquivalent(forward, command ? "]" : "Right", command ? ui::ControlModifier : alt);
         go->setItemKeyEquivalent(enclosing, "Up", command ? ui::ControlModifier : alt);
