@@ -105,7 +105,7 @@ private:
     void updateBlur();
     void updateTabBar();
     void showContextMenu(ui::PointF position);
-    // The menus the status bar shows while the window is active.
+    // The menus the menu bar shows while the window is active.
     void buildMainMenu();
     void showAbout();
     double headerHeight() const;

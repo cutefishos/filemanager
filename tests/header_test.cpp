@@ -131,7 +131,7 @@ TEST(HeaderTest, WindowGoesRightAfterItsTabsChange)
     fmtest::runFor(loop, 50);
 }
 
-TEST(HeaderTest, WindowShowsItsMenusInTheStatusBar)
+TEST(HeaderTest, WindowShowsItsMenusInTheMenuBar)
 {
     base::EventLoop& loop = s_app->loop();
     fmtest::TemporaryDir directory;

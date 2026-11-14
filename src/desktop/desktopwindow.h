@@ -68,7 +68,7 @@ private:
     ui::TrustedConnection* m_connection;
     FileManagerHost& m_host;
     std::unique_ptr<FolderModel> m_model;
-    // The status bar's File and Edit menus while the desktop is active.
+    // The menu bar's File and Edit menus while the desktop is active.
     std::unique_ptr<ui::Menu> m_mainMenu;
     std::unique_ptr<ui::Window> m_window;
     DesktopRoot* m_root = nullptr;

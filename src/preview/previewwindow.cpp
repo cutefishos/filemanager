@@ -725,7 +725,7 @@ void PreviewWindow::present(PreviewFile file)
 void PreviewWindow::open()
 {
     m_window = std::make_unique<ui::Window>();
-    // Floats above applications, and leaves the source application's menu in the status bar.
+    // Floats above applications, and leaves the source application's menu in the menu bar.
     m_window->setSkipTaskbar(true);
     m_window->setAlwaysOnTop(true);
     m_window->setResizeAroundCenter(true);
