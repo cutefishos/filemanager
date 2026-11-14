@@ -102,15 +102,18 @@ protected:
     void paint(ui::Painter& painter) override
     {
         // The desktop's band: white over the wallpaper in either mode.
-        if (m_desktop) {
-            const ui::Color white = ui::Color::rgb(0xffffff);
-            painter.drawRoundedRect(localRect(), {0},
-                                    style::withAlpha(white, 0.12), 1.0 / painter.scale(), style::withAlpha(white, 0.7));
+        const ui::Color white = ui::Color::rgb(0xffffff);
+        const ui::Color fill = m_desktop ? style::withAlpha(white, 0.12) : ui::color(FmColor::RubberBandFill);
+        const ui::Color border = m_desktop ? style::withAlpha(white, 0.7) : ui::color(FmColor::RubberBandBorder);
+
+        // Each edge snaps on its own: a shape snap keeps the size, which would
+        // shift the edge held at the press as the other one moves.
+        const ui::Rect box = painter.deviceRect(localRect());
+        if (box.width <= 0 || box.height <= 0)
             return;
-        }
-        painter.drawRoundedRect(localRect(), {0},
-                                ui::color(FmColor::RubberBandFill), 1.0 / painter.scale(),
-                                ui::color(FmColor::RubberBandBorder));
+        if (box.width > 2 && box.height > 2)
+            painter.fillDeviceRoundedRect({box.x + 1, box.y + 1, box.width - 2, box.height - 2}, 0, fill);
+        painter.strokeDeviceRoundedRect(box, 0, border, 1);
     }
 
 private:
