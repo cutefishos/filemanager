@@ -369,6 +369,7 @@ public:
     PreviewImagePage()
     {
         viewer = addChild<ui::ZoomableImageView>();
+        viewer->setBottomCornerRadius(ui::Theme::current().windowRadius);
         busy = addChild<ui::BusyIndicator>();
         busy->setVisible(false);
         failed = addChild<ui::Label>(tr("This image could not be displayed."));
@@ -436,6 +437,7 @@ public:
         card = addChild<PreviewCard>();
         image = addChild<PreviewImagePage>();
         text = addChild<PreviewTextPage>();
+        text->setBottomCornerRadius(ui::Theme::current().windowRadius);
         text->textArea()->isWindowKey = [this](const ui::KeyEvent& event) {
             return isWindowKey(event.key, event.modifiers, m_preview->multiple());
         };

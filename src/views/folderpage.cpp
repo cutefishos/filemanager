@@ -206,6 +206,7 @@ void FolderPage::createView()
         view = addChild<FolderListView>(*m_model);
     else
         view = addChild<FolderGridView>(*m_model);
+    view->setBottomCornerRadius(ui::Theme::current().windowRadius);
     m_view = view;
     m_preview->attach(m_model.get(), view);
     view->onContextMenu = [this](ui::PointF position) {
