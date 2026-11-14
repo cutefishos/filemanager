@@ -519,8 +519,8 @@ TEST(FolderModelTest, DroppedFilesAreSelected)
     EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
 }
 
-// Opening any part of a split archive extracts the whole of it, named without
-// the part's suffix; an encrypted one asks until the password fits.
+// Opening any part of a split archive extracts the whole of it; an encrypted
+// one asks until the password fits.
 TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)
 {
     fm::OperationsClient::instance();
@@ -554,7 +554,7 @@ TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)
 
     open("data.7z.002");
     ASSERT_TRUE(runUntil(loop(), [&] { return !folder.archiveBusy(); }, 10000));
-    std::ifstream extracted(directory.filePath("data/noise.bin"), std::ios::binary);
+    std::ifstream extracted(directory.filePath("noise.bin"), std::ios::binary);
     EXPECT_TRUE(std::string(std::istreambuf_iterator<char>(extracted), std::istreambuf_iterator<char>()) == payload);
 
     open("secret.zip");
@@ -569,7 +569,7 @@ TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)
     EXPECT_TRUE(folder.archivePasswordRetry());
     folder.answerArchivePassword(folder.archivePasswordId(), "right");
     ASSERT_TRUE(runUntil(loop(), [&] { return !folder.archiveBusy(); }, 10000));
-    std::ifstream secret(directory.filePath("secret/a.txt"));
+    std::ifstream secret(directory.filePath("a.txt"));
     EXPECT_EQ(std::string(std::istreambuf_iterator<char>(secret), std::istreambuf_iterator<char>()), "alpha");
 
     daemon.terminate();

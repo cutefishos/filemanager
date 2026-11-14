@@ -369,9 +369,45 @@ TEST_F(FileOperationsDaemonTest, EncryptedZipAsksForPassword)
         EXPECT_TRUE(flag(result, "finished"));
         EXPECT_FALSE(flag(result, "waitingForPassword"));
         EXPECT_EQ(result.at("errorCode").value<int32_t>(), 0) << result.at("errorString").value<std::string>();
-        EXPECT_EQ(file::read(output + "/secret/a.txt").value_or(""), "alpha");
-        EXPECT_EQ(file::read(output + "/secret/b.txt").value_or(""), "beta");
+        EXPECT_EQ(file::read(output + "/a.txt").value_or(""), "alpha");
+        EXPECT_EQ(file::read(output + "/b.txt").value_or(""), "beta");
     }
+}
+
+// One top-level item lands beside the archive under its own name, numbered
+// past what is there; more than one stays in the folder named for the archive.
+TEST_F(FileOperationsDaemonTest, SingleTopLevelItemTakesTheArchivesPlace)
+{
+    file::TemporaryDirectory directory(paths::runtimeDirectory(), "unwrap");
+    const std::string folder = directory.path() + "/folder.zip";
+    ASSERT_TRUE(writeArchive(folder, "zip", {{"demo-1.0/README", "readme"}, {"__MACOSX/demo-1.0/._README", "meta"}}));
+    const std::string single = directory.path() + "/single.tar";
+    ASSERT_TRUE(writeArchive(single, "pax", {{"note.txt", "note"}}));
+    const std::string several = directory.path() + "/several.zip";
+    ASSERT_TRUE(writeArchive(several, "zip", {{"a.txt", "alpha"}, {"b.txt", "beta"}}));
+    ASSERT_TRUE(file::writeAtomically(directory.path() + "/note.txt", "taken"));
+
+    const auto extract = [&](const std::string& archive, const std::string& output) {
+        const VariantMap result = waitForFinish(submitArchive(1, {archive}, output));
+        EXPECT_EQ(result.at("errorCode").value<int32_t>(), 0) << result.at("errorString").value<std::string>();
+        return result.at("outputs").value<std::vector<std::string>>();
+    };
+
+    EXPECT_EQ(extract(folder, directory.path() + "/folder"),
+              std::vector<std::string> {directory.path() + "/demo-1.0"});
+    EXPECT_EQ(file::read(directory.path() + "/demo-1.0/README").value_or(""), "readme");
+    EXPECT_EQ(extract(folder, directory.path() + "/folder"),
+              std::vector<std::string> {directory.path() + "/demo-1.0 1"});
+    EXPECT_EQ(extract(single, directory.path() + "/single"),
+              std::vector<std::string> {directory.path() + "/note 1.txt"});
+    EXPECT_EQ(file::read(directory.path() + "/note 1.txt").value_or(""), "note");
+    EXPECT_EQ(extract(several, directory.path() + "/several"),
+              std::vector<std::string> {directory.path() + "/several"});
+    EXPECT_EQ(entries(directory.path() + "/several"), (std::vector<std::string> {"a.txt", "b.txt"}));
+
+    EXPECT_EQ(entries(directory.path()),
+              (std::vector<std::string> {"demo-1.0", "demo-1.0 1", "folder.zip", "note 1.txt", "note.txt", "several",
+                                         "several.zip", "single.tar"}));
 }
 
 TEST_F(FileOperationsDaemonTest, CanceledPasswordRequestLeavesNothing)
@@ -425,8 +461,8 @@ TEST_F(FileOperationsDaemonTest, SplitArchiveExtractsFromAnyPart)
         ASSERT_FALSE(path.empty());
         const VariantMap result = waitForFinish(path);
         EXPECT_EQ(result.at("errorCode").value<int32_t>(), 0) << result.at("errorString").value<std::string>();
-        EXPECT_TRUE(file::read(output + "/data/noise.bin").value_or("") == payload);
-        EXPECT_EQ(file::read(output + "/data/note.txt").value_or(""), "note");
+        EXPECT_TRUE(file::read(output + "/noise.bin").value_or("") == payload);
+        EXPECT_EQ(file::read(output + "/note.txt").value_or(""), "note");
     }
 }
 

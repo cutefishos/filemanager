@@ -1413,7 +1413,9 @@ void FolderModel::startArchive(OperationTaskPtr task, const std::string& operati
         const OperationTaskPtr task = m_archive;
         if (!task)
             return;
-        archiveFinished(!task->error() && !task->wasCanceled(), task->wasCanceled(), m_archiveOutputPath);
+        const std::vector<std::string> outputs = task->outputs();
+        archiveFinished(!task->error() && !task->wasCanceled(), task->wasCanceled(),
+                        outputs.empty() ? m_archiveOutputPath : outputs.front());
     });
 }
 

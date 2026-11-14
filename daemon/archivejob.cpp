@@ -75,6 +75,32 @@ static bool renameNoReplace(const std::string &from, const std::string &to)
     return ::renameat2(AT_FDCWD, from.c_str(), AT_FDCWD, to.c_str(), RENAME_NOREPLACE) == 0;
 }
 
+// Moves from into folder under name, or the first free numbered form of it
+// ("name 1.txt"), never replacing anything. Empty when it could not.
+static std::string renameUnique(const std::string &from, const std::string &folder, const std::string &name,
+                                bool directory)
+{
+    std::string stem = name;
+    std::string suffix;
+    if (!directory) {
+        const size_t dot = name.rfind('.');
+        if (dot != std::string::npos && dot > 0 && dot + 1 < name.size()) {
+            suffix = name.substr(dot);
+            stem = name.substr(0, dot);
+        }
+    }
+
+    std::string candidate = folder + '/' + name;
+    for (int index = 1; index <= 10000; ++index) {
+        if (renameNoReplace(from, candidate))
+            return candidate;
+        if (errno != EEXIST)
+            return {};
+        candidate = folder + '/' + stem + ' ' + std::to_string(index) + suffix;
+    }
+    return {};
+}
+
 static std::string zipError(zip_t *archive)
 {
     if (!archive)
@@ -886,6 +912,11 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
             return false;
         }
 
+        // Some archivers keep file metadata in a top-level __MACOSX folder
+        // that nothing here reads.
+        if (relativePath == "__MACOSX" || relativePath.starts_with("__MACOSX/"))
+            continue;
+
         if (archive_entry_is_encrypted(entry) && baseFormat(reader.get()) != ARCHIVE_FORMAT_ZIP) {
             *error = encryptionUnsupported(reader.get());
             return false;
@@ -1005,9 +1036,32 @@ bool ArchiveJob::extractVolumes(const std::vector<std::string> &volumes, std::st
         ::utimensat(AT_FDCWD, directory.path.c_str(), times, AT_SYMLINK_NOFOLLOW);
     }
 
-    if (isCanceled() || !renameNoReplace(tempPath, m_outputPath)) {
-        if (!isCanceled())
-            *error = cutefish::i18n::format(tr("Could not create {path}"), {{"path", m_outputPath}});
+    if (isCanceled())
+        return false;
+
+    // A single top-level item takes the archive's place under its own name;
+    // anything else stays together in the folder named after the archive.
+    std::vector<fs::directory_entry> topLevel;
+    std::error_code listError;
+    for (const fs::directory_entry &item : fs::directory_iterator(tempPath, listError))
+        topLevel.push_back(item);
+    if (topLevel.size() == 1) {
+        const std::string itemName = topLevel.front().path().filename().string();
+        std::error_code typeError;
+        const bool itemIsDirectory = topLevel.front().is_directory(typeError) && !topLevel.front().is_symlink(typeError);
+        const std::string outputPath = renameUnique(topLevel.front().path().string(), parentPath, itemName,
+                                                    itemIsDirectory);
+        if (outputPath.empty()) {
+            *error = cutefish::i18n::format(tr("Could not create {path}"), {{"path", parentPath + '/' + itemName}});
+            return false;
+        }
+        m_outputPath = outputPath;
+        progressChanged(100);
+        return true;
+    }
+
+    if (!renameNoReplace(tempPath, m_outputPath)) {
+        *error = cutefish::i18n::format(tr("Could not create {path}"), {{"path", m_outputPath}});
         return false;
     }
 
