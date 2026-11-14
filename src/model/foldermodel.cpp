@@ -1292,6 +1292,12 @@ bool FolderModel::supportSetAsWallpaper(const std::string& mimeType)
     return mimeType == "image/jpeg" || mimeType == "image/png";
 }
 
+bool FolderModel::isArchiveFile(const std::string& path)
+{
+    const FileItem file = DirectoryLister::makeItem(path);
+    return file.isFile && isArchive(file);
+}
+
 void FolderModel::setWallpaperSelected()
 {
     const auto rows = selectedRows();
@@ -1447,28 +1453,37 @@ void FolderModel::compressSelected()
 void FolderModel::extractSelectedArchive()
 {
     const auto rows = selectedRows();
-    if (m_archive || rows.size() != 1)
+    if (rows.size() != 1)
         return;
 
-    const FileItemPtr file = item(rows.front());
-    if (!isArchive(*file) || !file->isFile)
+    extractArchive(*item(rows.front()));
+}
+
+void FolderModel::extractArchive(const std::string& path)
+{
+    extractArchive(DirectoryLister::makeItem(path));
+}
+
+void FolderModel::extractArchive(const FileItem& file)
+{
+    if (m_archive || !isArchive(file) || !file.isFile)
         return;
 
     bool singleFile = false;
-    const std::string suffix = archiveSuffix(file->name, &singleFile);
+    const std::string suffix = archiveSuffix(file.name, &singleFile);
     std::string baseName;
     if (suffix.empty()) {
         // The base name runs up to the last dot.
-        const size_t dot = file->name.rfind('.');
-        baseName = dot == std::string::npos ? file->name : file->name.substr(0, dot);
+        const size_t dot = file.name.rfind('.');
+        baseName = dot == std::string::npos ? file.name : file.name.substr(0, dot);
     } else {
-        baseName = file->name.substr(0, file->name.size() - suffix.size());
+        baseName = file.name.substr(0, file.name.size() - suffix.size());
     }
     if (baseName.empty())
         baseName = trc("default file name", "Extracted");
 
-    const std::string outputPath = uniquePath(parentPath(file->path), baseName, !singleFile);
-    startArchive(OperationsClient::instance().archive(1, {file->path}, outputPath), "Extracting", outputPath);
+    const std::string outputPath = uniquePath(parentPath(file.path), baseName, !singleFile);
+    startArchive(OperationsClient::instance().archive(1, {file.path}, outputPath), "Extracting", outputPath);
 }
 
 void FolderModel::cancelArchive()

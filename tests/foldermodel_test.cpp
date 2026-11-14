@@ -519,6 +519,40 @@ TEST(FolderModelTest, DroppedFilesAreSelected)
     EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
 }
 
+// An archive opened from elsewhere extracts as soon as its folder's page
+// opens, before the listing is done, and ends with what it held selected.
+TEST(FolderModelTest, ExtractsArchiveByPathAndSelectsResult)
+{
+    fm::OperationsClient::instance();
+    base::Process daemon;
+    ASSERT_TRUE(daemon.start(FILEMANAGER_DAEMON));
+    auto bus = base::dbus::Connection::open(base::dbus::Connection::Bus::Session, &loop());
+    ASSERT_TRUE(bus);
+    const base::dbus::Proxy manager(bus.get(), "org.cutefish.FileOperations", "/org/cutefish/FileOperations",
+                                    "org.cutefish.FileOperations.Manager1");
+    ASSERT_TRUE(runUntil(loop(), [&] { return manager.call("CanUndo").value<bool>().has_value(); }));
+
+    TemporaryDir directory;
+    ASSERT_TRUE(fmtest::writeArchive(directory.filePath("bundle.zip"), "zip", {{"demo/a.txt", "alpha"}}));
+    ASSERT_TRUE(writeFile(directory.filePath("notes.txt")));
+    EXPECT_TRUE(FolderModel::isArchiveFile(directory.filePath("bundle.zip")));
+    EXPECT_FALSE(FolderModel::isArchiveFile(directory.filePath("notes.txt")));
+    EXPECT_FALSE(FolderModel::isArchiveFile(directory.path()));
+
+    FolderModel folder;
+    folder.setUrl(directory.path());
+    folder.extractArchive(directory.filePath("bundle.zip"));
+    EXPECT_TRUE(folder.archiveBusy());
+    ASSERT_TRUE(runUntil(loop(), [&] { return !folder.archiveBusy(); }, 10000));
+    ASSERT_TRUE(runUntil(loop(), [&] { return !folder.selectedRows().empty(); }));
+    EXPECT_EQ(folder.selectedUrls(), std::vector<std::string> {url(directory.filePath("demo"))});
+    std::ifstream extracted(directory.filePath("demo/a.txt"));
+    EXPECT_EQ(std::string(std::istreambuf_iterator<char>(extracted), std::istreambuf_iterator<char>()), "alpha");
+
+    daemon.terminate();
+    EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
+}
+
 // Opening any part of a split archive extracts the whole of it; an encrypted
 // one asks until the password fits.
 TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)

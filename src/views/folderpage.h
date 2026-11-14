@@ -36,6 +36,8 @@ public:
         std::vector<std::string> selection;
         std::vector<std::string> back;
         std::vector<std::string> forward;
+        // A local archive to extract into the folder once the page opens.
+        std::string extract;
     };
 
     FolderPage(FolderModelHost* host, const Start& start);

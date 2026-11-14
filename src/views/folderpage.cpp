@@ -95,6 +95,8 @@ FolderPage::FolderPage(FolderModelHost* host, const Start& start)
         m_model->restoreHistory(start.back, start.forward);
     if (!start.selection.empty())
         m_model->selectUrlsWhenListed(start.selection);
+    if (!start.extract.empty())
+        m_model->extractArchive(start.extract);
     applySort();
 }
 

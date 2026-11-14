@@ -181,8 +181,17 @@ bool Application::startDesktop(int socket)
 
 void Application::openFiles(const std::vector<std::string>& paths)
 {
-    for (const std::string& path : paths)
+    for (const std::string& path : paths) {
+        const auto local = base::url::toLocalFile(FolderModel::resolve(path));
+        if (local && FolderModel::isArchiveFile(*local)) {
+            FolderPage::Start start;
+            start.url = FolderModel::resolve(parentPath(cleanPath(*local)));
+            start.extract = *local;
+            openFolderWindow(start, nullptr);
+            continue;
+        }
         openWindow(path);
+    }
 }
 
 void Application::moveToTrash(const std::vector<std::string>& paths)

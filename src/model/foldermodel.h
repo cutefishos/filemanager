@@ -194,12 +194,16 @@ public:
     void openInNewTab();
     void compressSelected();
     void extractSelectedArchive();
+    // Extracts a local archive beside itself and selects the result, the way
+    // opening it in the folder does.
+    void extractArchive(const std::string& path);
     void cancelArchive();
     void answerArchivePassword(uint32_t request, const std::string& password);
     void undo();
     void redo();
     bool openWithApplication(const std::string& desktopFile) const;
     static bool supportSetAsWallpaper(const std::string& mimeType);
+    static bool isArchiveFile(const std::string& path);
 
     // The running archive job, for its password prompt.
     bool archiveBusy() const { return m_archive != nullptr; }
@@ -267,6 +271,7 @@ private:
     void contentsChanged(const ContentsChange& change);
     void updateNeedSelectUrls();
     void rememberNewDocumentPosition(const std::string& name);
+    void extractArchive(const FileItem& file);
     void startArchive(OperationTaskPtr task, const std::string& operation, const std::string& outputPath);
     void archiveFinished(bool success, bool canceled, const std::string& outputPath);
     // Mounts the image through cutefish-mountd; its volume shows in the sidebar.
