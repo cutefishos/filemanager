@@ -746,7 +746,7 @@ void SideBar::layout()
     m_title->setVerticallyCentered(true);
     m_title->setGeometry({left, kSmallSpacing, std::max(0.0, width - left - right), m_headerHeight - kSmallSpacing});
 
-    const double top = m_headerHeight + kSmallSpacing;
+    const double top = std::round((m_headerHeight + kSmallSpacing) * scale) / scale;
     m_scroll->setGeometry({0, top, width, std::max(0.0, geometry().height - top)});
 }
 
