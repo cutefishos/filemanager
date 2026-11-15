@@ -1,0 +1,1293 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-13 16:33+0800\n"
+"PO-Revision-Date: 2026-11-13 16:33+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "Neznámá chyba ZIP"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "Archivy RAR chráněné heslem nejsou podporovány"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "Archivy 7z chráněné heslem nejsou podporovány"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "Tento druh šifrování ZIP není podporován"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "Archivy tohoto formátu chráněné heslem nejsou podporovány"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "Neznámá chyba archivu"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "Pro archiv nelze přidělit paměť"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "Chybí první část tohoto vícedílného archivu"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "Zdroj již neexistuje: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "Symbolický odkaz nelze přečíst: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "Zdroj není běžný soubor: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "Nebyly vybrány žádné soubory"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "Cílová složka neexistuje: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "Pro symbolický odkaz nelze přidělit paměť"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "{path} nelze vytvořit"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "{path} nelze vytvořit: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "Najednou lze rozbalovat jen jeden archiv"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "Nerozpoznaný formát archivu"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "Nelze vytvořit dočasnou složku pro rozbalení"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "Nebezpečná cesta v archivu: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "Pevné odkazy v archivech nejsou podporovány: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "Neplatná cesta symbolického odkazu v archivu: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "Neplatný cíl symbolického odkazu: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "Speciální soubory v archivech nejsou podporovány: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "Nelze vytvořit nadřazenou složku pro {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "{path} nelze zapsat: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "Nadřazená položka je v archivu symbolický odkaz: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "Duplicitní cesta v archivu: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "Symbolický odkaz nelze obnovit: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "Úlohu nelze zveřejnit"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "Svazek v obrazu disku je poškozen."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "Obraz disku neobsahuje žádný svazek, který lze otevřít."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "Šifrované obrazy disků nelze otevřít."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "Soubor není obraz disku, který lze otevřít."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "Řídké obrazy disků nelze otevřít."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "Obrazy disků rozdělené do více souborů nelze otevřít."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "Obraz disku je poškozen."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "Obraz disku používá kompresi, kterou nelze přečíst."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "{path} nelze vytvořit"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "Relaci FUSE nelze spustit"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "{path} nelze připojit"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "„{path}“ není absolutní cesta."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "„{location}“ není umístění, ke kterému se lze připojit."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "K „{location}“ se již připojuje."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "Zařízení nelze otevřít. Odpojte ho a připojte znovu."
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "Soubory zařízení nejsou k dispozici. Odemkněte ho a na jeho obrazovce povolte přístup k datům. Pokud to nepomůže, zvolte v jeho nastavení USB přenos souborů."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "Relaci SSH nelze spustit"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "Sdílená složka neexistuje."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "Server není dostupný."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "Smazat"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "Chcete výběr trvale smazat?"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "Vysypat koš"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "Chcete trvale smazat všechny soubory v koši?"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "Spustit program"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "„{name}“ je program. Spusťte ho, jen pokud důvěřujete jeho původu."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "Spustit"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "Oblíbené"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "Uložit jako:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "Typ souboru:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "Nová složka"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "Zrušit"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "Nahradit soubor?"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "„{name}“ již existuje. Chcete ho nahradit?"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "Nahradit"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "Zařízení není dostupné"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "Zavřít"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "Název složky"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "Vytvořit"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "Uložit soubor"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "Otevřít"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "Uložit"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "Vybrat složku"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "Vyberte soubor"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "Vybrána {n} položka"
+msgstr[1] "Vybrány {n} položky"
+msgstr[2] "Vybráno {n} položek"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "Tato složka není dostupná nebo ji nelze přečíst."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "Složku nelze vytvořit. Zvolte jiný název."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "Zadejte název souboru bez lomítek."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "Nemáte oprávnění sem ukládat."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "Zvolte místní soubor nebo složku."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "Vybraná položka již není dostupná."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "Vyberte jen složky."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "Vyberte jen soubory."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "Vyberte soubor k otevření."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "Navrhovaný název souboru je neplatný."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "Nebyly zadány žádné názvy souborů."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "Nyní"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "Před {n} minutou"
+msgstr[1] "Před {n} minutami"
+msgstr[2] "Před {n} minutami"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "Před {n} hodinou"
+msgstr[1] "Před {n} hodinami"
+msgstr[2] "Před {n} hodinami"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "Před {n} dnem"
+msgstr[1] "Před {n} dny"
+msgstr[2] "Před {n} dny"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "Dnes v {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "Včera v {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "Chybí sběrnice relace"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "Domů"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "Plocha"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "Dokumenty"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "Stažené soubory"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "Hudba"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "Obrázky"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "Videa"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "Šablony"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "Veřejné"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "Soubor"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "Nové okno"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "Úpravy"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "Vybrat vše"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "Zobrazení"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "Heslo k „{name}“ je nesprávné. Zkuste to znovu."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "Zadejte heslo k rozbalení „{name}“."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "Heslo"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "Rozbalit"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "Vyžadováno heslo"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "Nahradit položku"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "Starší položka s názvem „{name}“ již v tomto umístění existuje."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "Novější položka s názvem „{name}“ již v tomto umístění existuje."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "Položka s názvem „{name}“ již v tomto umístění existuje."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "Chcete ji nahradit odkazem, který vytváříte?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "Chcete ji nahradit novější položkou, kterou přesouváte?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "Chcete ji nahradit starší položkou, kterou přesouváte?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "Chcete ji nahradit položkou, kterou přesouváte?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "Chcete ji nahradit novější položkou, kterou obnovujete?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "Chcete ji nahradit starší položkou, kterou obnovujete?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "Chcete ji nahradit položkou, kterou obnovujete?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "Chcete ji nahradit novější položkou, kterou kopírujete?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "Chcete ji nahradit starší položkou, kterou kopírujete?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "Chcete ji nahradit položkou, kterou kopírujete?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "Použít pro vše"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stop"
+msgstr "Zastavit"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "Přeskočit"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "Ponechat obě"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "Kopírování „{name}“ do „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "Kopírování {n} položky do „{destination}“"
+msgstr[1] "Kopírování {n} položek do „{destination}“"
+msgstr[2] "Kopírování {n} položek do „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "Přesouvání „{name}“ do „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "Přesouvání {n} položky do „{destination}“"
+msgstr[1] "Přesouvání {n} položek do „{destination}“"
+msgstr[2] "Přesouvání {n} položek do „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "Přesouvání „{name}“ do koše"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "Přesouvání {n} položky do koše"
+msgstr[1] "Přesouvání {n} položek do koše"
+msgstr[2] "Přesouvání {n} položek do koše"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "Obnovování „{name}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "Obnovování {n} položky"
+msgstr[1] "Obnovování {n} položek"
+msgstr[2] "Obnovování {n} položek"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "Mazání „{name}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "Mazání {n} položky"
+msgstr[1] "Mazání {n} položek"
+msgstr[2] "Mazání {n} položek"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "Vysypávání koše"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "Přejmenování „{name}“ na „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "Vytváření „{name}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "Vytváření odkazů v „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "Komprimace do „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "Rozbalování do „{destination}“"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "Příprava…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "Zbývá asi sekunda"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "Zbývá asi {n} sekunda"
+msgstr[1] "Zbývají asi {n} sekundy"
+msgstr[2] "Zbývá asi {n} sekund"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "Zbývá asi minuta"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "Zbývá asi {n} minuta"
+msgstr[1] "Zbývají asi {n} minuty"
+msgstr[2] "Zbývá asi {n} minut"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "Zastavování…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "Čeká se na vaši volbu"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "Dokončování…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "Probíhá…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "Zpracovává se „{name}“…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed} z {total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed} z {n} položky"
+msgstr[1] "{processed} z {n} položek"
+msgstr[2] "{processed} z {n} položek"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "„{name}“ již v tomto umístění existuje."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "Otevřít v aplikaci"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "Žádné aplikace"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "Nastavit jako výchozí"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "Vlastnosti"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} soubor"
+msgstr[1] "{n} soubory"
+msgstr[2] "{n} souborů"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "Typ:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "Umístění:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "Velikost:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "Počítání…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "Vytvořeno:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "Změněno:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "Otevřeno:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share nebo sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "Nedávné servery"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "Připojit"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "Připojit k serveru"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "Jméno nebo heslo pro „{address}“ je nesprávné. Zkuste to znovu."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "Zadejte své jméno a heslo pro „{address}“."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "Registrovaný uživatel"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "Host"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "Jméno"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "Doména (volitelné)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "Zapamatovat si toto heslo"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "The passphrase for “{name}” is incorrect. Try again."
+msgstr "Přístupová fráze pro „{name}“ je nesprávná. Zkuste to znovu."
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "Zadejte přístupovou frázi k odemčení „{name}“."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "Přístupová fráze"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "Odemknout"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "Odemknout svazek"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} položka"
+msgstr[1] "{n} položky"
+msgstr[2] "{n} položek"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "Složka"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "Aplikace"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "Koš"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "Nová složka"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "Nový text"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "Komprimovat lze jen místní soubory."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "Archiv"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "Rozbaleno"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "Komprimace zrušena."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "Rozbalování zrušeno."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "Otevřít v aplikaci"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "Zobrazit v nadřazené složce"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "Komprimovat"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "Vyjmout"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "Kopírovat"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "Vložit"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "Nový textový soubor"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "Přesunout do koše"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "Přejmenovat"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "Otevřít v Terminálu"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "Nastavit jako tapetu"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "Změnit pozadí"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "Obnovit"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "Zobrazit skryté soubory"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "Otevřít v novém okně"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "Otevřít v nové kartě"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "Zpět"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "Znovu"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "Komprimovat „{name}“"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "Komprimovat položky"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "Skrýt skryté soubory"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "Počítač"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "Umístění"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "Interní disky"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "Síť"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "„{address}“ není adresa serveru. Zadejte adresu jako smb://server/share nebo sftp://user@server."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "Je používán. Zavřete soubory, které jsou na něm otevřené, a zkuste to znovu."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "Služba souborových operací se zastavila."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "Sběrnice relace není dostupná."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "Pro toto umístění není náhled k dispozici."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "Tento soubor již není dostupný."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index} z {count}"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "Otevřít v aplikaci {application}"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}, {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "Zbytek tohoto souboru se nezobrazuje."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "Tento obrázek nelze zobrazit."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "Rychlý náhled"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "Nové dokumenty"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "Jiná"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "Žádné výsledky"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "Hledání „{text}“"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "Hledat:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "„{name}“"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "Vysypat"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "Soubory"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "Zavřít kartu"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "Prochází a uspořádává vaše soubory."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "O aplikaci Soubory"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "Skrýt Soubory"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "Nová karta"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "Najít"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "jako ikony"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "jako seznam"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "Řadit podle"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "Obnovit"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "Název"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "Původní umístění"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "Datum smazání"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "Datum"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "Typ"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "Velikost"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "Přejít"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "Zpět"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "Vpřed"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "Nadřazená složka"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "Přejít na umístění…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "Připojit k serveru…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "Okno"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "Minimalizovat"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "Zvětšit"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "Zobrazit předchozí kartu"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "Zobrazit následující kartu"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "Datum změny"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "Druh"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "Hledat nebo zadat cestu"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "Náhled nelze otevřít: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "Zvolte jiný název než . nebo .."
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "Názvy nesmí obsahovat / ani zalomení řádku."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "Odebrat z oblíbených"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "Vysunout"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "Odpojit"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "Identita serveru se změnila"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "Neznámý server"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "Identita „{address}“ není stejná jako dříve. Někdo se za něj možná vydává. Připojte se, jen pokud jeho správce změnil klíč."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "Identitu „{address}“ nelze ověřit. Před připojením zkontrolujte, že otisk jeho klíče je ten, který očekáváte."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "Přesto připojit"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "Operace se zařízením selhala"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "Správce souborů"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "Procházení a správa souborů"

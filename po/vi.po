@@ -1,0 +1,1265 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-13 16:33+0800\n"
+"PO-Revision-Date: 2026-11-13 16:33+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "Lỗi ZIP không xác định"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "Không hỗ trợ tệp nén RAR có mật khẩu"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "Không hỗ trợ tệp nén 7z có mật khẩu"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "Không hỗ trợ kiểu mã hóa ZIP này"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "Không hỗ trợ tệp nén có mật khẩu ở định dạng này"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "Lỗi tệp nén không xác định"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "Không thể cấp phát bộ nhớ cho tệp nén"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "Thiếu phần đầu tiên của tệp nén nhiều phần này"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "Nguồn không còn tồn tại: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "Không thể đọc liên kết tượng trưng: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "Nguồn không phải là tệp thông thường: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "Chưa chọn tệp nào"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "Thư mục đích không tồn tại: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "Không thể cấp phát bộ nhớ cho liên kết tượng trưng"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "Không thể tạo {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "Không thể tạo {path}: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "Mỗi lần chỉ có thể giải nén một tệp nén"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "Không nhận dạng được định dạng tệp nén"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "Không thể tạo thư mục giải nén tạm thời"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "Đường dẫn không an toàn trong tệp nén: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "Không hỗ trợ liên kết cứng trong tệp nén: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "Đường dẫn liên kết tượng trưng không hợp lệ trong tệp nén: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "Đích của liên kết tượng trưng không hợp lệ: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "Không hỗ trợ tệp đặc biệt trong tệp nén: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "Không thể tạo thư mục cha cho {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "Không thể ghi {path}: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "Thư mục cha là liên kết tượng trưng trong tệp nén: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "Đường dẫn trùng lặp trong tệp nén: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "Không thể khôi phục liên kết tượng trưng: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "Không thể công bố tác vụ"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "Ổ đĩa trong ảnh đĩa bị hỏng."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "Ảnh đĩa không chứa ổ đĩa nào có thể mở."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "Không thể mở ảnh đĩa được mã hóa."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "Tệp không phải là ảnh đĩa có thể mở."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "Không thể mở ảnh đĩa thưa (sparse)."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "Không thể mở ảnh đĩa bị chia thành nhiều tệp."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "Ảnh đĩa bị hỏng."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "Ảnh đĩa dùng kiểu nén không đọc được."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "Không thể tạo {path}"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "Không thể khởi động phiên FUSE"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "Không thể gắn {path}"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "“{path}” không phải là đường dẫn tuyệt đối."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "“{location}” không phải là vị trí có thể kết nối."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "Đang kết nối tới “{location}”."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "Không thể mở thiết bị. Hãy rút ra và kết nối lại."
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "Không truy cập được tệp của thiết bị. Hãy mở khóa thiết bị và cho phép truy cập dữ liệu trên màn hình của thiết bị; nếu vẫn không được, hãy chọn truyền tệp trong cài đặt USB của thiết bị."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "Không thể khởi động phiên SSH"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "Thư mục chia sẻ không tồn tại."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "Không thể kết nối tới máy chủ."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "Xóa"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "Bạn có muốn xóa vĩnh viễn không?"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "Dọn sạch Thùng rác"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "Bạn có muốn xóa vĩnh viễn mọi tệp trong Thùng rác không?"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "Chạy chương trình"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "“{name}” là một chương trình. Chỉ chạy nếu bạn tin tưởng nguồn gốc của nó."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "Chạy"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "Mục ưa thích"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "Lưu thành:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "Loại tệp:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "Thư mục mới"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "Hủy"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "Thay thế tệp?"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "“{name}” đã tồn tại. Thay thế tệp này?"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "Thay thế"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "Thiết bị không khả dụng"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "Đóng"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "Tên thư mục"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "Tạo"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "Lưu tệp"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "Mở"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "Lưu"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "Chọn thư mục"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "Chọn một tệp"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "Đã chọn {n} mục"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "Thư mục này không khả dụng hoặc không đọc được."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "Không thể tạo thư mục. Hãy chọn tên khác."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "Hãy nhập tên tệp không chứa dấu gạch chéo."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "Bạn không có quyền lưu tại đây."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "Hãy chọn một tệp hoặc thư mục cục bộ."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "Mục đã chọn không còn khả dụng."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "Chỉ chọn thư mục."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "Chỉ chọn tệp."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "Hãy chọn một tệp để mở."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "Một tên tệp được đề xuất không hợp lệ."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "Không có tên tệp nào được cung cấp."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "Bây giờ"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "{n} phút trước"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "{n} giờ trước"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n} ngày trước"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "Hôm nay lúc {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "Hôm qua lúc {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "Không có bus phiên"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "Thư mục chính"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "Màn hình nền"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "Tài liệu"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "Tải xuống"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "Nhạc"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "Hình ảnh"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "Video"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "Mẫu"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "Công khai"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "Tệp"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "Cửa sổ mới"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "Sửa"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "Chọn tất cả"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "Xem"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "Mật khẩu cho “{name}” không đúng. Hãy thử lại."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "Nhập mật khẩu để giải nén “{name}”."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "Mật khẩu"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "Giải nén"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "Cần mật khẩu"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "Thay thế mục"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "Một mục cũ hơn tên “{name}” đã tồn tại ở vị trí này."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "Một mục mới hơn tên “{name}” đã tồn tại ở vị trí này."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "Một mục tên “{name}” đã tồn tại ở vị trí này."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "Bạn có muốn thay thế bằng liên kết đang tạo không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "Bạn có muốn thay thế bằng mục mới hơn đang di chuyển không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "Bạn có muốn thay thế bằng mục cũ hơn đang di chuyển không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "Bạn có muốn thay thế bằng mục đang di chuyển không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "Bạn có muốn thay thế bằng mục mới hơn đang khôi phục không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "Bạn có muốn thay thế bằng mục cũ hơn đang khôi phục không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "Bạn có muốn thay thế bằng mục đang khôi phục không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "Bạn có muốn thay thế bằng mục mới hơn đang sao chép không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "Bạn có muốn thay thế bằng mục cũ hơn đang sao chép không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "Bạn có muốn thay thế bằng mục đang sao chép không?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "Áp dụng cho tất cả"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stop"
+msgstr "Dừng"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "Bỏ qua"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "Giữ cả hai"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "Đang sao chép “{name}” vào “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "Đang sao chép {n} mục vào “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "Đang di chuyển “{name}” vào “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "Đang di chuyển {n} mục vào “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "Đang chuyển “{name}” vào Thùng rác"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "Đang chuyển {n} mục vào Thùng rác"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "Đang khôi phục “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "Đang khôi phục {n} mục"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "Đang xóa “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "Đang xóa {n} mục"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "Đang dọn sạch Thùng rác"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "Đang đổi tên “{name}” thành “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "Đang tạo “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "Đang tạo liên kết trong “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "Đang nén vào “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "Đang giải nén vào “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "Đang chuẩn bị…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "Còn khoảng một giây"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "Còn khoảng {n} giây"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "Còn khoảng một phút"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "Còn khoảng {n} phút"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "Đang dừng…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "Đang chờ bạn lựa chọn"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "Đang hoàn tất…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "Đang xử lý…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "Đang xử lý “{name}”…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed}/{total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed}/{n} mục"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "“{name}” đã tồn tại ở vị trí này."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "Mở bằng"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "Không có ứng dụng"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "Đặt làm mặc định"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "Thuộc tính"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} tệp"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "Loại:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "Vị trí:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "Kích thước:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "Đang tính…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "Ngày tạo:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "Ngày sửa đổi:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "Truy cập lần cuối:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share hoặc sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "Máy chủ gần đây"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "Kết nối"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "Kết nối tới máy chủ"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "Tên hoặc mật khẩu cho “{address}” không đúng. Hãy thử lại."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "Nhập tên và mật khẩu của bạn cho “{address}”."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "Người dùng đã đăng ký"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "Khách"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "Tên"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "Miền (không bắt buộc)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "Ghi nhớ mật khẩu này"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "The passphrase for “{name}” is incorrect. Try again."
+msgstr "Cụm mật khẩu cho “{name}” không đúng. Hãy thử lại."
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "Nhập cụm mật khẩu để mở khóa “{name}”."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "Cụm mật khẩu"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "Mở khóa"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "Mở khóa ổ đĩa"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} mục"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "Thư mục"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "Ứng dụng"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "Thùng rác"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "Thư mục mới"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "Văn bản mới"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "Chỉ có thể nén tệp cục bộ."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "Tệp nén"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "Đã giải nén"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "Đã hủy nén."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "Đã hủy giải nén."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "Mở bằng"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "Hiện trong thư mục chứa"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "Nén"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "Cắt"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "Sao chép"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "Dán"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "Văn bản mới"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "Chuyển vào Thùng rác"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "Đổi tên"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "Mở trong Terminal"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "Đặt làm hình nền"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "Đổi hình nền"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "Khôi phục"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "Hiện tệp ẩn"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "Mở trong cửa sổ mới"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "Mở trong thẻ mới"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "Hoàn tác"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "Làm lại"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "Nén “{name}”"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "Nén các mục"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "Ẩn tệp ẩn"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "Máy tính"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "Vị trí"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "Ổ đĩa trong"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "Mạng"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "“{address}” không phải là địa chỉ máy chủ. Hãy nhập địa chỉ như smb://server/share hoặc sftp://user@server."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "Ổ đĩa đang được sử dụng. Hãy đóng các tệp đang mở trên đó và thử lại."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "Dịch vụ thao tác tệp đã dừng."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "Không thể kết nối tới bus phiên."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "Không có bản xem trước cho vị trí này."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "Tệp này không còn khả dụng."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index}/{count}"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "Mở bằng {application}"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}, {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "Phần còn lại của tệp này không được hiển thị."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "Không thể hiển thị hình ảnh này."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "Xem nhanh"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "Tài liệu mới"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "Khác"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "Không có kết quả"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "Đang tìm “{text}”"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "Tìm trong:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "“{name}”"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "Dọn sạch"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "Tệp"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "Đóng thẻ"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "Duyệt và sắp xếp các tệp của bạn."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "Giới thiệu về Tệp"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "Ẩn Tệp"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "Thẻ mới"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "Tìm"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "Dạng biểu tượng"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "Dạng danh sách"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "Sắp xếp theo"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "Làm mới"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "Tên"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "Vị trí gốc"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "Ngày xóa"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "Ngày"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "Loại"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "Kích thước"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "Đi"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "Quay lại"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "Tiến tới"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "Thư mục chứa"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "Đi tới vị trí…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "Kết nối tới máy chủ…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "Cửa sổ"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "Thu nhỏ"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "Phóng to"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "Hiện thẻ trước"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "Hiện thẻ tiếp theo"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "Ngày sửa đổi"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "Loại"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "Tìm hoặc nhập đường dẫn"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "Không thể mở bản xem trước: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "Hãy chọn tên khác với . hoặc .."
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "Tên không được chứa / hoặc dấu xuống dòng."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "Xóa khỏi Mục ưa thích"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "Đẩy ra"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "Bỏ gắn"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "Danh tính máy chủ đã thay đổi"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "Máy chủ không xác định"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "Danh tính của “{address}” không còn giống như trước. Có thể ai đó đang giả mạo máy chủ này. Chỉ kết nối nếu quản trị viên của máy chủ đã thay đổi khóa."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "Không thể xác minh danh tính của “{address}”. Hãy kiểm tra dấu vân tay khóa có đúng như bạn mong đợi trước khi kết nối."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "Vẫn kết nối"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "Thao tác thiết bị không thành công"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "Trình quản lý tệp"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "Duyệt và quản lý tệp của bạn"

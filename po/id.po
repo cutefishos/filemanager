@@ -1,0 +1,1265 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-13 16:33+0800\n"
+"PO-Revision-Date: 2026-11-13 16:33+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "Kesalahan ZIP tidak dikenal"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "Arsip RAR yang dilindungi kata sandi tidak didukung"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "Arsip 7z yang dilindungi kata sandi tidak didukung"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "Jenis enkripsi ZIP ini tidak didukung"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "Arsip dengan format ini yang dilindungi kata sandi tidak didukung"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "Kesalahan arsip tidak dikenal"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "Tidak dapat mengalokasikan memori untuk arsip"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "Bagian pertama dari arsip multibagian ini tidak ada"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "Sumber sudah tidak ada: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "Tidak dapat membaca tautan simbolis: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "Sumber bukan file biasa: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "Tidak ada file yang dipilih"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "Folder tujuan tidak ada: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "Tidak dapat mengalokasikan memori untuk tautan simbolis"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "Tidak dapat membuat {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "Tidak dapat membuat {path}: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "Hanya satu arsip yang dapat diekstrak dalam satu waktu"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "Format arsip tidak dikenali"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "Tidak dapat membuat folder ekstraksi sementara"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "Jalur tidak aman dalam arsip: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "Tautan keras dalam arsip tidak didukung: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "Jalur tautan simbolis tidak valid dalam arsip: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "Target tautan simbolis tidak valid: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "File khusus dalam arsip tidak didukung: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "Tidak dapat membuat folder induk untuk {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "Tidak dapat menulis {path}: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "Induk berupa tautan simbolis dalam arsip: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "Jalur ganda dalam arsip: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "Tidak dapat memulihkan tautan simbolis: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "Tugas tidak dapat dipublikasikan"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "Volume dalam image disk rusak."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "Image disk tidak berisi volume yang dapat dibuka."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "Image disk terenkripsi tidak dapat dibuka."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "File ini bukan image disk yang dapat dibuka."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "Image disk sparse tidak dapat dibuka."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "Image disk yang terbagi menjadi beberapa file tidak dapat dibuka."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "Image disk rusak."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "Image disk menggunakan kompresi yang tidak dapat dibaca."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "Tidak dapat membuat {path}"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "Tidak dapat memulai sesi FUSE"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "Tidak dapat mengaitkan {path}"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "“{path}” bukan jalur absolut."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "“{location}” bukan lokasi yang dapat dihubungkan."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "Sedang menghubungkan ke “{location}”."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "Perangkat tidak dapat dibuka. Cabut lalu sambungkan kembali."
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "File perangkat tidak tersedia. Buka kunci perangkat dan izinkan akses ke datanya di layarnya; jika tidak membantu, pilih transfer file di pengaturan USB-nya."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "Tidak dapat memulai sesi SSH"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "Folder bersama tidak ada."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "Server tidak dapat dijangkau."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "Hapus"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "Apakah Anda ingin menghapusnya secara permanen?"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "Kosongkan Tempat Sampah"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "Apakah Anda ingin menghapus semua file di Tempat Sampah secara permanen?"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "Jalankan Program"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "“{name}” adalah program. Jalankan hanya jika Anda memercayai asalnya."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "Jalankan"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "Favorit"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "Simpan Sebagai:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "Jenis File:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "Folder Baru"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "Batal"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "Ganti File?"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "“{name}” sudah ada. Ganti?"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "Ganti"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "Perangkat tidak tersedia"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "Tutup"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "Nama folder"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "Buat"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "Simpan File"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "Buka"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "Simpan"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "Pilih Folder"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "Pilih file"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "{n} item dipilih"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "Folder ini tidak tersedia atau tidak dapat dibaca."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "Folder tidak dapat dibuat. Pilih nama lain."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "Masukkan nama file tanpa garis miring."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "Anda tidak memiliki izin untuk menyimpan di sini."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "Pilih file atau folder lokal."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "Item yang dipilih sudah tidak tersedia."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "Pilih folder saja."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "Pilih file saja."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "Pilih file untuk dibuka."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "Nama file yang disarankan tidak valid."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "Tidak ada nama file yang diberikan."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "Sekarang"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "{n} menit yang lalu"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "{n} jam yang lalu"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n} hari yang lalu"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "Hari ini pukul {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "Kemarin pukul {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "Tidak ada bus sesi"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "Beranda"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "Desktop"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "Dokumen"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "Unduhan"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "Musik"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "Gambar"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "Video"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "Templat"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "Publik"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "File"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "Jendela Baru"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "Edit"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "Pilih Semua"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "Tampilan"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "Kata sandi untuk “{name}” salah. Coba lagi."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "Masukkan kata sandi untuk mengekstrak “{name}”."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "Kata sandi"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "Ekstrak"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "Kata Sandi Diperlukan"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "Ganti Item"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "Item lama bernama “{name}” sudah ada di lokasi ini."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "Item yang lebih baru bernama “{name}” sudah ada di lokasi ini."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "Item bernama “{name}” sudah ada di lokasi ini."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "Apakah Anda ingin menggantinya dengan tautan yang sedang Anda buat?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "Apakah Anda ingin menggantinya dengan item lebih baru yang sedang Anda pindahkan?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "Apakah Anda ingin menggantinya dengan item lebih lama yang sedang Anda pindahkan?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "Apakah Anda ingin menggantinya dengan item yang sedang Anda pindahkan?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "Apakah Anda ingin menggantinya dengan item lebih baru yang sedang Anda pulihkan?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "Apakah Anda ingin menggantinya dengan item lebih lama yang sedang Anda pulihkan?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "Apakah Anda ingin menggantinya dengan item yang sedang Anda pulihkan?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "Apakah Anda ingin menggantinya dengan item lebih baru yang sedang Anda salin?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "Apakah Anda ingin menggantinya dengan item lebih lama yang sedang Anda salin?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "Apakah Anda ingin menggantinya dengan item yang sedang Anda salin?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "Terapkan ke Semua"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stop"
+msgstr "Hentikan"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "Lewati"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "Simpan Keduanya"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "Menyalin “{name}” ke “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "Menyalin {n} item ke “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "Memindahkan “{name}” ke “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "Memindahkan {n} item ke “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "Memindahkan “{name}” ke Tempat Sampah"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "Memindahkan {n} item ke Tempat Sampah"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "Memulihkan “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "Memulihkan {n} item"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "Menghapus “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "Menghapus {n} item"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "Mengosongkan Tempat Sampah"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "Mengganti nama “{name}” menjadi “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "Membuat “{name}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "Membuat tautan di “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "Mengompresi ke “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "Mengekstrak ke “{destination}”"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "Menyiapkan…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "Sekitar satu detik lagi"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "Sekitar {n} detik lagi"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "Sekitar satu menit lagi"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "Sekitar {n} menit lagi"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "Menghentikan…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "Menunggu pilihan Anda"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "Menyelesaikan…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "Memproses…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "Memproses “{name}”…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed} dari {total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed} dari {n} item"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "“{name}” sudah ada di lokasi ini."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "Buka Dengan"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "Tidak ada aplikasi"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "Jadikan bawaan"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "Properti"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} file"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "Jenis:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "Lokasi:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "Ukuran:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "Menghitung…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "Dibuat:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "Diubah:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "Diakses:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share atau sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "Server Terbaru"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "Hubungkan"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "Hubungkan ke Server"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "Nama atau kata sandi untuk “{address}” salah. Coba lagi."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "Masukkan nama dan kata sandi Anda untuk “{address}”."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "Pengguna terdaftar"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "Tamu"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "Nama"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "Domain (opsional)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "Ingat kata sandi ini"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "The passphrase for “{name}” is incorrect. Try again."
+msgstr "Frasa sandi untuk “{name}” salah. Coba lagi."
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "Masukkan frasa sandi untuk membuka kunci “{name}”."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "Frasa sandi"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "Buka Kunci"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "Buka Kunci Volume"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} item"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "Folder"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "Aplikasi"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "Tempat Sampah"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "Folder Baru"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "Teks Baru"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "Hanya file lokal yang dapat dikompresi."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "Arsip"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "Hasil Ekstrak"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "Kompresi dibatalkan."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "Ekstraksi dibatalkan."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "Buka dengan"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "Tampilkan di Folder Induk"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "Kompres"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "Potong"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "Salin"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "Tempel"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "Teks Baru"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "Pindahkan ke Tempat Sampah"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "Ganti Nama"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "Buka di Terminal"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "Jadikan Wallpaper"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "Ubah latar belakang"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "Pulihkan"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "Tampilkan File Tersembunyi"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "Buka di Jendela Baru"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "Buka di Tab Baru"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "Urungkan"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "Ulangi"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "Kompres “{name}”"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "Kompres Item"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "Sembunyikan File Tersembunyi"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "Komputer"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "Lokasi"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "Drive Internal"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "Jaringan"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "“{address}” bukan alamat server. Masukkan alamat seperti smb://server/share atau sftp://user@server."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "Sedang digunakan. Tutup file yang terbuka di sana dan coba lagi."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "Layanan operasi file berhenti."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "Bus sesi tidak dapat dijangkau."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "Pratinjau tidak tersedia untuk lokasi ini."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "File ini sudah tidak tersedia."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index} dari {count}"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "Buka dengan {application}"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}, {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "Sisa file ini tidak ditampilkan."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "Gambar ini tidak dapat ditampilkan."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "Lihat Cepat"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "Dokumen Baru"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "Lainnya"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "Tidak Ada Hasil"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "Mencari “{text}”"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "Cari:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "“{name}”"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "Kosongkan"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "File"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "Tutup Tab"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "Menjelajahi dan mengatur file Anda."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "Tentang File"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "Sembunyikan File"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "Tab Baru"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "Cari"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "sebagai Ikon"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "sebagai Daftar"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "Urutkan Menurut"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "Segarkan"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "Nama"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "Lokasi Asal"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "Tanggal Dihapus"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "Tanggal"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "Jenis"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "Ukuran"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "Pergi"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "Kembali"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "Maju"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "Folder Induk"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "Pergi ke Lokasi…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "Hubungkan ke Server…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "Jendela"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "Minimalkan"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "Zoom"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "Tampilkan Tab Sebelumnya"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "Tampilkan Tab Berikutnya"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "Tanggal Diubah"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "Jenis"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "Cari atau Masukkan Jalur"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "Tidak dapat membuka pratinjau: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "Pilih nama selain . atau .."
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "Nama tidak boleh berisi / atau baris baru."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "Hapus dari Favorit"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "Keluarkan"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "Lepas Kait"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "Identitas Server Berubah"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "Server Tidak Dikenal"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "Identitas “{address}” tidak sama dengan sebelumnya. Seseorang mungkin sedang menyamar sebagai server ini. Hubungkan hanya jika administratornya telah mengubah kuncinya."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "Identitas “{address}” tidak dapat diverifikasi. Pastikan sidik jari kuncinya sesuai harapan Anda sebelum menghubungkan."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "Tetap Hubungkan"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "Operasi perangkat gagal"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "Pengelola File"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "Jelajahi dan kelola file Anda"
