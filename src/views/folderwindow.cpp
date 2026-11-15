@@ -473,7 +473,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     if (size.width > 0 && size.height > 0) {
         m_window->resize(size);
     } else {
-        m_window->resize({900, 580});
+        m_window->resize({828, 500});
         m_window->setRestoresSize("main");
     }
 
