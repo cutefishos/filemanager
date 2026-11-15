@@ -153,8 +153,9 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     body->setText(question);
     body->setLayoutHints({.preferredWidth = textWidth});
 
+    constexpr double actionSpacing = 8;
     auto* actions = layout->addChild<ui::RowLayout>();
-    actions->setSpacing(8);
+    actions->setSpacing(actionSpacing);
     actions->setLayoutHints({.fillWidth = true});
     m_applyToAll = actions->addChild<ui::CheckBox>(tr("Apply to All"));
     m_applyToAll->setPadding({});
@@ -171,6 +172,18 @@ std::unique_ptr<ui::View> ConflictDialog::createContent()
     button(tr("Skip"), 1, false)->setVisible(m_sourceCount > 1);
     button(tr("Keep Both"), 2, false);
     button(tr("Replace"), 3, true);
+
+    double rowWidth = -actionSpacing;
+    for (const auto& child : actions->children()) {
+        if (child->isVisible())
+            rowWidth += child->sizeHint().width + actionSpacing;
+    }
+    if (rowWidth > 480 - 20 * 2) {
+        auto applyToAll = actions->takeChild(m_applyToAll);
+        auto buttons = layout->takeChild(actions);
+        layout->addChild(std::move(applyToAll));
+        layout->addChild(std::move(buttons));
+    }
     return layout;
 }
 
