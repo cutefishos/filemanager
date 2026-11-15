@@ -216,8 +216,13 @@ FolderModel::FolderModel(FolderModelHost* host, bool desktop)
         setStatus(Status::Listing);
     }));
     m_subscriptions.push_back(m_contents.rowsChanged.connect([this](const ContentsChange& change) {
-        for (const auto& [from, to] : change.renamed)
+        for (const auto& [from, to] : change.renamed) {
             m_renamingNames.erase(from);
+            if (m_selection.erase(from) > 0)
+                m_selection.insert(to);
+            if (m_pinned.erase(from) > 0)
+                m_pinned.insert(to);
+        }
         for (const std::string& url : change.removed)
             m_renamingNames.erase(url);
         contentsChanged(change);
