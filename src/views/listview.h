@@ -43,6 +43,8 @@ struct ListColumns
     double typeX() const { return sizeX() + (showSize() ? sizeWidth : 0); }
 
     int dateSortMode() const { return trash ? 8 : 2; }
+
+    bool operator==(const ListColumns&) const = default;
 };
 
 // Rows of name, dates, size and kind under a column

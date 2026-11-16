@@ -90,8 +90,9 @@ protected:
     void addIconViews();
     void addLabelView();
 
-    // The rest of bind for the subclass: the name's text and colour.
-    virtual void bindItem(const FileItem& item, int row) = 0;
+    // The rest of bind for the subclass: the name's text and colour. Returns
+    // whether the name's text changed.
+    virtual bool bindItem(const FileItem& item, int row) = 0;
 
     // Places the icon or thumbnail in the icon box, the emblem at its corner.
     void layoutIcon(const ui::RectF& iconItem, double emblemSize);
@@ -118,6 +119,7 @@ private:
     int m_row = -1;
     bool m_dropTarget = false;
     bool m_dropAllowed = false;
+    double m_iconSize = 0;
     bool m_wantsThumbnail = false;
     std::string m_path;
     int64_t m_modified = 0;

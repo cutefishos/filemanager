@@ -75,11 +75,14 @@ public:
     }
 
 protected:
-    void bindItem(const FileItem&, int row) override
+    bool bindItem(const FileItem&, int row) override
     {
-        m_label->setText(m_grid->model().displayName(row));
+        std::string name = m_grid->model().displayName(row);
+        const bool renamed = name != m_label->text();
+        m_label->setText(std::move(name));
         m_label->setMaximumLineCount(m_selected ? 3 : 2);
         m_label->setColor(m_selected ? style::selectedTextColor() : ui::Theme::current().text);
+        return renamed;
     }
 
     void layout() override

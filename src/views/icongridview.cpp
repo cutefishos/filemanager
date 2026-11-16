@@ -169,24 +169,35 @@ void IconItem::addLabelView()
 
 void IconItem::bind(int index, int row)
 {
-    const bool fresh = index != m_index || row != m_row;
-    m_index = index;
-    m_row = row;
     FolderModel& model = m_view->model();
     const FileItemPtr item = model.item(row);
     if (!item)
         return;
+    const bool fresh = index != m_index || row != m_row;
+    m_index = index;
+    m_row = row;
 
     const double iconSize = m_view->iconSize();
-    m_selected = model.isSelected(row);
+    const bool selected = model.isSelected(row);
+    const bool dropTarget = m_view->isDropTarget(index);
+    const bool dropAllowed = m_view->dropTargetAllowedFor(index);
+    const bool labelShown = m_view->renamingIndex() != index;
+    // What the item's own layout and paint go by; its child views ask for theirs.
+    bool changed = fresh || selected != m_selected || item->isHidden != m_hidden || dropTarget != m_dropTarget
+            || dropAllowed != m_dropAllowed || iconSize != m_iconSize || labelShown != m_label->isVisible();
+    m_selected = selected;
     m_hidden = item->isHidden;
-    m_dropTarget = m_view->isDropTarget(index);
-    m_dropAllowed = m_view->dropTargetAllowedFor(index);
+    m_dropTarget = dropTarget;
+    m_dropAllowed = dropAllowed;
+    m_iconSize = iconSize;
 
     const std::string icon = iconOrFallback(item->iconName, item->isDir ? "folder" : "unknown", int(iconSize));
-    m_icon->setIconName(icon);
+    if (icon != m_icon->iconName()) {
+        m_icon->setIconName(icon);
+        m_overlay->setIconName(icon);
+        changed = true;
+    }
     m_icon->setSize(iconSize);
-    m_overlay->setIconName(icon);
     m_overlay->setSize(iconSize);
     m_overlay->setColor(ui::Theme::current().highlight);
 
@@ -197,12 +208,16 @@ void IconItem::bind(int index, int row)
         m_path = item->path;
         m_image = {};
         m_thumbnailBox = {};
+        changed = true;
     }
 
     m_emblem->setVisible(item->isLink);
     m_label->setOpacity(m_hidden ? 0.8 : 1.0);
-    m_label->setVisible(m_view->renamingIndex() != index);
-    bindItem(*item, row);
+    m_label->setVisible(labelShown);
+    if (bindItem(*item, row))
+        changed = true;
+    if (!changed)
+        return;
     requestLayout();
     requestPaint();
 }

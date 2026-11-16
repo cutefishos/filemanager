@@ -329,20 +329,35 @@ public:
 
     void bind(int index)
     {
+        FolderModel& model = m_list->model();
+        const FileItemPtr item = model.item(index);
+        if (!item)
+            return;
+        const ListColumns& c = m_list->columns();
+        const bool selected = model.isSelected(index);
+        const bool previousSelected = selected && index > 0 && model.isSelected(index - 1);
+        const bool nextSelected = selected && index + 1 < model.count() && model.isSelected(index + 1);
+        const bool dropTarget = m_list->isDropTarget(index);
+        const bool dropAllowed = dropTarget && m_list->dropAllowed();
+        const bool thumbnail = model.showsThumbnail(index);
+        // What the row's own layout and paint go by; its child views ask for theirs.
+        const bool changed = index != m_index || item != m_item || selected != m_selected
+                || previousSelected != m_previousSelected || nextSelected != m_nextSelected
+                || dropTarget != m_dropTarget || dropAllowed != m_dropAllowed || thumbnail != m_wantsThumbnail
+                || c != m_boundColumns;
         if (index != m_index) {
             m_index = index;
             m_imageKey.clear();
             m_image = {};
         }
-        FolderModel& model = m_list->model();
-        const FileItemPtr item = model.item(index);
-        if (!item)
-            return;
         m_item = item;
-        m_selected = model.isSelected(index);
-        m_previousSelected = m_selected && index > 0 && model.isSelected(index - 1);
-        m_nextSelected = m_selected && index + 1 < model.count() && model.isSelected(index + 1);
-        m_dropTarget = m_list->isDropTarget(index);
+        m_selected = selected;
+        m_previousSelected = previousSelected;
+        m_nextSelected = nextSelected;
+        m_dropTarget = dropTarget;
+        m_dropAllowed = dropAllowed;
+        m_wantsThumbnail = thumbnail;
+        m_boundColumns = c;
 
         const ui::Theme& theme = ui::Theme::current();
         const ui::Color primary = m_selected ? style::selectedTextColor() : theme.text;
@@ -352,14 +367,14 @@ public:
         std::string icon = item->iconName;
         if (icon.empty() || ui::themeIconPath(icon, 96).empty())
             icon = item->isDir ? "folder" : "unknown";
-        m_icon->setName(icon);
+        if (icon != m_icon->name())
+            m_icon->setName(icon);
         m_emblem->setVisible(item->isLink);
         m_name->setText(item->name);
         m_name->setColor(primary);
         m_name->setOpacity(textOpacity);
         m_name->setVisible(m_list->renamingIndex() != index);
 
-        const ListColumns& c = m_list->columns();
         const std::string texts[] = {
             c.showOrigin() ? model.originalPathText(index) : std::string(),
             model.fileSizeText(index),
@@ -371,7 +386,8 @@ public:
             m_columns[i]->setColor(secondary);
             m_columns[i]->setOpacity(textOpacity);
         }
-        m_wantsThumbnail = model.showsThumbnail(index);
+        if (!changed)
+            return;
         requestLayout();
         requestPaint();
     }
@@ -424,7 +440,7 @@ protected:
         const ui::RectF rect = localRect();
         const double radius = 6;
         if (m_dropTarget) {
-            const ui::Color color = m_list->dropAllowed() ? theme.highlight : style::kDanger;
+            const ui::Color color = m_dropAllowed ? theme.highlight : style::kDanger;
             painter.drawRoundedRect(rect, {radius, 0, ui::Corners::Circular}, style::withAlpha(color, 0.16), 2, color);
             return;
         }
@@ -552,7 +568,9 @@ private:
     bool m_previousSelected = false;
     bool m_nextSelected = false;
     bool m_dropTarget = false;
+    bool m_dropAllowed = false;
     bool m_wantsThumbnail = false;
+    ListColumns m_boundColumns;
     std::string m_imageKey;
     ui::SizeF m_thumbnailBox;
     ui::SizeF m_thumbnailRequest;

@@ -101,23 +101,36 @@ public:
     }
 
 protected:
-    void bindItem(const FileItem&, int row) override
+    bool bindItem(const FileItem&, int row) override
     {
         FolderModel& model = m_desktop->model();
         setVisible(!model.isBlank(row));
-        m_silhouette->icon->setIconName(m_icon->iconName());
-        m_silhouette->icon->setSize(m_desktop->iconSize());
+        const double iconSize = m_desktop->iconSize();
+        if (m_icon->iconName() != m_silhouette->icon->iconName() || iconSize != m_silhouetteSize) {
+            m_silhouette->icon->setIconName(m_icon->iconName());
+            m_silhouette->icon->setSize(iconSize);
+            m_silhouetteSize = iconSize;
+            m_shadowStale = true;
+            requestLayout();
+        }
 
         const double pixelSize = m_desktop->labelPixelSize();
         const double labelWidth = geometry().width - kLabelInset * 2;
         const std::string text = m_desktop->labelText(model.displayName(row), labelWidth);
+        const bool renamed = text != m_label->text();
+        const bool relabeled = renamed || pixelSize != m_labelPixelSize;
+        m_labelPixelSize = pixelSize;
         for (ui::Label* label : {m_raised, m_label, m_haloContent->label}) {
             label->setText(text);
             label->setFontSize(pixelSize);
             label->setWeight(600);
         }
-        m_haloContent->requestLayout();
-        m_halo->contentChanged();
+        // Each blur is drawn again only for other content: a bind for the
+        // selection alone leaves both as they are.
+        if (relabeled) {
+            m_haloContent->requestLayout();
+            m_halo->contentChanged();
+        }
         m_label->setColor(m_selected ? style::selectedTextColor() : ui::Color::rgb(0xffffff));
         // The raised style draws the name and its copy in greyscale; only the plain
         // text on the selection takes subpixel glyphs.
@@ -128,6 +141,7 @@ protected:
         m_raised->setOpacity(m_hidden ? 0.8 : 1.0);
         m_halo->setVisible(labelShown && !m_selected);
         m_halo->setOpacity(m_hidden ? 0.35 : 0.65);
+        return renamed;
     }
 
     void layout() override
@@ -139,9 +153,13 @@ protected:
                    std::max(16.0, std::round(iconSize / 4)));
         m_shadow->setGeometry({m_iconItem.x, m_iconItem.y + 1, m_iconItem.width, m_iconItem.height});
         m_shadow->setOpacity(0.15 * (m_hidden ? 0.5 : 1.0));
-        m_silhouette->requestLayout();
-        m_silhouette->icon->setVisible(!m_thumbnail->isVisible());
-        m_shadow->contentChanged();
+        const bool silhouetteShown = !m_thumbnail->isVisible();
+        if (m_shadowStale || silhouetteShown != m_silhouette->icon->isVisible()) {
+            m_shadowStale = false;
+            m_silhouette->icon->setVisible(silhouetteShown);
+            m_silhouette->requestLayout();
+            m_shadow->contentChanged();
+        }
 
         const double labelWidth = width - kLabelInset * 2;
         const double labelHeight = m_label->heightForWidth(labelWidth);
@@ -159,6 +177,9 @@ private:
     ui::FastBlurredCopy* m_halo;
     LabelHalo* m_haloContent;
     ui::Label* m_raised;
+    double m_silhouetteSize = 0;
+    double m_labelPixelSize = 0;
+    bool m_shadowStale = true;
 };
 
 DesktopGridView::DesktopGridView(FolderModel& model)
