@@ -500,6 +500,7 @@ std::unique_ptr<ui::View> IoTaskDialog::createContent()
                                .bottom = -overhang});
     m_summary = addLabel(column, 11, 400, ui::ColorId::DisabledText, true);
     m_summary->setName("ioProgressSummary");
+    m_summary->setFontFeatures({{"tnum", 1}});
     m_summary->setLayoutHints({.fillWidth = true});
 
     m_actions = layout->addChild<ui::RowLayout>();
