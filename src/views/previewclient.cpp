@@ -22,16 +22,17 @@ namespace fm {
 static constexpr const char* kService = "org.cutefish.FilePreview";
 static constexpr const char* kPath = "/org/cutefish/FilePreview";
 
-PreviewClient::PreviewClient()
+PreviewClient::PreviewClient(base::dbus::Connection* bus)
     : m_id(base::Uuid::generate().toString())
 {
-    base::dbus::Connection* bus = ui::Application::instance() ? ui::Application::instance()->sessionBus() : nullptr;
+    if (!bus && ui::Application::instance())
+        bus = ui::Application::instance()->sessionBus();
     if (bus) {
         m_service = base::dbus::Proxy(bus, kService, kPath, kService);
         m_matches.push_back(m_service.onSignal("VisibilityChanged", [this](const base::dbus::Message& message) {
             bool visible = false;
             if (message.read(visible))
-                setVisible(visible);
+                serviceVisibilityChanged(visible);
         }));
         m_matches.push_back(m_service.onSignal("Navigate", [this](const base::dbus::Message& message) {
             std::string source;
@@ -63,7 +64,8 @@ PreviewClient::PreviewClient()
 
     m_updateTimer.setSingleShot(true);
     m_updateTimer.onTimeout = [this] {
-        if (!follows())
+        // The service takes neither call while the preview is hidden.
+        if (!m_previewVisible || !follows())
             return;
         // The active window takes the preview over, as it may not hold it yet.
         send(viewIsActive() ? "Activate" : "Update", m_id, snapshot());
@@ -126,7 +128,7 @@ void PreviewClient::queryVisibility()
     m_calls[id] = m_service.callAsync("IsVisible", [this, id, alive = m_alive](const base::dbus::Reply& reply) {
         bool visible = false;
         if (reply.read(visible))
-            setVisible(visible);
+            serviceVisibilityChanged(visible);
         base::EventLoop::current()->post([this, alive, id] {
             if (*alive)
                 m_calls.erase(id);
@@ -180,7 +182,7 @@ std::string PreviewClient::snapshot() const
 
 void PreviewClient::activate()
 {
-    if (follows() && viewIsActive())
+    if (m_previewVisible && follows() && viewIsActive())
         send("Activate", m_id, snapshot());
 }
 
@@ -199,6 +201,15 @@ void PreviewClient::setVisible(bool visible)
         return;
     m_previewVisible = visible;
     previewVisibleChanged.emit();
+}
+
+void PreviewClient::serviceVisibilityChanged(bool visible)
+{
+    const bool shown = visible && !m_previewVisible;
+    setVisible(visible);
+    // What the view came to show while the preview was hidden was not sent.
+    if (shown)
+        m_updateTimer.start();
 }
 
 bool PreviewClient::filterKey(const ui::KeyEvent& event)

@@ -28,7 +28,8 @@ class FolderView;
 class PreviewClient
 {
 public:
-    PreviewClient();
+    // On the application's session bus unless another is given.
+    explicit PreviewClient(base::dbus::Connection* bus = nullptr);
     ~PreviewClient();
 
     void attach(FolderModel* model, FolderView* view);
@@ -50,6 +51,8 @@ private:
     template<typename... Args>
     void send(const std::string& method, const Args&... args);
     void setVisible(bool visible);
+    // The preview's visibility as the service tells it.
+    void serviceVisibilityChanged(bool visible);
     void queryVisibility();
 
     std::string m_id;
