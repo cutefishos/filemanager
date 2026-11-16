@@ -17,8 +17,10 @@
 namespace cutefish::ui {
 class CheckBox;
 class DialogButton;
+class HeaderButton;
 class Label;
 class ProgressBar;
+class RowLayout;
 class ThemeIcon;
 }
 
@@ -110,8 +112,11 @@ private:
 
     ui::Label* m_heading = nullptr;
     ui::Label* m_detail = nullptr;
+    ui::RowLayout* m_progressRow = nullptr;
     ui::ProgressBar* m_progress = nullptr;
+    ui::HeaderButton* m_stop = nullptr;
     ui::Label* m_summary = nullptr;
+    ui::RowLayout* m_actions = nullptr;
     ui::DialogButton* m_button = nullptr;
     ui::ThemeIcon* m_icon = nullptr;
     std::vector<base::Subscription> m_subscriptions;

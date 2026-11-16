@@ -9,6 +9,7 @@
 #include "base/locale.h"
 #include "ui/check_box.h"
 #include "ui/dialog_window.h"
+#include "ui/header_button.h"
 #include "ui/icon.h"
 #include "ui/label.h"
 #include "ui/layout.h"
@@ -36,6 +37,30 @@ static ui::Label* addLabel(ui::View* parent, double pixelSize, int weight, ui::C
     label->setWrap(wrap);
     return label;
 }
+
+static constexpr double kStopButton = 24;
+static constexpr double kStopGlyph = 16;
+// How far the stop glyph's drawing stops short of its box's end, as a share
+// of the box.
+static constexpr double kStopGlyphEndInset = 3.0 / 56;
+
+// The stop glyph in the secondary text colour, which follows the theme.
+class StopButton : public ui::HeaderButton
+{
+public:
+    StopButton()
+        : HeaderButton(std::string(), kStopButton)
+    {
+        setGlyph("stop", kStopGlyph);
+    }
+
+protected:
+    void layout() override
+    {
+        setGlyphColor(ui::Theme::current().disabledText);
+        HeaderButton::layout();
+    }
+};
 
 ConflictDialog::Details ConflictDialog::fileDetails(const std::string& path)
 {
@@ -453,26 +478,36 @@ std::unique_ptr<ui::View> IoTaskDialog::createContent()
     m_heading->setLayoutHints({.fillWidth = true});
     m_detail = addLabel(column, 12, 400, ui::ColorId::DisabledText, false);
     m_detail->setLayoutHints({.fillWidth = true});
-    m_progress = column->addChild<ui::ProgressBar>();
-    m_progress->setName("ioProgressBar");
+    m_progressRow = column->addChild<ui::RowLayout>();
+    m_progressRow->setSpacing(8);
     ui::LayoutHints progressHints {.fillWidth = true};
     progressHints.margins.top = 4;
-    m_progress->setLayoutHints(progressHints);
+    m_progressRow->setLayoutHints(progressHints);
+    m_progress = m_progressRow->addChild<ui::ProgressBar>();
+    m_progress->setName("ioProgressBar");
+    m_progress->setLayoutHints({.fillWidth = true, .alignment = ui::Alignment::Center});
+    m_stop = m_progressRow->addChild<StopButton>();
+    m_stop->setName("ioStopButton");
+    m_stop->setToolTip(tr("Stop"));
+    m_stop->setLayoutHints({.alignment = ui::Alignment::Center});
+    m_stop->onClicked = [this] { cancelTask(); };
+    // The stop glyph, not its button, ends at the content edge, and the
+    // button reaches past the bar's line so the lines around it keep their
+    // places.
+    const double overhang = (kStopButton - m_progress->sizeHint().height) / 2;
+    m_progressRow->setPadding({.top = -overhang,
+                               .right = -std::round(kStopGlyphEndInset * kStopGlyph + (kStopButton - kStopGlyph) / 2),
+                               .bottom = -overhang});
     m_summary = addLabel(column, 11, 400, ui::ColorId::DisabledText, true);
     m_summary->setName("ioProgressSummary");
     m_summary->setLayoutHints({.fillWidth = true});
 
-    auto* actions = layout->addChild<ui::RowLayout>();
-    actions->setSpacing(8);
-    actions->setLayoutHints({.horizontalAlignment = ui::Alignment::End});
-    m_button = actions->addChild<ui::DialogButton>(tr("Cancel"));
-    m_button->setName("ioCancelButton");
-    m_button->onClicked = [this] {
-        if (m_finished)
-            close();
-        else
-            cancelTask();
-    };
+    m_actions = layout->addChild<ui::RowLayout>();
+    m_actions->setSpacing(8);
+    m_actions->setLayoutHints({.horizontalAlignment = ui::Alignment::End});
+    m_button = m_actions->addChild<ui::DialogButton>(tr("Close"));
+    m_button->setName("ioCloseButton");
+    m_button->onClicked = [this] { close(); };
     update();
     return layout;
 }
@@ -499,13 +534,14 @@ void IoTaskDialog::update()
     m_detail->setMaximumLineCount(4);
     m_detail->setElide(ui::Label::Elide::Middle);
 
-    m_progress->setVisible(!m_finished);
+    m_progressRow->setVisible(!m_finished);
     m_progress->setValue(std::min(0.99, fraction()));
     m_progress->setIndeterminate(!m_canceling && !m_conflict && (progress.preparing || !progress.totalsKnown));
     m_summary->setVisible(!m_finished);
     m_summary->setText(summary());
-    m_button->setText(m_finished ? tr("Close") : tr("Cancel"));
-    m_button->setEnabled(m_finished || !m_canceling);
+    m_stop->setEnabled(!m_canceling);
+    m_actions->setVisible(m_finished);
+    m_button->setText(tr("Close"));
     fit();
 }
 
