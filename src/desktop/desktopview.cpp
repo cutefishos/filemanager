@@ -166,8 +166,13 @@ protected:
         const ui::RectF label {centeredStart(width, labelWidth), m_iconItem.y + iconSize + kLabelSpacing, labelWidth,
                                labelHeight};
         m_label->setGeometry(label);
-        m_raised->setGeometry({label.x, label.y + 1, label.width, label.height});
-        m_halo->setGeometry({label.x - 8, label.y - 8 + 1, label.width + 16, label.height + 16});
+        // A whole number of device pixels: each line's baseline rounds onto
+        // its own device row, so a fractional drop lands differently per line.
+        const ui::Window* window = this->window();
+        const double scale = window ? window->scale() : 1;
+        const double drop = std::max(1.0, std::round(scale)) / scale;
+        m_raised->setGeometry({label.x, label.y + drop, label.width, label.height});
+        m_halo->setGeometry({label.x - 8, label.y - 8 + drop, label.width + 16, label.height + 16});
     }
 
 private:
