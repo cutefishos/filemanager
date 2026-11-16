@@ -39,3 +39,7 @@ add_test(NAME filemanager
 # The listing benchmark: a folder listed and sorted, timed.
 add_executable(fmbench fmbench.cpp)
 target_link_libraries(fmbench PRIVATE fm-core)
+
+# The views' benchmark: scrolling and selecting in a headless window, timed.
+add_executable(viewbench viewbench.cpp)
+target_link_libraries(viewbench PRIVATE fm-ui)
