@@ -6,6 +6,7 @@
 
 #include "core/preferences.h"
 #include "model/foldermodel.h"
+#include "model/foldersizecache.h"
 #include "ops/operations.h"
 
 #include "base/dbus.h"
@@ -637,4 +638,28 @@ TEST(FolderModelTest, ExtractsSplitAndEncryptedArchives)
 
     daemon.terminate();
     EXPECT_TRUE(daemon.waitForFinished(std::chrono::seconds(3)));
+}
+
+TEST(FolderSizeCacheTest, RecountKeepsTheKnownCount)
+{
+    TemporaryDir dir;
+    ASSERT_TRUE(dir.isValid());
+    writeFile(dir.filePath("a.txt"));
+    writeFile(dir.filePath("b.txt"));
+
+    fm::FolderSizeCache cache;
+    int announced = 0;
+    const auto subscription = cache.ready.connect([&](const std::string&) { ++announced; });
+    EXPECT_EQ(cache.count(dir.path()), -1);
+    ASSERT_TRUE(runUntil(loop(), [&] { return announced == 1; }));
+    EXPECT_EQ(cache.count(dir.path()), 2);
+
+    writeFile(dir.filePath("c.txt"));
+    cache.clear();
+    EXPECT_EQ(cache.count(dir.path()), 2);
+    ASSERT_TRUE(runUntil(loop(), [&] { return announced == 2; }));
+    EXPECT_EQ(cache.count(dir.path()), 3);
+
+    cache.reset();
+    EXPECT_EQ(cache.count(dir.path()), -1);
 }

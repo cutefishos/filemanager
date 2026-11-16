@@ -28,7 +28,8 @@ FolderSizeCache::~FolderSizeCache()
 
 void FolderSizeCache::clear()
 {
-    m_counts.clear();
+    for (auto& [path, count] : m_counts)
+        count.stale = true;
 }
 
 void FolderSizeCache::reset()
@@ -40,10 +41,12 @@ void FolderSizeCache::reset()
 
 int64_t FolderSizeCache::count(const std::string& path)
 {
-    if (const auto found = m_counts.find(path); found != m_counts.end())
-        return found->second;
+    const auto [found, added] = m_counts.try_emplace(path);
+    Count& known = found->second;
+    if (!added && !known.stale)
+        return known.entries;
 
-    m_counts[path] = -1;
+    known.stale = false;
     const auto cancelled = m_cancelled;
     const base::LoopHandle loop = base::EventLoop::current()->handle();
     countPool().post([this, alive = m_alive, cancelled, loop, path] {
@@ -62,11 +65,15 @@ int64_t FolderSizeCache::count(const std::string& path)
         loop.post([this, alive, cancelled, path, count] {
             if (!*alive || cancelled->load())
                 return;
-            m_counts[path] = count;
+            Count& counted = m_counts[path];
+            counted.stale = false;
+            if (counted.entries == count)
+                return;
+            counted.entries = count;
             ready.emit(path);
         });
     });
-    return -1;
+    return known.entries;
 }
 
 } // namespace fm

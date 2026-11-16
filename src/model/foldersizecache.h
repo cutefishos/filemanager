@@ -23,7 +23,8 @@ public:
     FolderSizeCache();
     ~FolderSizeCache();
 
-    // Forgets the counts; those under way still arrive, as fresh as any.
+    // Has each folder counted again when next asked for, which answers with
+    // the count it had until the new one arrives.
     void clear();
     // Forgets them and drops those under way, for another folder.
     void reset();
@@ -32,7 +33,13 @@ public:
     base::Signal<std::string> ready;
 
 private:
-    std::map<std::string, int64_t> m_counts;
+    struct Count
+    {
+        int64_t entries = -1;
+        bool stale = false;
+    };
+
+    std::map<std::string, Count> m_counts;
     std::shared_ptr<std::atomic_bool> m_cancelled;
     std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);
 };
