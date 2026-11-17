@@ -22,6 +22,7 @@
 #include "ui/keys.h"
 #include "ui/label.h"
 #include "ui/menu.h"
+#include "ui/navigation_buttons.h"
 #include "ui/painter.h"
 #include "ui/shortcut_convention.h"
 #include "ui/sidebar_divider.h"
@@ -30,6 +31,7 @@
 #include "ui/toast.h"
 #include "ui/drag.h"
 #include "ui/window.h"
+#include "ui/window_controls.h"
 #include "ui/window_header.h"
 #include "ui/window_tab_bar.h"
 
@@ -49,6 +51,8 @@ static constexpr double kLargeSpacing = 12;
 static constexpr double kButtonSize = 32;
 static constexpr double kHeaderEndMargin = 19.0 / 3;
 static constexpr double kButtonsTopMargin = 4;
+// From the sidebar's edge to the back and forward plate.
+static constexpr double kNavigationStart = 10;
 static constexpr double kBarHeight = 34;
 static constexpr double kMinimumWidth = 600;
 static constexpr double kMinimumContentWidth = kMinimumWidth - SideBar::kDefaultWidth;
@@ -266,20 +270,19 @@ class HeaderRow : public ui::View
 public:
     HeaderRow()
     {
-        back = addChild<ui::HeaderButton>(std::string(), kButtonSize);
-        back->setGlyph("chevron-left", 16);
+        navigation = addChild<ui::NavigationButtons>();
+        back = navigation->back();
         back->setName("backButton");
-        forward = addChild<ui::HeaderButton>(std::string(), kButtonSize);
-        forward->setGlyph("chevron-right", 16);
+        forward = navigation->forward();
         forward->setName("forwardButton");
         pathBar = addChild<PathBar>();
         search = addChild<ui::HeaderButton>(std::string(), kButtonSize);
         search->setGlyph("search", 16);
         search->setName("searchButton");
-        for (ui::HeaderButton* button : {back, forward, search})
-            button->setPlateAlphas({0.17, 0.26}, {0.21, 0.15});
+        search->setPlateAlphas({0.17, 0.26}, {0.21, 0.15});
     }
 
+    ui::NavigationButtons* navigation;
     ui::HeaderButton* back;
     ui::HeaderButton* forward;
     PathBar* pathBar;
@@ -290,12 +293,13 @@ protected:
     void layout() override
     {
         const double spacing = 1;
-        double x = sidebarWidth + kSmallSpacing * 1.5;
+        double x = sidebarWidth + kNavigationStart;
         const double right = geometry().width;
-        back->setGeometry({x, kButtonsTopMargin, kButtonSize, kButtonSize});
-        x += kButtonSize + spacing;
-        forward->setGeometry({x, kButtonsTopMargin, kButtonSize, kButtonSize});
-        x += kButtonSize + spacing;
+        // The plate is centred on the window controls' line.
+        const ui::SizeF plate = navigation->sizeHint();
+        navigation->setGeometry({x, kButtonsTopMargin + (kButtonSize - plate.height) / 2, plate.width,
+                                 plate.height});
+        x += plate.width + ui::window_controls::kSpacing;
         // The end margin lines the search glyph up with the tab bar's "+" below.
         const double end = right - kHeaderEndMargin;
         search->setGeometry({end - kButtonSize, kButtonsTopMargin, kButtonSize, kButtonSize});
