@@ -84,6 +84,7 @@ PlacesModel::PlacesModel(bool volumes, std::string settingsFile, base::dbus::Con
 {
     using base::paths::userDirectory;
     const std::vector<std::pair<std::string, std::string>> defaults = {
+        {"/Applications", "folder"},
         {homePath(), "folder-home"},
         {userDirectory(UserDirectory::Desktop), "folder-desktop"},
         {userDirectory(UserDirectory::Documents), "folder-documents"},

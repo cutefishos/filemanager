@@ -40,6 +40,7 @@ static const std::map<std::string, StandardFolder>& standardFolders()
             {userDirectory(UserDirectory::Videos), {trNoop("Videos"), "folder-video"}},
             {userDirectory(UserDirectory::Templates), {trNoop("Templates"), "folder-templates"}},
             {userDirectory(UserDirectory::PublicShare), {trNoop("Public"), "folder-publicshare"}},
+            {"/Applications", {trNoop("Applications"), "folder"}},
         };
         std::map<std::string, StandardFolder> result;
         // Home first: a disabled XDG folder resolves to home, which keeps its own name.
