@@ -15,7 +15,7 @@
 
 namespace fm {
 
-// The window controls, centred in the 32-pixel corner slot.
+// The title's line.
 static constexpr double kSlot = 32;
 
 class FramelessDialog::Root : public ui::View
@@ -25,8 +25,7 @@ public:
     {
         if (closeButton) {
             m_controls = addChild<ui::WindowHeader>();
-            m_controls->setMinimizeEnabled(false);
-            m_controls->setMaximizeEnabled(false);
+            m_controls->setCloseOnly(true);
         }
     }
 
@@ -91,9 +90,13 @@ protected:
         if (m_controls)
             m_controls->setGeometry({0, 0, geometry().width, std::max(m_header, m_buttonMargin * 2 + kSlot)});
         if (m_title) {
-            const double controls = ui::window_controls::kRowWidth + kSlot - ui::window_controls::kButton;
-            const double left = m_controls ? m_buttonMargin + controls + ui::Theme::current().smallSpacing : 16;
-            m_title->setGeometry({left, m_buttonMargin, std::max(0.0, geometry().width - left - m_buttonMargin), kSlot});
+            const double inset = ui::window_controls::kDialogCloseInset;
+            const double controls = inset + ui::window_controls::kButton;
+            const double left = m_controls ? controls + ui::Theme::current().smallSpacing : 16;
+            if (m_controls)
+                m_title->setGeometry({left, inset, std::max(0.0, geometry().width - 2 * left), ui::window_controls::kButton});
+            else
+                m_title->setGeometry({left, m_buttonMargin, std::max(0.0, geometry().width - left - m_buttonMargin), kSlot});
         }
     }
 

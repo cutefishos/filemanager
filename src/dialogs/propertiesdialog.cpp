@@ -10,6 +10,7 @@
 #include "ui/label.h"
 #include "ui/cell_layout.h"
 #include "ui/theme.h"
+#include "ui/window_controls.h"
 
 #include <algorithm>
 #include <dirent.h>
@@ -98,7 +99,7 @@ PropertiesDialog::PropertiesDialog(FileItemList items)
             });
 
     // A title bar for the window controls, their first centre 16 in.
-    setHeader(32, 0);
+    setHeader(ui::window_controls::kDialogHeaderHeight, 0);
     setPadding(kLargeSpacing * 1.5, kSmallSpacing, kLargeSpacing * 2 - kSmallSpacing);
     setContentFactory([this] { return createContent(); }, 0, 0);
     onCloseRequested = [this] {
