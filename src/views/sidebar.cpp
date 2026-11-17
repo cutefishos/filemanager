@@ -69,7 +69,7 @@ public:
     double heightForWidth(double) const override
     {
         PlacesModel& places = m_sidebar->places();
-        const double rowHeight = snap(std::max(34.0, style::fontHeight() + 12));
+        const double rowHeight = snap(std::max(32.0, style::fontHeight() + 12));
         const double spacing = snap(3);
         double y = snap(32);
         std::string category = "Favorites";
@@ -167,7 +167,7 @@ protected:
         const ui::Window* window = this->window();
         const bool active = !window || window->isActive();
         const double inset = sideInset();
-        const double rowHeight = snap(std::max(34.0, style::fontHeight() + 12));
+        const double rowHeight = snap(std::max(32.0, style::fontHeight() + 12));
         const double spacing = snap(3);
 
         styleSection(m_favorites);
