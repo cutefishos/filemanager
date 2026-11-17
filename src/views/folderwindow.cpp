@@ -19,6 +19,7 @@
 #include "ui/progress_bar.h"
 #include "ui/dialog_window.h"
 #include "ui/header_button.h"
+#include "ui/header_button_group.h"
 #include "ui/keys.h"
 #include "ui/label.h"
 #include "ui/menu.h"
@@ -276,23 +277,22 @@ public:
         forward = navigation->forward();
         forward->setName("forwardButton");
         pathBar = addChild<PathBar>();
-        search = addChild<ui::HeaderButton>(std::string(), kButtonSize);
-        search->setGlyph("search", 16);
+        searchPlate = addChild<ui::HeaderButtonGroup>();
+        search = searchPlate->addButton("search");
         search->setName("searchButton");
-        search->setPlateAlphas({0.17, 0.26}, {0.21, 0.15});
     }
 
     ui::NavigationButtons* navigation;
     ui::HeaderButton* back;
     ui::HeaderButton* forward;
     PathBar* pathBar;
+    ui::HeaderButtonGroup* searchPlate;
     ui::HeaderButton* search;
     double sidebarWidth = SideBar::kDefaultWidth;
 
 protected:
     void layout() override
     {
-        const double spacing = 1;
         double x = sidebarWidth + kNavigationStart;
         const double right = geometry().width;
         // The plate is centred on the window controls' line.
@@ -302,8 +302,11 @@ protected:
         x += plate.width + ui::window_controls::kSpacing;
         // The end margin lines the search glyph up with the tab bar's "+" below.
         const double end = right - kHeaderEndMargin;
-        search->setGeometry({end - kButtonSize, kButtonsTopMargin, kButtonSize, kButtonSize});
-        const double pathEnd = end - kButtonSize - spacing;
+        const ui::SizeF searchPlateSize = searchPlate->sizeHint();
+        const double searchX = end - (kButtonSize + searchPlateSize.width) / 2;
+        searchPlate->setGeometry({searchX, kButtonsTopMargin + (kButtonSize - searchPlateSize.height) / 2,
+                                  searchPlateSize.width, searchPlateSize.height});
+        const double pathEnd = searchX - ui::window_controls::kSpacing;
         pathBar->setGeometry({x, kButtonsTopMargin, std::max(0.0, pathEnd - x), kButtonSize});
     }
 };
