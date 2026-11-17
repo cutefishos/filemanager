@@ -1171,6 +1171,11 @@ void FolderWindow::confirmLaunch(const std::string& path)
     m_host->confirmLaunch(path, m_window.get());
 }
 
+void FolderWindow::installBundleRunner(const std::string& path)
+{
+    m_host->installBundleRunner(path, m_window.get());
+}
+
 void FolderWindow::notify(const std::string& message)
 {
     m_toast->show(message, std::chrono::milliseconds(3000));

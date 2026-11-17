@@ -4,10 +4,12 @@
 #include "app/dialogs.h"
 #include "core/launcher.h"
 #include "core/standardfolders.h"
+#include "dialogs/installdialog.h"
 #include "dialogs/iotaskdialog.h"
 #include "dialogs/openwithdialog.h"
 #include "dialogs/propertiesdialog.h"
 
+#include "base/application_registry.h"
 #include "base/event_loop.h"
 #include "base/i18n.h"
 #include "base/url.h"
@@ -40,6 +42,8 @@ void Dialogs::retranslate()
         dialog->retranslate();
     for (const Confirm& confirm : m_confirms)
         confirm.texts(*confirm.dialog);
+    if (m_install)
+        m_install->retranslate();
 }
 
 void Dialogs::ioTask(const OperationTaskPtr& task)
@@ -103,6 +107,49 @@ void Dialogs::confirmLaunch(const std::string& path, ui::Window* parent)
             false, [absolute] { launcher::trustAndLaunch(absolute); });
 }
 
+void Dialogs::installBundleRunner(const std::string& path, ui::Window* parent)
+{
+    if (path.empty() || m_install)
+        return;
+    const std::string absolute = cleanPath(path);
+    m_install = std::make_unique<InstallDialog>(parent, launcher::kBundleRunnerPackage, fileName(absolute));
+    m_install->onInstalled = [this, absolute] { launchBundle(absolute); };
+    m_install->onUnavailable = [] { launcher::setBundleRunnerUnavailable(); };
+    m_install->onDone = [this] { removeInstall(); };
+    m_install->show();
+    if (onChanged)
+        onChanged();
+}
+
+void Dialogs::removeInstall()
+{
+    if (!m_install)
+        return;
+    // Called from the dialog's own handlers: it goes after them.
+    std::shared_ptr<InstallDialog> gone(std::move(m_install));
+    base::EventLoop::current()->post([gone] {});
+    if (onChanged)
+        onChanged();
+}
+
+void Dialogs::launchBundle(const std::string& path)
+{
+    base::ApplicationRegistry& registry = base::ApplicationRegistry::instance();
+    if (registry.runsBundles()) {
+        launcher::launchFile(path);
+        return;
+    }
+    m_bundleRunnerKnown = registry.changed.connect([this, path] {
+        if (!base::ApplicationRegistry::instance().runsBundles())
+            return;
+        // Not inside the announcement, which ends this subscription.
+        base::EventLoop::current()->post([this, path] {
+            m_bundleRunnerKnown.reset();
+            launcher::launchFile(path);
+        });
+    });
+}
+
 void Dialogs::properties(const FileItemList& items, ui::Window* parent)
 {
     if (items.empty())
@@ -150,6 +197,8 @@ void Dialogs::closeOwnedBy(ui::Window* window)
             ++it;
         }
     }
+    if (m_install && m_install->parentWindow() == window)
+        gone.push_back(std::shared_ptr<InstallDialog>(std::move(m_install)));
     if (gone.empty())
         return;
     base::EventLoop::current()->post([gone] {});

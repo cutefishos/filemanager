@@ -1216,8 +1216,12 @@ void FolderModel::openSelected()
 
 void FolderModel::openBundle(const FileItem& file)
 {
-    // Without a program that runs bundles one is a folder like any other.
     if (!base::ApplicationRegistry::instance().runsBundles()) {
+        if (m_host && launcher::canInstallBundleRunner()) {
+            m_host->installBundleRunner(file.path);
+            return;
+        }
+        // Without a program that runs bundles one is a folder like any other.
         if (m_isDesktop)
             openInNewWindow(file.url);
         else

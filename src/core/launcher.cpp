@@ -175,6 +175,20 @@ bool launchFile(const std::string& path)
     return startCommand({path});
 }
 
+const char* const kBundleRunnerPackage = "cutefish-reef";
+
+static bool s_bundleRunnerUnavailable = false;
+
+bool canInstallBundleRunner()
+{
+    return !s_bundleRunnerUnavailable;
+}
+
+void setBundleRunnerUnavailable()
+{
+    s_bundleRunnerUnavailable = true;
+}
+
 bool isTrusted(const std::string& path)
 {
     if (!isDesktopFile(path))

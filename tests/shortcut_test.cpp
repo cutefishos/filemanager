@@ -38,6 +38,7 @@ public:
     void confirmDelete(const std::vector<std::string>&) override {}
     void confirmEmptyTrash() override {}
     void confirmLaunch(const std::string&) override {}
+    void installBundleRunner(const std::string&) override {}
     void notify(const std::string&) override {}
 
     int properties = 0;
@@ -53,6 +54,7 @@ public:
     void confirmDelete(const std::vector<std::string>&, ui::Window*) override {}
     void confirmEmptyTrash(ui::Window*) override {}
     void confirmLaunch(const std::string&, ui::Window*) override {}
+    void installBundleRunner(const std::string&, ui::Window*) override {}
     void windowClosed(fm::FolderWindow*) override {}
 };
 

@@ -21,6 +21,7 @@ class Window;
 namespace fm {
 
 class FramelessDialog;
+class InstallDialog;
 
 // The file manager's dialogs. Each belongs to the window it was opened over,
 // if any, and closes with it; progress dialogs outlive their windows.
@@ -35,12 +36,15 @@ public:
     void confirmDelete(const std::vector<std::string>& urls, ui::Window* parent);
     void confirmEmptyTrash(ui::Window* parent);
     void confirmLaunch(const std::string& path, ui::Window* parent);
+    // Offers to install the program that runs application bundles, and
+    // opens the bundle at `path` with it once it is there.
+    void installBundleRunner(const std::string& path, ui::Window* parent);
     void properties(const FileItemList& items, ui::Window* parent);
     void openWith(const std::string& url, ui::Window* parent);
 
     // The window goes: its dialogs go with it.
     void closeOwnedBy(ui::Window* window);
-    bool isEmpty() const { return m_dialogs.empty() && m_confirms.empty(); }
+    bool isEmpty() const { return m_dialogs.empty() && m_confirms.empty() && !m_install; }
 
     // A dialog opened or closed.
     std::function<void()> onChanged;
@@ -61,9 +65,14 @@ private:
     ui::ConfirmDialog* confirm(ui::Window* parent, std::function<void(ui::ConfirmDialog&)> texts, bool destructive,
                                std::function<void()> accepted);
     void removeConfirm(ui::ConfirmDialog* dialog);
+    void removeInstall();
+    void launchBundle(const std::string& path);
 
     std::vector<std::pair<std::unique_ptr<FramelessDialog>, ui::Window*>> m_dialogs;
     std::vector<Confirm> m_confirms;
+    std::unique_ptr<InstallDialog> m_install;
+    // Waits for the installed program to be known before the bundle opens.
+    base::Subscription m_bundleRunnerKnown;
     base::Subscription m_taskAdded;
     base::Subscription m_languageChanged;
 };

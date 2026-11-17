@@ -50,6 +50,7 @@ public:
     void confirmDelete(const std::vector<std::string>& urls) override;
     void confirmEmptyTrash() override;
     void confirmLaunch(const std::string& path) override;
+    void installBundleRunner(const std::string& path) override;
     void notify(const std::string& message) override;
 
 private:

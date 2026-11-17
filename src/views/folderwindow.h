@@ -45,6 +45,7 @@ public:
     virtual void confirmDelete(const std::vector<std::string>& urls, ui::Window* parent) = 0;
     virtual void confirmEmptyTrash(ui::Window* parent) = 0;
     virtual void confirmLaunch(const std::string& path, ui::Window* parent) = 0;
+    virtual void installBundleRunner(const std::string& path, ui::Window* parent) = 0;
     virtual void windowClosed(class FolderWindow* window) = 0;
 };
 
@@ -78,6 +79,7 @@ public:
     void confirmDelete(const std::vector<std::string>& urls) override;
     void confirmEmptyTrash() override;
     void confirmLaunch(const std::string& path) override;
+    void installBundleRunner(const std::string& path) override;
     void notify(const std::string& message) override;
 
     // The header's height: buttons 32 with 4 above and below.
