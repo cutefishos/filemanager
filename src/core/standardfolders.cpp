@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <mutex>
+#include <sys/stat.h>
 #include <vector>
 
 using cutefish::base::paths::UserDirectory;
@@ -155,6 +156,19 @@ std::string homePath()
 {
     static const std::string home = cleanPath(cutefish::base::paths::home());
     return home;
+}
+
+bool isOnSameVolume(const std::vector<std::string>& paths, const std::string& folder)
+{
+    struct stat target;
+    if (paths.empty() || folder.empty() || ::stat(folder.c_str(), &target) != 0)
+        return false;
+    for (const std::string& path : paths) {
+        struct stat st;
+        if (path.empty() || ::lstat(path.c_str(), &st) != 0 || st.st_dev != target.st_dev)
+            return false;
+    }
+    return true;
 }
 
 } // namespace fm

@@ -68,6 +68,10 @@ public:
     bool addFavorites(const std::vector<std::string>& urls, int before);
     bool moveFavorite(int from, int before);
     bool canDropInto(const std::vector<std::string>& urls, int row, uint32_t action) const;
+    // The copy and move out of sourceActions a drop into the row may take, as
+    // a ui::dropActions() answer preferring a move within one volume and a
+    // copy to another, the trash a move only; NoAction when it takes neither.
+    uint32_t dropActions(const std::vector<std::string>& urls, int row, uint32_t sourceActions) const;
     bool dropInto(const std::vector<std::string>& urls, int row, uint32_t action);
     void removeFavorite(int row);
 

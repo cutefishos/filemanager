@@ -96,8 +96,8 @@ public:
     // point in this view's coordinates.
     void updateDragScrollPosition(double y);
     void stopDragScroll();
-    bool updateDropTarget(const std::vector<std::string>& urls, uint32_t sourceActions, uint32_t modifiers,
-                          ui::PointF position);
+    // The drop's ui::dropActions() answer, NoAction when it is refused.
+    uint32_t updateDropTarget(const std::vector<std::string>& urls, uint32_t sourceActions, ui::PointF position);
     void clearDropTarget();
     void dropAt(const std::vector<std::string>& urls, uint32_t action, ui::PointF position);
 
@@ -115,9 +115,6 @@ public:
     // A key the view does not take.
     std::function<bool(const ui::KeyEvent&)> onKeyPressed;
     base::Signal<> currentIndexChanged;
-
-    // The drop action for a drag's modifiers and the actions the source allows.
-    static uint32_t dropActionFor(uint32_t modifiers, uint32_t sourceActions, uint32_t proposed);
 
 protected:
     class Content;

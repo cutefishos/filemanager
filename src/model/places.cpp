@@ -463,6 +463,31 @@ bool PlacesModel::canDropInto(const std::vector<std::string>& urls, int row, uin
     return true;
 }
 
+uint32_t PlacesModel::dropActions(const std::vector<std::string>& urls, int row, uint32_t sourceActions) const
+{
+    if (row < 0 || row >= count())
+        return ui::NoAction;
+    const Place& place = at(row);
+    if (place.url.starts_with("trash:")) {
+        if ((sourceActions & ui::MoveAction) && canDropInto(urls, row, ui::MoveAction))
+            return ui::MoveAction;
+        return ui::NoAction;
+    }
+    uint32_t accepted = ui::NoAction;
+    for (const uint32_t action : {ui::CopyAction, ui::MoveAction}) {
+        if ((sourceActions & action) && canDropInto(urls, row, action))
+            accepted |= action;
+    }
+    if (accepted == ui::NoAction)
+        return ui::NoAction;
+    std::vector<std::string> paths;
+    for (const std::string& url : urls)
+        paths.push_back(base::url::toLocalFile(url).value_or(std::string()));
+    const bool move = (accepted & ui::MoveAction)
+            && (isOnSameVolume(paths, cleanPath(place.path())) || !(accepted & ui::CopyAction));
+    return ui::dropActions(accepted, move ? ui::MoveAction : ui::CopyAction);
+}
+
 bool PlacesModel::dropInto(const std::vector<std::string>& urls, int row, uint32_t action)
 {
     if (!canDropInto(urls, row, action))

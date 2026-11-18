@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace fm {
 
@@ -27,5 +28,8 @@ std::string cleanPath(const std::string& path);
 std::string fileName(const std::string& path);
 std::string parentPath(const std::string& path);
 std::string homePath();
+// Every path is on the file system that holds `folder`; false when one of
+// them cannot be read. A link counts where it is, not where it points.
+bool isOnSameVolume(const std::vector<std::string>& paths, const std::string& folder);
 
 } // namespace fm

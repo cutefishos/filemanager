@@ -218,6 +218,10 @@ public:
     // Drops: the folder of row, or the folder shown for -1.
     std::string dropTargetUrl(int row) const;
     bool canDropUrls(const std::vector<std::string>& urls, int row, uint32_t action) const;
+    // The copy and move out of sourceActions such a drop may take, as a
+    // ui::dropActions() answer preferring a move within one volume and a
+    // copy to another; NoAction when it takes neither.
+    uint32_t dropActions(const std::vector<std::string>& urls, int row, uint32_t sourceActions) const;
     // action is a ui::DropAction; x and y where it landed in the view, for the desktop.
     void drop(const std::vector<std::string>& urls, int row, uint32_t action, int x, int y);
     // A drag of the selection out of this view is running.

@@ -441,10 +441,9 @@ public:
         const double height = view()->geometry().height;
         const std::vector<std::string> urls {"file:///nonexistent/viewbench-dragged"};
         for (int pass = 0; pass < 2; ++pass) {
-            const uint32_t modifiers = pass ? ui::ControlModifier : ui::NoModifier;
             for (double y = view()->headerHeight() + 6; y < height - 6; y += 9) {
                 const double x = 30 + std::fmod(y * 3.7, width - 60);
-                frame([&] { view()->updateDropTarget(urls, ui::CopyAction | ui::MoveAction, modifiers, {x, y}); });
+                frame([&] { view()->updateDropTarget(urls, ui::CopyAction | ui::MoveAction, {x, y}); });
             }
         }
         frame([&] { view()->clearDropTarget(); });

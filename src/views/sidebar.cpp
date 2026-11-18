@@ -416,6 +416,7 @@ protected:
     void dragEnter(const ui::DragEvent& event) override
     {
         m_dropUrls.clear();
+        m_dropSourceActions = event.offer->sourceActions();
         event.offer->read("text/uri-list", [this, alive = m_alive](std::string data) {
             if (!*alive)
                 return;
@@ -427,10 +428,11 @@ protected:
 
     uint32_t dragUpdate(const ui::DragEvent& event) override
     {
-        m_dropAction = (event.modifiers & ui::ControlModifier) ? ui::CopyAction : ui::MoveAction;
         positionDrop(event.position.y, false, m_dropUrls);
         requestPaint();
-        return m_dropTargetRow >= 0 || m_dropIndex >= 0 ? m_dropAction : ui::NoAction;
+        if (m_dropTargetRow >= 0)
+            return m_dropAnswer;
+        return m_dropIndex >= 0 ? ui::MoveAction : ui::NoAction;
     }
 
     void dragLeave() override
@@ -442,7 +444,7 @@ protected:
     uint32_t drop(const ui::DragEvent& event) override
     {
         PlacesModel& places = m_sidebar->places();
-        const uint32_t action = (event.modifiers & ui::ControlModifier) ? ui::CopyAction : ui::MoveAction;
+        const uint32_t action = ui::takenDropAction(m_dropAnswer, event.offer->action());
         bool accepted = false;
         if (m_dropTargetRow >= 0)
             accepted = places.dropInto(m_dropUrls, m_dropTargetRow, action);
@@ -480,7 +482,8 @@ private:
                 const double edge = canPin && row < count ? rect.height / 4 : 0;
                 if (y >= rect.y + edge && y <= rect.y + rect.height - edge) {
                     m_dropIndex = -1;
-                    if (places.canDropInto(urls, row, m_dropAction))
+                    m_dropAnswer = places.dropActions(urls, row, m_dropSourceActions);
+                    if (m_dropAnswer != ui::NoAction)
                         m_dropTargetRow = row;
                     else
                         m_dropRejectedRow = row;
@@ -523,7 +526,8 @@ private:
     int m_dropTargetRow = -1;
     int m_dropRejectedRow = -1;
     double m_dropY = 0;
-    uint32_t m_dropAction = ui::MoveAction;
+    uint32_t m_dropSourceActions = ui::NoAction;
+    uint32_t m_dropAnswer = ui::NoAction;
     std::vector<std::string> m_dropUrls;
     std::unique_ptr<ui::Menu> m_menu;
     std::shared_ptr<bool> m_alive = std::make_shared<bool>(true);

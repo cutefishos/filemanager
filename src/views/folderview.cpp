@@ -678,25 +678,22 @@ void FolderView::autoScroll(uint64_t now)
     setScrollPosition({scrollPosition().x, std::clamp(next, 0.0, maximum)});
 }
 
-uint32_t FolderView::dropActionFor(uint32_t modifiers, uint32_t sourceActions, uint32_t proposed)
+// A refused drop is still taken, and does nothing, as the highlight shows.
+static uint32_t takenWhenRefused(uint32_t answer, uint32_t sourceActions)
 {
-    if (modifiers == ui::NoModifier && (sourceActions & ui::MoveAction))
-        return ui::MoveAction;
-    if (proposed != ui::NoAction)
-        return proposed;
+    if (answer != ui::NoAction)
+        return answer;
     if (sourceActions & ui::MoveAction)
         return ui::MoveAction;
-    if (sourceActions & ui::CopyAction)
-        return ui::CopyAction;
-    return ui::NoAction;
+    return sourceActions & ui::CopyAction;
 }
 
-bool FolderView::updateDropTarget(const std::vector<std::string>& urls, uint32_t sourceActions,
-                                  uint32_t modifiers, ui::PointF position)
+uint32_t FolderView::updateDropTarget(const std::vector<std::string>& urls, uint32_t sourceActions,
+                                      ui::PointF position)
 {
     if (position.x < 0 || position.y < 0 || position.x > geometry().width || position.y > geometry().height) {
         clearDropTarget();
-        return false;
+        return ui::NoAction;
     }
 
     const ui::PointF content = toContent(position);
@@ -705,15 +702,14 @@ bool FolderView::updateDropTarget(const std::vector<std::string>& urls, uint32_t
     const FileItemPtr item = index >= 0 ? m_model.item(rowOf(index)) : nullptr;
     const bool dragged = m_model.dragging() && item && m_model.isSelected(rowOf(index));
     const int target = row >= 0 && item && !m_model.isBlank(rowOf(index)) && item->isDir && !dragged ? index : -1;
-    const uint32_t action = dropActionFor(modifiers, sourceActions,
-                                          (modifiers & ui::ControlModifier) ? ui::CopyAction : ui::NoAction);
-    const bool allowed = m_model.canDropUrls(urls, row, action);
+    const uint32_t answer = m_model.dropActions(urls, row, sourceActions);
+    const bool allowed = answer != ui::NoAction;
     if (target != m_dropTargetIndex || allowed != m_dropTargetAllowed) {
         m_dropTargetIndex = target;
         m_dropTargetAllowed = allowed;
         stateChanged();
     }
-    return allowed;
+    return answer;
 }
 
 void FolderView::clearDropTarget()
@@ -766,8 +762,7 @@ uint32_t FolderView::dragUpdate(const ui::DragEvent& event)
     updateDragScrollPosition(event.position.y);
     if (!m_dropUrlsKnown)
         return ui::MoveAction;
-    updateDropTarget(m_dropUrls, m_dropSourceActions, event.modifiers, event.position);
-    return dropActionFor(event.modifiers, m_dropSourceActions, ui::NoAction);
+    return takenWhenRefused(updateDropTarget(m_dropUrls, m_dropSourceActions, event.position), m_dropSourceActions);
 }
 
 void FolderView::dragLeave()
@@ -779,7 +774,8 @@ void FolderView::dragLeave()
 uint32_t FolderView::drop(const ui::DragEvent& event)
 {
     stopDragScroll();
-    const uint32_t action = dropActionFor(event.modifiers, m_dropSourceActions, ui::NoAction);
+    const uint32_t answer = m_model.dropActions(m_dropUrls, dropRowAt(toContent(event.position)), m_dropSourceActions);
+    const uint32_t action = ui::takenDropAction(takenWhenRefused(answer, m_dropSourceActions), event.offer->action());
     dropAt(m_dropUrls, action, event.position);
     return action;
 }
