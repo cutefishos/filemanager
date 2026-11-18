@@ -158,6 +158,7 @@ add_library(fm-ui STATIC
     src/desktop/desktopview.cpp
     src/desktop/desktopwindow.cpp
     src/chooser/filechooser.cpp
+    src/preview/fontpreview.cpp
     src/preview/previewcontroller.cpp
     src/preview/previewwindow.cpp
 )

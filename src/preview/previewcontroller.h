@@ -5,6 +5,8 @@
 
 #include "core/common.h"
 #include "core/launcher.h"
+#include "ops/operations.h"
+#include "preview/fontpreview.h"
 
 #include "base/signal.h"
 #include "base/thread_pool.h"
@@ -37,6 +39,7 @@ struct PreviewFile
         Generic,
         Image,
         Text,
+        Font,
     };
 
     std::string url;
@@ -58,7 +61,8 @@ struct PreviewFile
     // Text: the start of the file, and whether there is more.
     std::string text;
     bool truncated = false;
-    // The "Open with" button's application.
+    FontPreview font;
+    // The "Open with" button's application; a font has Install in its place.
     std::optional<launcher::Application> application;
 
     bool isImage() const { return kind == Kind::Image && width > 0 && height > 0; }
@@ -85,6 +89,10 @@ public:
     void select(int index);
     void step(int delta);
     void openCurrent();
+    // A font shown: copies it into the user's fonts, or moves the user's
+    // copy to the Trash.
+    void installFont();
+    void removeFont();
     // Describes the item shown again, in the language of now.
     void reload();
 
@@ -113,6 +121,9 @@ private:
     base::Timer m_showTimer;
     base::Job m_describe;
     base::Job m_sizeJob;
+    base::Job m_fontJob;
+    OperationTaskPtr m_fontTask;
+    base::Subscription m_fontTaskFinished;
     std::shared_ptr<std::atomic_bool> m_sizeCancelled;
     base::Subscription m_registryChanged;
 };

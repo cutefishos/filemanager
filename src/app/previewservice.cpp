@@ -3,10 +3,13 @@
 
 #include "app/previewservice.h"
 #include "core/previewkeys.h"
+#include "core/standardfolders.h"
 #include "preview/previewcontroller.h"
 #include "preview/previewwindow.h"
 
 #include "base/json.h"
+#include "base/mime_database.h"
+#include "base/url.h"
 
 namespace fm {
 
@@ -80,6 +83,26 @@ PreviewService::~PreviewService() = default;
 bool PreviewService::isVisible() const
 {
     return m_controller->isVisible();
+}
+
+void PreviewService::show(const std::vector<std::string>& urls)
+{
+    std::vector<PreviewItem> items;
+    for (const std::string& url : urls) {
+        const std::string path = base::url::toLocalFile(url).value_or(url);
+        items.push_back({url, fileName(path), base::mime::iconName(base::mime::typeForFile(path)), {}});
+    }
+    if (items.empty())
+        return;
+    const bool wasVisible = m_controller->isVisible();
+    m_source.clear();
+    m_owner.clear();
+    watchOwner();
+    m_controller->present(std::move(items), 0, true, 0);
+    m_controller->select(0);
+    m_object.emitSignal("VisibilityChanged", true);
+    if (!wasVisible && onVisibilityChanged)
+        onVisibilityChanged(true);
 }
 
 bool PreviewService::owns(const std::string& source, const std::string& caller) const

@@ -25,8 +25,8 @@ namespace fm {
 class PreviewRoot;
 
 // The Quick Look window. A compact card for most files,
-// a window fitted to an image, a text page; the name and "Open with" in the
-// header, arrows for several items.
+// a window fitted to an image, a text page, a font's sample; the name and
+// "Open with" or a font's Install in the header, arrows for several items.
 class PreviewWindow
 {
 public:
@@ -34,6 +34,8 @@ public:
     ~PreviewWindow();
 
     bool isShown() const { return m_window != nullptr; }
+    // Null while closed.
+    ui::Window* window() const { return m_window.get(); }
     // A key another process's view passed on, as if pressed in the window.
     void sendKey(uint32_t key, uint32_t modifiers) { keyPressed(key, modifiers, false); }
 

@@ -9,6 +9,8 @@
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/color_provider.h"
+#include "ui/combo_box.h"
+#include "ui/font_file.h"
 #include "ui/glyph_run.h"
 #include "ui/header_button.h"
 #include "ui/icon.h"
@@ -41,6 +43,12 @@ static constexpr double kMinimumImageWidth = 400;
 static constexpr double kMinimumImageHeight = 200;
 static constexpr int kTextColumns = 100;
 static constexpr double kTextMargin = 20;
+static constexpr double kFontPageWidth = 680;
+static constexpr double kFontRowHeight = 28;
+static constexpr double kSampleSize = 36;
+static constexpr double kSampleGap = 6;
+// A line of the sample at its full size, with the gap to the next.
+static constexpr double kSampleLineHeight = 56;
 
 // The theme's fixed-width font, else "monospace".
 static std::string fixedFamily()
@@ -62,8 +70,9 @@ static bool isWindowKey(uint32_t key, uint32_t modifiers, bool multiple)
     return key == ui::key::Left || key == ui::key::Right || key == ui::key::Up || key == ui::key::Down;
 }
 
-// "Open with …": a pill in the text colour's alpha, its label dimmed while
-// the window is inactive.
+// The header's action, "Open with …" or a font's Install: a pill in the text
+// colour's alpha, its label dimmed while the window is inactive or the
+// action is not offered.
 class OpenButton : public ui::View
 {
 public:
@@ -83,7 +92,8 @@ public:
 
     void setActive(bool active)
     {
-        m_label->setOpacity(active ? 1.0 : 0.6);
+        m_active = active;
+        updateLabel();
     }
 
     ui::SizeF sizeHint() const override { return {std::min(220.0, m_label->sizeHint().width + 24), 26}; }
@@ -103,12 +113,18 @@ protected:
     void paint(ui::Painter& painter) override
     {
         const ui::Color tint = ui::color(ui::ColorId::HeaderButtonTint);
-        const double alpha = m_pressed ? 0.21 : isHovered() ? 0.14 : 0.07;
+        const double alpha = !isEnabled() ? 0.07 : m_pressed ? 0.21 : isHovered() ? 0.14 : 0.07;
         painter.drawRoundedRect(localRect(), {geometry().height / 2, 0, ui::Corners::Circular},
                                 style::withAlpha(tint, alpha));
     }
 
     void hoverChanged() override { requestPaint(); }
+
+    void enabledChanged() override
+    {
+        updateLabel();
+        requestPaint();
+    }
 
     void pointerPress(const ui::PointerEvent&) override
     {
@@ -120,12 +136,18 @@ protected:
     {
         m_pressed = false;
         requestPaint();
-        if (localRect().contains(event.position) && onClicked)
+        if (isEnabled() && localRect().contains(event.position) && onClicked)
             onClicked();
     }
 
 private:
+    void updateLabel()
+    {
+        m_label->setOpacity(!isEnabled() ? 0.4 : m_active ? 1.0 : 0.6);
+    }
+
     ui::Label* m_label;
+    bool m_active = true;
     bool m_pressed = false;
 };
 
@@ -147,7 +169,15 @@ public:
         title->setWeight(700);
         title->setElide(ui::Label::Elide::Middle);
         open = addChild<OpenButton>();
-        open->onClicked = [this] { m_controller.openCurrent(); };
+        open->onClicked = [this] {
+            const PreviewFile& file = m_controller.file();
+            if (file.kind != PreviewFile::Kind::Font)
+                m_controller.openCurrent();
+            else if (file.font.state == FontPreview::State::NotInstalled)
+                m_controller.installFont();
+            else
+                m_controller.removeFont();
+        };
     }
 
     void update(const PreviewFile& shown, bool pageMode, bool active)
@@ -166,10 +196,22 @@ public:
         title->setVisible(pageMode);
         title->setText(shown.name);
         title->setColor(ui::ColorId::Text);
-        // A single compact preview has no header row to hold it.
-        open->setVisible(shown.application.has_value() && (pageMode || multiple));
-        if (shown.application)
-            open->setText(format(tr("Open with {application}"), {{"application", shown.application->name}}));
+        if (shown.kind == PreviewFile::Kind::Font) {
+            const FontPreview::State state = shown.font.state;
+            open->setVisible(true);
+            // TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+            // it out of them again, "Installed" says the font came with the system.
+            open->setText(state == FontPreview::State::NotInstalled ? tr("Install")
+                          : state == FontPreview::State::Installed  ? tr("Remove")
+                                                                    : tr("Installed"));
+            open->setEnabled(state != FontPreview::State::System);
+        } else {
+            // A single compact preview has no header row to hold it.
+            open->setVisible(shown.application.has_value() && (pageMode || multiple));
+            if (shown.application)
+                open->setText(format(tr("Open with {application}"), {{"application", shown.application->name}}));
+            open->setEnabled(true);
+        }
         open->setActive(active);
         requestLayout();
     }
@@ -361,6 +403,155 @@ private:
     std::string m_text;
 };
 
+// A style box that leaves the keyboard to the window.
+class PreviewStyleBox : public ui::ComboBox
+{
+public:
+    bool acceptsFocus() const override { return false; }
+};
+
+// A font on an opaque page: its family, the style shown, and lines of its
+// own characters at one size that fits the page.
+class PreviewFontPage : public ui::View
+{
+public:
+    PreviewFontPage()
+    {
+        m_family = addChild<ui::Label>();
+        m_family->setWeight(700);
+        m_family->setFontSize(16);
+        m_family->setElide(ui::Label::Elide::Right);
+        m_style = addChild<ui::Label>();
+        m_styles = addChild<PreviewStyleBox>();
+        m_styles->onActivated = [this](int index) { showFace(index); };
+    }
+
+    void setFile(const PreviewFile& file)
+    {
+        const std::string path = base::url::toLocalFile(file.url).value_or(std::string());
+        // Described again after Install or Remove: the style chosen stays.
+        const bool again = path == m_path && file.font.faces.size() == m_faces.size();
+        m_path = path;
+        m_faces = file.font.faces;
+
+        bool oneFamily = true;
+        for (const FontPreviewFace& face : m_faces)
+            oneFamily = oneFamily && face.family == m_faces.front().family;
+        std::vector<std::string> names;
+        for (const FontPreviewFace& face : m_faces)
+            names.push_back(oneFamily ? face.style : face.family + ' ' + face.style);
+        m_styles->setItems(std::move(names));
+        showFace(again ? m_face : file.font.defaultFace);
+    }
+
+    void clear()
+    {
+        m_path.clear();
+        m_faces.clear();
+        m_sample.reset();
+        m_lines.clear();
+    }
+
+protected:
+    void layout() override
+    {
+        const ui::Theme& theme = ui::Theme::current();
+        const double width = geometry().width;
+        const bool several = m_faces.size() > 1;
+        m_styles->setVisible(several);
+        m_style->setVisible(!several);
+        m_family->setColor(theme.text);
+        m_style->setColor(theme.disabledText);
+
+        const ui::SizeF trailing = several ? m_styles->sizeHint() : m_style->sizeHint();
+        const double trailingX = width - kTextMargin - trailing.width;
+        const ui::RectF trailingRect {trailingX, kTextMargin + centeredStart(kFontRowHeight, trailing.height),
+                                      trailing.width, trailing.height};
+        m_styles->setGeometry(trailingRect);
+        m_style->setGeometry(trailingRect);
+        const double familyHeight = m_family->sizeHint().height;
+        m_family->setGeometry({kTextMargin, kTextMargin + centeredStart(kFontRowHeight, familyHeight),
+                               std::max(0.0, trailingX - kTextMargin - kTextMargin), familyHeight});
+
+        const double top = kTextMargin + kFontRowHeight + kTextMargin;
+        layoutSample({kTextMargin, top, std::max(0.0, width - 2 * kTextMargin),
+                      std::max(0.0, geometry().height - top - kTextMargin)});
+    }
+
+    void paint(ui::Painter& painter) override
+    {
+        const ui::Theme& theme = ui::Theme::current();
+        painter.fillRect(localRect(), theme.secondBackground);
+        for (const Line& line : m_lines)
+            m_sample->draw(painter, *line.text, m_size, line.position, theme.text);
+    }
+
+private:
+    struct Line
+    {
+        const std::string* text;
+        ui::PointF position;
+    };
+
+    void showFace(int index)
+    {
+        m_lines.clear();
+        m_sample.reset();
+        if (m_faces.empty())
+            return;
+        m_face = std::clamp(index, 0, int(m_faces.size()) - 1);
+        const FontPreviewFace& face = m_faces[size_t(m_face)];
+        m_sample = std::make_unique<ui::FontSample>(m_path, face.index);
+        m_family->setText(face.family);
+        m_style->setText(face.style);
+        m_styles->setCurrentIndex(m_face);
+        requestLayout();
+        requestPaint();
+    }
+
+    // Every line at one size, the largest up to kSampleSize at which all of
+    // them fit the area; each centred, and the block centred in the area.
+    void layoutSample(const ui::RectF& area)
+    {
+        m_lines.clear();
+        if (!m_sample || !m_sample->isValid())
+            return;
+        const std::vector<std::string>& sample = m_faces[size_t(m_face)].sample;
+        if (sample.empty())
+            return;
+        const double gaps = kSampleGap * double(sample.size() - 1);
+        double widest = 1;
+        double height = 0;
+        for (const std::string& line : sample) {
+            const ui::SizeF size = m_sample->measure(line, kSampleSize);
+            widest = std::max(widest, size.width);
+            height += size.height;
+        }
+        m_size = std::max(8.0, std::floor(kSampleSize * std::min({1.0, area.width / widest,
+                                                                 (area.height - gaps) / std::max(1.0, height)})));
+
+        height = gaps;
+        for (const std::string& line : sample)
+            height += m_sample->measure(line, m_size).height;
+        double y = area.y + centeredStart(area.height, height);
+        for (const std::string& line : sample) {
+            const ui::SizeF size = m_sample->measure(line, m_size);
+            m_lines.push_back({&line, {area.x + centeredStart(area.width, size.width), y}});
+            y += size.height + kSampleGap;
+        }
+    }
+
+    ui::Label* m_family;
+    ui::Label* m_style;
+    PreviewStyleBox* m_styles;
+    std::string m_path;
+    std::vector<FontPreviewFace> m_faces;
+    int m_face = 0;
+    std::unique_ptr<ui::FontSample> m_sample;
+    std::vector<Line> m_lines;
+    double m_size = kSampleSize;
+};
+
 // The image page: the viewer, the busy indicator for a slow decode, and the
 // failure notice.
 class PreviewImagePage : public ui::View
@@ -441,6 +632,7 @@ public:
         text->textArea()->isWindowKey = [this](const ui::KeyEvent& event) {
             return isWindowKey(event.key, event.modifiers, m_preview->multiple());
         };
+        font = addChild<PreviewFontPage>();
         message = addChild<ui::Label>();
         message->setWrap(true);
         message->setTextAlignment(ui::Label::TextAlignment::Center);
@@ -460,10 +652,16 @@ public:
     {
         const bool imageMode = file.kind == PreviewFile::Kind::Image;
         const bool textMode = file.kind == PreviewFile::Kind::Text;
-        m_pageMode = imageMode || textMode;
+        const bool fontMode = file.kind == PreviewFile::Kind::Font;
+        m_pageMode = imageMode || textMode || fontMode;
         card->setVisible(!m_pageMode);
         image->setVisible(imageMode);
         text->setVisible(textMode);
+        font->setVisible(fontMode);
+        if (fontMode)
+            font->setFile(file);
+        else
+            font->clear();
         if (imageMode)
             image->setImage(file, prepared, m_preview->displayRatio());
         else
@@ -497,6 +695,7 @@ public:
     PreviewCard* card;
     PreviewImagePage* image;
     PreviewTextPage* text;
+    PreviewFontPage* font;
     ui::Label* message;
     ui::WindowHeader* header;
     PreviewHeaderRow* row;
@@ -520,6 +719,7 @@ protected:
         card->setGeometry(content);
         image->setGeometry(content);
         text->setGeometry(content);
+        font->setGeometry(content);
         header->setGeometry({0, 0, rect.width, kHeaderHeight});
         preloader->setGeometry({0, 0, 1, 1});
         if (window())
@@ -651,6 +851,12 @@ ui::SizeF PreviewWindow::sizeFor(const PreviewFile& file) const
     const ui::SizeF screen = screenSize();
     if (file.kind == PreviewFile::Kind::Text)
         return {textPageWidth(), std::floor(screen.height * 0.8)};
+    if (file.kind == PreviewFile::Kind::Font) {
+        // As tall as the lines of the face shown first, from three to six.
+        const size_t lines = file.font.faces.empty() ? 0 : file.font.faces[size_t(file.font.defaultFace)].sample.size();
+        return {kFontPageWidth, kHeaderHeight + kTextMargin + kFontRowHeight + kTextMargin
+                                        + kSampleLineHeight * double(std::clamp<size_t>(lines, 3, 6)) + kTextMargin};
+    }
     if (file.kind != PreviewFile::Kind::Image)
         return {480, multiple() ? 168.0 : 144.0};
     if (!file.isImage())

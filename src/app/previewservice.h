@@ -27,6 +27,8 @@ public:
     ~PreviewService();
 
     bool isVisible() const;
+    // Files opened as themselves, with no file view behind them.
+    void show(const std::vector<std::string>& urls);
     std::function<void(bool visible)> onVisibilityChanged;
 
 private:

@@ -215,6 +215,12 @@ PreviewFile describeFile(const std::string& url)
             result.vector = info.vector;
             result.animated = info.animated;
         }
+    } else if (isFontType(mime)) {
+        FontPreview font = describeFont(path);
+        if (!font.faces.empty()) {
+            result.kind = PreviewFile::Kind::Font;
+            result.font = std::move(font);
+        }
     } else if (base::mime::inherits(mime, "text/plain")) {
         bool truncated = false;
         if (auto text = readText(path, &truncated)) {
@@ -350,6 +356,39 @@ void PreviewController::openCurrent()
         close();
 }
 
+void PreviewController::installFont()
+{
+    const auto path = base::url::toLocalFile(m_file.url);
+    if (!m_visible || m_loading || !path || m_file.kind != PreviewFile::Kind::Font
+        || m_file.font.state != FontPreview::State::NotInstalled)
+        return;
+    const uint64_t generation = m_generation;
+    m_fontJob = base::ThreadPool::global().run([file = *path] { return fm::installFont(file); },
+                                               [this, generation](std::string) {
+                                                   if (generation == m_generation)
+                                                       reload();
+                                               });
+}
+
+void PreviewController::removeFont()
+{
+    if (!m_visible || m_loading || m_file.kind != PreviewFile::Kind::Font
+        || m_file.font.state != FontPreview::State::Installed)
+        return;
+    const std::string installed = m_file.font.installed;
+    const uint64_t generation = m_generation;
+    m_fontTask = OperationsClient::instance().trash({base::url::fromLocalFile(installed)});
+    m_fontTaskFinished = m_fontTask->finished.connect([this, generation, installed] {
+        if (generation != m_generation)
+            return;
+        // The file shown was the user's copy itself.
+        if (base::url::toLocalFile(m_file.url) == installed)
+            close();
+        else
+            reload();
+    });
+}
+
 void PreviewController::load()
 {
     stopFolderSize();
@@ -386,7 +425,7 @@ void PreviewController::load()
 // The application registry belongs to this thread, not the describing one.
 bool PreviewController::updateApplication()
 {
-    if (m_file.folder || m_file.mimeType.empty())
+    if (m_file.folder || m_file.mimeType.empty() || m_file.kind == PreviewFile::Kind::Font)
         return false;
     const auto path = base::url::toLocalFile(m_file.url);
     const auto applications = launcher::applicationsFor(path.value_or(std::string()), m_file.mimeType);

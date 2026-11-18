@@ -4,14 +4,25 @@
 #include "testutil.h"
 
 #include "preview/previewcontroller.h"
+#include "preview/previewwindow.h"
 
 #include "base/url.h"
+#include "ui/application.h"
+#include "ui/combo_box.h"
+#include "ui/image.h"
+#include "ui/label.h"
+#include "ui/window.h"
 
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <unicode/ucnv.h>
+#include <vector>
 
 using fm::PreviewFile;
 using fmtest::TemporaryDir;
+using namespace cutefish;
+
+extern ui::Application* s_app;
 
 static PreviewFile describe(const TemporaryDir& directory, const std::string& name, const std::string& contents)
 {
@@ -121,4 +132,195 @@ TEST(PreviewTest, ImagesAreDescribedFromTheirHeaders)
     EXPECT_EQ(file.width, 3);
     EXPECT_EQ(file.height, 2);
     EXPECT_FALSE(file.animated);
+}
+
+static const char kFont[] = "/usr/share/fonts/opentype/inter/Inter-Regular.otf";
+static const char kFontCollection[] = "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc";
+static const char kArabicFont[] = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf";
+static const char kSymbolFont[] = "/usr/share/fonts/truetype/noto/NotoMusic-Regular.ttf";
+
+#define REQUIRE_FONT(path) \
+    if (!std::filesystem::exists(path)) \
+        GTEST_SKIP() << path << " is not installed"
+
+TEST(PreviewTest, FontsAreDescribedByTheirFaces)
+{
+    REQUIRE_FONT(kFont);
+    TemporaryDir directory;
+    const std::string path = directory.filePath("Sample.otf");
+    std::filesystem::copy_file(kFont, path);
+    const PreviewFile file = fm::describeFile(cutefish::base::url::fromLocalFile(path));
+    ASSERT_EQ(file.kind, PreviewFile::Kind::Font);
+    ASSERT_EQ(file.font.faces.size(), 1u);
+    EXPECT_EQ(file.font.defaultFace, 0);
+    const fm::FontPreviewFace& face = file.font.faces.front();
+    EXPECT_EQ(face.family, "Inter");
+    EXPECT_EQ(face.style, "Regular");
+    ASSERT_GE(face.sample.size(), 3u);
+    EXPECT_EQ(face.sample[0], "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    EXPECT_EQ(face.sample[1], "abcdefghijklmnopqrstuvwxyz");
+    EXPECT_EQ(face.sample[2], "1234567890");
+    // The same font is among the system's.
+    EXPECT_EQ(file.font.state, fm::FontPreview::State::System);
+    EXPECT_TRUE(file.font.installed.empty());
+}
+
+TEST(PreviewTest, FontCollectionsListEveryFace)
+{
+    REQUIRE_FONT(kFontCollection);
+    const PreviewFile file = fm::describeFile(cutefish::base::url::fromLocalFile(kFontCollection));
+    ASSERT_EQ(file.kind, PreviewFile::Kind::Font);
+    ASSERT_GT(file.font.faces.size(), 1u);
+    ASSERT_LT(size_t(file.font.defaultFace), file.font.faces.size());
+    for (const fm::FontPreviewFace& face : file.font.faces) {
+        // The Latin lines and a line of its own script.
+        ASSERT_GE(face.sample.size(), 4u);
+        EXPECT_LE(face.sample.size(), 6u);
+        EXPECT_EQ(face.sample[3].substr(0, 3), "\u4E00");
+    }
+}
+
+TEST(PreviewTest, FontsOfOtherScriptsShowTheirOwnLetters)
+{
+    REQUIRE_FONT(kArabicFont);
+    const PreviewFile file = fm::describeFile(cutefish::base::url::fromLocalFile(kArabicFont));
+    ASSERT_EQ(file.kind, PreviewFile::Kind::Font);
+    const fm::FontPreviewFace& face = file.font.faces.front();
+    ASSERT_FALSE(face.sample.empty());
+    EXPECT_NE(face.sample.front(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    EXPECT_EQ(face.sample.back().substr(0, 2), "\u0621");
+}
+
+TEST(PreviewTest, SymbolFontsShowTheCharactersTheyHave)
+{
+    REQUIRE_FONT(kSymbolFont);
+    const PreviewFile file = fm::describeFile(cutefish::base::url::fromLocalFile(kSymbolFont));
+    ASSERT_EQ(file.kind, PreviewFile::Kind::Font);
+    const fm::FontPreviewFace& face = file.font.faces.front();
+    ASSERT_FALSE(face.sample.empty());
+    EXPECT_LE(face.sample.size(), 3u);
+    for (const std::string& line : face.sample) {
+        EXPECT_FALSE(line.empty());
+        EXPECT_EQ(line.find('A'), std::string::npos);
+    }
+}
+
+TEST(PreviewTest, AFileNamedLikeAFontIsNoFont)
+{
+    TemporaryDir directory;
+    const PreviewFile file = describe(directory, "notes.otf", "Not a font.\n");
+    EXPECT_NE(file.kind, PreviewFile::Kind::Font);
+    EXPECT_TRUE(file.font.faces.empty());
+}
+
+TEST(PreviewTest, InstallingCopiesTheFontIntoTheDirectory)
+{
+    TemporaryDir directory;
+    const std::string source = directory.filePath("Sample.otf");
+    fmtest::writeFile(source, "first");
+    const std::string fonts = directory.filePath("share/fonts");
+    const std::string installed = fm::installFont(source, fonts);
+    EXPECT_EQ(installed, fonts + "/Sample.otf");
+    EXPECT_EQ(std::filesystem::file_size(installed), 5u);
+
+    // Again, in place of the copy there, and nothing else left behind.
+    fmtest::writeFile(source, "second");
+    EXPECT_EQ(fm::installFont(source, fonts), installed);
+    EXPECT_EQ(std::filesystem::file_size(installed), 6u);
+    EXPECT_EQ(std::distance(std::filesystem::directory_iterator(fonts), std::filesystem::directory_iterator()), 1);
+
+    EXPECT_TRUE(fm::installFont(directory.filePath("gone.otf"), fonts).empty());
+}
+
+template<typename T>
+static void collect(ui::View* view, std::vector<T*>& found)
+{
+    if (!view->isVisible())
+        return;
+    if (T* match = dynamic_cast<T*>(view))
+        found.push_back(match);
+    for (const auto& child : view->children())
+        collect(child.get(), found);
+}
+
+static ui::Label* labelWith(ui::Window* window, const std::string& text)
+{
+    std::vector<ui::Label*> labels;
+    collect(window->contentView(), labels);
+    for (ui::Label* label : labels) {
+        if (label->text() == text)
+            return label;
+    }
+    return nullptr;
+}
+
+static bool sameImage(const ui::Image& a, const ui::Image& b)
+{
+    if (a.width() != b.width() || a.height() != b.height())
+        return false;
+    for (int y = 0; y < a.height(); ++y) {
+        for (int x = 0; x < a.width(); ++x) {
+            if (a.pixel(x, y).argb() != b.pixel(x, y).argb())
+                return false;
+        }
+    }
+    return true;
+}
+
+TEST(PreviewTest, AFontCollectionSwitchesBetweenItsFaces)
+{
+    REQUIRE_FONT(kFontCollection);
+    fm::PreviewController controller;
+    fm::PreviewWindow preview(controller);
+    const auto shown = [&] { return preview.isShown() && !controller.isLoading(); };
+    controller.present({{base::url::fromLocalFile(kFontCollection), "NotoSansCJK-Regular.ttc", {}, {}}}, 0, true, 0);
+    ASSERT_TRUE(fmtest::runUntil(s_app->loop(), shown));
+    const std::vector<fm::FontPreviewFace> faces = controller.file().font.faces;
+    ASSERT_GT(faces.size(), 2u);
+
+    preview.window()->grab();
+    std::vector<ui::ComboBox*> boxes;
+    collect(preview.window()->contentView(), boxes);
+    ASSERT_EQ(boxes.size(), 1u);
+    ui::ComboBox* styles = boxes.front();
+    // The faces are of several families, so each is named in full.
+    ASSERT_EQ(styles->items().size(), faces.size());
+    EXPECT_EQ(styles->items()[1], faces[1].family + ' ' + faces[1].style);
+    EXPECT_EQ(styles->currentIndex(), controller.file().font.defaultFace);
+    EXPECT_FALSE(styles->acceptsFocus());
+    EXPECT_NE(labelWith(preview.window(), faces[size_t(styles->currentIndex())].family), nullptr);
+    const ui::Image first = preview.window()->grab();
+
+    const int other = styles->currentIndex() == 1 ? 2 : 1;
+    styles->onActivated(other);
+    EXPECT_EQ(styles->currentIndex(), other);
+    EXPECT_NE(labelWith(preview.window(), faces[size_t(other)].family), nullptr);
+    EXPECT_FALSE(sameImage(first, preview.window()->grab()));
+
+    // Described again, as after Install: the face chosen stays.
+    controller.reload();
+    ASSERT_TRUE(fmtest::runUntil(s_app->loop(), shown));
+    EXPECT_EQ(styles->currentIndex(), other);
+
+    // A font of the system's is neither installed nor removed here.
+    ui::Label* installed = labelWith(preview.window(), "Installed");
+    ASSERT_NE(installed, nullptr);
+    EXPECT_FALSE(installed->parent()->isEnabled());
+    controller.close();
+}
+
+TEST(PreviewTest, AFontOfOneFaceNamesItsStyle)
+{
+    REQUIRE_FONT(kFont);
+    fm::PreviewController controller;
+    fm::PreviewWindow preview(controller);
+    controller.present({{base::url::fromLocalFile(kFont), "Inter-Regular.otf", {}, {}}}, 0, true, 0);
+    ASSERT_TRUE(fmtest::runUntil(s_app->loop(), [&] { return preview.isShown() && !controller.isLoading(); }));
+    preview.window()->grab();
+    std::vector<ui::ComboBox*> boxes;
+    collect(preview.window()->contentView(), boxes);
+    EXPECT_TRUE(boxes.empty());
+    EXPECT_NE(labelWith(preview.window(), "Inter"), nullptr);
+    EXPECT_NE(labelWith(preview.window(), "Regular"), nullptr);
+    controller.close();
 }

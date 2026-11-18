@@ -11,10 +11,12 @@
 #include "core/standardfolders.h"
 #include "model/foldermodel.h"
 #include "ops/operations.h"
+#include "preview/fontpreview.h"
 
 #include "base/application_bundle.h"
 #include "base/application_registry.h"
 #include "base/event_loop.h"
+#include "base/mime_database.h"
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/trusted_connection.h"
@@ -183,8 +185,14 @@ bool Application::startDesktop(int socket)
 
 void Application::openFiles(const std::vector<std::string>& paths)
 {
+    // Font files open in Quick Look, all of them in its one window.
+    std::vector<std::string> fonts;
     for (const std::string& path : paths) {
         const auto local = base::url::toLocalFile(FolderModel::resolve(path));
+        if (local && m_preview && isFontType(base::mime::typeForFile(*local))) {
+            fonts.push_back(base::url::fromLocalFile(*local));
+            continue;
+        }
         if (local && FolderModel::isArchiveFile(*local)) {
             FolderPage::Start start;
             start.url = FolderModel::resolve(parentPath(cleanPath(*local)));
@@ -199,6 +207,8 @@ void Application::openFiles(const std::vector<std::string>& paths)
         }
         openWindow(path);
     }
+    if (!fonts.empty())
+        m_preview->show(fonts);
 }
 
 void Application::moveToTrash(const std::vector<std::string>& paths)
