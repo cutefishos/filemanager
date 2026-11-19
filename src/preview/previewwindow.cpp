@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "preview/previewwindow.h"
-#include "views/style.h"
 
 #include "base/event_loop.h"
 #include "base/i18n.h"
@@ -23,6 +22,7 @@
 #include "ui/text_area.h"
 #include "ui/theme.h"
 #include "ui/window.h"
+#include "ui/window_controls.h"
 #include "ui/window_header.h"
 #include "ui/zoomable_image_view.h"
 
@@ -39,6 +39,8 @@ using ui::rounding::centeredStart;
 
 static constexpr double kSideMargin = 16;
 static constexpr double kHeaderHeight = 40;
+// The close button's inset from the left edge, mirrored by the header's action.
+static constexpr double kHeaderActionInset = 9;
 static constexpr double kMinimumImageWidth = 400;
 static constexpr double kMinimumImageHeight = 200;
 static constexpr int kTextColumns = 100;
@@ -70,8 +72,8 @@ static bool isWindowKey(uint32_t key, uint32_t modifiers, bool multiple)
     return key == ui::key::Left || key == ui::key::Right || key == ui::key::Up || key == ui::key::Down;
 }
 
-// The header's action, "Open with …" or a font's Install: a pill in the text
-// colour's alpha, its label dimmed while the window is inactive or the
+// The header's action, "Open with …" or a font's Install: a plate like the
+// window controls', its label dimmed while the window is inactive or the
 // action is not offered.
 class OpenButton : public ui::View
 {
@@ -97,6 +99,7 @@ public:
     }
 
     ui::SizeF sizeHint() const override { return {std::min(220.0, m_label->sizeHint().width + 24), 26}; }
+    ui::RectF visualRect() const override { return ui::window_controls::visualRect(localRect(), {}); }
     bool acceptsPointer() const override { return true; }
 
     std::function<void()> onClicked;
@@ -112,10 +115,17 @@ protected:
 
     void paint(ui::Painter& painter) override
     {
-        const ui::Color tint = ui::color(ui::ColorId::HeaderButtonTint);
-        const double alpha = !isEnabled() ? 0.07 : m_pressed ? 0.21 : isHovered() ? 0.14 : 0.07;
-        painter.drawRoundedRect(localRect(), {geometry().height / 2, 0, ui::Corners::Circular},
-                                style::withAlpha(tint, alpha));
+        const ui::Window* window = this->window();
+        const bool dark = window ? window->headerDarkMode() : ui::Theme::current().darkMode;
+        const ui::RectF bounds = localRect();
+        ui::window_controls::paintGroupPlate(painter, bounds, dark);
+        if (!isEnabled() || (!m_pressed && !isHovered()))
+            return;
+        painter.save();
+        painter.clipRoundedRect(bounds, bounds.height / 2);
+        const ui::Color overlay = dark ? ui::Color::rgb(0xFFFFFF) : ui::Color::rgb(0x000000);
+        painter.fillRect(bounds, overlay.withAlpha(m_pressed ? 0.08 : 0.04));
+        painter.restore();
     }
 
     void hoverChanged() override { requestPaint(); }
@@ -236,7 +246,7 @@ protected:
             position->setGeometry({x, centeredStart(height, hint.height), hint.width, hint.height});
             x += hint.width;
         }
-        double right = geometry().width - 4;
+        double right = geometry().width - kHeaderActionInset;
         if (open->isVisible()) {
             const ui::SizeF hint = open->sizeHint();
             open->setGeometry({right - hint.width, centeredStart(height, hint.height), hint.width, hint.height});
