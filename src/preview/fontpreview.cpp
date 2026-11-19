@@ -4,11 +4,13 @@
 #include "preview/fontpreview.h"
 #include "core/standardfolders.h"
 
+#include "base/locale.h"
 #include "base/paths.h"
 #include "base/strings.h"
 #include "ui/font_file.h"
 
 #include <filesystem>
+#include <string_view>
 
 namespace fm {
 
@@ -17,39 +19,74 @@ static constexpr int kSymbolsPerLine = 18;
 static constexpr int kSymbolLines = 3;
 
 // A run of each script's letters, the scripts a font is most likely made for
-// first.
+// first, with the languages written in it.
 static constexpr struct
 {
     char32_t first;
     char32_t last;
     int count;
+    // Space-separated language codes.
+    std::string_view languages;
 } kScripts[] = {
-    {0x4E00, 0x9FFF, 14}, // Han
-    {0x3042, 0x3093, 16}, // Hiragana
-    {0xAC00, 0xD7A3, 14}, // Hangul
-    {0x0621, 0x064A, 22}, // Arabic
-    {0x05D0, 0x05EA, 22}, // Hebrew
-    {0x0905, 0x0939, 20}, // Devanagari
-    {0x0E01, 0x0E2E, 20}, // Thai
-    {0x0410, 0x044F, 24}, // Cyrillic
-    {0x0391, 0x03C9, 24}, // Greek
+    {0x4E00, 0x9FFF, 14, "zh ja"}, // Han
+    {0x3042, 0x3093, 16, "ja"}, // Hiragana
+    {0xAC00, 0xD7A3, 14, "ko"}, // Hangul
+    {0x0621, 0x064A, 22, "ar fa ur"}, // Arabic
+    {0x05D0, 0x05EA, 22, "he yi"}, // Hebrew
+    {0x0905, 0x0939, 20, "hi mr ne"}, // Devanagari
+    {0x0E01, 0x0E2E, 20, "th"}, // Thai
+    {0x0410, 0x044F, 24, "ru uk be bg sr mk kk"}, // Cyrillic
+    {0x0391, 0x03C9, 24, "el"}, // Greek
 };
 
-static std::vector<std::string> sampleLines(const ui::FontFace& face)
+static bool writes(std::string_view languages, std::string_view language)
+{
+    for (const std::string_view code : base::strings::splitViews(languages, ' ')) {
+        if (code == language)
+            return true;
+    }
+    return false;
+}
+
+static std::string scriptLine(const ui::FontFace& face, char32_t first, char32_t last, int count)
+{
+    std::string line = face.characters(first, last, count);
+    if (int(base::strings::utf8ToUtf32(line).size()) < count)
+        return {};
+    return line;
+}
+
+std::vector<std::string> fontSampleLines(const ui::FontFace& face, const std::string& language)
 {
     std::vector<std::string> lines;
     for (const char* line : {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", "1234567890"}) {
         if (face.covers(line))
             lines.emplace_back(line);
     }
+
+    bool latin = true;
+    std::vector<std::string> own;
+    for (const auto& script : kScripts) {
+        if (!writes(script.languages, language))
+            continue;
+        latin = false;
+        std::string line = scriptLine(face, script.first, script.last, script.count);
+        if (!line.empty())
+            own.push_back(std::move(line));
+    }
+    if (latin ? face.covers("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") : !own.empty()) {
+        lines.insert(lines.end(), own.begin(), own.end());
+        return lines;
+    }
+
     size_t scripts = 0;
     for (const auto& script : kScripts) {
         if (scripts == kScriptLines)
             break;
-        const std::string line = face.characters(script.first, script.last, script.count);
-        if (int(base::strings::utf8ToUtf32(line).size()) < script.count)
+        std::string line = scriptLine(face, script.first, script.last, script.count);
+        if (line.empty())
             continue;
-        lines.push_back(line);
+        lines.push_back(std::move(line));
         ++scripts;
     }
     if (!lines.empty())
@@ -84,8 +121,9 @@ FontPreview describeFont(const std::string& path)
     const std::vector<ui::FontFace> faces = ui::readFontFaces(path);
     if (faces.empty())
         return preview;
+    const std::string language = base::Locale::system().language();
     for (const ui::FontFace& face : faces)
-        preview.faces.push_back({face.index, face.family, face.style, sampleLines(face)});
+        preview.faces.push_back({face.index, face.family, face.style, fontSampleLines(face, language)});
     preview.defaultFace = ui::defaultFontFace(faces);
 
     const std::string legacyDirectory = base::paths::home() + "/.fonts";

@@ -3,12 +3,14 @@
 
 #include "testutil.h"
 
+#include "preview/fontpreview.h"
 #include "preview/previewcontroller.h"
 #include "preview/previewwindow.h"
 
 #include "base/url.h"
 #include "ui/application.h"
 #include "ui/combo_box.h"
+#include "ui/font_file.h"
 #include "ui/image.h"
 #include "ui/label.h"
 #include "ui/window.h"
@@ -172,12 +174,54 @@ TEST(PreviewTest, FontCollectionsListEveryFace)
     ASSERT_EQ(file.kind, PreviewFile::Kind::Font);
     ASSERT_GT(file.font.faces.size(), 1u);
     ASSERT_LT(size_t(file.font.defaultFace), file.font.faces.size());
-    for (const fm::FontPreviewFace& face : file.font.faces) {
-        // The Latin lines and a line of its own script.
-        ASSERT_GE(face.sample.size(), 4u);
-        EXPECT_LE(face.sample.size(), 6u);
-        EXPECT_EQ(face.sample[3].substr(0, 3), "\u4E00");
-    }
+    for (const fm::FontPreviewFace& face : file.font.faces)
+        EXPECT_GE(face.sample.size(), 3u);
+}
+
+static std::vector<std::string> sampleFor(const char* path, const std::string& language)
+{
+    const std::vector<cutefish::ui::FontFace> faces = cutefish::ui::readFontFaces(path);
+    if (faces.empty())
+        return {};
+    return fm::fontSampleLines(faces.front(), language);
+}
+
+static const std::vector<std::string> kLatinLines = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz",
+                                                     "1234567890"};
+
+TEST(PreviewTest, FontSamplesShowOnlyTheReadersLanguageWhenTheFontHasIt)
+{
+    REQUIRE_FONT(kFont);
+    REQUIRE_FONT(kFontCollection);
+    // Inter has Cyrillic and Greek too.
+    EXPECT_EQ(sampleFor(kFont, "en"), kLatinLines);
+
+    std::vector<std::string> lines = sampleFor(kFontCollection, "zh");
+    ASSERT_EQ(lines.size(), 4u);
+    EXPECT_EQ(lines[3].substr(0, 3), "\u4E00");
+
+    lines = sampleFor(kFontCollection, "ja");
+    ASSERT_EQ(lines.size(), 5u);
+    EXPECT_EQ(lines[3].substr(0, 3), "\u4E00");
+    EXPECT_EQ(lines[4].substr(0, 3), "\u3042");
+
+    lines = sampleFor(kFontCollection, "ru");
+    ASSERT_EQ(lines.size(), 4u);
+    EXPECT_EQ(lines[3].substr(0, 2), "\u0410");
+}
+
+TEST(PreviewTest, FontSamplesShowTheFontsScriptsWhenItLacksTheReadersLanguage)
+{
+    REQUIRE_FONT(kFont);
+    REQUIRE_FONT(kArabicFont);
+    std::vector<std::string> lines = sampleFor(kFont, "zh");
+    ASSERT_EQ(lines.size(), 5u);
+    EXPECT_EQ(lines[3].substr(0, 2), "\u0410");
+    EXPECT_EQ(lines[4].substr(0, 2), "\u0391");
+
+    lines = sampleFor(kArabicFont, "en");
+    ASSERT_FALSE(lines.empty());
+    EXPECT_EQ(lines.back().substr(0, 2), "\u0621");
 }
 
 TEST(PreviewTest, FontsOfOtherScriptsShowTheirOwnLetters)

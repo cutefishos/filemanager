@@ -8,6 +8,10 @@
 #include <string>
 #include <vector>
 
+namespace cutefish::ui {
+struct FontFace;
+}
+
 namespace fm {
 
 // One face of a previewed font file.
@@ -43,6 +47,10 @@ struct FontPreview
 bool isFontType(const std::string& mimeType);
 // No faces when the file is not such a font. Any thread.
 FontPreview describeFont(const std::string& path);
+// The lines of a face's sample for a reader of `language`, such as "zh": the
+// Latin letters and digits, then the language's own script; only when the
+// face lacks the language, the scripts it does have.
+std::vector<std::string> fontSampleLines(const ui::FontFace& face, const std::string& language);
 
 // ~/.local/share/fonts
 std::string userFontDirectory();
