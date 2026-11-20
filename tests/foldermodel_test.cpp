@@ -5,6 +5,7 @@
 #include "testutil.h"
 
 #include "core/preferences.h"
+#include "core/thumbnails.h"
 #include "model/foldermodel.h"
 #include "model/foldersizecache.h"
 #include "ops/operations.h"
@@ -72,6 +73,32 @@ TEST(FolderModelTest, NamesSortNumerically)
     std::vector<std::string> reversed(expected.rbegin(), expected.rend());
     folder.setSortDesc(true);
     EXPECT_TRUE(runUntil(loop(), [&] { return names(folder) == reversed; }));
+}
+
+// A bundle with an icon file shows it; one whose icon is only in its asset
+// catalog asks for a thumbnail.
+TEST(FolderModelTest, OnlyBundlesWithoutAnIconFileShowThumbnails)
+{
+    TemporaryDir directory;
+    ASSERT_TRUE(directory.isValid());
+    const std::string plist = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plist version=\"1.0\"><dict>"
+                              "<key>CFBundleIconFile</key><string>AppIcon</string>"
+                              "<key>CFBundleIconName</key><string>AppIcon</string></dict></plist>\n";
+    std::filesystem::create_directories(directory.filePath("Editor.app/Contents/Resources"));
+    std::filesystem::create_directories(directory.filePath("Catalog.app/Contents"));
+    ASSERT_TRUE(writeFile(directory.filePath("Editor.app/Contents/Info.plist"), plist));
+    ASSERT_TRUE(writeFile(directory.filePath("Editor.app/Contents/Resources/AppIcon.icns"), "icns"));
+    ASSERT_TRUE(writeFile(directory.filePath("Catalog.app/Contents/Info.plist"), plist));
+
+    FolderModel folder;
+    folder.setSortMode(fm::Preferences::Name);
+    folder.setSortDesc(false);
+    folder.setUrl(directory.path());
+    ASSERT_TRUE(runUntil(loop(), [&] { return ready(folder) && folder.count() == 2; }));
+    ASSERT_TRUE(folder.item(0)->isBundle && folder.item(1)->isBundle);
+    EXPECT_EQ(folder.item(0)->iconName, fm::kBundleIconFallback);
+    EXPECT_EQ(folder.showsThumbnail(0), fm::thumbnails::canThumbnail("application/x-apple-app"));
+    EXPECT_FALSE(folder.showsThumbnail(1));
 }
 
 // The desktop and every folder window show hidden files or none together.

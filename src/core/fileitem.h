@@ -12,6 +12,9 @@
 
 namespace fm {
 
+// What an application bundle without an icon file of its own shows.
+inline constexpr char kBundleIconFallback[] = "application-x-executable";
+
 // A file as a folder listing found it: what the views show and sort by, read
 // on the worker that listed it. Times are milliseconds since the epoch, UTC.
 struct FileItem

@@ -76,7 +76,7 @@ DirectoryLister::DirectoryLister()
         if (item.isDir() && !base::bundle::bundlePath(item.localPath()).empty()) {
             if (const auto bundle = base::bundle::read(item.localPath(), {})) {
                 item.setMimeType(base::bundle::kType);
-                item.setIconName(bundle->icon.empty() ? "application-x-executable" : bundle->icon);
+                item.setIconName(bundle->icon.empty() ? kBundleIconFallback : bundle->icon);
             }
             return;
         }

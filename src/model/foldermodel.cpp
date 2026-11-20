@@ -405,6 +405,10 @@ bool FolderModel::showsThumbnail(int row) const
     // Thumbnails of a phone's or a server's files would read each one whole.
     if (!file || !file->isLocalFile() || file->isDir || thumbnails::isOnMount(file->path))
         return false;
+    // A bundle that names an icon file shows that; only one whose icon is
+    // elsewhere needs its thumbnailer.
+    if (file->isBundle && file->iconName != kBundleIconFallback)
+        return false;
     return thumbnails::canThumbnail(file->mimeType);
 }
 
