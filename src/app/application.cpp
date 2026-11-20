@@ -8,6 +8,8 @@
 #include "desktop/desktopwindow.h"
 #include "core/launcher.h"
 #include "core/lister.h"
+#include "core/mounts.h"
+#include "core/notifications.h"
 #include "core/standardfolders.h"
 #include "model/foldermodel.h"
 #include "ops/operations.h"
@@ -198,6 +200,21 @@ void Application::openFiles(const std::vector<std::string>& paths)
             start.url = FolderModel::resolve(parentPath(cleanPath(*local)));
             start.extract = *local;
             openFolderWindow(start, nullptr);
+            continue;
+        }
+        // A disk image mounts, and its volume opens in a window of its own.
+        if (local && base::mime::typeForFile(*local) == "application/x-apple-diskimage") {
+            MountsClient::instance().requestMount(*local, {}, [this, alive = m_alive](const std::string& status,
+                                                                                const base::dbus::VariantMap& details) {
+                const auto found = details.find(status == "mounted" ? "path" : "message");
+                if (!*alive || found == details.end())
+                    return;
+                const std::string value = found->second.value<std::string>();
+                if (status == "mounted")
+                    openWindow(value);
+                else
+                    notifications::show("cutefish-filemanager", "drive-removable-media", value, 5000);
+            });
             continue;
         }
         if (local && !base::bundle::bundlePath(*local).empty()

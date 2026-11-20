@@ -5,6 +5,7 @@
 #include "views/folderwindow.h"
 #include "core/preferences.h"
 #include "views/folderview.h"
+#include "views/gridview.h"
 #include "dialogs/archivepasswordprompt.h"
 #include "views/foldermenu.h"
 #include "views/pathbar.h"
@@ -553,6 +554,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     m_window->onActiveChanged = [this] {
         updateBackground();
         if (m_window->isActive()) {
+            applyFittedSize();
             if (FolderPage* page = currentPage())
                 page->activatePreview();
         }
@@ -672,12 +674,40 @@ void FolderWindow::openTabSelecting(const FolderPage::Start& start, int index)
             updateHeader();
         updateTabBar();
     }));
+    tab.subscriptions.push_back(raw->arrangementChanged.connect([this, raw] { fitToArrangement(raw); }));
     raw->onOpenInNewTab = [this](const std::string& url) { openTab(url); };
     raw->onCloseRequested = [this] { closeTab(m_currentTab); };
     raw->onRequestPathEditor = [this] { m_pathBar->openEditor(); };
     raw->onContextMenu = [this](ui::PointF position) { showContextMenu(position); };
 
     insertTab(std::move(tab), index < 0 || index > int(m_tabs.size()) ? int(m_tabs.size()) : index);
+}
+
+void FolderWindow::fitToArrangement(FolderPage* page)
+{
+    // A disk image's window opens at the size it was made for: only the
+    // window's first folder, once.
+    const ArrangedFolder* arranged = page->arrangement();
+    if (m_fitted || !arranged || tabCount() != 1 || page->model().canGoBack())
+        return;
+    const ui::SizeF content = arranged->contentSize();
+    if (content.width <= 0 || content.height <= 0)
+        return;
+    m_fitted = true;
+    m_fittedSize = {std::max(kMinimumWidth, content.width + m_root->sidebarWidth), content.height + headerHeight()};
+    // The configure that activates a new window still carries the size it
+    // opened at, and would undo one asked for before it.
+    if (m_window->isActive())
+        applyFittedSize();
+}
+
+void FolderWindow::applyFittedSize()
+{
+    if (m_fittedSize.width <= 0)
+        return;
+    m_window->setMinimumSize({kMinimumWidth, std::min(500.0, m_fittedSize.height)});
+    m_window->resize(m_fittedSize);
+    m_fittedSize = {};
 }
 
 void FolderWindow::insertTab(Tab tab, int index)

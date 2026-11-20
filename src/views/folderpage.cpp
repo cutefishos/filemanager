@@ -3,6 +3,7 @@
 
 #include "views/folderpage.h"
 #include "views/previewclient.h"
+#include "core/mounts.h"
 #include "core/preferences.h"
 #include "model/foldermodel.h"
 #include "views/gridview.h"
@@ -51,11 +52,17 @@ FolderPage::FolderPage(FolderModelHost* host, const Start& start)
     };
     m_subscriptions.push_back(Preferences::instance().changed.connect([this, applySort] {
         applySort();
-        if (Preferences::instance().viewMethod() != m_viewMethod)
+        if (wantedViewMethod() != m_viewMethod)
             createView();
+    }));
+    m_subscriptions.push_back(MountsClient::instance().mountsChanged.connect([this] {
+        // The window may open before the mount is listed.
+        if (!m_arrangement)
+            loadArrangement();
     }));
     m_subscriptions.push_back(model.urlChanged.connect([this, applySort] {
         applySort();
+        loadArrangement();
         if (m_view) {
             m_view->reset();
             m_pendingViewPosition = m_model->viewPosition();
@@ -193,9 +200,76 @@ void FolderPage::retranslate()
     requestLayout();
 }
 
+int FolderPage::wantedViewMethod() const
+{
+    return m_arrangement ? int(Preferences::Grid) : Preferences::instance().viewMethod();
+}
+
+void FolderPage::loadArrangement()
+{
+    const std::string url = m_model->url();
+    if (url == m_arrangementUrl && (m_arrangement || m_arrangementJob.isPending()))
+        return;
+    m_arrangementUrl = url;
+    m_arrangementJob = {};
+    const bool had = bool(m_arrangement);
+    m_arrangement.reset();
+    if (had) {
+        if (wantedViewMethod() != m_viewMethod)
+            createView();
+        else if (auto* grid = dynamic_cast<FolderGridView*>(m_view))
+            grid->setArrangement(nullptr);
+        arrangementChanged.emit();
+    }
+
+    // Only the root of a mounted disk image keeps the arrangement it was
+    // made with; reading it may wait on the image, so it is read on the pool.
+    // Local folders go by their path, others by their URL.
+    const auto local = url.starts_with('/') ? std::optional<std::string>(url) : base::url::toLocalFile(url);
+    if (!local)
+        return;
+    const auto trimmed = [](std::string path) {
+        while (path.size() > 1 && path.ends_with('/'))
+            path.pop_back();
+        return path;
+    };
+    const std::string folder = trimmed(*local);
+    const MountsClient::Mount mount = MountsClient::instance().mountAt(folder);
+    if (!mount.id.starts_with("file:") || trimmed(mount.path) != folder)
+        return;
+    m_arrangementJob = base::runInThread(
+            [url, folder]() -> std::shared_ptr<const ArrangedFolder> {
+                std::optional<FolderLayout> layout = readFolderLayout(folder);
+                if (!layout)
+                    return nullptr;
+                auto arranged = std::make_shared<ArrangedFolder>();
+                arranged->url = url;
+                arranged->layout = std::move(*layout);
+                if (!arranged->layout.picture.empty()) {
+                    arranged->picture = ui::Image::fromFile(arranged->layout.picture);
+                    // A picture made for a dense screen is twice the window's size.
+                    const double width = arranged->layout.windowSize.width;
+                    if (!arranged->picture.isNull() && width > 0 && arranged->picture.width() >= width * 1.5)
+                        arranged->pictureScale = std::round(arranged->picture.width() / width);
+                }
+                return arranged;
+            },
+            // The job goes with the page, and its answer with it.
+            [this](std::shared_ptr<const ArrangedFolder> arranged) {
+                if (!arranged || arranged->url != m_model->url())
+                    return;
+                m_arrangement = std::move(arranged);
+                if (wantedViewMethod() != m_viewMethod)
+                    createView();
+                else if (auto* grid = dynamic_cast<FolderGridView*>(m_view))
+                    grid->setArrangement(m_arrangement);
+                arrangementChanged.emit();
+            });
+}
+
 void FolderPage::createView()
 {
-    m_viewMethod = Preferences::instance().viewMethod();
+    m_viewMethod = wantedViewMethod();
     if (m_view) {
         std::shared_ptr<View> old = takeChild(m_view);
         base::EventLoop::current()->post([old] {});
@@ -206,6 +280,8 @@ void FolderPage::createView()
         view = addChild<FolderListView>(*m_model);
     else
         view = addChild<FolderGridView>(*m_model);
+    if (auto* grid = dynamic_cast<FolderGridView*>(view))
+        grid->setArrangement(m_arrangement);
     view->setBottomCornerRadius(ui::Theme::current().windowRadius);
     m_view = view;
     m_preview->attach(m_model.get(), view);

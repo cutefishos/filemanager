@@ -108,6 +108,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.cutefish.FileOperations.service
 add_library(fm-core STATIC
     src/core/config.cpp
     src/core/dates.cpp
+    src/core/dsstore.cpp
     src/core/fileitem.cpp
     src/core/launcher.cpp
     src/core/lister.cpp

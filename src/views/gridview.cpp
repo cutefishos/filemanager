@@ -31,6 +31,28 @@ static constexpr double kLabelInset = 4;
 static constexpr double kColumnSpacing = 10;
 static constexpr double kEndMargin = 6;
 
+static bool overlaps(const ui::RectF& a, const ui::RectF& b)
+{
+    return a.x < b.right() && b.x < a.right() && a.y < b.bottom() && b.y < a.bottom();
+}
+
+// The title bar the platform's file manager counts in a window's bounds.
+static constexpr double kStoredTitleBarHeight = 22;
+
+ui::SizeF ArrangedFolder::contentSize() const
+{
+    const ui::SizeF window = layout.windowSize;
+    if (window.width <= 0 || window.height <= 0)
+        return {};
+    if (!picture.isNull()) {
+        const ui::SizeF drawn {picture.width() / pictureScale, picture.height() / pictureScale};
+        if (std::abs(drawn.width - window.width) < 1 && drawn.height <= window.height
+            && window.height - drawn.height <= 40)
+            return drawn;
+    }
+    return {window.width, std::max(1.0, window.height - kStoredTitleBarHeight)};
+}
+
 GridColumns GridColumns::forWidth(double width, double iconSize)
 {
     GridColumns columns;
@@ -129,7 +151,7 @@ std::unique_ptr<IconItem> FolderGridView::makeItem()
 
 void FolderGridView::setIconSize(double size)
 {
-    if (m_iconSize == size)
+    if (m_iconSize == size || m_arrangement)
         return;
     m_iconSize = size;
     Preferences::instance().setGridIconSize(size);
@@ -148,6 +170,19 @@ void FolderGridView::decreaseIconSize()
                                                : std::max(kMinimumIconSize, m_iconSize - m_iconSize * 0.1));
 }
 
+void FolderGridView::setArrangement(std::shared_ptr<const ArrangedFolder> arrangement)
+{
+    if (arrangement == m_arrangement)
+        return;
+    m_arrangement = std::move(arrangement);
+    m_iconSize = m_arrangement && m_arrangement->layout.iconSize > 0 ? m_arrangement->layout.iconSize
+                                                                      : Preferences::instance().gridIconSize();
+    m_arrangedCells.clear();
+    recycleItems([](int) { return false; });
+    requestLayout();
+    requestPaint();
+}
+
 void FolderGridView::updateMetrics()
 {
     const int fromColumns = m_grid.count;
@@ -156,8 +191,69 @@ void FolderGridView::updateMetrics()
     m_grid = GridColumns::forWidth(geometry().width, m_iconSize);
     m_cellHeight = m_iconSize + style::fontHeight() * 2 + kLargeSpacing * 2;
 
+    if (m_arrangement) {
+        arrangeCells();
+        return;
+    }
     if (fromRowHeight > 0)
         reflow(fromColumns, fromRowHeight);
+}
+
+void FolderGridView::arrangeCells()
+{
+    const int count = model().count();
+    m_arrangedCells.assign(size_t(count), {});
+    const ui::Window* window = this->window();
+    const double scale = window ? window->scale() : 1;
+    const auto& positions = m_arrangement->layout.positions;
+    // The layout places icon centres from the content's top left, which
+    // starts under the bars.
+    const double top = topInset();
+    double bottom = top;
+    std::vector<int> unplaced;
+    for (int index = 0; index < count; ++index) {
+        const FileItemPtr file = model().item(rowOf(index));
+        const auto found = file ? positions.find(file->name) : positions.end();
+        if (found == positions.end()) {
+            unplaced.push_back(index);
+            continue;
+        }
+        const double x = std::round((found->second.x - m_grid.cellWidth / 2) * scale) / scale;
+        const double y = std::round((top + found->second.y - kSmallSpacing - m_iconSize / 2) * scale) / scale;
+        m_arrangedCells[size_t(index)] = {x, y, m_grid.cellWidth, m_cellHeight};
+        bottom = std::max(bottom, y + m_cellHeight);
+    }
+    for (size_t i = 0; i < unplaced.size(); ++i) {
+        const int column = int(i) % m_grid.count;
+        const int row = int(i) / m_grid.count;
+        const double x = std::floor(m_grid.x(column) * scale) / scale;
+        m_arrangedCells[size_t(unplaced[i])] = {x, bottom + row * m_cellHeight, m_grid.cellWidth, m_cellHeight};
+    }
+}
+
+int FolderGridView::arrangedIndexAt(ui::PointF content) const
+{
+    // Later cells are drawn over earlier ones.
+    for (int index = int(m_arrangedCells.size()) - 1; index >= 0; --index) {
+        if (m_arrangedCells[size_t(index)].contains(content))
+            return index;
+    }
+    return -1;
+}
+
+void FolderGridView::paint(ui::Painter& painter)
+{
+    if (!m_arrangement)
+        return;
+    const FolderLayout& layout = m_arrangement->layout;
+    const ui::PointF origin {0, topInset() - scrollPosition().y};
+    if (layout.background == FolderLayout::Background::Color) {
+        painter.fillRect(localRect(), layout.color);
+    } else if (!m_arrangement->picture.isNull()) {
+        const ui::Image& picture = m_arrangement->picture;
+        painter.drawImage(picture, {origin.x, origin.y, picture.width() / m_arrangement->pictureScale,
+                                    picture.height() / m_arrangement->pictureScale});
+    }
 }
 
 void FolderGridView::reflow(int fromColumns, double fromRowHeight)
@@ -186,6 +282,12 @@ void FolderGridView::layout()
 
 double FolderGridView::minimumContentHeight() const
 {
+    if (m_arrangement) {
+        double bottom = 0;
+        for (const ui::RectF& cell : m_arrangedCells)
+            bottom = std::max(bottom, cell.y + cell.height);
+        return std::max(geometry().height, bottom + bottomMargin());
+    }
     const int count = model().count();
     const int rows = (count + m_grid.count - 1) / m_grid.count;
     return std::max(geometry().height, topMargin() + rows * m_cellHeight + bottomMargin());
@@ -193,6 +295,8 @@ double FolderGridView::minimumContentHeight() const
 
 ui::RectF FolderGridView::cellRect(int index) const
 {
+    if (m_arrangement)
+        return index >= 0 && size_t(index) < m_arrangedCells.size() ? m_arrangedCells[size_t(index)] : ui::RectF {};
     const int column = index % m_grid.count;
     const int row = index / m_grid.count;
     const ui::Window* window = this->window();
@@ -213,6 +317,8 @@ int FolderGridView::columnAt(double x) const
 
 int FolderGridView::indexAt(ui::PointF content) const
 {
+    if (m_arrangement)
+        return arrangedIndexAt(content);
     const double y = content.y - topMargin();
     const int column = columnAt(content.x);
     if (column < 0 || y < 0)
@@ -224,6 +330,19 @@ int FolderGridView::indexAt(ui::PointF content) const
 
 void FolderGridView::rectangleSelect(const ui::RectF& band)
 {
+    if (m_arrangement) {
+        std::vector<int> indices;
+        for (int index = 0; index < int(m_arrangedCells.size()); ++index) {
+            const ui::RectF cell = m_arrangedCells[size_t(index)];
+            if (model().isBlank(rowOf(index)) || !overlaps(cell, band))
+                continue;
+            IconItem* item = itemFor(index);
+            if (!item || item->intersectsRect({band.x - cell.x, band.y - cell.y, band.width, band.height}))
+                indices.push_back(index);
+        }
+        applyRectangleSelection(indices);
+        return;
+    }
     const int count = model().count();
     const double cellWidth = m_grid.cellWidth - 2 * kSmallSpacing;
     const double cellHeight = m_cellHeight - 2 * kSmallSpacing;
@@ -282,6 +401,19 @@ void FolderGridView::updateItems()
     const int count = model().count();
     const double top = scrollPosition().y;
     const double bottom = top + geometry().height;
+    if (m_arrangement) {
+        if (int(m_arrangedCells.size()) != count)
+            arrangeCells();
+        const ui::RectF visible {0, top, geometry().width, geometry().height};
+        recycleItems([this, visible](int index) {
+            return size_t(index) < m_arrangedCells.size() && overlaps(m_arrangedCells[size_t(index)], visible);
+        });
+        for (int index = 0; index < count; ++index) {
+            if (overlaps(m_arrangedCells[size_t(index)], visible))
+                showItem(index);
+        }
+        return;
+    }
     int first = 0;
     int last = 0;
     if (count > 0 && m_cellHeight > 0) {
@@ -296,8 +428,56 @@ void FolderGridView::updateItems()
         showItem(index);
 }
 
+bool FolderGridView::navigateArranged(int dx, int dy, uint32_t modifiers)
+{
+    const int count = int(m_arrangedCells.size());
+    if (count <= 0)
+        return true;
+    const int from = keyboardIndex(dx + dy > 0);
+    int next = -1;
+    if (from < 0) {
+        next = 0;
+    } else {
+        // The nearest cell whose centre lies that way, along the key's axis first.
+        const ui::RectF origin = m_arrangedCells[size_t(from)];
+        const double fromX = origin.x + origin.width / 2;
+        const double fromY = origin.y + origin.height / 2;
+        double best = 0;
+        for (int index = 0; index < count; ++index) {
+            const ui::RectF cell = m_arrangedCells[size_t(index)];
+            const double ax = cell.x + cell.width / 2 - fromX;
+            const double ay = cell.y + cell.height / 2 - fromY;
+            const double along = dx != 0 ? ax * dx : ay * dy;
+            const double across = dx != 0 ? std::abs(ay) : std::abs(ax);
+            if (index == from || along <= 0 || model().isBlank(rowOf(index)))
+                continue;
+            const double distance = along + across * 2;
+            if (next < 0 || distance < best) {
+                next = index;
+                best = distance;
+            }
+        }
+    }
+    if (next < 0)
+        return true;
+    setCurrentIndex(next);
+    updateSelection(modifiers);
+    return true;
+}
+
 bool FolderGridView::navigate(const ui::KeyEvent& event)
 {
+    if (m_arrangement) {
+        if (event.key == ui::key::Left)
+            return navigateArranged(-1, 0, event.modifiers);
+        if (event.key == ui::key::Right)
+            return navigateArranged(1, 0, event.modifiers);
+        if (event.key == ui::key::Up)
+            return navigateArranged(0, -1, event.modifiers);
+        if (event.key == ui::key::Down)
+            return navigateArranged(0, 1, event.modifiers);
+        return false;
+    }
     if ((event.key == '=' || event.key == '+') && (event.modifiers & ui::ControlModifier)) {
         increaseIconSize();
         return true;
@@ -334,7 +514,7 @@ bool FolderGridView::navigate(const ui::KeyEvent& event)
 
 bool FolderGridView::scroll(const ui::ScrollEvent& event)
 {
-    if (event.modifiers & ui::ControlModifier) {
+    if ((event.modifiers & ui::ControlModifier) && !m_arrangement) {
         if (event.deltaY < 0 || event.value120Y < 0)
             increaseIconSize();
         else

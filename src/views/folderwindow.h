@@ -96,6 +96,8 @@ private:
     };
 
     void insertTab(Tab tab, int index);
+    void fitToArrangement(FolderPage* page);
+    void applyFittedSize();
     void detachTab(int index, ui::PointF position);
     void adoptTab(FolderWindow* source, int index);
     void setIncoming(bool incoming);
@@ -133,6 +135,9 @@ private:
     bool m_detaching = false;
     bool m_incoming = false;
     bool m_closed = false;
+    bool m_fitted = false;
+    // Asked for before the window was first active.
+    ui::SizeF m_fittedSize;
     std::unique_ptr<ui::Menu> m_menu;
     std::unique_ptr<ui::Toast> m_toast;
     std::unique_ptr<ui::AboutDialog> m_aboutDialog;

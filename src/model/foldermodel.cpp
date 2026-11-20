@@ -1240,8 +1240,15 @@ void FolderModel::mountDiskImage(const std::string& path)
 {
     MountsClient::instance().requestMount(
             path, {}, [this, alive = m_alive](const std::string& status, const base::dbus::VariantMap& details) {
-                if (!*alive || status == "mounted")
+                if (!*alive)
                     return;
+                // As on the platform, the volume opens in a window of its own.
+                if (status == "mounted") {
+                    const auto mounted = details.find("path");
+                    if (mounted != details.end() && !mounted->second.value<std::string>().empty())
+                        openInNewWindow(mounted->second.value<std::string>());
+                    return;
+                }
                 const auto found = details.find("message");
                 notification.emit(found != details.end() ? found->second.value<std::string>() : std::string());
             });

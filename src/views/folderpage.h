@@ -6,6 +6,7 @@
 #include "core/common.h"
 
 #include "base/signal.h"
+#include "base/thread_pool.h"
 #include "ui/view.h"
 
 #include <cmath>
@@ -24,6 +25,7 @@ class FolderModel;
 class FolderModelHost;
 class FolderView;
 class PreviewClient;
+struct ArrangedFolder;
 
 // One tab's folder, its model and its grid or list view,
 // which runs up under the window's bars.
@@ -67,6 +69,10 @@ public:
     std::function<void()> onRequestPathEditor;
     std::function<void(ui::PointF windowPosition)> onContextMenu;
     base::Signal<> currentUrlChanged;
+    // A disk image's folder as its .DS_Store arranges it, once read; null
+    // for any other folder.
+    const ArrangedFolder* arrangement() const { return m_arrangement.get(); }
+    base::Signal<> arrangementChanged;
 
 protected:
     void layout() override;
@@ -74,6 +80,9 @@ protected:
 
 private:
     void createView();
+    // The grid for an arranged folder, else the preference's view.
+    int wantedViewMethod() const;
+    void loadArrangement();
     void restoreViewPosition(bool complete);
     bool handleKey(const ui::KeyEvent& event);
 
@@ -86,6 +95,10 @@ private:
     double m_headerHeight = 0;
     int m_viewMethod = -1;
     double m_pendingViewPosition = NAN;
+    std::shared_ptr<const ArrangedFolder> m_arrangement;
+    // The folder whose arrangement was looked for.
+    std::string m_arrangementUrl;
+    base::Job m_arrangementJob;
     std::vector<base::Subscription> m_subscriptions;
 };
 
