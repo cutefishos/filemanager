@@ -53,6 +53,24 @@ ui::SizeF ArrangedFolder::contentSize() const
     return {window.width, std::max(1.0, window.height - kStoredTitleBarHeight)};
 }
 
+std::shared_ptr<const ArrangedFolder> ArrangedFolder::read(const std::string& url, const std::string& folder)
+{
+    std::optional<FolderLayout> layout = readFolderLayout(folder);
+    if (!layout)
+        return nullptr;
+    auto arranged = std::make_shared<ArrangedFolder>();
+    arranged->url = url;
+    arranged->layout = std::move(*layout);
+    if (!arranged->layout.picture.empty()) {
+        arranged->picture = ui::Image::fromFile(arranged->layout.picture);
+        // A picture made for a dense screen is twice the window's size.
+        const double width = arranged->layout.windowSize.width;
+        if (!arranged->picture.isNull() && width > 0 && arranged->picture.width() >= width * 1.5)
+            arranged->pictureScale = std::round(arranged->picture.width() / width);
+    }
+    return arranged;
+}
+
 GridColumns GridColumns::forWidth(double width, double iconSize)
 {
     GridColumns columns;

@@ -47,6 +47,8 @@ public:
     virtual void confirmLaunch(const std::string& path, ui::Window* parent) = 0;
     virtual void installBundleRunner(const std::string& path, ui::Window* parent) = 0;
     virtual void windowClosed(class FolderWindow* window) = 0;
+    // A disk image's volume, just opened, in a window of the image's own.
+    virtual void openDiskImageWindow(const std::string& path) { openFolders({path}); }
 };
 
 // The browser window. The sidebar, the header with back, forward,
@@ -55,11 +57,21 @@ public:
 class FolderWindow : public FolderModelHost
 {
 public:
+    enum class Kind {
+        Browser,
+        // A disk image's volume as the image arranges it: the window controls
+        // and the volume's name over its one folder, no sidebar, tools or
+        // tabs. Folders opened from it open in browser windows.
+        DiskImage,
+    };
+
     // An empty size restores the last window's.
-    FolderWindow(FileManagerHost* host, const FolderPage::Start& start, ui::SizeF size = {});
+    FolderWindow(FileManagerHost* host, const FolderPage::Start& start, ui::SizeF size = {},
+                 Kind kind = Kind::Browser);
     ~FolderWindow() override;
 
     ui::Window& window() const { return *m_window; }
+    Kind kind() const { return m_kind; }
     FolderPage* currentPage() const;
     int tabCount() const { return int(m_tabs.size()); }
     int currentTab() const { return m_currentTab; }
@@ -81,6 +93,7 @@ public:
     void confirmLaunch(const std::string& path) override;
     void installBundleRunner(const std::string& path) override;
     void notify(const std::string& message) override;
+    void openDiskImageWindow(const std::string& path) override;
 
     // The header's height: buttons 32 with 4 above and below.
     static constexpr double kHeaderInset = 40;
@@ -97,7 +110,10 @@ private:
 
     void insertTab(Tab tab, int index);
     void fitToArrangement(FolderPage* page);
+    // The window's size for an arranged folder's content.
+    ui::SizeF fittedSize(ui::SizeF content) const;
     void applyFittedSize();
+    void updateTitle();
     void detachTab(int index, ui::PointF position);
     void adoptTab(FolderWindow* source, int index);
     void setIncoming(bool incoming);
@@ -116,6 +132,7 @@ private:
     void addShortcuts();
 
     FileManagerHost* m_host;
+    const Kind m_kind;
     // The window shows it until the window goes, so it outlives the window.
     std::unique_ptr<ui::Menu> m_mainMenu;
     std::unique_ptr<ui::Window> m_window;

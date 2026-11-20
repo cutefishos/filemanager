@@ -40,6 +40,8 @@ public:
         std::vector<std::string> forward;
         // A local archive to extract into the folder once the page opens.
         std::string extract;
+        // The folder's arrangement, when it was read already.
+        std::shared_ptr<const ArrangedFolder> arrangement;
     };
 
     FolderPage(FolderModelHost* host, const Start& start);

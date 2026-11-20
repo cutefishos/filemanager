@@ -432,6 +432,11 @@ void DesktopWindow::openFolders(const std::vector<std::string>& paths)
     m_host.openFolders(paths);
 }
 
+void DesktopWindow::openDiskImageWindow(const std::string& path)
+{
+    m_host.openDiskImageWindow(path);
+}
+
 void DesktopWindow::showProperties(const FileItemList& items)
 {
     m_host.showProperties(items, nullptr);

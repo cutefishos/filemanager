@@ -52,6 +52,7 @@ public:
     void confirmLaunch(const std::string& path) override;
     void installBundleRunner(const std::string& path) override;
     void notify(const std::string& message) override;
+    void openDiskImageWindow(const std::string& path) override;
 
 private:
     friend class DesktopRoot;

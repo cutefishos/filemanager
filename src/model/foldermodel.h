@@ -41,6 +41,8 @@ public:
     virtual void installBundleRunner(const std::string& path) = 0;
     // A message in the window, for a few seconds.
     virtual void notify(const std::string& message) = 0;
+    // The volume of a disk image just opened, in the window the image arranges.
+    virtual void openDiskImageWindow(const std::string& path) { openFolders({path}); }
 };
 
 // One folder as a view shows it: its listing sorted, the selection, the
@@ -71,6 +73,10 @@ public:
 
     void setHost(FolderModelHost* host) { m_host = host; }
     bool isDesktop() const { return m_isDesktop; }
+    // Folders opened here, and the enclosing one, open in windows of their
+    // own, as on the desktop.
+    void setOpensFoldersInWindows(bool inWindows);
+    bool opensFoldersInWindows() const { return m_isDesktop || m_foldersInWindows; }
 
     // Rows.
     int count() const { return m_contents.count(); }
@@ -293,6 +299,7 @@ private:
 
     FolderModelHost* m_host;
     const bool m_isDesktop;
+    bool m_foldersInWindows = false;
     DirectoryLister m_lister;
     FolderContents m_contents;
     FolderSizeCache m_folderSizes;

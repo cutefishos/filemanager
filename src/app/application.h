@@ -7,8 +7,10 @@
 #include "views/folderwindow.h"
 
 #include "base/dbus.h"
+#include "base/thread_pool.h"
 #include "base/timer.h"
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -66,6 +68,7 @@ public:
     void confirmLaunch(const std::string& path, ui::Window* parent) override;
     void installBundleRunner(const std::string& path, ui::Window* parent) override;
     void windowClosed(FolderWindow* window) override;
+    void openDiskImageWindow(const std::string& path) override;
 
     // The paths and URLs of a command line or a D-Bus call as URLs: ~ and relative paths resolved.
     static std::vector<std::string> toUrls(const std::vector<std::string>& inputs);
@@ -84,6 +87,8 @@ private:
     const bool m_dbusActivated;
     std::unique_ptr<Dialogs> m_dialogs;
     std::vector<std::unique_ptr<FolderWindow>> m_windows;
+    // Disk images' arrangements being read for their windows, by URL.
+    std::map<std::string, base::Job> m_diskImageReads;
     std::unique_ptr<base::dbus::Object> m_fileManager;
     std::unique_ptr<base::dbus::Object> m_freedesktop;
     std::unique_ptr<PreviewService> m_preview;

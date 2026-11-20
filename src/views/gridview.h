@@ -40,6 +40,10 @@ struct ArrangedFolder
     // What the window shows under its title bar: the picture's size when it
     // was made for the window, else the stored size less a title bar.
     ui::SizeF contentSize() const;
+
+    // The folder's arrangement with its picture decoded, or null when it
+    // keeps none; reads the disk, so it runs on the pool.
+    static std::shared_ptr<const ArrangedFolder> read(const std::string& url, const std::string& folder);
 };
 
 // The browser's icon grid. The columns follow the width as GridColumns

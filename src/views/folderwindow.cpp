@@ -58,6 +58,9 @@ static constexpr double kNavigationStart = 10;
 static constexpr double kBarHeight = 34;
 static constexpr double kMinimumWidth = 600;
 static constexpr double kMinimumContentWidth = kMinimumWidth - SideBar::kDefaultWidth;
+// A disk image's window when its image keeps no arrangement.
+static constexpr ui::SizeF kDiskImageContentSize {640, 400};
+static constexpr ui::SizeF kMinimumDiskImageSize {320, 200};
 static constexpr double kNewTabButtonSize = 28;
 // From the track's end and from the window's edge to the button.
 static constexpr double kNewTabStartGap = 2;
@@ -266,11 +269,12 @@ private:
 };
 
 // The header's own part: back, forward, the path bar and search, from the
-// sidebar's edge.
+// sidebar's edge; in a disk image's window, the volume's name alone.
 class HeaderRow : public ui::View
 {
 public:
-    HeaderRow()
+    explicit HeaderRow(ui::WindowHeader* header)
+        : m_header(header)
     {
         navigation = addChild<ui::NavigationButtons>();
         back = navigation->back();
@@ -281,6 +285,21 @@ public:
         searchPlate = addChild<ui::HeaderButtonGroup>();
         search = searchPlate->addButton("search");
         search->setName("searchButton");
+        title = addChild<ui::Label>();
+        title->setName("windowTitle");
+        title->setWeight(700);
+        title->setElide(ui::Label::Elide::Middle);
+        title->setVisible(false);
+    }
+
+    void setTitleOnly(bool titleOnly)
+    {
+        m_titleOnly = titleOnly;
+        navigation->setVisible(!titleOnly);
+        pathBar->setVisible(!titleOnly);
+        searchPlate->setVisible(!titleOnly);
+        title->setVisible(titleOnly);
+        requestLayout();
     }
 
     ui::NavigationButtons* navigation;
@@ -289,11 +308,16 @@ public:
     PathBar* pathBar;
     ui::HeaderButtonGroup* searchPlate;
     ui::HeaderButton* search;
+    ui::Label* title;
     double sidebarWidth = SideBar::kDefaultWidth;
 
 protected:
     void layout() override
     {
+        if (m_titleOnly) {
+            layoutTitle();
+            return;
+        }
         double x = sidebarWidth + kNavigationStart;
         const double right = geometry().width;
         // The plate is centred on the window controls' line.
@@ -310,13 +334,35 @@ protected:
         const double pathEnd = searchX - ui::window_controls::kSpacing;
         pathBar->setGeometry({x, kButtonsTopMargin, std::max(0.0, pathEnd - x), kButtonSize});
     }
+
+private:
+    // Centred on the window, clear of the controls by as much at the end as
+    // they take at the start; the capitals centred on the controls' line.
+    void layoutTitle()
+    {
+        const double width = geometry().width;
+        const double height = geometry().height;
+        const double scale = window() ? window()->scale() : 1;
+        const double inset = m_header->leadingInset() + kSmallSpacing;
+        const double available = std::max(0.0, width - 2 * inset);
+        const ui::SizeF hint = title->sizeHint();
+        const double textWidth = std::min(available, std::ceil(hint.width));
+        title->setColor(ui::ColorId::Text);
+        const double x = std::round(centeredStart(width, textWidth) * scale) / scale;
+        const double y = std::round((height / 2 - title->capCenter()) * scale) / scale;
+        title->setGeometry({x, y, textWidth, hint.height});
+    }
+
+    ui::WindowHeader* m_header;
+    bool m_titleOnly = false;
 };
 
 class FolderWindowRoot : public ui::View
 {
 public:
-    explicit FolderWindowRoot(FolderWindow* window)
-        : m_window(window)
+    FolderWindowRoot(FolderWindow* window, bool standalone)
+        : standalone(standalone)
+        , m_window(window)
     {
         sidebar = addChild<SideBar>(FolderWindow::kHeaderInset);
         pages = addChild<ui::View>();
@@ -332,11 +378,14 @@ public:
         scopeBar = addChild<SearchScopeBar>();
         trashBar = addChild<TrashBar>();
         header = addChild<ui::WindowHeader>(FolderWindow::kHeaderInset);
-        row = header->setContent<HeaderRow>();
+        row = header->setContent<HeaderRow>(header);
         header->setContentUnderButtons(true);
+        row->setTitleOnly(standalone);
         divider = addChild<ui::SidebarDivider>(SideBar::kMinimumWidth, SideBar::kMaximumWidth,
                                                SideBar::kDefaultWidth);
         divider->setName("sidebarDivider");
+        sidebar->setVisible(!standalone);
+        divider->setVisible(!standalone);
         sidebarWidth = std::clamp(Preferences::instance().sidebarWidth(), SideBar::kMinimumWidth,
                                   SideBar::kMaximumWidth);
         divider->onResized = [this](double width) {
@@ -350,6 +399,8 @@ public:
         };
     }
 
+    // A disk image's window: the pages and the header, no sidebar.
+    const bool standalone;
     SideBar* sidebar;
     ui::SidebarDivider* divider;
     double sidebarWidth;
@@ -378,7 +429,7 @@ protected:
         // The folder view keeps the width it has at the window's minimum size.
         const double widest = std::max(SideBar::kMinimumWidth,
                                        std::min(SideBar::kMaximumWidth, width - kMinimumContentWidth));
-        const double left = std::min(sidebarWidth, widest);
+        const double left = standalone ? 0 : std::min(sidebarWidth, widest);
         sidebar->setGeometry({0, 0, left, height});
         row->sidebarWidth = left;
         row->requestLayout();
@@ -412,7 +463,7 @@ protected:
     // the tabs; while it is there the tab bar shows it where it would drop.
     bool canDrop(const ui::DropOffer& offer) const override
     {
-        return sourceOf(offer) != nullptr;
+        return !standalone && sourceOf(offer) != nullptr;
     }
 
     void dragEnter(const ui::DragEvent& event) override
@@ -472,22 +523,40 @@ private:
     FolderWindow* m_window;
 };
 
-FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start, ui::SizeF size)
+FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start, ui::SizeF size, Kind kind)
     : m_host(host)
+    , m_kind(kind)
     , m_window(std::make_unique<ui::Window>())
 {
     m_window->setTitle(tr("Files"));
-    m_window->setMinimumSize({kMinimumWidth, 500});
-    if (size.width > 0 && size.height > 0) {
-        m_window->resize(size);
+    if (m_kind == Kind::DiskImage) {
+        // At the size the image was made for when it says, never smaller,
+        // so no stored place falls outside.
+        const ui::SizeF content = start.arrangement ? start.arrangement->contentSize() : ui::SizeF {};
+        if (content.width > 0 && content.height > 0) {
+            m_fitted = true;
+            m_window->setMinimumSize(fittedSize(content));
+            m_window->resize(fittedSize(content));
+        } else {
+            m_window->setMinimumSize(kMinimumDiskImageSize);
+            m_window->resize(fittedSize(kDiskImageContentSize));
+        }
     } else {
-        m_window->resize({828, 500});
-        m_window->setRestoresSize("main");
+        m_window->setMinimumSize({kMinimumWidth, 500});
+        if (size.width > 0 && size.height > 0) {
+            m_window->resize(size);
+        } else {
+            m_window->resize({828, 500});
+            m_window->setRestoresSize("main");
+        }
     }
 
-    auto root = std::make_unique<FolderWindowRoot>(this);
+    auto root = std::make_unique<FolderWindowRoot>(this, m_kind == Kind::DiskImage);
     m_root = root.get();
     m_window->setContentView(std::move(root));
+    // The platform's zoom fits such a window to its content, which it is already.
+    if (m_fitted)
+        m_root->header->setMaximizeEnabled(false);
     m_sidebar = m_root->sidebar;
     m_sidebar->setTitle(tr("Files"));
     m_pathBar = m_root->row->pathBar;
@@ -567,6 +636,7 @@ FolderWindow::FolderWindow(FileManagerHost* host, const FolderPage::Start& start
     addShortcuts();
     buildMainMenu();
     openTabSelecting(start);
+    updateTitle();
     updateBackground();
 }
 
@@ -584,7 +654,7 @@ FolderPage* FolderWindow::currentPage() const
 // search, and an open rename or path editor its text.
 void FolderWindow::retranslate()
 {
-    m_window->setTitle(tr("Files"));
+    updateTitle();
     m_sidebar->setTitle(tr("Files"));
     m_sidebar->retranslate();
     m_pathBar->retranslate();
@@ -607,6 +677,21 @@ void FolderWindow::retranslate()
     updateHeader();
 }
 
+void FolderWindow::updateTitle()
+{
+    FolderPage* page = currentPage();
+    if (m_kind != Kind::DiskImage || !page) {
+        m_window->setTitle(tr("Files"));
+        return;
+    }
+    const std::string name = page->folderName();
+    m_window->setTitle(name);
+    if (m_root->row->title->text() != name) {
+        m_root->row->title->setText(name);
+        m_root->row->requestLayout();
+    }
+}
+
 void FolderWindow::show()
 {
     m_window->show();
@@ -626,11 +711,15 @@ void FolderWindow::close()
 void FolderWindow::addShortcuts()
 {
     ui::Window& window = *m_window;
+    window.addShortcut(ui::ControlModifier, 'w', [this] { closeTab(m_currentTab); });
+    window.addShortcut(ui::ControlModifier, 'k', [this] { m_sidebar->connectToServer(); });
+    // A disk image's window has no tabs and no search field.
+    if (m_kind == Kind::DiskImage)
+        return;
     window.addShortcut(ui::ControlModifier, 't', [this] {
         if (FolderPage* page = currentPage())
             openTab(page->currentUrl());
     });
-    window.addShortcut(ui::ControlModifier, 'w', [this] { closeTab(m_currentTab); });
     window.addShortcut(ui::ControlModifier, ui::key::Tab, [this] {
         setCurrentTab((m_currentTab + 1) % std::max(1, tabCount()));
     });
@@ -638,7 +727,6 @@ void FolderWindow::addShortcuts()
         setCurrentTab((m_currentTab + tabCount() - 1) % std::max(1, tabCount()));
     });
     window.addShortcut(ui::ControlModifier, 'f', [this] { m_pathBar->openSearch(); });
-    window.addShortcut(ui::ControlModifier, 'k', [this] { m_sidebar->connectToServer(); });
 }
 
 void FolderWindow::openTab(const std::string& url)
@@ -651,12 +739,16 @@ void FolderWindow::openTabSelecting(const FolderPage::Start& start, int index)
     auto page = std::make_unique<FolderPage>(this, start);
     FolderPage* raw = page.get();
     m_root->pages->addChild(std::move(page));
+    if (m_kind == Kind::DiskImage)
+        raw->model().setOpensFoldersInWindows(true);
 
     Tab tab {raw, {}};
     tab.subscriptions.push_back(raw->currentUrlChanged.connect([this, raw] {
         if (currentPage() == raw)
             syncNavigation();
         updateTabBar();
+        if (m_kind == Kind::DiskImage)
+            updateTitle();
     }));
     tab.subscriptions.push_back(raw->model().historyChanged.connect([this, raw] {
         if (currentPage() == raw)
@@ -675,9 +767,17 @@ void FolderWindow::openTabSelecting(const FolderPage::Start& start, int index)
         updateTabBar();
     }));
     tab.subscriptions.push_back(raw->arrangementChanged.connect([this, raw] { fitToArrangement(raw); }));
-    raw->onOpenInNewTab = [this](const std::string& url) { openTab(url); };
+    raw->onOpenInNewTab = [this](const std::string& url) {
+        if (m_kind == Kind::DiskImage)
+            openFolders({url});
+        else
+            openTab(url);
+    };
     raw->onCloseRequested = [this] { closeTab(m_currentTab); };
-    raw->onRequestPathEditor = [this] { m_pathBar->openEditor(); };
+    raw->onRequestPathEditor = [this] {
+        if (m_kind != Kind::DiskImage)
+            m_pathBar->openEditor();
+    };
     raw->onContextMenu = [this](ui::PointF position) { showContextMenu(position); };
 
     insertTab(std::move(tab), index < 0 || index > int(m_tabs.size()) ? int(m_tabs.size()) : index);
@@ -694,18 +794,30 @@ void FolderWindow::fitToArrangement(FolderPage* page)
     if (content.width <= 0 || content.height <= 0)
         return;
     m_fitted = true;
-    m_fittedSize = {std::max(kMinimumWidth, content.width + m_root->sidebarWidth), content.height + headerHeight()};
+    m_fittedSize = fittedSize(content);
+    if (m_kind == Kind::DiskImage)
+        m_root->header->setMaximizeEnabled(false);
     // The configure that activates a new window still carries the size it
     // opened at, and would undo one asked for before it.
     if (m_window->isActive())
         applyFittedSize();
 }
 
+ui::SizeF FolderWindow::fittedSize(ui::SizeF content) const
+{
+    if (m_kind == Kind::DiskImage)
+        return {content.width, content.height + kHeaderInset};
+    return {std::max(kMinimumWidth, content.width + m_root->sidebarWidth), content.height + headerHeight()};
+}
+
 void FolderWindow::applyFittedSize()
 {
     if (m_fittedSize.width <= 0)
         return;
-    m_window->setMinimumSize({kMinimumWidth, std::min(500.0, m_fittedSize.height)});
+    if (m_kind == Kind::DiskImage)
+        m_window->setMinimumSize(m_fittedSize);
+    else
+        m_window->setMinimumSize({kMinimumWidth, std::min(500.0, m_fittedSize.height)});
     m_window->resize(m_fittedSize);
     m_fittedSize = {};
 }
@@ -1037,10 +1149,14 @@ void FolderWindow::buildMainMenu()
     application->addSeparator();
     application->addItem(tr("Hide Files"), [this] { m_window->hideApplication(); });
 
+    // A disk image's window has no tabs, path bar or search field.
+    const bool browser = m_kind == Kind::Browser;
     ui::Menu* file = m_mainMenu->addSubmenu(tr("File"));
     file->addItem(tr("New Window"), onPage([](FolderPage& page) { page.model().openInNewWindow(page.currentUrl()); }));
-    const size_t newTabRow = file->addItem(tr("New Tab"), onPage([this](FolderPage& page) { openTab(page.currentUrl()); }));
-    file->setItemKeyEquivalent(newTabRow, "t", control);
+    if (browser) {
+        const size_t newTabRow = file->addItem(tr("New Tab"), onPage([this](FolderPage& page) { openTab(page.currentUrl()); }));
+        file->setItemKeyEquivalent(newTabRow, "t", control);
+    }
     addAction(file, "newFolder");
     addAction(file, "newTextFile");
     file->addSeparator();
@@ -1060,11 +1176,14 @@ void FolderWindow::buildMainMenu()
     file->setItemKeyEquivalent(deleteRow, "Delete", 0);
     addAction(file, "emptyTrash");
     file->addSeparator();
-    const size_t find = file->addItem(tr("Find"), [this] { m_pathBar->openSearch(); });
-    file->setItemKeyEquivalent(find, "f", control);
-    file->addSeparator();
-    const size_t closeTabRow = file->addItem(tr("Close Tab"), [this] { closeTab(m_currentTab); });
-    file->setItemKeyEquivalent(closeTabRow, "w", control);
+    if (browser) {
+        const size_t find = file->addItem(tr("Find"), [this] { m_pathBar->openSearch(); });
+        file->setItemKeyEquivalent(find, "f", control);
+        file->addSeparator();
+    }
+    const size_t closeRow = browser ? file->addItem(tr("Close Tab"), [this] { closeTab(m_currentTab); })
+                                    : file->addItem(tr("Close Window"), [this] { close(); });
+    file->setItemKeyEquivalent(closeRow, "w", control);
     file->onAboutToShow = [prepare, file, properties, trash] {
         prepare();
         // The folder's keys differ between the two shortcut conventions.
@@ -1143,8 +1262,10 @@ void FolderWindow::buildMainMenu()
     const size_t forward = go->addItem(tr("Forward"), onPage([](FolderPage& page) { page.goForward(); }));
     const size_t enclosing = go->addItem(tr("Enclosing Folder"), onPage([](FolderPage& page) { page.model().up(); }));
     go->addSeparator();
-    const size_t location = go->addItem(tr("Go to Location…"), [this] { m_pathBar->openEditor(); });
-    go->setItemKeyEquivalent(location, "l", control);
+    if (browser) {
+        const size_t location = go->addItem(tr("Go to Location…"), [this] { m_pathBar->openEditor(); });
+        go->setItemKeyEquivalent(location, "l", control);
+    }
     const size_t server = go->addItem(tr("Connect to Server…"), [this] { m_sidebar->connectToServer(); });
     go->setItemKeyEquivalent(server, "k", control);
     go->onAboutToShow = [this, go, back, forward, enclosing, alt] {
@@ -1160,7 +1281,14 @@ void FolderWindow::buildMainMenu()
     ui::Menu* windowMenu = m_mainMenu->addSubmenu(tr("Window"));
     windowMenu->setRole(ui::MenuRole::Windows);
     windowMenu->addItem(tr("Minimize"), [this] { m_window->minimize(); });
-    windowMenu->addItem(tr("Zoom"), [this] { m_window->setMaximized(!m_window->states().maximized); });
+    const size_t zoom = windowMenu->addItem(tr("Zoom"), [this] { m_window->setMaximized(!m_window->states().maximized); });
+    if (!browser) {
+        windowMenu->onAboutToShow = [this, windowMenu, zoom] {
+            windowMenu->setItemEnabled(zoom, !m_fitted);
+        };
+        m_window->setMainMenu(m_mainMenu.get());
+        return;
+    }
     windowMenu->addSeparator();
     const size_t previousTab = windowMenu->addItem(tr("Show Previous Tab"), [this] {
         setCurrentTab((m_currentTab + tabCount() - 1) % std::max(1, tabCount()));
@@ -1216,6 +1344,11 @@ void FolderWindow::installBundleRunner(const std::string& path)
 void FolderWindow::notify(const std::string& message)
 {
     m_toast->show(message, std::chrono::milliseconds(3000));
+}
+
+void FolderWindow::openDiskImageWindow(const std::string& path)
+{
+    m_host->openDiskImageWindow(path);
 }
 
 } // namespace fm

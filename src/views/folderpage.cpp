@@ -95,6 +95,11 @@ FolderPage::FolderPage(FolderModelHost* host, const Start& start)
             onOpenInNewTab(url);
     }));
 
+    // Read before the window opened, for its size.
+    if (start.arrangement && start.arrangement->url == start.url) {
+        m_arrangement = start.arrangement;
+        m_arrangementUrl = start.url;
+    }
     createView();
 
     m_model->setUrl(start.url.empty() ? FolderModel::resolve("~") : start.url);
@@ -238,22 +243,7 @@ void FolderPage::loadArrangement()
     if (!mount.id.starts_with("file:") || trimmed(mount.path) != folder)
         return;
     m_arrangementJob = base::runInThread(
-            [url, folder]() -> std::shared_ptr<const ArrangedFolder> {
-                std::optional<FolderLayout> layout = readFolderLayout(folder);
-                if (!layout)
-                    return nullptr;
-                auto arranged = std::make_shared<ArrangedFolder>();
-                arranged->url = url;
-                arranged->layout = std::move(*layout);
-                if (!arranged->layout.picture.empty()) {
-                    arranged->picture = ui::Image::fromFile(arranged->layout.picture);
-                    // A picture made for a dense screen is twice the window's size.
-                    const double width = arranged->layout.windowSize.width;
-                    if (!arranged->picture.isNull() && width > 0 && arranged->picture.width() >= width * 1.5)
-                        arranged->pictureScale = std::round(arranged->picture.width() / width);
-                }
-                return arranged;
-            },
+            [url, folder] { return ArrangedFolder::read(url, folder); },
             // The job goes with the page, and its answer with it.
             [this](std::shared_ptr<const ArrangedFolder> arranged) {
                 if (!arranged || arranged->url != m_model->url())
