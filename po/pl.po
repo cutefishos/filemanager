@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-16 11:30+0800\n"
+"POT-Creation-Date: 2026-11-20 18:46+0800\n"
 "PO-Revision-Date: 2026-11-13 16:33+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -275,8 +275,8 @@ msgid "New Folder"
 msgstr "Nowy folder"
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
-#: src/dialogs/unlockdialog.cpp
+#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr "Anuluj"
 
@@ -461,6 +461,10 @@ msgstr "Szablony"
 msgid "Public"
 msgstr "Publiczny"
 
+#: src/core/standardfolders.cpp
+msgid "Applications"
+msgstr "Aplikacje"
+
 #: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
 msgid "File"
 msgstr "Plik"
@@ -503,6 +507,45 @@ msgstr "Rozpakuj"
 #: src/dialogs/archivepassworddialog.cpp
 msgid "Password Required"
 msgstr "Wymagane hasło"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "Zainstaluj"
+
+#: src/dialogs/installdialog.cpp
+msgid "OK"
+msgstr "OK"
+
+#: src/dialogs/installdialog.cpp
+#, python-brace-format
+msgid "To open “{name}”, Reef has to be downloaded and installed."
+msgstr "Aby otworzyć „{name}”, trzeba pobrać i zainstalować Reef."
+
+#: src/dialogs/installdialog.cpp
+msgid "Installing…"
+msgstr "Instalowanie…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Downloading…"
+msgstr "Pobieranie…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Looking for Reef…"
+msgstr "Wyszukiwanie Reef…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Reef is not available for this computer."
+msgstr "Reef jest niedostępny dla tego komputera."
+
+#: src/dialogs/installdialog.cpp
+msgid "Reef could not be installed."
+msgstr "Nie udało się zainstalować Reef."
+
+#: src/dialogs/installdialog.cpp
+msgid "Install Reef"
+msgstr "Instalacja Reef"
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
@@ -1054,6 +1097,14 @@ msgid "{index} of {count}"
 msgstr "{index} z {count}"
 
 #: src/preview/previewwindow.cpp
+msgid "Remove"
+msgstr "Usuń"
+
+#: src/preview/previewwindow.cpp
+msgid "Installed"
+msgstr "Zainstalowana"
+
+#: src/preview/previewwindow.cpp
 #, python-brace-format
 msgid "Open with {application}"
 msgstr "Otwórz za pomocą {application}"
@@ -1136,6 +1187,10 @@ msgstr "Nowa karta"
 #: src/views/folderwindow.cpp
 msgid "Find"
 msgstr "Znajdź"
+
+#: src/views/folderwindow.cpp
+msgid "Close Window"
+msgstr "Zamknij okno"
 
 #: src/views/folderwindow.cpp
 msgid "as Icons"

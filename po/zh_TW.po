@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-16 11:30+0800\n"
+"POT-Creation-Date: 2026-11-20 18:46+0800\n"
 "PO-Revision-Date: 2026-11-13 16:33+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -275,8 +275,8 @@ msgid "New Folder"
 msgstr "新增資料夾"
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
-#: src/dialogs/unlockdialog.cpp
+#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr "取消"
 
@@ -453,6 +453,10 @@ msgstr "範本"
 msgid "Public"
 msgstr "公用"
 
+#: src/core/standardfolders.cpp
+msgid "Applications"
+msgstr "應用程式"
+
 #: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
 msgid "File"
 msgstr "檔案"
@@ -495,6 +499,45 @@ msgstr "解壓縮"
 #: src/dialogs/archivepassworddialog.cpp
 msgid "Password Required"
 msgstr "需要密碼"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "安裝"
+
+#: src/dialogs/installdialog.cpp
+msgid "OK"
+msgstr "好"
+
+#: src/dialogs/installdialog.cpp
+#, python-brace-format
+msgid "To open “{name}”, Reef has to be downloaded and installed."
+msgstr "若要開啟「{name}」，必須下載並安裝 Reef。"
+
+#: src/dialogs/installdialog.cpp
+msgid "Installing…"
+msgstr "正在安裝…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Downloading…"
+msgstr "正在下載…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Looking for Reef…"
+msgstr "正在尋找 Reef…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Reef is not available for this computer."
+msgstr "Reef 不適用於這部電腦。"
+
+#: src/dialogs/installdialog.cpp
+msgid "Reef could not be installed."
+msgstr "無法安裝 Reef。"
+
+#: src/dialogs/installdialog.cpp
+msgid "Install Reef"
+msgstr "安裝 Reef"
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
@@ -1026,6 +1069,14 @@ msgid "{index} of {count}"
 msgstr "第 {index} 個，共 {count} 個"
 
 #: src/preview/previewwindow.cpp
+msgid "Remove"
+msgstr "移除"
+
+#: src/preview/previewwindow.cpp
+msgid "Installed"
+msgstr "已安裝"
+
+#: src/preview/previewwindow.cpp
 #, python-brace-format
 msgid "Open with {application}"
 msgstr "使用 {application} 開啟"
@@ -1108,6 +1159,10 @@ msgstr "新增標籤頁"
 #: src/views/folderwindow.cpp
 msgid "Find"
 msgstr "尋找"
+
+#: src/views/folderwindow.cpp
+msgid "Close Window"
+msgstr "關閉視窗"
 
 #: src/views/folderwindow.cpp
 msgid "as Icons"

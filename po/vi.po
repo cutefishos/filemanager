@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-16 11:30+0800\n"
+"POT-Creation-Date: 2026-11-20 18:46+0800\n"
 "PO-Revision-Date: 2026-11-13 16:33+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -275,8 +275,8 @@ msgid "New Folder"
 msgstr "Thư mục mới"
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
-#: src/dialogs/unlockdialog.cpp
+#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
+#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr "Hủy"
 
@@ -453,6 +453,10 @@ msgstr "Mẫu"
 msgid "Public"
 msgstr "Công khai"
 
+#: src/core/standardfolders.cpp
+msgid "Applications"
+msgstr "Ứng dụng"
+
 #: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
 msgid "File"
 msgstr "Tệp"
@@ -495,6 +499,45 @@ msgstr "Giải nén"
 #: src/dialogs/archivepassworddialog.cpp
 msgid "Password Required"
 msgstr "Cần mật khẩu"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "Cài đặt"
+
+#: src/dialogs/installdialog.cpp
+msgid "OK"
+msgstr "OK"
+
+#: src/dialogs/installdialog.cpp
+#, python-brace-format
+msgid "To open “{name}”, Reef has to be downloaded and installed."
+msgstr "Để mở “{name}”, cần tải xuống và cài đặt Reef."
+
+#: src/dialogs/installdialog.cpp
+msgid "Installing…"
+msgstr "Đang cài đặt…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Downloading…"
+msgstr "Đang tải xuống…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Looking for Reef…"
+msgstr "Đang tìm Reef…"
+
+#: src/dialogs/installdialog.cpp
+msgid "Reef is not available for this computer."
+msgstr "Reef không khả dụng cho máy tính này."
+
+#: src/dialogs/installdialog.cpp
+msgid "Reef could not be installed."
+msgstr "Không thể cài đặt Reef."
+
+#: src/dialogs/installdialog.cpp
+msgid "Install Reef"
+msgstr "Cài đặt Reef"
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
@@ -1026,6 +1069,14 @@ msgid "{index} of {count}"
 msgstr "{index}/{count}"
 
 #: src/preview/previewwindow.cpp
+msgid "Remove"
+msgstr "Xóa"
+
+#: src/preview/previewwindow.cpp
+msgid "Installed"
+msgstr "Đã cài đặt"
+
+#: src/preview/previewwindow.cpp
 #, python-brace-format
 msgid "Open with {application}"
 msgstr "Mở bằng {application}"
@@ -1108,6 +1159,10 @@ msgstr "Thẻ mới"
 #: src/views/folderwindow.cpp
 msgid "Find"
 msgstr "Tìm"
+
+#: src/views/folderwindow.cpp
+msgid "Close Window"
+msgstr "Đóng cửa sổ"
 
 #: src/views/folderwindow.cpp
 msgid "as Icons"
