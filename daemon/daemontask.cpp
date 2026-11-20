@@ -158,6 +158,9 @@ void DaemonTask::initialize()
                   {"conflictId", Variant(uint32_t(0))},
                   {"conflictSource", Variant(std::string())},
                   {"conflictPath", Variant(std::string())},
+                  {"waitingForAuthorization", Variant(false)},
+                  {"authorizationId", Variant(uint32_t(0))},
+                  {"authorizationFolder", Variant(std::string())},
                   {"canceled", Variant(false)},
                   {"errorCode", Variant(int32_t(0))},
                   {"errorString", Variant(std::string())}};
@@ -185,6 +188,21 @@ void DaemonTask::initialize()
                          {"conflictPath", Variant(destination)}});
                 m_object.emitSignal("ConflictRequested", conflict, source, destination);
             }));
+    m_subscriptions.push_back(
+            m_task->authorizationRequested.connect([this](uint32_t request, const std::string &folder) {
+                // Nobody is left to answer: a worker must not wait for good.
+                if (owner().empty()) {
+                    m_task->cancel();
+                    return;
+                }
+                m_snapshot["waitingForAuthorization"] = Variant(true);
+                m_snapshot["authorizationId"] = Variant(request);
+                m_snapshot["authorizationFolder"] = Variant(folder);
+                changed({{"waitingForAuthorization", Variant(true)},
+                         {"authorizationId", Variant(request)},
+                         {"authorizationFolder", Variant(folder)}});
+                m_object.emitSignal("AuthorizationRequested", request, folder);
+            }));
     m_task->whenFinished([this, alive = m_alive](files::Task *task) {
         if (!*alive)
             return;
@@ -192,6 +210,8 @@ void DaemonTask::initialize()
         m_snapshot["finished"] = Variant(true);
         m_snapshot["waitingForConflict"] = Variant(false);
         m_snapshot["conflictId"] = Variant(uint32_t(0));
+        m_snapshot["waitingForAuthorization"] = Variant(false);
+        m_snapshot["authorizationId"] = Variant(uint32_t(0));
         m_snapshot["canceled"] = Variant(task->wasCanceled());
         m_snapshot["errorCode"] = Variant(int32_t(task->outcome().error.code));
         m_snapshot["errorString"] = Variant(task->errorString());
@@ -233,6 +253,22 @@ void DaemonTask::addMembers()
         m_snapshot["conflictId"] = Variant(uint32_t(0));
         changed({{"waitingForConflict", Variant(false)}, {"conflictId", Variant(uint32_t(0))}});
     }, {{"conflict", "policy", "applyToAll"}, {}});
+    m_object.addMethod("Authorize", "ub", "", [this](base::dbus::MethodCall &call) {
+        uint32_t request = 0;
+        bool allowed = false;
+        if (!call.read(request, allowed)) {
+            call.replyError("org.freedesktop.DBus.Error.InvalidArgs", "Unexpected arguments");
+            return;
+        }
+        if (!m_task || !m_task->answerAuthorization(request, allowed)) {
+            call.replyError("org.freedesktop.DBus.Error.Failed", "No such question is waiting");
+            return;
+        }
+        call.reply();
+        m_snapshot["waitingForAuthorization"] = Variant(false);
+        m_snapshot["authorizationId"] = Variant(uint32_t(0));
+        changed({{"waitingForAuthorization", Variant(false)}, {"authorizationId", Variant(uint32_t(0))}});
+    }, {{"request", "allowed"}, {}});
     m_object.addMethod("AnswerPassword", "us", "", [this](base::dbus::MethodCall &call) {
         uint32_t request = 0;
         std::string password;
@@ -250,6 +286,7 @@ void DaemonTask::addMembers()
     }, {{"request", "password"}, {}});
     m_object.addSignal("Changed", "a{sv}", {"snapshot"});
     m_object.addSignal("ConflictRequested", "uss", {"conflict", "source", "destination"});
+    m_object.addSignal("AuthorizationRequested", "us", {"request", "folder"});
     m_object.addSignal("Finished", "a{sv}", {"snapshot"});
 }
 

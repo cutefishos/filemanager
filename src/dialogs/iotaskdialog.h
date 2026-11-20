@@ -16,6 +16,7 @@
 
 namespace cutefish::ui {
 class CheckBox;
+class ConfirmDialog;
 class DialogButton;
 class HeaderButton;
 class Label;
@@ -85,6 +86,8 @@ private:
     void taskChanged();
     void finished();
     void askConflict(uint32_t conflict, const std::string& source, const std::string& destination);
+    void askAuthorization(uint32_t request, const std::string& folder);
+    void authorize(bool allowed);
     void resolve(int policy, bool applyToAll);
     void cancelTask();
     void close();
@@ -109,6 +112,9 @@ private:
     std::string m_conflictPath;
     base::Timer m_delay;
     ConflictDialog m_conflictDialog;
+    // Before an administrator is asked to let the task change a folder.
+    std::unique_ptr<ui::ConfirmDialog> m_authorization;
+    uint32_t m_authorizationId = 0;
 
     ui::Label* m_heading = nullptr;
     ui::Label* m_detail = nullptr;

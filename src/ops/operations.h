@@ -73,6 +73,10 @@ public:
     uint32_t conflictId() const;
     std::string conflictSource() const;
     std::string conflictPath() const;
+    // Waiting for a yes before an administrator is asked to let it change
+    // a folder; 0 when no such question is waiting.
+    uint32_t authorizationId() const;
+    std::string authorizationFolder() const;
     // An extraction waiting for a password, until the job accepts one.
     bool waitingForPassword() const;
     // The password request waiting for an answer; 0 when none is.
@@ -95,10 +99,15 @@ public:
     // Answers the password request with this id. A wrong password opens a
     // request of a new id; the right one ends the waiting.
     void answerPassword(uint32_t request, const std::string& password);
+    // Answers the authorization question with this id: true goes on to the
+    // administrator's password, false cancels the task.
+    void answerAuthorization(uint32_t request, bool allowed);
 
     base::Signal<> changed;
     // The conflict's id, source and destination.
     base::Signal<uint32_t, std::string, std::string> conflictRequested;
+    // The question's id and the folder.
+    base::Signal<uint32_t, std::string> authorizationRequested;
     base::Signal<> finished;
 
 private:
@@ -113,6 +122,7 @@ private:
     base::dbus::Proxy m_proxy;
     base::dbus::Match m_changed;
     base::dbus::Match m_conflict;
+    base::dbus::Match m_authorization;
     base::dbus::Match m_finishedSignal;
     base::dbus::PendingCall m_pending;
     bool m_finished = false;

@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <filesystem>
 #include <sys/stat.h>
 
 using cutefish::i18n::format;
@@ -245,6 +246,8 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
             [this](uint32_t conflict, const std::string& source, const std::string& destination) {
                 askConflict(conflict, source, destination);
             }));
+    m_subscriptions.push_back(m_task->authorizationRequested.connect(
+            [this](uint32_t request, const std::string& folder) { askAuthorization(request, folder); }));
     m_subscriptions.push_back(m_task->changed.connect([this] { taskChanged(); }));
     m_subscriptions.push_back(m_task->finished.connect([this] { finished(); }));
 
@@ -256,6 +259,8 @@ IoTaskDialog::IoTaskDialog(OperationTaskPtr task)
         }
     } else if (m_task->waitingForConflict()) {
         askConflict(m_task->conflictId(), m_task->conflictSource(), m_task->conflictPath());
+    } else if (m_task->authorizationId()) {
+        askAuthorization(m_task->authorizationId(), m_task->authorizationFolder());
     } else if (m_task->waitingForPassword()) {
         m_password = true;
     } else {
@@ -277,6 +282,8 @@ void IoTaskDialog::taskChanged()
     // or instead of, the signal.
     if (m_task->waitingForConflict() && !m_conflict && !m_finished)
         askConflict(m_task->conflictId(), m_task->conflictSource(), m_task->conflictPath());
+    if (m_task->authorizationId() && m_task->authorizationId() != m_authorizationId && !m_finished)
+        askAuthorization(m_task->authorizationId(), m_task->authorizationFolder());
     // The archive's password dialog stands in for the progress window, as
     // the conflict dialog does.
     const bool password = m_task->waitingForPassword() && !m_finished;
@@ -295,6 +302,8 @@ void IoTaskDialog::taskChanged()
 
 void IoTaskDialog::finished()
 {
+    m_authorization.reset();
+    m_authorizationId = 0;
     m_delay.stop();
     m_finished = true;
     m_conflict = false;
@@ -343,6 +352,37 @@ void IoTaskDialog::askConflict(uint32_t conflict, const std::string& source, con
     m_delay.stop();
     hide();
     m_conflictDialog.open(m_operation, m_sourceCount, source, destination);
+}
+
+// As the conflict dialog, the question stands in for the progress window.
+void IoTaskDialog::askAuthorization(uint32_t request, const std::string& folder)
+{
+    if (request == m_authorizationId)
+        return;
+    m_authorizationId = request;
+    m_delay.stop();
+    hide();
+    const std::string name = std::filesystem::path(folder).filename().string();
+    m_authorization = std::make_unique<ui::ConfirmDialog>(
+            nullptr, format(tr("Modifying “{name}” requires an administrator name and password."), {{"name", name}}));
+    m_authorization->setConfirmText(tr("Authenticate"));
+    m_authorization->onAccepted = [this] { authorize(true); };
+    m_authorization->onRejected = [this] { authorize(false); };
+    m_authorization->show();
+    // It may come from the dock or the desktop, with no window of the file
+    // manager's to belong to.
+    if (ui::Window* window = m_authorization->window()) {
+        window->setSkipTaskbar(true);
+        window->setAlwaysOnTop(true);
+    }
+}
+
+void IoTaskDialog::authorize(bool allowed)
+{
+    const uint32_t request = m_authorizationId;
+    m_task->answerAuthorization(request, allowed);
+    if (allowed && !m_finished)
+        m_delay.start();
 }
 
 void IoTaskDialog::resolve(int policy, bool applyToAll)

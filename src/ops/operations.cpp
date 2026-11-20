@@ -170,6 +170,16 @@ std::string OperationTask::conflictPath() const
     return value<std::string>(m_snapshot, "conflictPath");
 }
 
+uint32_t OperationTask::authorizationId() const
+{
+    return value<bool>(m_snapshot, "waitingForAuthorization") ? value<uint32_t>(m_snapshot, "authorizationId") : 0;
+}
+
+std::string OperationTask::authorizationFolder() const
+{
+    return value<std::string>(m_snapshot, "authorizationFolder");
+}
+
 bool OperationTask::waitingForPassword() const
 {
     return value<bool>(m_snapshot, "waitingForPassword");
@@ -231,6 +241,15 @@ void OperationTask::resolveConflict(uint32_t conflict, ConflictPolicy policy, bo
     m_proxy.send("ResolveConflict", conflict, int32_t(policy), applyToAll);
 }
 
+void OperationTask::answerAuthorization(uint32_t request, bool allowed)
+{
+    if (m_path.empty() || m_finished || request == 0)
+        return;
+    if (request == authorizationId())
+        apply({{"waitingForAuthorization", Variant(false)}, {"authorizationId", Variant(uint32_t(0))}});
+    m_proxy.send("Authorize", request, allowed);
+}
+
 void OperationTask::answerPassword(uint32_t request, const std::string& password)
 {
     if (m_path.empty() || m_finished || request == 0)
@@ -256,6 +275,16 @@ void OperationTask::attach(base::dbus::Connection* bus, const std::string& path)
                    {"conflictSource", Variant(source)},
                    {"conflictPath", Variant(destination)}});
             conflictRequested.emit(conflict, source, destination);
+        }
+    });
+    m_authorization = m_proxy.onSignal("AuthorizationRequested", [this](const base::dbus::Message& message) {
+        uint32_t request = 0;
+        std::string folder;
+        if (message.read(request, folder)) {
+            apply({{"waitingForAuthorization", Variant(true)},
+                   {"authorizationId", Variant(request)},
+                   {"authorizationFolder", Variant(folder)}});
+            authorizationRequested.emit(request, folder);
         }
     });
     m_finishedSignal = m_proxy.onSignal("Finished", [this](const base::dbus::Message& message) {
@@ -291,6 +320,7 @@ void OperationTask::finish(const VariantMap& snapshot)
         m_snapshot[key] = entry;
     m_changed.reset();
     m_conflict.reset();
+    m_authorization.reset();
     m_finishedSignal.reset();
     changed.emit();
     finished.emit();
