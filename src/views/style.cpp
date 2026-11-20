@@ -31,6 +31,15 @@ double fontHeight()
     return metrics().heightF();
 }
 
+double fontHeight(double pixelSize)
+{
+    const ui::Theme& theme = ui::Theme::current();
+    const ui::FontMetrics font(
+            ui::FontSpec {theme.fontFamily.empty() ? std::string("sans-serif") : theme.fontFamily, pixelSize * 3 / 4},
+            1, false);
+    return font.heightF();
+}
+
 double advanceWidth(const std::string& text)
 {
     return metrics().horizontalAdvanceF(text);

@@ -26,6 +26,10 @@ struct FolderLayout
     ui::SizeF windowSize;
     // 0 when not stored.
     double iconSize = 0;
+    // The names' text size; 0 when not stored.
+    double textSize = 0;
+    // Names under the icons, else beside them.
+    bool labelOnBottom = true;
     Background background = Background::Default;
     ui::Color color;
     // The picture's absolute path, when it was found.

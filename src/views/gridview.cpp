@@ -120,6 +120,10 @@ protected:
         std::string name = m_grid->model().displayName(row);
         const bool renamed = name != m_label->text();
         m_label->setText(std::move(name));
+        m_label->setFontSize(m_grid->labelSize());
+        m_labelLeading = m_grid->labelsBeside();
+        m_label->setTextAlignment(m_labelLeading ? ui::Label::TextAlignment::Left
+                                                 : ui::Label::TextAlignment::Center);
         m_label->setMaximumLineCount(m_selected ? 3 : 2);
         m_label->setColor(m_selected ? style::selectedTextColor() : ui::Theme::current().text);
         return renamed;
@@ -130,16 +134,13 @@ protected:
         const double width = geometry().width;
         const double iconSize = m_grid->iconSize();
         const double cellWidth = m_grid->cellWidth();
+        if (m_grid->labelsBeside()) {
+            layoutBeside();
+            return;
+        }
         const double iconItemWidth = std::min(iconSize + kLargeSpacing * 2, cellWidth);
         layoutIcon({centeredStart(width, iconItemWidth), kSmallSpacing, iconItemWidth, iconSize}, 16);
-
-        const bool thumbnailShown = m_thumbnail->isVisible();
-        m_thumbnailTint->setVisible(m_selected && thumbnailShown);
-        if (thumbnailShown) {
-            m_thumbnailTint->setGeometry(m_thumbnail->geometry());
-            m_thumbnailTint->setRadius(m_thumbnail->geometry().height * 0.1);
-            m_thumbnailTint->setOpacity(0.5 * (m_hidden ? 0.5 : 1.0));
-        }
+        updateThumbnailTint();
 
         const double labelWidth = cellWidth - kLabelInset;
         const double labelHeight = m_label->heightForWidth(labelWidth);
@@ -148,6 +149,32 @@ protected:
     }
 
 private:
+    void updateThumbnailTint()
+    {
+        const bool thumbnailShown = m_thumbnail->isVisible();
+        m_thumbnailTint->setVisible(m_selected && thumbnailShown);
+        if (thumbnailShown) {
+            m_thumbnailTint->setGeometry(m_thumbnail->geometry());
+            m_thumbnailTint->setRadius(m_thumbnail->geometry().height * 0.1);
+            m_thumbnailTint->setOpacity(0.5 * (m_hidden ? 0.5 : 1.0));
+        }
+    }
+
+    // The icon at the cell's start, the name after it, centred on the icon.
+    void layoutBeside()
+    {
+        const double iconSize = m_grid->iconSize();
+        const double iconItemWidth = iconSize + kLargeSpacing * 2;
+        layoutIcon({0, kSmallSpacing, iconItemWidth, iconSize}, 16);
+        updateThumbnailTint();
+        const double labelWidth = std::max(0.0, geometry().width - iconItemWidth);
+        const double labelHeight = m_label->heightForWidth(labelWidth);
+        const double y = kSmallSpacing + (iconSize - labelHeight) / 2;
+        const ui::Window* window = this->window();
+        const double scale = window ? window->scale() : 1;
+        m_label->setGeometry({iconItemWidth, std::round(y * scale) / scale, labelWidth, labelHeight});
+    }
+
     FolderGridView* m_grid;
     ThumbnailTint* m_thumbnailTint;
 };
@@ -207,7 +234,12 @@ void FolderGridView::updateMetrics()
     const double fromRowHeight = m_cellHeight;
 
     m_grid = GridColumns::forWidth(geometry().width, m_iconSize);
-    m_cellHeight = m_iconSize + style::fontHeight() * 2 + kLargeSpacing * 2;
+    const double lineHeight = labelSize() > 0 ? style::fontHeight(labelSize()) : style::fontHeight();
+    m_cellHeight = m_iconSize + lineHeight * 2 + kLargeSpacing * 2;
+    if (labelsBeside()) {
+        m_grid.cellWidth = m_iconSize + kLargeSpacing * 2 + kMinimumCellWidth;
+        m_cellHeight = std::max(m_iconSize, lineHeight * 2) + kSmallSpacing * 2;
+    }
 
     if (m_arrangement) {
         arrangeCells();
@@ -236,7 +268,9 @@ void FolderGridView::arrangeCells()
             unplaced.push_back(index);
             continue;
         }
-        const double x = std::round((found->second.x - m_grid.cellWidth / 2) * scale) / scale;
+        // The icon's centre: the cell's when names are under the icons.
+        const double iconCentre = labelsBeside() ? m_iconSize / 2 + kLargeSpacing : m_grid.cellWidth / 2;
+        const double x = std::round((found->second.x - iconCentre) * scale) / scale;
         const double y = std::round((top + found->second.y - kSmallSpacing - m_iconSize / 2) * scale) / scale;
         m_arrangedCells[size_t(index)] = {x, y, m_grid.cellWidth, m_cellHeight};
         bottom = std::max(bottom, y + m_cellHeight);

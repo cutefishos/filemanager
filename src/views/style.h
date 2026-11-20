@@ -15,6 +15,8 @@ namespace fm::style {
 
 // FishUI.Units.fontMetrics.height: the theme font's line height.
 double fontHeight();
+// The same at a text size of its own, in logical pixels.
+double fontHeight(double pixelSize);
 // The theme font's advance width of the text, as FontMetrics.advanceWidth.
 double advanceWidth(const std::string& text);
 

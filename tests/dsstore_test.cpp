@@ -80,7 +80,9 @@ static std::string binaryPlist(const std::vector<PlistMember>& members)
         objects.push_back(counted(0x50, member.key));
     for (const PlistMember& member : members) {
         std::string object;
-        if (member.kind == 'i') {
+        if (member.kind == 'b') {
+            object += char(member.number ? 0x09 : 0x08);
+        } else if (member.kind == 'i') {
             object += char(0x13);
             for (int shift = 56; shift >= 0; shift -= 8)
                 object += char(member.number >> shift);
@@ -208,6 +210,8 @@ TEST(DsStoreTest, ReadsTheWindowTheIconsAndThePicture)
             record(".", "bwsp", "blob", binaryPlist({{"WindowBounds", 's', 0, "{{200, 120}, {640, 400}}"}})),
             record(".", "icvp", "blob",
                    binaryPlist({{"iconSize", 'r', 128000},
+                                {"textSize", 'r', 16000},
+                                {"labelOnBottom", 'b', 0},
                                 {"backgroundType", 'i', 2},
                                 {"backgroundImageAlias", 'd', 0, alias("Other.png", "/.background/Other.png")}})),
             record(".", "vSrn", "long", std::string("\0\0\0\1", 4)),
@@ -219,6 +223,8 @@ TEST(DsStoreTest, ReadsTheWindowTheIconsAndThePicture)
     EXPECT_EQ(layout->windowSize.width, 640);
     EXPECT_EQ(layout->windowSize.height, 400);
     EXPECT_EQ(layout->iconSize, 128);
+    EXPECT_EQ(layout->textSize, 16);
+    EXPECT_FALSE(layout->labelOnBottom);
     EXPECT_EQ(layout->background, FolderLayout::Background::Picture);
     EXPECT_EQ(layout->picture, volume.filePath(".background/Other.png"));
     ASSERT_EQ(layout->positions.size(), 2u);
@@ -244,6 +250,8 @@ TEST(DsStoreTest, FindsThePictureInItsFolderAndReadsColours)
     ASSERT_TRUE(found);
     EXPECT_EQ(found->picture, volume.filePath(".background/Drag.tiff"));
     EXPECT_EQ(found->iconSize, 0);
+    EXPECT_EQ(found->textSize, 0);
+    EXPECT_TRUE(found->labelOnBottom);
     EXPECT_EQ(found->windowSize.width, 0);
 
     const std::string colour = store({

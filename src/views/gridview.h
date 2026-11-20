@@ -60,6 +60,10 @@ public:
     // Null for the plain grid.
     void setArrangement(std::shared_ptr<const ArrangedFolder> arrangement);
     const ArrangedFolder* arrangement() const { return m_arrangement.get(); }
+    // The names' text size the arrangement asks for; 0 follows the theme.
+    double labelSize() const { return m_arrangement ? m_arrangement->layout.textSize : 0; }
+    // Names beside the icons, as an arrangement may ask.
+    bool labelsBeside() const { return m_arrangement && !m_arrangement->layout.labelOnBottom; }
     void increaseIconSize();
     void decreaseIconSize();
 

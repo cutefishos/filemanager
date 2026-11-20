@@ -8,6 +8,7 @@
 #include "core/thumbnails.h"
 #include "model/foldermodel.h"
 #include "views/gridview.h"
+#include "views/style.h"
 #include "model/foldersizecache.h"
 #include "ops/operations.h"
 
@@ -141,6 +142,24 @@ TEST(FolderModelTest, AnArrangedGridPlacesIconsByTheirCentres)
     EXPECT_EQ(centre(0).y, 40 + 190);
     EXPECT_EQ(centre(1).x, 160);
     EXPECT_GE(view.cellRect(2).y, view.cellRect(0).bottom());
+
+    // The names at the stored text size: two lines of it under the icons.
+    auto larger = std::make_shared<fm::ArrangedFolder>(*arranged);
+    larger->layout.textSize = 16;
+    view.setArrangement(larger);
+    window.grab();
+    EXPECT_DOUBLE_EQ(view.cellHeight(), 128 + fm::style::fontHeight(16) * 2 + 24);
+    EXPECT_EQ(centre(1).x, 160);
+
+    // Beside the icons: the icon's centre where the layout says, the name
+    // after it, two lines high at most.
+    auto beside = std::make_shared<fm::ArrangedFolder>(*larger);
+    beside->layout.labelOnBottom = false;
+    view.setArrangement(beside);
+    window.grab();
+    EXPECT_EQ(view.cellRect(1).x + 12 + 64, 160);
+    EXPECT_EQ(view.cellRect(1).width, 128 + 24 + 104);
+    EXPECT_DOUBLE_EQ(view.cellHeight(), std::max(128.0, fm::style::fontHeight(16) * 2) + 12);
 
     // Back to the grid: the preference's size again.
     view.setArrangement(nullptr);

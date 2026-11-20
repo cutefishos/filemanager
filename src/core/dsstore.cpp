@@ -510,6 +510,8 @@ std::optional<FolderLayout> parseFolderLayout(std::string_view data, const std::
             if (!options)
                 continue;
             layout.iconSize = options->numberOf("iconSize", layout.iconSize);
+            layout.textSize = options->numberOf("textSize", layout.textSize);
+            layout.labelOnBottom = options->numberOf("labelOnBottom", 1) != 0;
             const int type = int(options->numberOf("backgroundType", 0));
             if (type == 1) {
                 layout.background = FolderLayout::Background::Color;

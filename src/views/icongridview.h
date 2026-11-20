@@ -108,6 +108,8 @@ protected:
     ui::ImageView* m_thumbnail = nullptr;
     ui::ThemeIcon* m_overlay = nullptr;
     ui::Label* m_label = nullptr;
+    // The name starts at its box's start instead of its centre.
+    bool m_labelLeading = false;
 
 private:
     void layoutThumbnail();

@@ -233,7 +233,7 @@ ui::RectF IconItem::labelRect() const
 {
     const ui::RectF box = m_label->geometry();
     const double width = paintedWidth();
-    return {box.x + (box.width - width) / 2, box.y, width, box.height};
+    return {m_labelLeading ? box.x : box.x + (box.width - width) / 2, box.y, width, box.height};
 }
 
 ui::RectF IconItem::labelBox() const
@@ -307,7 +307,8 @@ void IconItem::paint(ui::Painter& painter)
             if (!line)
                 break;
             const double lineWidth = std::max(0.0, std::min(box.width, line->width));
-            const ui::RectF rect {(box.width - lineWidth) / 2, line->top, lineWidth, line->height};
+            const ui::RectF rect {m_labelLeading ? 0 : (box.width - lineWidth) / 2, line->top, lineWidth,
+                                  line->height};
             if (rect.width <= 0 || rect.height <= 0)
                 continue;
             addRoundedRect(path, {origin.x + rect.x, origin.y + rect.y, rect.width + hPadding * 2,
