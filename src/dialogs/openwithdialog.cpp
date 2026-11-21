@@ -20,6 +20,9 @@ namespace fm {
 using ui::rounding::centeredStart;
 using cutefish::i18n::tr;
 
+static constexpr double kWidth = 400 + 12 * 2;
+static constexpr double kPadding = 16;
+
 // One application: its 32 px icon and name in a 52 px row, lit when current.
 class ApplicationRow : public ui::View
 {
@@ -78,7 +81,7 @@ OpenWithDialog::OpenWithDialog(std::string path, std::string mimeType)
     , m_mimeType(std::move(mimeType))
 {
     m_applications = launcher::applicationsFor(m_path, m_mimeType);
-    setContentFactory([this] { return createContent(); }, 400 + 12 * 2, 16);
+    setContentFactory([this] { return createContent(); }, kWidth, kPadding);
     onCloseRequested = [this] { done(); };
 }
 
@@ -130,8 +133,10 @@ std::unique_ptr<ui::View> OpenWithDialog::createContent()
     title->setColor(ui::ColorId::Text);
     title->setLayoutHints({.fillWidth = true});
 
+    // The list spans the dialog, past its padding, so its bar sits at the edge.
     m_list = layout->addChild<ui::ListView>();
-    m_list->setLayoutHints({.fillWidth = true, .preferredHeight = 250});
+    m_list->setLayoutHints({.fillWidth = true, .preferredHeight = 250, .margins = {-kPadding, 0, -kPadding, 0}});
+    m_list->setMargins({kPadding, 0, kPadding, 0});
     m_list->setRowHeight(52);
     m_list->setSpacing(4);
     m_list->createItem = [this] {
@@ -149,7 +154,7 @@ std::unique_ptr<ui::View> OpenWithDialog::createContent()
     if (m_applications.empty()) {
         auto* empty = m_list->addChild<ui::Label>(tr("No applications"));
         const ui::SizeF hint = empty->sizeHint();
-        empty->setGeometry({centeredStart(400 - 8, hint.width), centeredStart(250, hint.height), hint.width,
+        empty->setGeometry({centeredStart(kWidth, hint.width), centeredStart(250, hint.height), hint.width,
                             hint.height});
     }
 

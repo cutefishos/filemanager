@@ -43,6 +43,9 @@ public:
         m_bar = addChild<ui::ScrollBar>(ui::ScrollBar::Orientation::Vertical);
         // Always drawn on a list that scrolls, as in the ComboBox drop-down: the only sign there is more of it.
         m_bar->setAlwaysShown(true);
+        // The list reaches the card's right edge, so the bar runs along it, its ends clear of the corners.
+        const double corner = ui::ScrollBar::cornerPadding(ui::Theme::current().mediumRadius);
+        m_bar->setPadding(corner - kVerticalPadding, corner - kVerticalPadding);
         m_bar->onPositionRequested = [this](double position) { scrollBy(position - m_scroll); };
     }
 
@@ -79,7 +82,7 @@ protected:
     void layout() override
     {
         const ui::Theme& theme = ui::Theme::current();
-        const double width = geometry().width;
+        const double width = geometry().width - kPadding;
         const double scroll = m_scroll;
         for (size_t i = 0; i < m_rows.size(); ++i) {
             const double y = double(i) * (kRowHeight + kSpacing) - scroll;
@@ -93,7 +96,8 @@ protected:
             label->setGeometry({x, y + ui::rounding::centeredStart(kRowHeight, hint.height),
                                 std::max(0.0, width - x - 8), hint.height});
         }
-        m_bar->setGeometry({width - ui::ScrollBar::thickness, 0, ui::ScrollBar::thickness, geometry().height});
+        m_bar->setGeometry({geometry().width - ui::ScrollBar::thickness, 0, ui::ScrollBar::thickness,
+                            geometry().height});
         m_bar->setRange(geometry().height, contentHeight(), m_scroll);
     }
 
@@ -104,7 +108,8 @@ protected:
             return;
         const ui::Theme& theme = ui::Theme::current();
         const double y = current * (kRowHeight + kSpacing) - m_scroll;
-        painter.drawRoundedRect({kHighlightInset, y + 1, geometry().width - kHighlightInset * 2, kRowHeight - 2},
+        const double width = geometry().width - kPadding;
+        painter.drawRoundedRect({kHighlightInset, y + 1, width - kHighlightInset * 2, kRowHeight - 2},
                                 {theme.mediumRadius - kPadding - kHighlightInset, 0, ui::Corners::Circular},
                                 ui::color(ui::ColorId::MenuHighlight));
     }
@@ -164,7 +169,7 @@ public:
 protected:
     void layout() override
     {
-        m_list->setGeometry(localRect().adjusted(kPadding, kVerticalPadding, -kPadding, -kVerticalPadding));
+        m_list->setGeometry(localRect().adjusted(kPadding, kVerticalPadding, 0, -kVerticalPadding));
     }
 
     void paint(ui::Painter& painter) override

@@ -545,7 +545,6 @@ SideBar::SideBar(double headerHeight)
     m_title->setElide(ui::Label::Elide::Right);
     m_scroll = addChild<ui::ScrollView>();
     m_list = m_scroll->setContent<SidebarList>(this);
-    m_scroll->setVerticalBarPadding(1, kSmallSpacing);
 
     m_subscriptions.push_back(m_places->changed.connect([this] {
         m_list->rebuild();

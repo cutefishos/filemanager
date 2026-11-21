@@ -16,6 +16,7 @@
 #include "ui/header_backdrop.h"
 #include "ui/keys.h"
 #include "ui/painter.h"
+#include "ui/scroll_bar.h"
 #include "ui/theme.h"
 #include "ui/window.h"
 
@@ -188,7 +189,7 @@ void FolderView::setTopInset(double inset)
     if (m_topInset == inset)
         return;
     m_topInset = inset;
-    setVerticalBarPadding(headerHeight(), m_bottomInset);
+    setVerticalBarPadding(headerHeight() + ui::ScrollBar::inset, m_bottomInset + ui::ScrollBar::inset);
     requestLayout();
     m_content->requestLayout();
 }
@@ -198,7 +199,7 @@ void FolderView::setBottomInset(double inset)
     if (m_bottomInset == inset)
         return;
     m_bottomInset = inset;
-    setVerticalBarPadding(headerHeight(), m_bottomInset);
+    setVerticalBarPadding(headerHeight() + ui::ScrollBar::inset, m_bottomInset + ui::ScrollBar::inset);
     requestLayout();
     m_content->requestLayout();
 }
@@ -217,7 +218,7 @@ double FolderView::minimumContentHeight() const
 
 void FolderView::layout()
 {
-    setVerticalBarPadding(headerHeight(), m_bottomInset);
+    setVerticalBarPadding(headerHeight() + ui::ScrollBar::inset, m_bottomInset + ui::ScrollBar::inset);
     ScrollView::layout();
     if (m_pendingReveal >= 0 && geometry().height > 0)
         revealIndex(std::exchange(m_pendingReveal, -1));
