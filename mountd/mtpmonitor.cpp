@@ -163,9 +163,10 @@ void MtpMonitor::leave(const std::string &sysPath)
     timer->setSingleShot(true);
     timer->onTimeout = [this, id] {
         // Erasing destroys this callback, captures included.
+        MtpMonitor *monitor = this;
         const std::string gone = id;
-        m_leaving.erase(gone);
-        removed.emit(gone);
+        monitor->m_leaving.erase(gone);
+        monitor->removed.emit(gone);
     };
     timer->start(std::chrono::milliseconds(kLeaveDelayMs));
     m_leaving[id] = std::move(timer);

@@ -45,3 +45,25 @@ TEST(MtpMonitorTest, DeviceBackWithinTheDelayStartsANewSession)
     monitor.arrive("/sys/test/1-1", device);
     EXPECT_TRUE(events.empty());
 }
+
+TEST(MtpMonitorTest, DeviceAwayPastTheDelayIsRemoved)
+{
+    base::EventLoop loop;
+    MtpMonitor monitor;
+    std::vector<std::string> events;
+    const base::Subscription removed = monitor.removed.connect([&](const std::string &id) {
+        events.push_back("removed " + id);
+        loop.quit();
+    });
+
+    MtpMonitor::Device device;
+    device.id = "mtp://test-serial";
+    device.name = "Phone";
+    device.bus = 1;
+    device.number = 7;
+    monitor.arrive("/sys/test/1-1", device);
+    monitor.leave("/sys/test/1-1");
+    loop.startTimer(std::chrono::seconds(10), false, [&loop] { loop.quit(1); });
+    EXPECT_EQ(loop.run(), 0);
+    EXPECT_EQ(events, std::vector<std::string> {"removed mtp://test-serial"});
+}
