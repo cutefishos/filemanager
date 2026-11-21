@@ -129,6 +129,8 @@ PlacesModel::PlacesModel(bool volumes, std::string settingsFile, base::dbus::Con
         m_subscriptions.push_back(m_volumes->volumeChanged.connect([this](const std::string& id) { deviceAdded(id); }));
         m_subscriptions.push_back(m_volumes->operationFinished.connect(
                 [this](const std::string& id, const std::string& operation, const std::string& path) {
+                    if (operation == "unlock")
+                        unlocked.emit(id);
                     if ((operation != "mount" && operation != "unlock") || path.empty())
                         return;
                     for (Place& place : m_items) {
@@ -143,11 +145,14 @@ PlacesModel::PlacesModel(bool volumes, std::string settingsFile, base::dbus::Con
                     }
                 }));
         m_subscriptions.push_back(m_volumes->operationFailed.connect(
-                [this](const std::string&, const std::string&, const std::string& message) {
-                    deviceOperationFailed.emit(message);
+                [this](const std::string& id, const std::string& operation, const std::string& message) {
+                    if (operation == "unlock")
+                        unlockFailed.emit(id, false);
+                    else
+                        deviceOperationFailed.emit(message);
                 }));
         m_subscriptions.push_back(m_volumes->passphraseRejected.connect([this](const std::string& id) {
-            passphraseRequested.emit(id, m_volumes->volume(id).name, true);
+            unlockFailed.emit(id, true);
         }));
     }
 
@@ -528,7 +533,7 @@ void PlacesModel::requestSetup(int row)
         return;
     const std::string id = at(row).udi;
     if (at(row).locked) {
-        passphraseRequested.emit(id, at(row).name, false);
+        passphraseRequested.emit(id, at(row).name);
         return;
     }
     if (!isMountId(id)) {

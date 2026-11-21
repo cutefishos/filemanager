@@ -200,28 +200,36 @@ TEST(PlacesModelTest, EncryptedAndInternalDisks)
     EXPECT_EQ(places.at(rootRow).displayName(), "Computer");
     EXPECT_EQ(rowOf(places, kRoot + "/block_devices/Boot"), -1);
 
-    std::vector<std::tuple<std::string, std::string, bool>> asked;
-    std::vector<std::string> opened, failed;
+    std::vector<std::tuple<std::string, std::string>> asked;
+    std::vector<std::tuple<std::string, bool>> unlockFailures;
+    std::vector<std::string> opened, failed, unlocked;
     const base::Subscription s1 = places.passphraseRequested.connect(
-            [&](std::string udi, std::string name, bool retry) { asked.emplace_back(udi, name, retry); });
+            [&](std::string udi, std::string name) { asked.emplace_back(udi, name); });
     const base::Subscription s2 = places.deviceSetupDone.connect([&](std::string path) { opened.push_back(path); });
     const base::Subscription s3 =
             places.deviceOperationFailed.connect([&](std::string message) { failed.push_back(message); });
+    const base::Subscription s4 = places.unlocked.connect([&](std::string udi) { unlocked.push_back(udi); });
+    const base::Subscription s5 = places.unlockFailed.connect(
+            [&](std::string udi, bool wrong) { unlockFailures.emplace_back(udi, wrong); });
 
     places.requestSetup(stickRow);
     ASSERT_EQ(asked.size(), 1u);
-    EXPECT_EQ(asked.back(), std::make_tuple(kStick, std::string("Stick"), false));
+    EXPECT_EQ(asked.back(), std::make_tuple(kStick, std::string("Stick")));
 
+    // A wrong passphrase is told to the dialog that sent it; nothing asks anew.
     places.answerPassphrase(kStick, "wrong");
-    ASSERT_TRUE(fmtest::runUntil(loop, [&] { return asked.size() == 2; }));
-    EXPECT_EQ(asked.back(), std::make_tuple(kStick, std::string("Stick"), true));
+    ASSERT_TRUE(fmtest::runUntil(loop, [&] { return unlockFailures.size() == 1; }));
+    EXPECT_EQ(unlockFailures.back(), std::make_tuple(kStick, true));
+    EXPECT_EQ(asked.size(), 1u);
 
     places.answerPassphrase(kStick, "secret");
     ASSERT_TRUE(fmtest::runUntil(loop, [&] { return opened.size() == 1; }));
     EXPECT_EQ(opened.back(), "/media/Stick");
+    EXPECT_EQ(unlocked, std::vector<std::string>{kStick});
     ASSERT_TRUE(fmtest::runUntil(loop, [&] { return !places.at(rowOf(places, kStick)).locked; }));
     const PlacesModel::Place& stick = places.at(rowOf(places, kStick));
     EXPECT_FALSE(stick.setupNeeded());
     EXPECT_EQ(stick.path(), "/media/Stick");
+    EXPECT_EQ(unlockFailures.size(), 1u);
     EXPECT_TRUE(failed.empty());
 }

@@ -88,7 +88,8 @@ public:
                         const std::string& password, bool anonymous, bool remember);
     void acceptHostKey(const std::string& address, const std::string& fingerprint);
     void cancelConnection(const std::string& address);
-    // Unlocks the encrypted disk and mounts it; a wrong passphrase asks again.
+    // Unlocks the encrypted disk and mounts it, finishing with unlocked or
+    // unlockFailed.
     void answerPassphrase(const std::string& udi, const std::string& passphrase);
 
     base::Signal<> changed;
@@ -100,8 +101,11 @@ public:
     base::Signal<std::string, std::string, std::string, bool, bool, bool> passwordRequested;
     // address, fingerprint, changed
     base::Signal<std::string, std::string, bool> hostKeyRequested;
-    // udi, name, retry
-    base::Signal<std::string, std::string, bool> passphraseRequested;
+    // udi, name
+    base::Signal<std::string, std::string> passphraseRequested;
+    base::Signal<std::string> unlocked;
+    // udi, and whether the passphrase was wrong.
+    base::Signal<std::string, bool> unlockFailed;
 
 private:
     std::string m_settingsFile;

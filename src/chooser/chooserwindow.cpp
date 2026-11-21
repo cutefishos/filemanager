@@ -422,9 +422,9 @@ public:
         m_subscriptions.push_back(chooser.folder().statusChanged.connect([this] { updateBusy(); }));
         m_subscriptions.push_back(m_places->changed.connect([this] { places->rebuild(); }));
         m_subscriptions.push_back(m_places->deviceSetupDone.connect([this](const std::string& path) { m_chooser.navigate(path); }));
-        m_subscriptions.push_back(m_places->passphraseRequested.connect([this](std::string udi, std::string name, bool retry) {
+        m_subscriptions.push_back(m_places->passphraseRequested.connect([this](std::string udi, std::string name) {
             m_owner->m_unlock = std::make_unique<UnlockVolumeDialog>(this->window(), *m_places, std::move(udi),
-                                                                     std::move(name), retry);
+                                                                     std::move(name));
             m_owner->m_unlock->show();
         }));
         m_subscriptions.push_back(m_places->deviceOperationFailed.connect([this](const std::string& message) {

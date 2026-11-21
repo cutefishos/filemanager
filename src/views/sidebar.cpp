@@ -568,9 +568,7 @@ SideBar::SideBar(double headerHeight)
                 askHostKey(address, fingerprint, changed);
             }));
     m_subscriptions.push_back(m_places->passphraseRequested.connect(
-            [this](std::string udi, std::string name, bool retry) {
-                askPassphrase(std::move(udi), std::move(name), retry);
-            }));
+            [this](std::string udi, std::string name) { askPassphrase(std::move(udi), std::move(name)); }));
     m_subscriptions.push_back(m_places->deviceOperationFailed.connect(
             [this](const std::string& message) { showDeviceError(message); }));
     m_list->rebuild();
@@ -616,9 +614,9 @@ void SideBar::askPassword(std::string address, std::string user, std::string dom
     raw->show();
 }
 
-void SideBar::askPassphrase(std::string udi, std::string name, bool retry)
+void SideBar::askPassphrase(std::string udi, std::string name)
 {
-    auto dialog = std::make_unique<UnlockVolumeDialog>(window(), *m_places, std::move(udi), std::move(name), retry);
+    auto dialog = std::make_unique<UnlockVolumeDialog>(window(), *m_places, std::move(udi), std::move(name));
     UnlockVolumeDialog* raw = dialog.get();
     raw->onDone = [this, raw] {
         auto it = std::find_if(m_unlockDialogs.begin(), m_unlockDialogs.end(),

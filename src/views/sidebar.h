@@ -69,7 +69,7 @@ private:
     void askPassword(std::string address, std::string user, std::string domain, bool needsDomain,
                      bool anonymousAllowed, bool retry);
     void askHostKey(const std::string& address, const std::string& fingerprint, bool changed);
-    void askPassphrase(std::string udi, std::string name, bool retry);
+    void askPassphrase(std::string udi, std::string name);
     void showDeviceError(const std::string& message);
     void removeConfirm(ui::ConfirmDialog* dialog);
 
