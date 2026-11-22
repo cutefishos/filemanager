@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include "dialogs/iotaskdialog.h"
+#include "dialogs/progressrow.h"
 #include "core/lister.h"
 #include "core/standardfolders.h"
 
@@ -38,30 +39,6 @@ static ui::Label* addLabel(ui::View* parent, double pixelSize, int weight, ui::C
     label->setWrap(wrap);
     return label;
 }
-
-static constexpr double kStopButton = 24;
-static constexpr double kStopGlyph = 16;
-// How far the stop glyph's drawing stops short of its box's end, as a share
-// of the box.
-static constexpr double kStopGlyphEndInset = 3.0 / 56;
-
-// The stop glyph in the secondary text colour, which follows the theme.
-class StopButton : public ui::HeaderButton
-{
-public:
-    StopButton()
-        : HeaderButton(std::string(), kStopButton)
-    {
-        setGlyph("stop", kStopGlyph);
-    }
-
-protected:
-    void layout() override
-    {
-        setGlyphColor(ui::Theme::current().disabledText);
-        HeaderButton::layout();
-    }
-};
 
 ConflictDialog::Details ConflictDialog::fileDetails(const std::string& path)
 {
@@ -518,26 +495,15 @@ std::unique_ptr<ui::View> IoTaskDialog::createContent()
     m_heading->setLayoutHints({.fillWidth = true});
     m_detail = addLabel(column, 12, 400, ui::ColorId::DisabledText, false);
     m_detail->setLayoutHints({.fillWidth = true});
-    m_progressRow = column->addChild<ui::RowLayout>();
-    m_progressRow->setSpacing(8);
+    m_progressRow = column->addChild<ProgressRow>();
     ui::LayoutHints progressHints {.fillWidth = true};
     progressHints.margins.top = 4;
     m_progressRow->setLayoutHints(progressHints);
-    m_progress = m_progressRow->addChild<ui::ProgressBar>();
+    m_progress = m_progressRow->progress();
     m_progress->setName("ioProgressBar");
-    m_progress->setLayoutHints({.fillWidth = true, .alignment = ui::Alignment::Center});
-    m_stop = m_progressRow->addChild<StopButton>();
+    m_stop = m_progressRow->stop();
     m_stop->setName("ioStopButton");
-    m_stop->setToolTip(tr("Stop"));
-    m_stop->setLayoutHints({.alignment = ui::Alignment::Center});
     m_stop->onClicked = [this] { cancelTask(); };
-    // The stop glyph, not its button, ends at the content edge, and the
-    // button reaches past the bar's line so the lines around it keep their
-    // places.
-    const double overhang = (kStopButton - m_progress->sizeHint().height) / 2;
-    m_progressRow->setPadding({.top = -overhang,
-                               .right = -std::round(kStopGlyphEndInset * kStopGlyph + (kStopButton - kStopGlyph) / 2),
-                               .bottom = -overhang});
     m_summary = addLabel(column, 11, 400, ui::ColorId::DisabledText, true);
     m_summary->setName("ioProgressSummary");
     m_summary->setFontFeatures({{"tnum", 1}});

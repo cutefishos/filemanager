@@ -151,6 +151,7 @@ add_library(fm-ui STATIC
     src/dialogs/framelessdialog.cpp
     src/dialogs/iotaskdialog.cpp
     src/dialogs/openwithdialog.cpp
+    src/dialogs/progressrow.cpp
     src/dialogs/propertiesdialog.cpp
     src/dialogs/serverdialogs.cpp
     src/dialogs/installdialog.cpp

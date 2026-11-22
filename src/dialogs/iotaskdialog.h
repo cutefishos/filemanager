@@ -27,6 +27,8 @@ class ThemeIcon;
 
 namespace fm {
 
+class ProgressRow;
+
 // An item of the same name where one goes;
 // Stop, Skip, Keep Both or Replace, for this one or all.
 class ConflictDialog : public FramelessDialog
@@ -118,7 +120,7 @@ private:
 
     ui::Label* m_heading = nullptr;
     ui::Label* m_detail = nullptr;
-    ui::RowLayout* m_progressRow = nullptr;
+    ProgressRow* m_progressRow = nullptr;
     ui::ProgressBar* m_progress = nullptr;
     ui::HeaderButton* m_stop = nullptr;
     ui::Label* m_summary = nullptr;
