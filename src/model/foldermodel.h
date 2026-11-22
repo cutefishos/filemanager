@@ -164,6 +164,7 @@ public:
     void setSearchHome(bool home);
     bool searchBusy() const { return m_searchBusy; }
     void showInFolder();
+    void sendWithRipple();
     bool isSearching() const { return m_lister.isSearching(); }
 
     bool showHiddenFiles() const { return m_showHiddenFiles; }

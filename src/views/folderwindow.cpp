@@ -991,8 +991,9 @@ void FolderWindow::buildMainMenu()
         model.prepareContextMenu();
         // Without a selection the folder's actions apply to the folder itself;
         // these act on selected items only.
-        static const std::set<std::string> onSelection {"open", "openWith", "showInFolder", "rename",
-                                                        "compress", "trash", "restore", "del"};
+        static const std::set<std::string> onSelection {"open", "openWith", "showInFolder",
+                                                        "sendWithRipple", "rename", "compress", "trash",
+                                                        "restore", "del"};
         for (const ActionRow& row : *actionRows) {
             const FolderModel::Action& action = model.action(row.name);
             row.menu->setItemText(row.index, action.text);
@@ -1018,6 +1019,7 @@ void FolderWindow::buildMainMenu()
     file->setItemKeyEquivalent(open, "Return", 0);
     addAction(file, "openWith");
     addAction(file, "showInFolder");
+    addAction(file, "sendWithRipple");
     file->addSeparator();
     const size_t properties = addAction(file, "properties");
     const size_t rename = addAction(file, "rename");

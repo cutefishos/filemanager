@@ -12,6 +12,7 @@
 
 #include "base/application_registry.h"
 #include "base/dbus.h"
+#include "base/json.h"
 #include "base/event_loop.h"
 #include "base/i18n.h"
 #include "base/mime_database.h"
@@ -892,6 +893,22 @@ void FolderModel::updateSearch()
     selectionChanged.emit();
 }
 
+void FolderModel::sendWithRipple()
+{
+    const auto rows = selectedRows();
+    base::json::Value::Array paths;
+    for (const int row : rows) {
+        const FileItemPtr file = item(row);
+        if (file && file->isLocalFile() && !file->path.empty())
+            paths.push_back(base::json::Value(file->path));
+    }
+    if (paths.empty())
+        return;
+    base::dbus::Proxy ripple(base::dbus::Connection::session(), "org.cutefish.RipplePanel", "/RipplePanel",
+                             "org.cutefish.RipplePanel");
+    ripple.send("share", base::json::Value(std::move(paths)).serialize());
+}
+
 void FolderModel::showInFolder()
 {
     const auto rows = selectedRows();
@@ -1702,6 +1719,7 @@ void FolderModel::createActions()
         {"open", tr("Open")},
         {"openWith", tr("Open with")},
         {"showInFolder", tr("Show in Enclosing Folder")},
+        {"sendWithRipple", tr("Send with Ripple")},
         {"compress", tr("Compress")},
         {"cut", tr("Cut")},
         {"copy", tr("Copy")},
@@ -1773,6 +1791,9 @@ void FolderModel::updateActions()
     set("restore", items.size() >= 1 && trash, true);
     set("openWith", items.size() == 1 && !trash && !hasDir, true);
     set("showInFolder", searching && rows.size() == 1, true);
+    // Ripple takes local paths; a selection that is all local can go.
+    const bool canSend = !rows.empty() && !trash && !hasRemoteFiles;
+    set("sendWithRipple", canSend, canSend);
 
     const bool canCompress = !rows.empty() && !trash && !hasRemoteFiles && !searching && rootItem().isWritable;
     set("compress", canCompress, canCompress && !m_archive);
