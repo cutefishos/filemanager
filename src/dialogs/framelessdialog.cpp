@@ -187,6 +187,8 @@ void FramelessDialog::show()
     m_window->setTitle(m_title);
     if (m_parent)
         m_window->setTransientParent(m_parent, m_modal);
+    else
+        m_window->setSkipTaskbar(true);
     auto root = std::make_unique<Root>(m_closeButton);
     m_root = root.get();
     m_window->setContentView(std::move(root));

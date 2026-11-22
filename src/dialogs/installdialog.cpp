@@ -106,6 +106,10 @@ InstallDialog::InstallDialog(ui::Window* parent, std::string package, std::strin
             onDone();
     };
     m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
+    // From the desktop or the dock it has no window to belong to, and stays
+    // off the switcher and the menu bar.
+    if (!parent)
+        m_dialog->window()->setSkipTaskbar(true);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] { dismiss(); });
     m_changed = m_installer.changed.connect([this] { update(); });
 }

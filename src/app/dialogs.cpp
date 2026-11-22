@@ -241,6 +241,8 @@ ui::ConfirmDialog* Dialogs::confirm(ui::Window* parent, std::function<void(ui::C
     raw->onRejected = [this, raw] { removeConfirm(raw); };
     m_confirms.push_back({std::move(dialog), parent, std::move(texts)});
     raw->show();
+    if (!parent && raw->window())
+        raw->window()->setSkipTaskbar(true);
     if (onChanged)
         onChanged();
     return raw;

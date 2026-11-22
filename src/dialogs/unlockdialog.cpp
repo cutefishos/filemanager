@@ -167,6 +167,8 @@ UnlockVolumeDialog::UnlockVolumeDialog(ui::Window* parent, PlacesModel& places, 
             onDone();
     };
     m_dialog->window()->setBackgroundColor(ui::ColorId::SecondBackground);
+    if (!parent)
+        m_dialog->window()->setSkipTaskbar(true);
     m_dialog->window()->addShortcut(ui::NoModifier, ui::key::Escape, [this] {
         // An unlock already sent cannot be taken back; its outcome is shown here.
         if (!m_waiting)
