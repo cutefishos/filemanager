@@ -1791,8 +1791,9 @@ void FolderModel::updateActions()
     set("restore", items.size() >= 1 && trash, true);
     set("openWith", items.size() == 1 && !trash && !hasDir, true);
     set("showInFolder", searching && rows.size() == 1, true);
-    // Ripple takes local paths; a selection that is all local can go.
-    const bool canSend = !rows.empty() && !trash && !hasRemoteFiles;
+    // Ripple takes local files; folders have to wait until the protocol side
+    // carries their structure.
+    const bool canSend = !rows.empty() && !trash && !hasRemoteFiles && !hasDir;
     set("sendWithRipple", canSend, canSend);
 
     const bool canCompress = !rows.empty() && !trash && !hasRemoteFiles && !searching && rootItem().isWritable;
