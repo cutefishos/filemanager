@@ -175,18 +175,12 @@ bool launchFile(const std::string& path)
     return startCommand({path});
 }
 
-const char* const kBundleRunnerPackage = "cutefish-reef";
-
-static bool s_bundleRunnerUnavailable = false;
-
-bool canInstallBundleRunner()
+bool canGetBundleRunner()
 {
-    return !s_bundleRunnerUnavailable;
-}
-
-void setBundleRunnerUnavailable()
-{
-    s_bundleRunnerUnavailable = true;
+    base::dbus::Proxy offer(base::dbus::Connection::session(), "org.cutefish.Services",
+                            "/org/cutefish/Services/BundleRunner", "org.cutefish.Services.BundleRunner");
+    offer.setTimeout(std::chrono::seconds(5));
+    return offer.property<bool>("installable").value_or(false);
 }
 
 bool isTrusted(const std::string& path)

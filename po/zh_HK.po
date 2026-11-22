@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-20 18:46+0800\n"
+"POT-Creation-Date: 2026-11-22 18:34+0800\n"
 "PO-Revision-Date: 2026-11-13 16:33+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -275,8 +275,8 @@ msgid "New Folder"
 msgstr "新增檔案夾"
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
-#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr "取消"
 
@@ -500,45 +500,6 @@ msgstr "解壓縮"
 msgid "Password Required"
 msgstr "需要密碼"
 
-#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
-#. it out of them again, "Installed" says the font came with the system.
-#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
-msgid "Install"
-msgstr "安裝"
-
-#: src/dialogs/installdialog.cpp
-msgid "OK"
-msgstr "好"
-
-#: src/dialogs/installdialog.cpp
-#, python-brace-format
-msgid "To open “{name}”, Reef has to be downloaded and installed."
-msgstr "要開啟「{name}」，必須下載並安裝 Reef。"
-
-#: src/dialogs/installdialog.cpp
-msgid "Installing…"
-msgstr "正在安裝…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Downloading…"
-msgstr "正在下載…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Looking for Reef…"
-msgstr "正在尋找 Reef…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef is not available for this computer."
-msgstr "Reef 不適用於這部電腦。"
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef could not be installed."
-msgstr "無法安裝 Reef。"
-
-#: src/dialogs/installdialog.cpp
-msgid "Install Reef"
-msgstr "安裝 Reef"
-
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
 msgstr "取代項目"
@@ -602,7 +563,7 @@ msgstr "要以你正在複製的項目取代它嗎？"
 msgid "Apply to All"
 msgstr "全部套用"
 
-#: src/dialogs/iotaskdialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/progressrow.cpp
 msgid "Stop"
 msgstr "停止"
 
@@ -613,6 +574,15 @@ msgstr "略過"
 #: src/dialogs/iotaskdialog.cpp
 msgid "Keep Both"
 msgstr "兩者都保留"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Modifying “{name}” requires an administrator name and password."
+msgstr ""
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Authenticate"
+msgstr ""
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -865,11 +835,6 @@ msgstr "記住此密碼"
 
 #: src/dialogs/unlockdialog.cpp
 #, python-brace-format
-msgid "The passphrase for “{name}” is incorrect. Try again."
-msgstr "「{name}」的密碼片語不正確。請再試一次。"
-
-#: src/dialogs/unlockdialog.cpp
-#, python-brace-format
 msgid "Enter the passphrase to unlock “{name}”."
 msgstr "請輸入密碼片語以解鎖「{name}」。"
 
@@ -880,6 +845,16 @@ msgstr "密碼片語"
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock"
 msgstr "解鎖"
+
+#: src/dialogs/unlockdialog.cpp
+#, fuzzy
+msgid "Unlocking…"
+msgstr "正在處理…"
+
+#: src/dialogs/unlockdialog.cpp
+#, fuzzy
+msgid "Unlock failed."
+msgstr "解鎖宗卷"
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"
@@ -1067,6 +1042,12 @@ msgstr "此檔案已無法使用。"
 #, python-brace-format
 msgid "{index} of {count}"
 msgstr "第 {index} 個，共 {count} 個"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "安裝"
 
 #: src/preview/previewwindow.cpp
 msgid "Remove"

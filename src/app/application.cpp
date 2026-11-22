@@ -220,8 +220,8 @@ void Application::openFiles(const std::vector<std::string>& paths)
             continue;
         }
         if (local && !base::bundle::bundlePath(*local).empty()
-            && !base::ApplicationRegistry::instance().runsBundles() && launcher::canInstallBundleRunner()) {
-            installBundleRunner(*local, nullptr);
+            && !base::ApplicationRegistry::instance().runsBundles() && launcher::canGetBundleRunner()) {
+            launcher::launchFile(*local);
             continue;
         }
         openWindow(path);
@@ -359,11 +359,6 @@ void Application::confirmEmptyTrash(ui::Window* parent)
 void Application::confirmLaunch(const std::string& path, ui::Window* parent)
 {
     m_dialogs->confirmLaunch(path, parent);
-}
-
-void Application::installBundleRunner(const std::string& path, ui::Window* parent)
-{
-    m_dialogs->installBundleRunner(path, parent);
 }
 
 void Application::windowClosed(FolderWindow* window)

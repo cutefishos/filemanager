@@ -13,7 +13,6 @@ include(CTest)
 
 find_package(CutefishToolkit REQUIRED)
 find_package(CutefishFiles REQUIRED)
-find_package(CutefishClients REQUIRED COMPONENTS packagekit)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(ICU REQUIRED IMPORTED_TARGET icu-uc icu-i18n)
 
@@ -154,7 +153,6 @@ add_library(fm-ui STATIC
     src/dialogs/progressrow.cpp
     src/dialogs/propertiesdialog.cpp
     src/dialogs/serverdialogs.cpp
-    src/dialogs/installdialog.cpp
     src/dialogs/unlockdialog.cpp
     src/chooser/chooserwindow.cpp
     src/desktop/desktopview.cpp
@@ -164,7 +162,7 @@ add_library(fm-ui STATIC
     src/preview/previewcontroller.cpp
     src/preview/previewwindow.cpp
 )
-target_link_libraries(fm-ui PUBLIC fm-core Cutefish::PackageKitClient PkgConfig::ICU)
+target_link_libraries(fm-ui PUBLIC fm-core PkgConfig::ICU)
 
 add_executable(cutefish-filemanager
     src/app/application.cpp

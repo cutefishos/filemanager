@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-20 18:46+0800\n"
+"POT-Creation-Date: 2026-11-22 18:34+0800\n"
 "PO-Revision-Date: 2026-11-13 15:22+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -275,8 +275,8 @@ msgid "New Folder"
 msgstr "새 폴더"
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
-#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr "취소"
 
@@ -500,45 +500,6 @@ msgstr "압축 풀기"
 msgid "Password Required"
 msgstr "암호 필요"
 
-#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
-#. it out of them again, "Installed" says the font came with the system.
-#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
-msgid "Install"
-msgstr "설치"
-
-#: src/dialogs/installdialog.cpp
-msgid "OK"
-msgstr "확인"
-
-#: src/dialogs/installdialog.cpp
-#, python-brace-format
-msgid "To open “{name}”, Reef has to be downloaded and installed."
-msgstr "“{name}”을(를) 열려면 Reef를 다운로드하여 설치해야 합니다."
-
-#: src/dialogs/installdialog.cpp
-msgid "Installing…"
-msgstr "설치 중…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Downloading…"
-msgstr "다운로드 중…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Looking for Reef…"
-msgstr "Reef 찾는 중…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef is not available for this computer."
-msgstr "이 컴퓨터에서는 Reef를 사용할 수 없습니다."
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef could not be installed."
-msgstr "Reef를 설치할 수 없습니다."
-
-#: src/dialogs/installdialog.cpp
-msgid "Install Reef"
-msgstr "Reef 설치"
-
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
 msgstr "항목 바꾸기"
@@ -602,7 +563,7 @@ msgstr "복사 중인 항목으로 바꾸겠습니까?"
 msgid "Apply to All"
 msgstr "모두 적용"
 
-#: src/dialogs/iotaskdialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/progressrow.cpp
 msgid "Stop"
 msgstr "중단"
 
@@ -613,6 +574,15 @@ msgstr "건너뛰기"
 #: src/dialogs/iotaskdialog.cpp
 msgid "Keep Both"
 msgstr "모두 유지"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Modifying “{name}” requires an administrator name and password."
+msgstr ""
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Authenticate"
+msgstr ""
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -865,11 +835,6 @@ msgstr "이 암호 기억하기"
 
 #: src/dialogs/unlockdialog.cpp
 #, python-brace-format
-msgid "The passphrase for “{name}” is incorrect. Try again."
-msgstr "“{name}”의 암호 문구가 올바르지 않습니다. 다시 시도하십시오."
-
-#: src/dialogs/unlockdialog.cpp
-#, python-brace-format
 msgid "Enter the passphrase to unlock “{name}”."
 msgstr "“{name}”의 잠금을 해제하려면 암호 문구를 입력하십시오."
 
@@ -880,6 +845,16 @@ msgstr "암호 문구"
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock"
 msgstr "잠금 해제"
+
+#: src/dialogs/unlockdialog.cpp
+#, fuzzy
+msgid "Unlocking…"
+msgstr "작업 중…"
+
+#: src/dialogs/unlockdialog.cpp
+#, fuzzy
+msgid "Unlock failed."
+msgstr "볼륨 잠금 해제"
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"
@@ -1067,6 +1042,12 @@ msgstr "이 파일은 더 이상 사용할 수 없습니다."
 #, python-brace-format
 msgid "{index} of {count}"
 msgstr "{index}/{count}"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "설치"
 
 #: src/preview/previewwindow.cpp
 msgid "Remove"

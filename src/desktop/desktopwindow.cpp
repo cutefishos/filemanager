@@ -462,11 +462,6 @@ void DesktopWindow::confirmLaunch(const std::string& path)
     m_host.confirmLaunch(path, nullptr);
 }
 
-void DesktopWindow::installBundleRunner(const std::string& path)
-{
-    m_host.installBundleRunner(path, nullptr);
-}
-
 void DesktopWindow::notify(const std::string&)
 {
 }

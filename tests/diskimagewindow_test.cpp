@@ -51,7 +51,6 @@ public:
     void confirmDelete(const std::vector<std::string>&, ui::Window*) override {}
     void confirmEmptyTrash(ui::Window*) override {}
     void confirmLaunch(const std::string&, ui::Window*) override {}
-    void installBundleRunner(const std::string&, ui::Window*) override {}
     void windowClosed(fm::FolderWindow*) override {}
     void openDiskImageWindow(const std::string& path) override { diskImages.push_back(path); }
 
@@ -245,7 +244,6 @@ TEST(DiskImageWindowTest, OpeningAnImageAsksForItsVolumesWindow)
         void confirmDelete(const std::vector<std::string>&) override {}
         void confirmEmptyTrash() override {}
         void confirmLaunch(const std::string&) override {}
-        void installBundleRunner(const std::string&) override {}
         void notify(const std::string&) override {}
         void openDiskImageWindow(const std::string& path) override { host->openDiskImageWindow(path); }
     } modelHost;

@@ -66,7 +66,6 @@ public:
     void confirmDelete(const std::vector<std::string>& urls, ui::Window* parent) override;
     void confirmEmptyTrash(ui::Window* parent) override;
     void confirmLaunch(const std::string& path, ui::Window* parent) override;
-    void installBundleRunner(const std::string& path, ui::Window* parent) override;
     void windowClosed(FolderWindow* window) override;
     void openDiskImageWindow(const std::string& path) override;
 

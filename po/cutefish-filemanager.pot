@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-20 18:46+0800\n"
+"POT-Creation-Date: 2026-11-22 18:34+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -276,8 +276,8 @@ msgid "New Folder"
 msgstr ""
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
-#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr ""
 
@@ -505,45 +505,6 @@ msgstr ""
 msgid "Password Required"
 msgstr ""
 
-#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
-#. it out of them again, "Installed" says the font came with the system.
-#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
-msgid "Install"
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "OK"
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-#, python-brace-format
-msgid "To open “{name}”, Reef has to be downloaded and installed."
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "Installing…"
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "Downloading…"
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "Looking for Reef…"
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef is not available for this computer."
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef could not be installed."
-msgstr ""
-
-#: src/dialogs/installdialog.cpp
-msgid "Install Reef"
-msgstr ""
-
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
 msgstr ""
@@ -607,7 +568,7 @@ msgstr ""
 msgid "Apply to All"
 msgstr ""
 
-#: src/dialogs/iotaskdialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/progressrow.cpp
 msgid "Stop"
 msgstr ""
 
@@ -617,6 +578,15 @@ msgstr ""
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Keep Both"
+msgstr ""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Modifying “{name}” requires an administrator name and password."
+msgstr ""
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Authenticate"
 msgstr ""
 
 #: src/dialogs/iotaskdialog.cpp
@@ -879,11 +849,6 @@ msgstr ""
 
 #: src/dialogs/unlockdialog.cpp
 #, python-brace-format
-msgid "The passphrase for “{name}” is incorrect. Try again."
-msgstr ""
-
-#: src/dialogs/unlockdialog.cpp
-#, python-brace-format
 msgid "Enter the passphrase to unlock “{name}”."
 msgstr ""
 
@@ -893,6 +858,14 @@ msgstr ""
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock"
+msgstr ""
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlocking…"
+msgstr ""
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock failed."
 msgstr ""
 
 #: src/dialogs/unlockdialog.cpp
@@ -1081,6 +1054,12 @@ msgstr ""
 #: src/preview/previewwindow.cpp
 #, python-brace-format
 msgid "{index} of {count}"
+msgstr ""
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/preview/previewwindow.cpp
+msgid "Install"
 msgstr ""
 
 #: src/preview/previewwindow.cpp

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cutefish-filemanager\n"
 "Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
-"POT-Creation-Date: 2026-11-20 18:46+0800\n"
+"POT-Creation-Date: 2026-11-22 18:34+0800\n"
 "PO-Revision-Date: 2026-11-13 15:22+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -275,8 +275,8 @@ msgid "New Folder"
 msgstr "Nouveau dossier"
 
 #: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
-#: src/dialogs/installdialog.cpp src/dialogs/openwithdialog.cpp
-#: src/dialogs/serverdialogs.cpp src/dialogs/unlockdialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -504,45 +504,6 @@ msgstr "Extraire"
 msgid "Password Required"
 msgstr "Mot de passe requis"
 
-#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
-#. it out of them again, "Installed" says the font came with the system.
-#: src/dialogs/installdialog.cpp src/preview/previewwindow.cpp
-msgid "Install"
-msgstr "Installer"
-
-#: src/dialogs/installdialog.cpp
-msgid "OK"
-msgstr "OK"
-
-#: src/dialogs/installdialog.cpp
-#, python-brace-format
-msgid "To open “{name}”, Reef has to be downloaded and installed."
-msgstr "Pour ouvrir « {name} », Reef doit être téléchargé et installé."
-
-#: src/dialogs/installdialog.cpp
-msgid "Installing…"
-msgstr "Installation en cours…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Downloading…"
-msgstr "Téléchargement en cours…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Looking for Reef…"
-msgstr "Recherche de Reef…"
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef is not available for this computer."
-msgstr "Reef n'est pas disponible pour cet ordinateur."
-
-#: src/dialogs/installdialog.cpp
-msgid "Reef could not be installed."
-msgstr "Reef n'a pas pu être installé."
-
-#: src/dialogs/installdialog.cpp
-msgid "Install Reef"
-msgstr "Installer Reef"
-
 #: src/dialogs/iotaskdialog.cpp
 msgid "Replace Item"
 msgstr "Remplacer l'élément"
@@ -606,7 +567,7 @@ msgstr "Voulez-vous le remplacer par celui que vous copiez ?"
 msgid "Apply to All"
 msgstr "Appliquer à tous"
 
-#: src/dialogs/iotaskdialog.cpp
+#: src/dialogs/iotaskdialog.cpp src/dialogs/progressrow.cpp
 msgid "Stop"
 msgstr "Arrêter"
 
@@ -617,6 +578,15 @@ msgstr "Ignorer"
 #: src/dialogs/iotaskdialog.cpp
 msgid "Keep Both"
 msgstr "Conserver les deux"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Modifying “{name}” requires an administrator name and password."
+msgstr ""
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Authenticate"
+msgstr ""
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -878,11 +848,6 @@ msgstr "Mémoriser ce mot de passe"
 
 #: src/dialogs/unlockdialog.cpp
 #, python-brace-format
-msgid "The passphrase for “{name}” is incorrect. Try again."
-msgstr "La phrase secrète de « {name} » est incorrecte. Réessayez."
-
-#: src/dialogs/unlockdialog.cpp
-#, python-brace-format
 msgid "Enter the passphrase to unlock “{name}”."
 msgstr "Saisissez la phrase secrète pour déverrouiller « {name} »."
 
@@ -893,6 +858,16 @@ msgstr "Phrase secrète"
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock"
 msgstr "Déverrouiller"
+
+#: src/dialogs/unlockdialog.cpp
+#, fuzzy
+msgid "Unlocking…"
+msgstr "Traitement…"
+
+#: src/dialogs/unlockdialog.cpp
+#, fuzzy
+msgid "Unlock failed."
+msgstr "Déverrouiller le volume"
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"
@@ -1081,6 +1056,12 @@ msgstr "Ce fichier n'est plus disponible."
 #, python-brace-format
 msgid "{index} of {count}"
 msgstr "{index} sur {count}"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "Installer"
 
 #: src/preview/previewwindow.cpp
 msgid "Remove"

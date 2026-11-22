@@ -33,12 +33,8 @@ void setActivationTokenSource(std::function<void(std::function<void(const std::s
 bool launchApplication(const std::string& desktopFile, const std::string& file = {});
 // Runs a program, a .desktop launcher or an application bundle.
 bool launchFile(const std::string& path);
-// Whether offering the program that runs application bundles is worth it:
-// not once this system's package sources turned out not to have it.
-bool canInstallBundleRunner();
-void setBundleRunnerUnavailable();
-// The package of that program.
-extern const char* const kBundleRunnerPackage;
+// Whether the session can install the program that runs application bundles.
+bool canGetBundleRunner();
 // A launcher's name and icon can pose as anything, so only installed ones
 // run without asking.
 bool isTrusted(const std::string& path);

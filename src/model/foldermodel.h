@@ -37,8 +37,6 @@ public:
     virtual void confirmDelete(const std::vector<std::string>& urls) = 0;
     virtual void confirmEmptyTrash() = 0;
     virtual void confirmLaunch(const std::string& path) = 0;
-    // Offers the program that runs application bundles, then opens the one at `path`.
-    virtual void installBundleRunner(const std::string& path) = 0;
     // A message in the window, for a few seconds.
     virtual void notify(const std::string& message) = 0;
     // The volume of a disk image just opened, in the window the image arranges.
