@@ -3,9 +3,12 @@
 
 #include "dialogs/installdialog.h"
 
+#include "dialogs/progressrow.h"
+
 #include "base/i18n.h"
 #include "ui/cell_layout.h"
 #include "ui/dialog_window.h"
+#include "ui/header_button.h"
 #include "ui/keys.h"
 #include "ui/label.h"
 #include "ui/layout.h"
@@ -34,25 +37,28 @@ public:
 
         const Page page = dialog->m_page;
         if (page == Page::Progress) {
-            progress = addChild<ui::ProgressBar>();
-            progress->setLayoutHints({.fillWidth = true});
-        }
-
-        auto* actions = addChild<ui::RowLayout>();
-        actions->setSpacing(8);
-        ui::LayoutHints actionHints {.horizontalAlignment = ui::Alignment::End};
-        actionHints.margins.top = 4;
-        actions->setLayoutHints(actionHints);
-        if (page == Page::Ask || page == Page::Progress) {
-            cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
-            cancel->onClicked = [this] { m_dialog->dismiss(); };
-        }
-        if (page == Page::Ask) {
-            auto* install = actions->addChild<ui::DialogButton>(tr("Install"), true);
-            install->onClicked = [this] { m_dialog->m_installer.install(m_dialog->m_package); };
-        } else if (page != Page::Progress) {
-            auto* done = actions->addChild<ui::DialogButton>(tr("OK"), true);
-            done->onClicked = [this] { m_dialog->m_dialog->close(); };
+            auto* row = addChild<ProgressRow>();
+            ui::LayoutHints rowHints {.fillWidth = true};
+            rowHints.margins.bottom = 8;
+            row->setLayoutHints(rowHints);
+            progress = row->progress();
+            stop = row->stop();
+            stop->onClicked = [this] { m_dialog->dismiss(); };
+        } else {
+            auto* actions = addChild<ui::RowLayout>();
+            actions->setSpacing(8);
+            ui::LayoutHints actionHints {.horizontalAlignment = ui::Alignment::End};
+            actionHints.margins.top = 4;
+            actions->setLayoutHints(actionHints);
+            if (page == Page::Ask) {
+                auto* cancel = actions->addChild<ui::DialogButton>(tr("Cancel"));
+                cancel->onClicked = [this] { m_dialog->dismiss(); };
+                auto* install = actions->addChild<ui::DialogButton>(tr("Install"), true);
+                install->onClicked = [this] { m_dialog->m_installer.install(m_dialog->m_package); };
+            } else {
+                auto* done = actions->addChild<ui::DialogButton>(tr("OK"), true);
+                done->onClicked = [this] { m_dialog->m_dialog->close(); };
+            }
         }
         refresh();
     }
@@ -72,7 +78,7 @@ public:
                                                                                   : tr("Looking for Reef…"));
             progress->setIndeterminate(installer.progress() < 0);
             progress->setValue(installer.progress() < 0 ? 0 : installer.progress() / 100.0);
-            cancel->setEnabled(installer.canCancel());
+            stop->setEnabled(installer.canCancel());
             break;
         case Page::Unavailable:
             message->setText(tr("Reef is not available for this computer."));
@@ -86,7 +92,7 @@ public:
 
     ui::Label* message;
     ui::ProgressBar* progress = nullptr;
-    ui::DialogButton* cancel = nullptr;
+    ui::HeaderButton* stop = nullptr;
 
 private:
     InstallDialog* m_dialog;
@@ -98,7 +104,7 @@ InstallDialog::InstallDialog(ui::Window* parent, std::string package, std::strin
     , m_fileName(std::move(fileName))
 {
     m_dialog = std::make_unique<ui::DialogWindow>(parent, tr("Install Reef"), 400);
-    // Cancel or OK closes it.
+    // Cancel, Stop or OK closes it.
     m_dialog->setCloseVisible(false);
     m_content = m_dialog->setContent<Content>(this);
     m_dialog->onClosed = [this] {
