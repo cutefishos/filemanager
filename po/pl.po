@@ -586,11 +586,11 @@ msgstr "Zachowaj oba"
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
 msgid "Modifying “{name}” requires an administrator name and password."
-msgstr ""
+msgstr "Zmiana „{name}” wymaga nazwy i hasła administratora."
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Authenticate"
-msgstr ""
+msgstr "Uwierzytelnij"
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -873,14 +873,12 @@ msgid "Unlock"
 msgstr "Odblokuj"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlocking…"
-msgstr "Przetwarzanie…"
+msgstr "Odblokowywanie…"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlock failed."
-msgstr "Odblokuj wolumin"
+msgstr "Nie udało się odblokować."
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"

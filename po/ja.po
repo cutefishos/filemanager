@@ -578,11 +578,11 @@ msgstr "両方とも残す"
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
 msgid "Modifying “{name}” requires an administrator name and password."
-msgstr ""
+msgstr "「{name}」を変更するには、管理者の名前とパスワードが必要です。"
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Authenticate"
-msgstr ""
+msgstr "認証"
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -847,14 +847,12 @@ msgid "Unlock"
 msgstr "ロック解除"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlocking…"
-msgstr "処理中…"
+msgstr "ロックを解除しています…"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlock failed."
-msgstr "ボリュームのロックを解除"
+msgstr "ロックを解除できませんでした。"
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"

@@ -578,11 +578,11 @@ msgstr "Simpan Kedua-duanya"
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
 msgid "Modifying “{name}” requires an administrator name and password."
-msgstr ""
+msgstr "Mengubah suai “{name}” memerlukan nama dan kata laluan pentadbir."
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Authenticate"
-msgstr ""
+msgstr "Sahkan"
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -847,14 +847,12 @@ msgid "Unlock"
 msgstr "Buka Kunci"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlocking…"
-msgstr "Sedang berfungsi…"
+msgstr "Sedang membuka kunci…"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlock failed."
-msgstr "Buka Kunci Volum"
+msgstr "Gagal membuka kunci."
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"

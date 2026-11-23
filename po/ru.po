@@ -586,11 +586,11 @@ msgstr "Оставить оба"
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
 msgid "Modifying “{name}” requires an administrator name and password."
-msgstr ""
+msgstr "Для изменения «{name}» требуются имя и пароль администратора."
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Authenticate"
-msgstr ""
+msgstr "Аутентифицироваться"
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -873,14 +873,12 @@ msgid "Unlock"
 msgstr "Разблокировать"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlocking…"
-msgstr "Выполнение…"
+msgstr "Разблокировка…"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlock failed."
-msgstr "Разблокировка тома"
+msgstr "Не удалось разблокировать."
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"

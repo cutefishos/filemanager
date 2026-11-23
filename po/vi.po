@@ -578,11 +578,11 @@ msgstr "Giữ cả hai"
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
 msgid "Modifying “{name}” requires an administrator name and password."
-msgstr ""
+msgstr "Việc sửa đổi “{name}” yêu cầu tên và mật khẩu quản trị viên."
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Authenticate"
-msgstr ""
+msgstr "Xác thực"
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -847,14 +847,12 @@ msgid "Unlock"
 msgstr "Mở khóa"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlocking…"
-msgstr "Đang xử lý…"
+msgstr "Đang mở khóa…"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlock failed."
-msgstr "Mở khóa ổ đĩa"
+msgstr "Mở khóa không thành công."
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"

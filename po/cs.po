@@ -586,11 +586,11 @@ msgstr "Ponechat obě"
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
 msgid "Modifying “{name}” requires an administrator name and password."
-msgstr ""
+msgstr "Úprava „{name}“ vyžaduje jméno a heslo správce."
 
 #: src/dialogs/iotaskdialog.cpp
 msgid "Authenticate"
-msgstr ""
+msgstr "Ověřit"
 
 #: src/dialogs/iotaskdialog.cpp
 #, python-brace-format
@@ -873,14 +873,12 @@ msgid "Unlock"
 msgstr "Odemknout"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlocking…"
-msgstr "Probíhá…"
+msgstr "Odemykání…"
 
 #: src/dialogs/unlockdialog.cpp
-#, fuzzy
 msgid "Unlock failed."
-msgstr "Odemknout svazek"
+msgstr "Odemknutí se nezdařilo."
 
 #: src/dialogs/unlockdialog.cpp
 msgid "Unlock Volume"
