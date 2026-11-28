@@ -1,0 +1,1341 @@
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-22 18:34+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "Bilinmeyen ZIP hatası"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "Parola korumalı RAR arşivleri desteklenmez"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "Parola korumalı 7z arşivleri desteklenmez"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "Bu tür ZIP şifrelemesi desteklenmiyor"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "Bu formattaki şifre korumalı arşivler desteklenmez"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "Bilinmeyen arşiv hatası"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "Arşiv için bellek ayrılamadı"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "Bu çok parçalı arşivin ilk kısmı eksik"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "Kaynak artık mevcut değil: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "Sembolik bağlantı okunamadı: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "Kaynak normal bir dosya değil: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "Hiçbir dosya seçilmedi"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "Hedef klasör mevcut değil: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "Sembolik bağlantı için bellek ayrılamadı"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "{path} oluşturulamadı"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "{path} oluşturulamadı: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "Aynı anda yalnızca bir arşiv çıkarılabilir"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "Tanınmayan arşiv biçimi"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "Geçici bir çıkartma klasörü oluşturulamadı"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "Arşivdeki güvenli olmayan yol: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "Arşivlerdeki sabit bağlantılar desteklenmez: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "Arşivde geçersiz sembolik bağlantı yolu: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "Geçersiz sembolik bağlantı hedefi: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "Arşivlerdeki özel dosyalar desteklenmez: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "{path} için üst klasör oluşturulamadı"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "{path} yazılamadı: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "Arşivdeki sembolik bağlantı üst öğesi: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "Arşivdeki yinelenen yol: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "Sembolik bağlantı geri yüklenemedi: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "Görev yayınlanamadı"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "Disk görüntüsündeki birim zarar görmüş."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "Disk görüntüsü açılabilecek bir birim içermez."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "Şifrelenmiş disk görüntüleri açılamaz."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "Dosya açılabilecek bir disk görüntüsü değil."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "Seyrek disk görüntüleri açılamaz."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "Birkaç dosyaya bölünmüş disk görüntüleri açılamaz."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "Disk görüntüsü zarar görmüş."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "Disk görüntüsü okunamayan bir sıkıştırma kullanıyor."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "{path} oluşturulamıyor"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "FUSE oturumu başlatılamıyor"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "{path} bağlanamıyor"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "“{path}” mutlak bir yol değildir."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "“{location}” bağlanılabilecek bir konum değil."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "Zaten “{location}” öğesine bağlanılıyor."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "Cihaz açılamadı. Fişini çıkarıp tekrar bağlayın."
+
+#: mountd/mtpbackend.cpp
+msgid ""
+"The device's files are not available. Unlock it and allow access to its data"
+" on its screen; if that does not help, choose file transfer in its USB "
+"settings."
+msgstr ""
+"Cihazın dosyaları mevcut değil. Kilidini açın ve ekranındaki verilere "
+"erişime izin verin; bu işe yaramazsa USB ayarlarından dosya aktarımını "
+"seçin."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "SSH oturumu başlatılamıyor"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "Paylaşım mevcut değil."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "Sunucuya ulaşılamadı."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "Sil"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "Kalıcı olarak silmek istiyor musunuz?"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "Çöp Kutusunu Boşalt"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "Çöp Kutusundaki tüm dosyaları kalıcı olarak silmek istiyor musunuz?"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "Programı Çalıştır"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr ""
+"“{name}” bir programdır. Yalnızca geldiği yere güveniyorsanız çalıştırın."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "Çalıştır"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "Favoriler"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "Farklı Kaydet:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "Dosya Türü:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "Yeni Klasör"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "İptal et"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "Dosya Değiştirilsin mi?"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "“{name}” zaten mevcut. Değiştirilsin mi?"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "Yer değiştir"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "Device unavailable"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "Kapalı"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "Klasör adı"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "Oluştur"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "Dosyayı Kaydet"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "Açık"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "Kaydet"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "Klasör Seçin"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "Bir dosya seçin"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "{n} öğe seçildi"
+msgstr[1] "{n} öğe seçildi"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "Bu klasör kullanılamıyor veya okunamıyor."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "Klasör oluşturulamadı. Başka bir ad seçin."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "Eğik çizgi olmadan bir dosya adı girin."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "Buraya kaydetme izniniz yok."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "Yerel bir dosya veya klasör seçin."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "Seçilen öğe artık mevcut değil."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "Yalnızca klasörleri seçin."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "Yalnızca dosyaları seçin."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "Açmak için bir dosya seçin."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "Önerilen dosya adı geçersiz."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "Hiçbir dosya adı belirtilmedi."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "Şimdi"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "{n} dakika önce"
+msgstr[1] "{n} dakika önce"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "{n} saat önce"
+msgstr[1] "{n} saat önce"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "{n} gün önce"
+msgstr[1] "{n} gün önce"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "Bugün {time}'da"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "Dün saat {time}'da"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "Oturum veri yolu yok"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "Ev"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "Masaüstü"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "Belgeler"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "İndirilenler"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "Müzik"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "Resimler"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "Videolar"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "Şablonlar"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "Ortak erişim"
+
+#: src/core/standardfolders.cpp
+msgid "Applications"
+msgstr "Uygulamalar"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "Dosya"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "Yeni Pencere"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "Düzenle"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "Tümünü Seç"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "Görünüm"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "“{name}” şifresi yanlış. Tekrar deneyin."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "“{name}” dosyasını çıkarmak için şifreyi girin."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "Şifre"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "Çıkart"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "Şifre Gerekli"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "Öğeyi Değiştir"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "Bu konumda “{name}” adlı eski bir öğe zaten mevcut."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "Bu konumda “{name}” adlı daha yeni bir öğe zaten mevcut."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "Bu konumda “{name}” adlı bir öğe zaten mevcut."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "Bunu, oluşturduğunuz bağlantıyla değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "Taşıdığınız yenisiyle değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "Taşıdığınız eskisi ile değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "Taşıdığınızla değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "Onu geri yüklediğiniz yenisiyle değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "Onu, geri yüklediğiniz eskisiyle değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "Onu geri yüklediğinizle değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "Bunu kopyaladığınız yenisiyle değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "Bunu kopyaladığınız eski dosyayla değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "Bunu kopyaladığınızla değiştirmek ister misiniz?"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "Tümüne Uygula"
+
+#: src/dialogs/iotaskdialog.cpp src/dialogs/progressrow.cpp
+msgid "Stop"
+msgstr "Dur"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "Atla"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "İkisini de Tut"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Modifying “{name}” requires an administrator name and password."
+msgstr ""
+"“{name}” öğesinin değiştirilmesi bir yönetici adı ve parolası gerektirir."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Authenticate"
+msgstr "Kimlik doğrulama"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "“{name}”, “{destination}” öğesine kopyalanıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "{n} öğesi “{destination}” öğesine kopyalanıyor"
+msgstr[1] "{n} öğeleri “{destination}” öğesine kopyalanıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "“{name}”, “{destination}”ye taşınıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "{n} öğesi “{destination}” öğesine taşınıyor"
+msgstr[1] "{n} öğeleri “{destination}” öğesine taşınıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "“{name}” Çöp Kutusuna Taşınıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "{n} öğesi Çöp Kutusu'na taşınıyor"
+msgstr[1] "{n} öğe Çöp Kutusu'na taşınıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "“{name}” geri yükleniyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "{n} öğesi geri yükleniyor"
+msgstr[1] "{n} öğe geri yükleniyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "“{name}” siliniyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "{n} öğesi siliniyor"
+msgstr[1] "{n} öğe siliniyor"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "Çöp Boşaltılıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "“{name}” ifadesini “{destination}” olarak yeniden adlandırma"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "“{name}” oluşturuluyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "“{destination}” içinde bağlantılar oluşturma"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "“{destination}” olarak sıkıştırılıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "“{destination}” dizinine çıkarılıyor"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "Hazırlanıyor…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "Yaklaşık bir saniye kaldı"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "Yaklaşık {n} saniye kaldı"
+msgstr[1] "Yaklaşık {n} saniye kaldı"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "Yaklaşık bir dakika kaldı"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "Yaklaşık {n} dakika kaldı"
+msgstr[1] "Yaklaşık {n} dakika kaldı"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "Durduruluyor..."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "Seçiminiz bekleniyor"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "Bitiriliyor…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "Çalışma…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "“{name}” üzerinde çalışıyoruz…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed} / {total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed} / {n} öğe"
+msgstr[1] "{processed} / {n} öğe"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a
+#. minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "“{name}” bu konumda zaten mevcut."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "Birlikte Aç"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "Uygulama yok"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "Varsayılan olarak ayarla"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "Özellikler"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} dosyası"
+msgstr[1] "{n} dosyalar"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "Tip:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "Konum:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "Boyut:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "Hesaplanıyor…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "Oluşturuldu:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "Değiştirildi:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "Erişildi:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://sunucu/paylaşım veya sftp://kullanıcı@sunucu"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "Son Sunucular"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "Bağla"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "Sunucuya Bağlan"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "“{address}” için ad veya şifre yanlış. Tekrar deneyin."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "“{address}” için adınızı ve şifrenizi girin."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "Kayıtlı kullanıcı"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "Misafir"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "İsim"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "Alan adı (isteğe bağlı)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "Bu şifreyi hatırla"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "“{name}” kilidini açmak için parolayı girin."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "Parola"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "Kilidi aç"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlocking…"
+msgstr "Kilit açılıyor…"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock failed."
+msgstr "Kilit açma başarısız oldu."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "Birimin Kilidini Aç"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} öğe"
+msgstr[1] "{n} öğe"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "Klasör"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "Başvuru"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "Çöp"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "Yeni Klasör"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "Yeni Metin"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "Yalnızca yerel dosyalar sıkıştırılabilir."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "Arşiv"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "Çıkarıldı"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "Sıkıştırma iptal edildi."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "Çıkarma işlemi iptal edildi."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "Şununla aç:"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "Ek Klasörde Göster"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "Sıkıştır"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "Kes"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "Kopyala"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "Yapıştır"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "Yeni Metin"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "Çöp Kutusuna Taşı"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "Yeniden adlandır"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "Terminalde Aç"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "Duvar Kağıdı Olarak Ayarla"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "Arka planı değiştir"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "Eski haline getirmek"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "Gizli Dosyaları Göster"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "Yeni Pencerede Aç"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "Yeni Sekmede Aç"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "Geri al"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "Yinele"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "“{name}” sıkıştır"
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "Öğeleri Sıkıştır"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "Gizli Dosyaları Gizle"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "Bilgisayar"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "Konumlar"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "Dahili Sürücüler"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "Ağ"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid ""
+"“{address}” is not a server address. Enter one such as smb://server/share or"
+" sftp://user@server."
+msgstr ""
+"“{address}” bir sunucu adresi değil. smb://sunucu/paylaşım veya "
+"sftp://kullanıcı@sunucu gibi bir tane girin."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "Kullanımdadır. Orada açık olan dosyaları kapatıp tekrar deneyin."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "Dosya işlemleri hizmeti durduruldu."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "Oturum veriyoluna ulaşılamıyor."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "Bu konum için önizleme kullanılamıyor."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "Bu dosya artık mevcut değil."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of
+#. 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index} / {count}"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the
+#. user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "Düzenlemek"
+
+#: src/preview/previewwindow.cpp
+msgid "Remove"
+msgstr "Kaldır"
+
+#: src/preview/previewwindow.cpp
+msgid "Installed"
+msgstr "Yüklendi"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "{application} ile aç"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3
+#. items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}, {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "Bu dosyanın geri kalanı gösterilmiyor."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "Bu resim görüntülenemedi."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "Hızlı Bakış"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "Yeni Belgeler"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every
+#. application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "Diğer"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "Sonuç Yok"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "“{text}” aranıyor"
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "Ara:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "“{name}”"
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "Boş"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "Dosyalar"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "Sekmeyi Kapat"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "Dosyalarınıza göz atar ve düzenler."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "Dosyalar Hakkında"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "Dosyaları Gizle"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "Yeni Sekme"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "Bul"
+
+#: src/views/folderwindow.cpp
+msgid "Close Window"
+msgstr "Pencereyi Kapat"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "Simgeler olarak"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "Liste Olarak"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "Göre sırala"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "Yenile"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "İsim"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "Orijinal Konum"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "Silinme Tarihi"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "Tarih"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "Tip"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "Boyut"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "Git"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "Geri"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "İleri"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "Ek Klasör"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "Konuma Git…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "Sunucuya Bağlan…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "Pencere"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "Küçült"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "Yakınlaştır"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "Önceki Sekmeyi Göster"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "Sonraki Sekmeyi Göster"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "Değiştirilme Tarihi"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "Tür"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "Yolu Arayın veya Girin"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "Önizleme açılamadı: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "dışında bir ad seçin. veya .."
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "Adlar / veya satır sonları içeremez."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "Favorilerden Kaldır"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "Çıkar"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "Bağlantıyı kaldır"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "Sunucu Kimliği Değiştirildi"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "Bilinmeyen Sunucu"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid ""
+"The identity of “{address}” is not the one it had before. Someone may be "
+"impersonating it. Connect only if its administrator changed its key."
+msgstr ""
+"“{address}” kimliği daha önce sahip olduğu kimlik değil. Birisi onu taklit "
+"ediyor olabilir. Yalnızca yöneticisinin anahtarını değiştirmesi durumunda "
+"bağlanın."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid ""
+"The identity of “{address}” cannot be verified. Check that its key "
+"fingerprint is the one you expect before you connect."
+msgstr ""
+"“{address}” kimliği doğrulanamıyor. Bağlanmadan önce anahtar parmak izinin "
+"beklediğiniz parmak izi olup olmadığını kontrol edin."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "Yine de Bağlan"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "Cihaz işlemi başarısız oldu"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "Dosya Yöneticisi"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "Dosyalarınıza göz atın ve yönetin"
