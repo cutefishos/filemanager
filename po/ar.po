@@ -1,0 +1,1369 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cutefish-filemanager\n"
+"Report-Msgid-Bugs-To: https://github.com/cutefishos\n"
+"POT-Creation-Date: 2026-11-22 18:34+0800\n"
+"PO-Revision-Date: 2026-11-28 14:17+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+
+#: daemon/archivejob.cpp
+msgid "Unknown ZIP error"
+msgstr "خطأ ZIP غير معروف"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected RAR archives are not supported"
+msgstr "أرشيفات RAR المحمية بكلمة سر غير مدعومة"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected 7z archives are not supported"
+msgstr "أرشيفات 7z المحمية بكلمة سر غير مدعومة"
+
+#: daemon/archivejob.cpp
+msgid "This kind of ZIP encryption is not supported"
+msgstr "هذا النوع من تشفير ZIP غير مدعوم"
+
+#: daemon/archivejob.cpp
+msgid "Password-protected archives of this format are not supported"
+msgstr "الأرشيفات المحمية بكلمة سر من هذا التنسيق غير مدعومة"
+
+#: daemon/archivejob.cpp
+msgid "Unknown archive error"
+msgstr "خطأ أرشيف غير معروف"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for the archive"
+msgstr "تعذر تخصيص ذاكرة للأرشيف"
+
+#: daemon/archivejob.cpp
+msgid "The first part of this multi-part archive is missing"
+msgstr "الجزء الأول من هذا الأرشيف متعدد الأجزاء مفقود"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source no longer exists: {path}"
+msgstr "المصدر لم يعد موجودًا: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not read symbolic link: {path}"
+msgstr "تعذرت قراءة الرابط الرمزي: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The source is not a regular file: {path}"
+msgstr "المصدر ليس ملفًا عاديًا: {path}"
+
+#: daemon/archivejob.cpp
+msgid "No files were selected"
+msgstr "لم يتم تحديد أي ملفات"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "The destination folder does not exist: {path}"
+msgstr "المجلد الوجهة غير موجود: {path}"
+
+#: daemon/archivejob.cpp
+msgid "Could not allocate memory for symbolic link"
+msgstr "تعذر تخصيص ذاكرة للرابط الرمزي"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}"
+msgstr "تعذر إنشاء {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create {path}: {error}"
+msgstr "تعذر إنشاء {path}: {error}"
+
+#: daemon/archivejob.cpp
+msgid "Only one archive can be extracted at a time"
+msgstr "لا يمكن استخراج سوى أرشيف واحد في كل مرة"
+
+#: daemon/archivejob.cpp
+msgid "Unrecognized archive format"
+msgstr "تنسيق أرشيف غير معروف"
+
+#: daemon/archivejob.cpp
+msgid "Could not create a temporary extraction folder"
+msgstr "تعذر إنشاء مجلد مؤقت للاستخراج"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Unsafe path in archive: {path}"
+msgstr "مسار غير آمن في الأرشيف: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Hard links in archives are not supported: {path}"
+msgstr "الروابط الصلبة في الأرشيفات غير مدعومة: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link path in archive: {path}"
+msgstr "مسار رابط رمزي غير صالح في الأرشيف: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Invalid symbolic link target: {path}"
+msgstr "وجهة رابط رمزي غير صالحة: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Special files in archives are not supported: {path}"
+msgstr "الملفات الخاصة في الأرشيفات غير مدعومة: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not create the parent folder for {path}"
+msgstr "تعذر إنشاء المجلد الأصل لـ {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not write {path}: {error}"
+msgstr "تعذرت كتابة {path}: {error}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Symbolic link parent in archive: {path}"
+msgstr "أصل رابط رمزي في الأرشيف: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Duplicate path in archive: {path}"
+msgstr "مسار مكرر في الأرشيف: {path}"
+
+#: daemon/archivejob.cpp
+#, python-brace-format
+msgid "Could not restore symbolic link: {path}"
+msgstr "تعذرت استعادة الرابط الرمزي: {path}"
+
+#: daemon/fileoperationsservice.cpp
+msgid "The task could not be published"
+msgstr "تعذر نشر المهمة"
+
+#: mountd/apfs.cpp mountd/hfsplus.cpp
+msgid "The volume in the disk image is damaged."
+msgstr "وحدة التخزين في صورة القرص تالفة."
+
+#: mountd/apfs.cpp mountd/diskimagebackend.cpp
+msgid "The disk image holds no volume that can be opened."
+msgstr "لا تحتوي صورة القرص على أي وحدة تخزين يمكن فتحها."
+
+#: mountd/apfs.cpp mountd/diskimage.cpp
+msgid "Encrypted disk images cannot be opened."
+msgstr "لا يمكن فتح صور الأقراص المشفرة."
+
+#: mountd/diskimage.cpp
+msgid "The file is not a disk image that can be opened."
+msgstr "الملف ليس صورة قرص يمكن فتحها."
+
+#: mountd/diskimage.cpp
+msgid "Sparse disk images cannot be opened."
+msgstr "لا يمكن فتح صور الأقراص المتناثرة."
+
+#: mountd/diskimage.cpp
+msgid "Disk images split into several files cannot be opened."
+msgstr "لا يمكن فتح صور الأقراص المقسمة إلى عدة ملفات."
+
+#: mountd/diskimage.cpp
+msgid "The disk image is damaged."
+msgstr "صورة القرص تالفة."
+
+#: mountd/diskimage.cpp
+msgid "The disk image uses a compression that cannot be read."
+msgstr "تستخدم صورة القرص ضغطًا لا يمكن قراءته."
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot create {path}"
+msgstr "تعذر إنشاء {path}"
+
+#: mountd/fusemount.cpp
+msgid "Cannot start the FUSE session"
+msgstr "تعذر بدء جلسة FUSE"
+
+#: mountd/fusemount.cpp
+#, python-brace-format
+msgid "Cannot mount {path}"
+msgstr "تعذر تحميل {path}"
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{path}” is not an absolute path."
+msgstr "\"{path}\" ليس مسارًا مطلقًا."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "“{location}” is not a location that can be connected to."
+msgstr "\"{location}\" ليس موقعًا يمكن الاتصال به."
+
+#: mountd/mountservice.cpp
+#, python-brace-format
+msgid "Already connecting to “{location}”."
+msgstr "جارٍ الاتصال بـ \"{location}\" بالفعل."
+
+#: mountd/mtpbackend.cpp
+msgid "The device could not be opened. Unplug it and connect it again."
+msgstr "تعذر فتح الجهاز. افصله ثم أعد توصيله."
+
+#: mountd/mtpbackend.cpp
+msgid "The device's files are not available. Unlock it and allow access to its data on its screen; if that does not help, choose file transfer in its USB settings."
+msgstr "ملفات الجهاز غير متوفرة. افتح قفله واسمح بالوصول إلى بياناته من شاشته؛ وإذا لم ينجح ذلك، فاختر نقل الملفات في إعدادات USB."
+
+#: mountd/sftpbackend.cpp
+msgid "Cannot start an SSH session"
+msgstr "تعذر بدء جلسة SSH"
+
+#: mountd/smbbackend.cpp
+msgid "The share does not exist."
+msgstr "المشاركة غير موجودة."
+
+#: mountd/smbbackend.cpp
+msgid "The server could not be reached."
+msgstr "تعذر الوصول إلى الخادم."
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Delete"
+msgstr "حذف"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to delete it permanently?"
+msgstr "هل تريد حذفه نهائيًا؟"
+
+#: src/app/dialogs.cpp src/model/foldermodel.cpp
+msgid "Empty Trash"
+msgstr "إفراغ سلة المهملات"
+
+#: src/app/dialogs.cpp
+msgid "Do you want to permanently delete all files from the Trash?"
+msgstr "هل تريد حذف جميع الملفات نهائيًا من سلة المهملات؟"
+
+#: src/app/dialogs.cpp
+msgid "Run Program"
+msgstr "تشغيل البرنامج"
+
+#: src/app/dialogs.cpp
+#, python-brace-format
+msgid "“{name}” is a program. Only run it if you trust where it came from."
+msgstr "\"{name}\" عبارة عن برنامج. لا تشغله إلا إذا كنت تثق بمصدره."
+
+#: src/app/dialogs.cpp
+msgid "Run"
+msgstr "تشغيل"
+
+#: src/chooser/chooserwindow.cpp src/model/places.cpp src/views/sidebar.cpp
+msgid "Favorites"
+msgstr "المفضلة"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Save As:"
+msgstr "حفظ باسم:"
+
+#: src/chooser/chooserwindow.cpp
+msgid "File Type:"
+msgstr "نوع الملف:"
+
+#: src/chooser/chooserwindow.cpp src/model/foldermodel.cpp
+msgid "New Folder"
+msgstr "مجلد جديد"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/archivepassworddialog.cpp
+#: src/dialogs/openwithdialog.cpp src/dialogs/serverdialogs.cpp
+#: src/dialogs/unlockdialog.cpp
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Replace File?"
+msgstr "هل تريد استبدال الملف؟"
+
+#: src/chooser/chooserwindow.cpp
+#, python-brace-format
+msgid "“{name}” already exists. Replace it?"
+msgstr "\"{name}\" موجود بالفعل. هل تريد استبداله؟"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+msgid "Replace"
+msgstr "استبدال"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Device unavailable"
+msgstr "الجهاز غير متوفر"
+
+#: src/chooser/chooserwindow.cpp src/dialogs/iotaskdialog.cpp
+#: src/views/sidebar.cpp
+msgid "Close"
+msgstr "إغلاق"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Folder name"
+msgstr "اسم المجلد"
+
+#: src/chooser/chooserwindow.cpp
+msgid "Create"
+msgstr "إنشاء"
+
+#: src/chooser/filechooser.cpp
+msgid "Save File"
+msgstr "حفظ الملف"
+
+#: src/chooser/filechooser.cpp src/dialogs/openwithdialog.cpp
+#: src/model/foldermodel.cpp
+msgid "Open"
+msgstr "فتح"
+
+#: src/chooser/filechooser.cpp
+msgid "Save"
+msgstr "حفظ"
+
+#: src/chooser/filechooser.cpp
+msgid "Select Folder"
+msgstr "تحديد مجلد"
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file"
+msgstr "تحديد ملف"
+
+#: src/chooser/filechooser.cpp
+#, python-brace-format
+msgid "{n} item selected"
+msgid_plural "{n} items selected"
+msgstr[0] "تم تحديد {n} عنصر"
+msgstr[1] "تم تحديد عنصر واحد"
+msgstr[2] "تم تحديد عنصرين"
+msgstr[3] "تم تحديد {n} عناصر"
+msgstr[4] "تم تحديد {n} عنصرًا"
+msgstr[5] "تم تحديد {n} عنصر"
+
+#: src/chooser/filechooser.cpp
+msgid "This folder is unavailable or cannot be read."
+msgstr "هذا المجلد غير متوفر أو لا يمكن قراءته."
+
+#: src/chooser/filechooser.cpp
+msgid "The folder could not be created. Choose another name."
+msgstr "تعذر إنشاء المجلد. اختر اسمًا آخر."
+
+#: src/chooser/filechooser.cpp
+msgid "Enter a file name without slashes."
+msgstr "أدخل اسم ملف بدون شرطات مائلة."
+
+#: src/chooser/filechooser.cpp
+msgid "You do not have permission to save here."
+msgstr "ليس لديك إذن للحفظ هنا."
+
+#: src/chooser/filechooser.cpp
+msgid "Choose a local file or folder."
+msgstr "اختر ملفًا أو مجلدًا محليًا."
+
+#: src/chooser/filechooser.cpp
+msgid "The selected item is no longer available."
+msgstr "العنصر المحدد لم يعد متوفرًا."
+
+#: src/chooser/filechooser.cpp
+msgid "Select folders only."
+msgstr "حدد مجلدات فقط."
+
+#: src/chooser/filechooser.cpp
+msgid "Select files only."
+msgstr "حدد ملفات فقط."
+
+#: src/chooser/filechooser.cpp
+msgid "Select a file to open."
+msgstr "حدد ملفًا لفتحه."
+
+#: src/chooser/filechooser.cpp
+msgid "A suggested file name is invalid."
+msgstr "اسم الملف المقترح غير صالح."
+
+#: src/chooser/filechooser.cpp
+msgid "No file names were provided."
+msgstr "لم يتم توفير أي أسماء ملفات."
+
+#: src/core/dates.cpp
+msgid "Now"
+msgstr "الآن"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} minute ago"
+msgid_plural "{n} minutes ago"
+msgstr[0] "منذ {n} دقيقة"
+msgstr[1] "منذ دقيقة واحدة"
+msgstr[2] "منذ دقيقتين"
+msgstr[3] "منذ {n} دقائق"
+msgstr[4] "منذ {n} دقيقة"
+msgstr[5] "منذ {n} دقيقة"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} hour ago"
+msgid_plural "{n} hours ago"
+msgstr[0] "منذ {n} ساعة"
+msgstr[1] "منذ ساعة واحدة"
+msgstr[2] "منذ ساعتين"
+msgstr[3] "منذ {n} ساعات"
+msgstr[4] "منذ {n} ساعة"
+msgstr[5] "منذ {n} ساعة"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "{n} day ago"
+msgid_plural "{n} days ago"
+msgstr[0] "منذ {n} يوم"
+msgstr[1] "منذ يوم واحد"
+msgstr[2] "منذ يومين"
+msgstr[3] "منذ {n} أيام"
+msgstr[4] "منذ {n} يومًا"
+msgstr[5] "منذ {n} يوم"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Today at {time}"
+msgstr "اليوم الساعة {time}"
+
+#: src/core/dates.cpp
+#, python-brace-format
+msgid "Yesterday at {time}"
+msgstr "أمس الساعة {time}"
+
+#: src/core/mounts.cpp
+msgid "No session bus"
+msgstr "لا يوجد ناقل جلسة"
+
+#: src/core/standardfolders.cpp src/views/folderwindow.cpp
+msgid "Home"
+msgstr "الرئيسية"
+
+#: src/core/standardfolders.cpp src/desktop/desktopwindow.cpp
+msgid "Desktop"
+msgstr "سطح المكتب"
+
+#: src/core/standardfolders.cpp
+msgid "Documents"
+msgstr "المستندات"
+
+#: src/core/standardfolders.cpp
+msgid "Downloads"
+msgstr "التنزيلات"
+
+#: src/core/standardfolders.cpp
+msgid "Music"
+msgstr "الموسيقى"
+
+#: src/core/standardfolders.cpp
+msgid "Pictures"
+msgstr "الصور"
+
+#: src/core/standardfolders.cpp
+msgid "Videos"
+msgstr "الفيديو"
+
+#: src/core/standardfolders.cpp
+msgid "Templates"
+msgstr "القوالب"
+
+#: src/core/standardfolders.cpp
+msgid "Public"
+msgstr "عام"
+
+#: src/core/standardfolders.cpp
+msgid "Applications"
+msgstr "التطبيقات"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "File"
+msgstr "ملف"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "New Window"
+msgstr "نافذة جديدة"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "Edit"
+msgstr "تحرير"
+
+#: src/desktop/desktopwindow.cpp src/views/foldermenu.cpp
+#: src/views/folderwindow.cpp
+msgid "Select All"
+msgstr "تحديد الكل"
+
+#: src/desktop/desktopwindow.cpp src/views/folderwindow.cpp
+msgid "View"
+msgstr "عرض"
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "The password for “{name}” is incorrect. Try again."
+msgstr "كلمة السر لـ \"{name}\" غير صحيحة. حاول مرة أخرى."
+
+#: src/dialogs/archivepassworddialog.cpp
+#, python-brace-format
+msgid "Enter the password to extract “{name}”."
+msgstr "أدخل كلمة السر لاستخراج \"{name}\"."
+
+#: src/dialogs/archivepassworddialog.cpp src/dialogs/serverdialogs.cpp
+msgid "Password"
+msgstr "كلمة السر"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Extract"
+msgstr "استخراج"
+
+#: src/dialogs/archivepassworddialog.cpp
+msgid "Password Required"
+msgstr "كلمة السر مطلوبة"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Replace Item"
+msgstr "استبدال العنصر"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An older item named “{name}” already exists in this location."
+msgstr "يوجد عنصر أقدم باسم \"{name}\" في هذا الموقع بالفعل."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "A newer item named “{name}” already exists in this location."
+msgstr "يوجد عنصر أحدث باسم \"{name}\" في هذا الموقع بالفعل."
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "An item named “{name}” already exists in this location."
+msgstr "يوجد عنصر باسم \"{name}\" في هذا الموقع بالفعل."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the link you’re creating?"
+msgstr "هل تريد استبداله بالرابط الذي تقوم بإنشائه؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re moving?"
+msgstr "هل تريد استبداله بالعنصر الأحدث الذي تقوم بنقله؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re moving?"
+msgstr "هل تريد استبداله بالعنصر الأقدم الذي تقوم بنقله؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re moving?"
+msgstr "هل تريد استبداله بالعنصر الذي تقوم بنقله؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re restoring?"
+msgstr "هل تريد استبداله بالعنصر الأحدث الذي تقوم باستعادته؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re restoring?"
+msgstr "هل تريد استبداله بالعنصر الأقدم الذي تقوم باستعادته؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re restoring?"
+msgstr "هل تريد استبداله بالعنصر الذي تقوم باستعادته؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the newer one you’re copying?"
+msgstr "هل تريد استبداله بالعنصر الأحدث الذي تقوم بنسخه؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the older one you’re copying?"
+msgstr "هل تريد استبداله بالعنصر الأقدم الذي تقوم بنسخه؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Do you want to replace it with the one you’re copying?"
+msgstr "هل تريد استبداله بالعنصر الذي تقوم بنسخه؟"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Apply to All"
+msgstr "تطبيق على الكل"
+
+#: src/dialogs/iotaskdialog.cpp src/dialogs/progressrow.cpp
+msgid "Stop"
+msgstr "إيقاف"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Skip"
+msgstr "تخطي"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Keep Both"
+msgstr "الاحتفاظ بالاثنين"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Modifying “{name}” requires an administrator name and password."
+msgstr "يتطلب تعديل \"{name}\" اسم مسؤول وكلمة سر."
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Authenticate"
+msgstr "مصادقة"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying “{name}” to “{destination}”"
+msgstr "جارٍ نسخ \"{name}\" إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Copying {n} item to “{destination}”"
+msgid_plural "Copying {n} items to “{destination}”"
+msgstr[0] "جارٍ نسخ {n} عنصر إلى \"{destination}\""
+msgstr[1] "جارٍ نسخ عنصر واحد إلى \"{destination}\""
+msgstr[2] "جارٍ نسخ عنصرين إلى \"{destination}\""
+msgstr[3] "جارٍ نسخ {n} عناصر إلى \"{destination}\""
+msgstr[4] "جارٍ نسخ {n} عنصرًا إلى \"{destination}\""
+msgstr[5] "جارٍ نسخ {n} عنصر إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to “{destination}”"
+msgstr "جارٍ نقل \"{name}\" إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to “{destination}”"
+msgid_plural "Moving {n} items to “{destination}”"
+msgstr[0] "جارٍ نقل {n} عنصر إلى \"{destination}\""
+msgstr[1] "جارٍ نقل عنصر واحد إلى \"{destination}\""
+msgstr[2] "جارٍ نقل عنصرين إلى \"{destination}\""
+msgstr[3] "جارٍ نقل {n} عناصر إلى \"{destination}\""
+msgstr[4] "جارٍ نقل {n} عنصرًا إلى \"{destination}\""
+msgstr[5] "جارٍ نقل {n} عنصر إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving “{name}” to Trash"
+msgstr "جارٍ نقل \"{name}\" إلى سلة المهملات"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Moving {n} item to Trash"
+msgid_plural "Moving {n} items to Trash"
+msgstr[0] "جارٍ نقل {n} عنصر إلى سلة المهملات"
+msgstr[1] "جارٍ نقل عنصر واحد إلى سلة المهملات"
+msgstr[2] "جارٍ نقل عنصرين إلى سلة المهملات"
+msgstr[3] "جارٍ نقل {n} عناصر إلى سلة المهملات"
+msgstr[4] "جارٍ نقل {n} عنصرًا إلى سلة المهملات"
+msgstr[5] "جارٍ نقل {n} عنصر إلى سلة المهملات"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring “{name}”"
+msgstr "جارٍ استعادة \"{name}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Restoring {n} item"
+msgid_plural "Restoring {n} items"
+msgstr[0] "جارٍ استعادة {n} عنصر"
+msgstr[1] "جارٍ استعادة عنصر واحد"
+msgstr[2] "جارٍ استعادة عنصرين"
+msgstr[3] "جارٍ استعادة {n} عناصر"
+msgstr[4] "جارٍ استعادة {n} عنصرًا"
+msgstr[5] "جارٍ استعادة {n} عنصر"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting “{name}”"
+msgstr "جارٍ حذف \"{name}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Deleting {n} item"
+msgid_plural "Deleting {n} items"
+msgstr[0] "جارٍ حذف {n} عنصر"
+msgstr[1] "جارٍ حذف عنصر واحد"
+msgstr[2] "جارٍ حذف عنصرين"
+msgstr[3] "جارٍ حذف {n} عناصر"
+msgstr[4] "جارٍ حذف {n} عنصرًا"
+msgstr[5] "جارٍ حذف {n} عنصر"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Emptying Trash"
+msgstr "جارٍ إفراغ سلة المهملات"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Renaming “{name}” to “{destination}”"
+msgstr "جارٍ إعادة تسمية \"{name}\" إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating “{name}”"
+msgstr "جارٍ إنشاء \"{name}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Creating links in “{destination}”"
+msgstr "جارٍ إنشاء روابط في \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Compressing to “{destination}”"
+msgstr "جارٍ الضغط إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Extracting to “{destination}”"
+msgstr "جارٍ الاستخراج إلى \"{destination}\""
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Preparing…"
+msgstr "جارٍ التحضير…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a second remaining"
+msgstr "تبقّت ثانية واحدة تقريبًا"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} second remaining"
+msgid_plural "About {n} seconds remaining"
+msgstr[0] "تبقّت {n} ثانية تقريبًا"
+msgstr[1] "تبقّت ثانية واحدة تقريبًا"
+msgstr[2] "تبقّت ثانيتان تقريبًا"
+msgstr[3] "تبقّت {n} ثوانٍ تقريبًا"
+msgstr[4] "تبقّت {n} ثانية تقريبًا"
+msgstr[5] "تبقّت {n} ثانية تقريبًا"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "About a minute remaining"
+msgstr "تبقّت دقيقة واحدة تقريبًا"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "About {n} minute remaining"
+msgid_plural "About {n} minutes remaining"
+msgstr[0] "تبقّت {n} دقيقة تقريبًا"
+msgstr[1] "تبقّت دقيقة واحدة تقريبًا"
+msgstr[2] "تبقّت دقيقتان تقريبًا"
+msgstr[3] "تبقّت {n} دقائق تقريبًا"
+msgstr[4] "تبقّت {n} دقيقة تقريبًا"
+msgstr[5] "تبقّت {n} دقيقة تقريبًا"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Stopping…"
+msgstr "جارٍ الإيقاف…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Waiting for your choice"
+msgstr "بانتظار اختيارك"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Finishing…"
+msgstr "جارٍ الإنهاء…"
+
+#: src/dialogs/iotaskdialog.cpp
+msgid "Working…"
+msgstr "جارٍ العمل…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "Working on “{name}”…"
+msgstr "جارٍ العمل على \"{name}\"…"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {total}"
+msgstr "{processed} من {total}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{processed} of {n} item"
+msgid_plural "{processed} of {n} items"
+msgstr[0] "{processed} من {n} عنصر"
+msgstr[1] "{processed} من عنصر واحد"
+msgstr[2] "{processed} من عنصرين"
+msgstr[3] "{processed} من {n} عناصر"
+msgstr[4] "{processed} من {n} عنصرًا"
+msgstr[5] "{processed} من {n} عنصر"
+
+#. TRANSLATORS: progress and the time left, such as "3 of 10 items — About a minute remaining".
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "{amount} — {remaining}"
+msgstr "{amount} — {remaining}"
+
+#: src/dialogs/iotaskdialog.cpp
+#, python-brace-format
+msgid "“{name}” already exists in this location."
+msgstr "\"{name}\" موجود في هذا الموقع بالفعل."
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Open With"
+msgstr "فتح باستخدام"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "No applications"
+msgstr "لا توجد تطبيقات"
+
+#: src/dialogs/openwithdialog.cpp
+msgid "Set as default"
+msgstr "تعيين كافتراضي"
+
+#: src/dialogs/propertiesdialog.cpp src/model/foldermodel.cpp
+msgid "Properties"
+msgstr "الخصائص"
+
+#: src/dialogs/propertiesdialog.cpp
+#, python-brace-format
+msgid "{n} file"
+msgid_plural "{n} files"
+msgstr[0] "{n} ملف"
+msgstr[1] "ملف واحد"
+msgstr[2] "ملفان"
+msgstr[3] "{n} ملفات"
+msgstr[4] "{n} ملفًا"
+msgstr[5] "{n} ملف"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Type:"
+msgstr "النوع:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Location:"
+msgstr "الموقع:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Size:"
+msgstr "الحجم:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Calculating…"
+msgstr "جارٍ الحساب…"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Created:"
+msgstr "تاريخ الإنشاء:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Modified:"
+msgstr "تاريخ التعديل:"
+
+#: src/dialogs/propertiesdialog.cpp
+msgid "Accessed:"
+msgstr "تاريخ الوصول:"
+
+#. TRANSLATORS: example addresses; keep the two addresses as they are.
+#: src/dialogs/serverdialogs.cpp
+msgid "smb://server/share or sftp://user@server"
+msgstr "smb://server/share أو sftp://user@server"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Recent Servers"
+msgstr "الخوادم الحديثة"
+
+#: src/dialogs/serverdialogs.cpp src/views/sidebar.cpp
+msgid "Connect"
+msgstr "اتصال"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Connect to Server"
+msgstr "الاتصال بخادم"
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "The name or password for “{address}” is incorrect. Try again."
+msgstr "الاسم أو كلمة السر لـ \"{address}\" غير صحيحة. حاول مرة أخرى."
+
+#: src/dialogs/serverdialogs.cpp
+#, python-brace-format
+msgid "Enter your name and password for “{address}”."
+msgstr "أدخل اسمك وكلمة السر لـ \"{address}\"."
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Registered user"
+msgstr "مستخدم مسجل"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Guest"
+msgstr "ضيف"
+
+#: src/dialogs/serverdialogs.cpp
+msgctxt "user name"
+msgid "Name"
+msgstr "الاسم"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Domain (optional)"
+msgstr "النطاق (اختياري)"
+
+#: src/dialogs/serverdialogs.cpp
+msgid "Remember this password"
+msgstr "تذكر كلمة السر هذه"
+
+#: src/dialogs/unlockdialog.cpp
+#, python-brace-format
+msgid "Enter the passphrase to unlock “{name}”."
+msgstr "أدخل عبارة المرور لفتح قفل \"{name}\"."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Passphrase"
+msgstr "عبارة المرور"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock"
+msgstr "فتح القفل"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlocking…"
+msgstr "جارٍ فتح القفل…"
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock failed."
+msgstr "فشل فتح القفل."
+
+#: src/dialogs/unlockdialog.cpp
+msgid "Unlock Volume"
+msgstr "فتح قفل وحدة التخزين"
+
+#: src/model/foldermodel.cpp src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{n} item"
+msgid_plural "{n} items"
+msgstr[0] "{n} عنصر"
+msgstr[1] "عنصر واحد"
+msgstr[2] "عنصران"
+msgstr[3] "{n} عناصر"
+msgstr[4] "{n} عنصرًا"
+msgstr[5] "{n} عنصر"
+
+#: src/model/foldermodel.cpp
+msgid "Folder"
+msgstr "مجلد"
+
+#: src/model/foldermodel.cpp
+msgid "Application"
+msgstr "تطبيق"
+
+#: src/model/foldermodel.cpp src/model/places.cpp src/views/folderwindow.cpp
+msgid "Trash"
+msgstr "سلة المهملات"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Folder"
+msgstr "مجلد جديد"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "New Text"
+msgstr "نص جديد"
+
+#: src/model/foldermodel.cpp
+msgid "Only local files can be compressed."
+msgstr "يمكن ضغط الملفات المحلية فقط."
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Archive"
+msgstr "أرشيف"
+
+#: src/model/foldermodel.cpp
+msgctxt "default file name"
+msgid "Extracted"
+msgstr "مستخرج"
+
+#: src/model/foldermodel.cpp
+msgid "Compressing canceled."
+msgstr "تم إلغاء الضغط."
+
+#: src/model/foldermodel.cpp
+msgid "Extracting canceled."
+msgstr "تم إلغاء الاستخراج."
+
+#: src/model/foldermodel.cpp
+msgid "Open with"
+msgstr "فتح باستخدام"
+
+#: src/model/foldermodel.cpp
+msgid "Show in Enclosing Folder"
+msgstr "إظهار في المجلد الحاوي"
+
+#: src/model/foldermodel.cpp
+msgid "Compress"
+msgstr "ضغط"
+
+#: src/model/foldermodel.cpp
+msgid "Cut"
+msgstr "قص"
+
+#: src/model/foldermodel.cpp
+msgid "Copy"
+msgstr "نسخ"
+
+#: src/model/foldermodel.cpp
+msgid "Paste"
+msgstr "لصق"
+
+#: src/model/foldermodel.cpp
+msgid "New Text"
+msgstr "ملف نصي جديد"
+
+#: src/model/foldermodel.cpp
+msgid "Move To Trash"
+msgstr "نقل إلى سلة المهملات"
+
+#: src/model/foldermodel.cpp
+msgid "Rename"
+msgstr "إعادة تسمية"
+
+#: src/model/foldermodel.cpp
+msgid "Open in Terminal"
+msgstr "فتح في الوحدة الطرفية"
+
+#: src/model/foldermodel.cpp
+msgid "Set as Wallpaper"
+msgstr "تعيين كخلفية"
+
+#: src/model/foldermodel.cpp
+msgid "Change background"
+msgstr "تغيير الخلفية"
+
+#: src/model/foldermodel.cpp
+msgid "Restore"
+msgstr "استعادة"
+
+#: src/model/foldermodel.cpp
+msgid "Show Hidden Files"
+msgstr "إظهار الملفات المخفية"
+
+#: src/model/foldermodel.cpp src/views/pathbar.cpp src/views/sidebar.cpp
+msgid "Open In New Window"
+msgstr "فتح في نافذة جديدة"
+
+#: src/model/foldermodel.cpp src/views/folderwindow.cpp src/views/pathbar.cpp
+#: src/views/sidebar.cpp
+msgid "Open In New Tab"
+msgstr "فتح في علامة تبويب جديدة"
+
+#: src/model/foldermodel.cpp
+msgid "Undo"
+msgstr "تراجع"
+
+#: src/model/foldermodel.cpp
+msgid "Redo"
+msgstr "إعادة"
+
+#: src/model/foldermodel.cpp
+#, python-brace-format
+msgid "Compress “{name}”"
+msgstr "ضغط \"{name}\""
+
+#: src/model/foldermodel.cpp
+msgid "Compress Items"
+msgstr "ضغط العناصر"
+
+#: src/model/foldermodel.cpp
+msgid "Hide Hidden Files"
+msgstr "إخفاء الملفات المخفية"
+
+#: src/model/pathbarmodel.cpp src/model/places.cpp
+msgid "Computer"
+msgstr "الكمبيوتر"
+
+#: src/model/places.cpp
+msgid "Locations"
+msgstr "المواقع"
+
+#: src/model/places.cpp
+msgid "Internal Drives"
+msgstr "محركات الأقراص الداخلية"
+
+#: src/model/places.cpp
+msgid "Network"
+msgstr "الشبكة"
+
+#: src/model/places.cpp
+#, python-brace-format
+msgid "“{address}” is not a server address. Enter one such as smb://server/share or sftp://user@server."
+msgstr "\"{address}\" ليس عنوان خادم. أدخل عنوانًا مثل smb://server/share أو sftp://user@server."
+
+#: src/model/places.cpp
+msgid "It is in use. Close the files open there and try again."
+msgstr "قيد الاستخدام. أغلق الملفات المفتوحة هناك وحاول مرة أخرى."
+
+#: src/ops/operations.cpp
+msgid "The file operations service stopped."
+msgstr "توقفت خدمة عمليات الملفات."
+
+#: src/ops/operations.cpp
+msgid "The session bus cannot be reached."
+msgstr "تعذر الوصول إلى ناقل الجلسة."
+
+#: src/preview/previewcontroller.cpp
+msgid "Preview is unavailable for this location."
+msgstr "المعاينة غير متوفرة لهذا الموقع."
+
+#: src/preview/previewcontroller.cpp
+msgid "This file is no longer available."
+msgstr "هذا الملف لم يعد متوفرًا."
+
+#. TRANSLATORS: the shown file's place among those previewed, such as "3 of 10".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{index} of {count}"
+msgstr "{index} من {count}"
+
+#. TRANSLATORS: on a previewed font file. "Install" adds the font to the user's fonts, "Remove" takes
+#. it out of them again, "Installed" says the font came with the system.
+#: src/preview/previewwindow.cpp
+msgid "Install"
+msgstr "تثبيت"
+
+#: src/preview/previewwindow.cpp
+msgid "Remove"
+msgstr "إزالة"
+
+#: src/preview/previewwindow.cpp
+msgid "Installed"
+msgstr "مثبّت"
+
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "Open with {application}"
+msgstr "فتح باستخدام {application}"
+
+#. TRANSLATORS: a folder's size and how many items it holds, such as "4 KB, 3 items".
+#: src/preview/previewwindow.cpp
+#, python-brace-format
+msgid "{size}, {count}"
+msgstr "{size}، {count}"
+
+#: src/preview/previewwindow.cpp
+msgid "The rest of this file is not shown."
+msgstr "بقية هذا الملف غير معروضة."
+
+#: src/preview/previewwindow.cpp
+msgid "This image could not be displayed."
+msgstr "تعذر عرض هذه الصورة."
+
+#: src/preview/previewwindow.cpp
+msgid "Quick Look"
+msgstr "معاينة سريعة"
+
+#: src/views/foldermenu.cpp
+msgid "New Documents"
+msgstr "مستندات جديدة"
+
+#. TRANSLATORS: the last item of the Open with submenu, which lists every application.
+#: src/views/foldermenu.cpp
+msgid "Other"
+msgstr "غير ذلك"
+
+#: src/views/folderpage.cpp
+msgid "No Results"
+msgstr "لا توجد نتائج"
+
+#: src/views/folderpage.cpp
+#, python-brace-format
+msgid "Searching “{text}”"
+msgstr "جارٍ البحث عن \"{text}\""
+
+#: src/views/folderwindow.cpp
+msgid "Search:"
+msgstr "بحث:"
+
+#. TRANSLATORS: the folder a search looks in, in quotation marks.
+#: src/views/folderwindow.cpp
+#, python-brace-format
+msgid "“{name}”"
+msgstr "\"{name}\""
+
+#. TRANSLATORS: a button that empties the Trash.
+#: src/views/folderwindow.cpp
+msgid "Empty"
+msgstr "إفراغ"
+
+#: src/views/folderwindow.cpp data/cutefish-filemanager.desktop
+msgid "Files"
+msgstr "الملفات"
+
+#: src/views/folderwindow.cpp
+msgid "Close Tab"
+msgstr "إغلاق علامة التبويب"
+
+#: src/views/folderwindow.cpp
+msgid "Browses and organizes your files."
+msgstr "يتصفح ملفاتك وينظمها."
+
+#: src/views/folderwindow.cpp
+msgid "About Files"
+msgstr "حول الملفات"
+
+#: src/views/folderwindow.cpp
+msgid "Hide Files"
+msgstr "إخفاء الملفات"
+
+#: src/views/folderwindow.cpp
+msgid "New Tab"
+msgstr "علامة تبويب جديدة"
+
+#: src/views/folderwindow.cpp
+msgid "Find"
+msgstr "بحث"
+
+#: src/views/folderwindow.cpp
+msgid "Close Window"
+msgstr "إغلاق النافذة"
+
+#: src/views/folderwindow.cpp
+msgid "as Icons"
+msgstr "كأيقونات"
+
+#: src/views/folderwindow.cpp
+msgid "as List"
+msgstr "كقائمة"
+
+#: src/views/folderwindow.cpp
+msgid "Sort By"
+msgstr "ترتيب حسب"
+
+#: src/views/folderwindow.cpp
+msgid "Refresh"
+msgstr "تحديث"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Name"
+msgstr "الاسم"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Original Location"
+msgstr "الموقع الأصلي"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Date Deleted"
+msgstr "تاريخ الحذف"
+
+#: src/views/folderwindow.cpp
+msgid "Date"
+msgstr "التاريخ"
+
+#: src/views/folderwindow.cpp
+msgid "Type"
+msgstr "النوع"
+
+#: src/views/folderwindow.cpp src/views/listview.cpp
+msgid "Size"
+msgstr "الحجم"
+
+#: src/views/folderwindow.cpp
+msgid "Go"
+msgstr "انتقال"
+
+#: src/views/folderwindow.cpp
+msgid "Back"
+msgstr "للخلف"
+
+#: src/views/folderwindow.cpp
+msgid "Forward"
+msgstr "للأمام"
+
+#: src/views/folderwindow.cpp
+msgid "Enclosing Folder"
+msgstr "المجلد الحاوي"
+
+#: src/views/folderwindow.cpp
+msgid "Go to Location…"
+msgstr "الانتقال إلى الموقع…"
+
+#: src/views/folderwindow.cpp
+msgid "Connect to Server…"
+msgstr "الاتصال بخادم…"
+
+#: src/views/folderwindow.cpp
+msgid "Window"
+msgstr "نافذة"
+
+#: src/views/folderwindow.cpp
+msgid "Minimize"
+msgstr "تصغير"
+
+#: src/views/folderwindow.cpp
+msgid "Zoom"
+msgstr "تكبير/تصغير"
+
+#: src/views/folderwindow.cpp
+msgid "Show Previous Tab"
+msgstr "إظهار علامة التبويب السابقة"
+
+#: src/views/folderwindow.cpp
+msgid "Show Next Tab"
+msgstr "إظهار علامة التبويب التالية"
+
+#: src/views/listview.cpp
+msgid "Date Modified"
+msgstr "تاريخ التعديل"
+
+#: src/views/listview.cpp
+msgid "Kind"
+msgstr "النوع"
+
+#: src/views/pathbar.cpp
+msgid "Search or Enter Path"
+msgstr "ابحث أو أدخل مسارًا"
+
+#: src/views/previewclient.cpp
+#, python-brace-format
+msgid "Could not open preview: {error}"
+msgstr "تعذر فتح المعاينة: {error}"
+
+#: src/views/renameeditor.cpp
+msgid "Choose a name other than . or .."
+msgstr "اختر اسمًا غير . أو .."
+
+#: src/views/renameeditor.cpp
+msgid "Names cannot contain / or line breaks."
+msgstr "لا يمكن أن تحتوي الأسماء على / أو فواصل أسطر."
+
+#: src/views/sidebar.cpp
+msgid "Remove from Favorites"
+msgstr "إزالة من المفضلة"
+
+#: src/views/sidebar.cpp
+msgid "Eject"
+msgstr "إخراج"
+
+#: src/views/sidebar.cpp
+msgid "Unmount"
+msgstr "إلغاء التحميل"
+
+#: src/views/sidebar.cpp
+msgid "Server Identity Changed"
+msgstr "تغيرت هوية الخادم"
+
+#: src/views/sidebar.cpp
+msgid "Unknown Server"
+msgstr "خادم غير معروف"
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” is not the one it had before. Someone may be impersonating it. Connect only if its administrator changed its key."
+msgstr "هوية \"{address}\" ليست كما كانت من قبل. قد يكون هناك من ينتحل صفته. لا تتصل إلا إذا قام مسؤوله بتغيير مفتاحه."
+
+#: src/views/sidebar.cpp
+#, python-brace-format
+msgid "The identity of “{address}” cannot be verified. Check that its key fingerprint is the one you expect before you connect."
+msgstr "تعذر التحقق من هوية \"{address}\". تأكد من أن بصمة مفتاحه مطابقة لما تتوقعه قبل الاتصال."
+
+#: src/views/sidebar.cpp
+msgid "Connect Anyway"
+msgstr "الاتصال على أي حال"
+
+#: src/views/sidebar.cpp
+msgid "Device operation failed"
+msgstr "فشلت عملية الجهاز"
+
+#: data/cutefish-filemanager.desktop
+msgid "File Manager"
+msgstr "مدير الملفات"
+
+#: data/cutefish-filemanager.desktop
+msgid "Browse and manage your files"
+msgstr "تصفح ملفاتك وإدارتها"
