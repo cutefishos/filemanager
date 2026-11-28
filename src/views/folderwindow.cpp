@@ -1061,7 +1061,17 @@ void FolderWindow::updateBackground()
 void FolderWindow::updateBlur()
 {
     const ui::SizeF size = m_window->size();
-    m_window->setBackgroundBlur({0, 0, size.width, size.height}, ui::Theme::current().windowRadius);
+    const double left = m_root->standalone
+            ? 0
+            : (m_root->sidebar->geometry().width > 0 ? m_root->sidebar->geometry().width : m_root->sidebarWidth);
+    if (left <= 0 || size.width <= 0 || size.height <= 0) {
+        m_window->setBackgroundBlur({}, 0);
+        return;
+    }
+    const double radius = ui::Theme::current().windowRadius;
+    // Extend past the sidebar divider by the corner radius so the opaque
+    // content pane hides the right rounded corners cleanly.
+    m_window->setBackgroundBlur({0, 0, std::min(size.width, left + radius), size.height}, radius);
 }
 
 void FolderWindow::showContextMenu(ui::PointF position)
