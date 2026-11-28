@@ -22,6 +22,7 @@ void triggerAction(FolderModel& model, const std::string& name)
         {"open", [](FolderModel& m) { m.openSelected(); }},
         {"openWith", [](FolderModel& m) { m.showOpenWithDialog(); }},
         {"showInFolder", [](FolderModel& m) { m.showInFolder(); }},
+        {"sendWithRipple", [](FolderModel& m) { m.sendWithRipple(); }},
         {"compress", [](FolderModel& m) { m.compressSelected(); }},
         {"cut", [](FolderModel& m) { m.cut(); }},
         {"copy", [](FolderModel& m) { m.copy(); }},
@@ -117,6 +118,7 @@ std::unique_ptr<ui::Menu> createFolderMenu(FolderModel& model)
     item("openInNewTab", selection);
     item("openInNewWindow", selection);
     item("showInFolder", selection);
+    item("sendWithRipple", selection);
 
     const FolderModel::Action& openWith = model.action("openWith");
     if (selection && openWith.visible) {
